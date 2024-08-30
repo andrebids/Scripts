@@ -67,12 +67,18 @@ function carregarJSON(arquivo) {
 
 // Função para salvar o arquivo JSON
 function salvarJSON(arquivo, dados) {
-    var arquivo = new File(arquivo);
-    arquivo.encoding = "UTF-8";
-    arquivo.open('w');
-    var conteudo = stringifyJSON(dados);
-    arquivo.write(conteudo);
-    arquivo.close();
+    try {
+        var arquivo = new File(arquivo);
+        arquivo.encoding = "UTF-8";
+        arquivo.open('w');
+        var conteudo = stringifyJSON(dados);
+        arquivo.write(conteudo);
+        arquivo.close();
+        $.writeln("Arquivo salvo com sucesso: " + arquivo.fsName);
+    } catch (e) {
+        alert("Erro ao salvar o arquivo: " + e.toString());
+        $.writeln("Erro ao salvar o arquivo: " + e.toString());
+    }
 }
 
 // Obter o caminho do script atual
@@ -571,6 +577,7 @@ function executarScript() {
             var referencia = combinacao.referencia ? " (Ref: " + combinacao.referencia + ")" : "";
             listaCombinacoes.add("item", componente + " - " + cor + " - " + combinacao.unidade + referencia);
         }
+        $.writeln("Lista de combinações atualizada. Total de combinações: " + combinacoes.length);
     }
 
     // Função para atualizar os dropdowns
@@ -594,11 +601,27 @@ function executarScript() {
 
     // Função para adicionar nova combinação
     botaoAdicionarCombinacao.onClick = function() {
-        if (dropdownComponentes.selection && dropdownCores.selection && dropdownUnidades.selection) {
+        try {
+            if (!dropdownComponentes.selection) {
+                alert("Por favor, selecione um componente.");
+                return;
+            }
+            if (!dropdownCores.selection) {
+                alert("Por favor, selecione uma cor.");
+                return;
+            }
+            if (!dropdownUnidades.selection) {
+                alert("Por favor, selecione uma unidade.");
+                return;
+            }
+
             var componenteId = database.componentes[dropdownComponentes.selection.index].id;
             var corId = database.cores[dropdownCores.selection.index].id;
             var unidade = dropdownUnidades.selection.text;
             var referencia = campoReferenciaCombinacao.text;
+
+            $.writeln("Adicionando combinação: Componente ID: " + componenteId + ", Cor ID: " + corId + ", Unidade: " + unidade + ", Referência: " + referencia);
+
             var existe = false;
             for (var i = 0; i < database.combinacoes.length; i++) {
                 var c = database.combinacoes[i];
@@ -607,6 +630,7 @@ function executarScript() {
                     break;
                 }
             }
+
             if (!existe) {
                 var novaCombinacao = {
                     "id": getNextId(database.combinacoes),
@@ -615,6 +639,8 @@ function executarScript() {
                     "unidade": unidade,
                     "referencia": referencia
                 };
+                $.writeln("Nova combinação: " + stringifyJSON(novaCombinacao));
+
                 database.combinacoes.push(novaCombinacao);
                 salvarJSON(caminhoDatabase, database);
                 atualizarListaCombinacoes();
@@ -623,8 +649,9 @@ function executarScript() {
             } else {
                 alert("Esta combinação já existe.");
             }
-        } else {
-            alert("Por favor, selecione um componente, uma cor e uma unidade.");
+        } catch (e) {
+            alert("Erro ao adicionar combinação: " + e.toString());
+            $.writeln("Erro ao adicionar combinação: " + e.toString());
         }
     }
 

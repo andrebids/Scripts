@@ -3,7 +3,11 @@
 (function() {
     // Função para analisar JSON
     function parseJSON(str) {
-        return eval('(' + str + ')');
+        try {
+            return eval('(' + str + ')');
+        } catch (e) {
+            throw new Error("Erro ao analisar o JSON: " + e.message);
+        }
     }
 
     // Função para serializar JSON
@@ -35,7 +39,7 @@
         var conteudo = arquivo.read();
         arquivo.close();
         try {
-            return parseJSON(conteudo);
+            return parseJSON(conteudo); // Use parseJSON em vez de JSON.parse
         } catch (e) {
             throw new Error("Erro ao analisar o JSON: " + e.message);
         }
@@ -68,6 +72,30 @@
         arquivo.close();
     }
 
+    // Função para verificar se um objeto é um array
+    function isArray(obj) {
+        return obj && typeof obj === 'object' && obj.constructor === Array;
+    }
+
+    // Função para extrair nomes de um array de objetos
+    function extrairNomes(array) {
+        var nomes = [];
+        for (var i = 0; i < array.length; i++) {
+            nomes.push(array[i].nome);
+        }
+        return nomes;
+    }
+
+    // Função auxiliar para encontrar um item em um array por id
+    function encontrarPorId(array, id) {
+        for (var i = 0; i < array.length; i++) {
+            if (array[i].id === id) {
+                return array[i];
+            }
+        }
+        return null;
+    }
+
     // Caminho do arquivo de configuração
     var caminhoConfig = getPastaDocumentos() + "/cartouche_config.json";
 
@@ -95,38 +123,21 @@
         escreverArquivoJSON(caminhoConfig, {nomeDesigner: nomeDesigner});
     }
 
-    // Selecionar o arquivo da base de dados
-    var caminhoArquivo = selecionarArquivo();
-    if (!caminhoArquivo) {
-        alert("Nenhum arquivo selecionado. O script será encerrado.");
-        return;
-    }
-
-    // Carregar dados do arquivo
+    // Carregar dados do arquivo database2.json
+    var caminhoArquivo = File($.fileName).parent.fsName + "/database2.json";
     var dados;
     try {
         dados = lerArquivoJSON(caminhoArquivo);
     } catch (e) {
-        alert("Erro ao ler o arquivo: " + e.message + "\nO script será encerrado.");
+        alert("Erro ao ler o arquivo database2.json: " + e.message + "\nO script será encerrado.");
         return;
     }
 
-    // Verificar se todas as chaves necessárias estão presentes
-    var chavesNecessarias = ['nomes', 'componentes', 'cores', 'tiposFixacao', 'coresStructure', 'unidades'];
-    for (var i = 0; i < chavesNecessarias.length; i++) {
-        if (!dados.hasOwnProperty(chavesNecessarias[i])) {
-            alert("O arquivo JSON não contém a chave necessária: " + chavesNecessarias[i] + "\nO script será encerrado.");
-            return;
-        }
+    // Verificar se os dados foram carregados corretamente
+    if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.componentes)) {
+        alert("Erro: Os dados não foram carregados corretamente ou estão em um formato inválido.");
+        return;
     }
-
-    // Dados
-    var nomes = dados.nomes;
-    var componentes = dados.componentes;
-    var cores = dados.cores;
-    var tiposFixacao = dados.tiposFixacao;
-    var coresStructure = dados.coresStructure;
-    var unidades = dados.unidades;
 
     // Criar a janela principal
     var janela = new Window("dialog", "Cartouche by Bids");
@@ -183,6 +194,7 @@
     var grupoStructure = subgrupo1.add("group");
     grupoStructure.orientation = "row";
     var checkStructure = grupoStructure.add("checkbox", undefined, "Structure laqué");
+    var coresStructure = ["Blanc", "Noir", "Gris", "Argent", "Or"];
     var corStructure = grupoStructure.add("dropdownlist", undefined, coresStructure);
     corStructure.selection = 0;
     corStructure.enabled = false;
@@ -222,6 +234,7 @@
     // Tipo de fixação
     var grupoFixacao = grupoDimensoesFixacao.add("group");
     grupoFixacao.add("statictext", undefined, "Tipo de fixação:");
+    var tiposFixacao = ["Murale", "Suspendue", "Sur pied", "Encastrée", "Magnétique"];
     var listaFixacao = grupoFixacao.add("dropdownlist", undefined, tiposFixacao);
     listaFixacao.selection = 0;
 
@@ -234,14 +247,17 @@
     grupo2.orientation = "row";
 
     // Lista dropdown componentes
-    var listaComponentes = grupo2.add("dropdownlist", undefined, componentes);
+    var componentesNomes = extrairNomes(dados.componentes);
+    var listaComponentes = grupo2.add("dropdownlist", undefined, componentesNomes);
     listaComponentes.selection = 0;
 
     // Lista de cores
-    var listaCores = grupo2.add("dropdownlist", undefined, cores);
+    var coresNomes = extrairNomes(dados.cores);
+    var listaCores = grupo2.add("dropdownlist", undefined, coresNomes);
     listaCores.selection = 0;
 
-    // Adicionar seleção de unidade para componentes
+    // Lista de unidades
+    var unidades = ["ml", "m2", "unit"];
     var listaUnidades = grupo2.add("dropdownlist", undefined, unidades);
     listaUnidades.selection = 0;
 
@@ -250,8 +266,28 @@
     campoQuantidade.characters = 5;
     apenasNumerosEVirgula(campoQuantidade);
 
-    // Botão adicionar
-    var botaoAdicionar = grupo2.add("button", undefined, "Adicionar");
+    // Botão adicionar componente
+    var botaoAdicionarComponente = grupo2.add("button", undefined, "Adicionar Componente");
+
+    // Grupo para combinações existentes
+    var grupoCombinacoes = grupoComponentes.add("group");
+    grupoCombinacoes.orientation = "row";
+
+    // Lista de combinações existentes
+    var combinacoesNomes = ["Selecione uma combinação"];
+    for (var i = 0; i < dados.combinacoes.length; i++) {
+        var comb = dados.combinacoes[i];
+        var componente = encontrarPorId(dados.componentes, comb.componenteId);
+        var cor = encontrarPorId(dados.cores, comb.corId);
+        if (componente && cor) {
+            combinacoesNomes.push(componente.nome + " " + cor.nome + " - " + comb.unidade + " (Ref: " + comb.referencia + ")");
+        }
+    }
+    var listaCombinacoes = grupoCombinacoes.add("dropdownlist", undefined, combinacoesNomes);
+    listaCombinacoes.selection = 0;
+
+    // Botão adicionar combinação
+    var botaoAdicionarCombinacao = grupoCombinacoes.add("button", undefined, "Adicionar Combinação");
 
     // Terceiro grupo (Observações)
     var grupoObs = abaLegenda.add("panel", undefined, "Observações");
@@ -274,31 +310,31 @@
     areaPreview.preferredSize = [400, 400];
     var botaoGerar = abaLegenda.add("button", undefined, "Adicionar legenda");
 
-    // Array para armazenar os componentes
-    var componentesLegenda = [];
+    // Array para armazenar os itens da legenda
+    var itensLegenda = [];
 
-    // Função para atualizar a lista de componentes
-    function atualizarListaComponentes() {
-        // Limpar o grupo de componentes
+    // Função para atualizar a lista de itens
+    function atualizarListaItens() {
+        // Limpar o grupo de itens adicionados
         for (var i = grupoComponentesAdicionados.children.length - 1; i >= 0; i--) {
             grupoComponentesAdicionados.remove(grupoComponentesAdicionados.children[i]);
         }
 
-        // Adicionar cada componente à lista
-        for (var i = 0; i < componentesLegenda.length; i++) {
-            var grupoComponente = grupoComponentesAdicionados.add("group");
-            grupoComponente.orientation = "row";
+        // Adicionar cada item à lista
+        for (var i = 0; i < itensLegenda.length; i++) {
+            var grupoItem = grupoComponentesAdicionados.add("group");
+            grupoItem.orientation = "row";
             
-            var textoComponente = grupoComponente.add("statictext", undefined, componentesLegenda[i]);
-            textoComponente.size = [250, 20];
+            var textoItem = grupoItem.add("statictext", undefined, itensLegenda[i].texto);
+            textoItem.size = [250, 20];
             
-            var botaoRemover = grupoComponente.add("button", undefined, "X");
+            var botaoRemover = grupoItem.add("button", undefined, "X");
             botaoRemover.size = [20, 20];
             botaoRemover.index = i;
             
             botaoRemover.onClick = function() {
-                componentesLegenda.splice(this.index, 1);
-                atualizarListaComponentes();
+                itensLegenda.splice(this.index, 1);
+                atualizarListaItens();
                 atualizarPreview();
             }
         }
@@ -311,14 +347,11 @@
         var previewText = "";
         previewText += "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + campoNomeTipo.text + "\" avec, ";
         
-        var componentesNomes = "";
-        for (var i = 0; i < componentesLegenda.length; i++) {
-            if (i > 0) componentesNomes += ", ";
-            var partesComponente = componentesLegenda[i].split(":");
-            var unidade = partesComponente[0].split(" ").pop();
-            componentesNomes += partesComponente[0].replace(" " + unidade, "");
+        var itensNomes = [];
+        for (var i = 0; i < itensLegenda.length; i++) {
+            itensNomes.push(itensLegenda[i].nome);
         }
-        previewText += componentesNomes;
+        previewText += itensNomes.join(", ");
         
         previewText += " sur structure aluminium";
         if (checkStructure.value) {
@@ -340,10 +373,8 @@
 
         previewText += "Fixation: " + (listaFixacao.selection ? listaFixacao.selection.text : "") + "\n\n";
 
-        for (var i = 0; i < componentesLegenda.length; i++) {
-            var partesComponente = componentesLegenda[i].split(":");
-            var unidade = partesComponente[0].split(" ").pop();
-            previewText += partesComponente[0].replace(" " + unidade, "") + " " + unidade + ": " + partesComponente[1] + "\n";
+        for (var i = 0; i < itensLegenda.length; i++) {
+            previewText += itensLegenda[i].texto + "\n";
         }
 
         previewText += "\nObs: " + campoObs.text;
@@ -361,29 +392,51 @@
     };
 
     // Botão para adicionar componente à legenda
-    botaoAdicionar.onClick = function() {
-        var componente = listaComponentes.selection.text;
-        var cor = listaCores.selection.text;
-        var quantidade = campoQuantidade.text;
+    botaoAdicionarComponente.onClick = function() {
+        var componente = dados.componentes[listaComponentes.selection.index];
+        var cor = dados.cores[listaCores.selection.index];
         var unidade = listaUnidades.selection.text;
+        var quantidade = campoQuantidade.text;
         
-        var novoComponente = componente + " " + cor + " " + unidade + ": " + quantidade;
-        
-        var componenteAtualizado = false;
-        for (var i = 0; i < componentesLegenda.length; i++) {
-            if (componentesLegenda[i].indexOf(componente + " " + cor) === 0) {
-                componentesLegenda[i] = novoComponente;
-                componenteAtualizado = true;
-                break;
-            }
+        var texto = componente.nome + " " + cor.nome + " " + unidade + ": " + quantidade;
+        if (componente.referencia) {
+            texto += " (Ref: " + componente.referencia + ")";
         }
         
-        if (!componenteAtualizado) {
-            componentesLegenda.push(novoComponente);
-        }
+        itensLegenda.push({
+            tipo: "componente",
+            nome: componente.nome,
+            texto: texto
+        });
         
-        atualizarListaComponentes();
+        atualizarListaItens();
         atualizarPreview();
+    }
+
+    // Botão para adicionar combinação existente à legenda
+    botaoAdicionarCombinacao.onClick = function() {
+        if (listaCombinacoes.selection.index > 0) {
+            var combinacaoSelecionada = dados.combinacoes[listaCombinacoes.selection.index - 1];
+            var componente = encontrarPorId(dados.componentes, combinacaoSelecionada.componenteId);
+            var cor = encontrarPorId(dados.cores, combinacaoSelecionada.corId);
+            
+            if (componente && cor) {
+                var texto = componente.nome + " " + cor.nome + " " + combinacaoSelecionada.unidade + " (Ref: " + combinacaoSelecionada.referencia + ")";
+                
+                itensLegenda.push({
+                    tipo: "combinacao",
+                    nome: componente.nome,
+                    texto: texto
+                });
+                
+                atualizarListaItens();
+                atualizarPreview();
+            } else {
+                alert("Erro: Componente ou cor não encontrados para a combinação selecionada.");
+            }
+        } else {
+            alert("Por favor, selecione uma combinação válida.");
+        }
     }
 
     // Botão para adicionar legenda ao Illustrator

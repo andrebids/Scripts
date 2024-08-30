@@ -47,9 +47,6 @@ function carregarJSON(arquivo) {
     var conteudo = file.read();
     file.close();
     
-    // Adicione esta linha para depuração
-    alert("Conteúdo do arquivo:\n" + conteudo);
-    
     if (conteudo === "") {
         throw new Error("O arquivo está vazio: " + arquivo);
     }
@@ -64,19 +61,24 @@ function carregarJSON(arquivo) {
         }
         return dados;
     } catch (e) {
-        throw new Error("Erro ao analisar o JSON: " + e.message + "\n\nConteúdo do arquivo:\n" + conteudo);
+        throw new Error("Erro ao analisar o JSON: " + e.message);
     }
 }
 
 // Função para salvar o arquivo JSON
 function salvarJSON(arquivo, dados) {
-    var arquivo = new File(arquivo);
-    arquivo.encoding = "UTF-8";
-    arquivo.open('w');
-    var conteudo = stringifyJSON(dados);
-    arquivo.write(conteudo);
-    arquivo.close();
-    alert("Arquivo salvo: " + arquivo.fsName + "\nConteúdo: " + conteudo);
+    try {
+        var arquivo = new File(arquivo);
+        arquivo.encoding = "UTF-8";
+        arquivo.open('w');
+        var conteudo = stringifyJSON(dados);
+        arquivo.write(conteudo);
+        arquivo.close();
+        $.writeln("Arquivo salvo com sucesso: " + arquivo.fsName);
+    } catch (e) {
+        alert("Erro ao salvar o arquivo: " + e.toString());
+        $.writeln("Erro ao salvar o arquivo: " + e.toString());
+    }
 }
 
 // Obter o caminho do script atual
@@ -85,7 +87,6 @@ var scriptPath = scriptFile.path;
 
 // Caminho para o arquivo de banco de dados na mesma pasta do script
 var caminhoDatabase = scriptPath + "/database2.json";
-alert("Caminho da base de dados: " + caminhoDatabase);
 
 // Função para verificar se um valor é um array
 function isArray(value) {
@@ -108,16 +109,8 @@ function executarScript() {
     // Carregar o banco de dados existente
     var database;
     try {
-        alert("Tentando carregar o arquivo: " + caminhoDatabase);
-        var fileContent = File(caminhoDatabase).read();
-        alert("Conteúdo do arquivo:\n" + fileContent);
         database = carregarJSON(caminhoDatabase);
-        alert("Base de dados carregada com sucesso. Número de componentes: " + database.componentes.length +
-              ", Cores: " + database.cores.length +
-              ", Combinações: " + database.combinacoes.length +
-              ", Acabamentos: " + database.acabamentos.length +
-              ", Tamanhos: " + database.tamanhos.length +
-              ", Bolas: " + database.bolas.length);
+        alert("Base de dados carregada com sucesso.");
         
         // Verificar e corrigir a estrutura da base de dados
         if (typeof database !== 'object' || database === null) {
@@ -133,7 +126,7 @@ function executarScript() {
         
         salvarJSON(caminhoDatabase, database);
     } catch(e) {
-        alert("Erro ao carregar a base de dados: " + e.message + "\n\nCaminho do arquivo: " + caminhoDatabase);
+        alert("Erro ao carregar a base de dados: " + e.message);
         return;
     }
 
@@ -549,7 +542,20 @@ function executarScript() {
     grupoAdicionarCombinacao.add("statictext", undefined, "Unidade:");
     var dropdownUnidades = grupoAdicionarCombinacao.add("dropdownlist");
     dropdownUnidades.preferredSize.width = 80;
+    grupoAdicionarCombinacao.add("statictext", undefined, "Referência:");
+    var campoReferenciaCombinacao = grupoAdicionarCombinacao.add("edittext", undefined, "");
+    campoReferenciaCombinacao.preferredSize.width = 100;
     var botaoAdicionarCombinacao = grupoAdicionarCombinacao.add("button", undefined, "Adicionar");
+
+    // Grupo para editar referência da combinação
+    var grupoEditarReferenciaCombinacao = abaCombinacoes.add("group");
+    grupoEditarReferenciaCombinacao.orientation = "row";
+    grupoEditarReferenciaCombinacao.alignChildren = ["left", "center"];
+    grupoEditarReferenciaCombinacao.spacing = 5;
+    grupoEditarReferenciaCombinacao.add("statictext", undefined, "Editar Referência:");
+    var campoEditarReferenciaCombinacao = grupoEditarReferenciaCombinacao.add("edittext", undefined, "");
+    campoEditarReferenciaCombinacao.preferredSize.width = 100;
+    var botaoSalvarReferenciaCombinacao = grupoEditarReferenciaCombinacao.add("button", undefined, "Salvar Referência");
 
     // Botão para remover combinação selecionada
     var botaoRemoverCombinacao = abaCombinacoes.add("button", undefined, "Remover Selecionado");
@@ -568,8 +574,10 @@ function executarScript() {
             var combinacao = combinacoes[i];
             var componente = findById(database.componentes, combinacao.componenteId).nome;
             var cor = findById(database.cores, combinacao.corId).nome;
-            listaCombinacoes.add("item", componente + " - " + cor + " - " + combinacao.unidade);
+            var referencia = combinacao.referencia ? " (Ref: " + combinacao.referencia + ")" : "";
+            listaCombinacoes.add("item", componente + " - " + cor + " - " + combinacao.unidade + referencia);
         }
+        $.writeln("Lista de combinações atualizada. Total de combinações: " + combinacoes.length);
     }
 
     // Função para atualizar os dropdowns
@@ -593,10 +601,27 @@ function executarScript() {
 
     // Função para adicionar nova combinação
     botaoAdicionarCombinacao.onClick = function() {
-        if (dropdownComponentes.selection && dropdownCores.selection && dropdownUnidades.selection) {
+        try {
+            if (!dropdownComponentes.selection) {
+                alert("Por favor, selecione um componente.");
+                return;
+            }
+            if (!dropdownCores.selection) {
+                alert("Por favor, selecione uma cor.");
+                return;
+            }
+            if (!dropdownUnidades.selection) {
+                alert("Por favor, selecione uma unidade.");
+                return;
+            }
+
             var componenteId = database.componentes[dropdownComponentes.selection.index].id;
             var corId = database.cores[dropdownCores.selection.index].id;
             var unidade = dropdownUnidades.selection.text;
+            var referencia = campoReferenciaCombinacao.text;
+
+            $.writeln("Adicionando combinação: Componente ID: " + componenteId + ", Cor ID: " + corId + ", Unidade: " + unidade + ", Referência: " + referencia);
+
             var existe = false;
             for (var i = 0; i < database.combinacoes.length; i++) {
                 var c = database.combinacoes[i];
@@ -605,22 +630,51 @@ function executarScript() {
                     break;
                 }
             }
+
             if (!existe) {
                 var novaCombinacao = {
                     "id": getNextId(database.combinacoes),
                     "componenteId": componenteId,
                     "corId": corId,
-                    "unidade": unidade
+                    "unidade": unidade,
+                    "referencia": referencia
                 };
+                $.writeln("Nova combinação: " + stringifyJSON(novaCombinacao));
+
                 database.combinacoes.push(novaCombinacao);
                 salvarJSON(caminhoDatabase, database);
                 atualizarListaCombinacoes();
+                campoReferenciaCombinacao.text = "";
                 alert("Combinação adicionada com sucesso!");
             } else {
                 alert("Esta combinação já existe.");
             }
+        } catch (e) {
+            alert("Erro ao adicionar combinação: " + e.toString());
+            $.writeln("Erro ao adicionar combinação: " + e.toString());
+        }
+    }
+
+    // Função para atualizar a referência da combinação selecionada
+    botaoSalvarReferenciaCombinacao.onClick = function() {
+        var selectedIndex = listaCombinacoes.selection.index;
+        if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < database.combinacoes.length) {
+            var combinacaoSelecionada = database.combinacoes[selectedIndex];
+            combinacaoSelecionada.referencia = campoEditarReferenciaCombinacao.text;
+            salvarJSON(caminhoDatabase, database);
+            atualizarListaCombinacoes();
+            alert("Referência da combinação atualizada com sucesso!");
         } else {
-            alert("Por favor, selecione um componente, uma cor e uma unidade.");
+            alert("Por favor, selecione uma combinação para editar a referência.");
+        }
+    }
+
+    // Atualizar o campo de edição quando uma combinação é selecionada
+    listaCombinacoes.onChange = function() {
+        var selectedIndex = listaCombinacoes.selection.index;
+        if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < database.combinacoes.length) {
+            var combinacaoSelecionada = database.combinacoes[selectedIndex];
+            campoEditarReferenciaCombinacao.text = combinacaoSelecionada.referencia || "";
         }
     }
 

@@ -50,6 +50,51 @@
         return null;
     }
 
+    // Função para obter o caminho da pasta Documentos
+    function getPastaDocumentos() {
+        return Folder.myDocuments.fsName;
+    }
+
+    // Função para verificar se o arquivo existe
+    function arquivoExiste(caminho) {
+        return new File(caminho).exists;
+    }
+
+    // Função para escrever no arquivo JSON
+    function escreverArquivoJSON(caminho, dados) {
+        var arquivo = new File(caminho);
+        arquivo.open('w');
+        arquivo.write(stringifyJSON(dados));
+        arquivo.close();
+    }
+
+    // Caminho do arquivo de configuração
+    var caminhoConfig = getPastaDocumentos() + "/cartouche_config.json";
+
+    // Verificar se o arquivo de configuração existe
+    var nomeDesigner;
+    if (arquivoExiste(caminhoConfig)) {
+        var config = lerArquivoJSON(caminhoConfig);
+        nomeDesigner = config.nomeDesigner;
+    } else {
+        // Criar janela para pedir o nome do designer
+        var janelaDesigner = new Window("dialog", "Nome do Designer");
+        janelaDesigner.add("statictext", undefined, "Por favor, insira o nome do designer:");
+        var campoNome = janelaDesigner.add("edittext", undefined, "");
+        campoNome.characters = 30;
+        var botaoOK = janelaDesigner.add("button", undefined, "OK");
+        
+        botaoOK.onClick = function() {
+            nomeDesigner = campoNome.text;
+            janelaDesigner.close();
+        }
+        
+        janelaDesigner.show();
+        
+        // Salvar o nome do designer no arquivo de configuração
+        escreverArquivoJSON(caminhoConfig, {nomeDesigner: nomeDesigner});
+    }
+
     // Selecionar o arquivo da base de dados
     var caminhoArquivo = selecionarArquivo();
     if (!caminhoArquivo) {
@@ -113,10 +158,11 @@
     var subgrupo1 = grupo1.add("group");
     subgrupo1.orientation = "row";
 
-    // Dropdown nome
-    subgrupo1.add("statictext", undefined, "Nome:");
-    var listaNomes = subgrupo1.add("dropdownlist", undefined, nomes);
-    listaNomes.selection = 0;
+    // Campo do nome
+    var grupoNome = subgrupo1.add("group");
+    grupoNome.add("statictext", undefined, "Nome:");
+    var campoNome = grupoNome.add("statictext", undefined, nomeDesigner);
+    campoNome.characters = 20;
 
     // Dropdown L1-L20
     subgrupo1.add("statictext", undefined, "L:");
@@ -136,7 +182,7 @@
     // Structure laqueé
     var grupoStructure = subgrupo1.add("group");
     grupoStructure.orientation = "row";
-    var checkStructure = grupoStructure.add("checkbox", undefined, "Structure laqueé");
+    var checkStructure = grupoStructure.add("checkbox", undefined, "Structure laqué");
     var corStructure = grupoStructure.add("dropdownlist", undefined, coresStructure);
     corStructure.selection = 0;
     corStructure.enabled = false;
@@ -263,7 +309,6 @@
     // Função para atualizar o preview
     function atualizarPreview() {
         var previewText = "";
-        previewText += (listaNomes.selection ? listaNomes.selection.text : "") + "\n\n";
         previewText += "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + campoNomeTipo.text + "\" avec, ";
         
         var componentesNomes = "";
@@ -373,7 +418,7 @@
 
             // Adicionar o nome abaixo do "P"
             var textoNome = novaLayer.textFrames.add();
-            textoNome.contents = listaNomes.selection ? listaNomes.selection.text : "";
+            textoNome.contents = nomeDesigner;
             textoNome.textRange.characterAttributes.size = 12;
             textoNome.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
             textoNome.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
@@ -388,6 +433,7 @@
             textoLegenda.position = [textoNome.position[0], textoNome.position[1] - textoNome.height - 10];
 
             alert("Legenda adicionada com sucesso!");
+            janela.close(); // Fechar a janela após adicionar a legenda
         } catch (e) {
             alert("Erro ao adicionar legenda: " + e + "\nLinha: " + e.line);
         }

@@ -96,6 +96,26 @@
         return null;
     }
 
+    // Função auxiliar para verificar se um elemento está em um array
+    function arrayContains(array, element) {
+        for (var i = 0; i < array.length; i++) {
+            if (array[i] === element) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Função para encontrar o índice de um item em um array de objetos por nome
+    function encontrarIndicePorNome(array, nome) {
+        for (var i = 0; i < array.length; i++) {
+            if (array[i].nome === nome) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     // Caminho do arquivo de configuração
     var caminhoConfig = getPastaDocumentos() + "/cartouche_config.json";
 
@@ -286,8 +306,175 @@
     var listaCombinacoes = grupoCombinacoes.add("dropdownlist", undefined, combinacoesNomes);
     listaCombinacoes.selection = 0;
 
+    // Campo de quantidade para combinações
+    var campoQuantidadeCombinacoes = grupoCombinacoes.add("edittext", undefined, "1");
+    campoQuantidadeCombinacoes.characters = 5;
+    apenasNumerosEVirgula(campoQuantidadeCombinacoes);
+
     // Botão adicionar combinação
     var botaoAdicionarCombinacao = grupoCombinacoes.add("button", undefined, "Adicionar Combinação");
+
+    // Grupo para bolas
+    var grupoBolas = abaLegenda.add("panel", undefined, "Bolas");
+    grupoBolas.orientation = "column";
+    grupoBolas.alignChildren = "left";
+
+    var grupoBolasSelecao = grupoBolas.add("group");
+    grupoBolasSelecao.orientation = "row";
+
+    // Função para obter cores disponíveis para bolas
+    function getCoresDisponiveisBolas() {
+        var coresDisponiveis = ["Selecione uma cor"];
+        var coresIds = [];
+        for (var i = 0; i < dados.bolas.length; i++) {
+            var corId = dados.bolas[i].corId;
+            if (!arrayContains(coresIds, corId)) {
+                var cor = encontrarPorId(dados.cores, corId);
+                if (cor) {
+                    coresDisponiveis.push(cor.nome);
+                    coresIds.push(corId);
+                }
+            }
+        }
+        return coresDisponiveis;
+    }
+
+    // Lista de cores para bolas
+    var coresBolasDisponiveis = getCoresDisponiveisBolas();
+    var listaCoresBolas = grupoBolasSelecao.add("dropdownlist", undefined, coresBolasDisponiveis);
+    listaCoresBolas.selection = 0;
+
+    // Lista de acabamentos (inicialmente vazia)
+    var listaAcabamentos = grupoBolasSelecao.add("dropdownlist", undefined, ["Selecione um acabamento"]);
+    listaAcabamentos.selection = 0;
+
+    // Lista de tamanhos (inicialmente vazia)
+    var listaTamanhos = grupoBolasSelecao.add("dropdownlist", undefined, ["Selecione um tamanho"]);
+    listaTamanhos.selection = 0;
+
+    // Campo para quantidade de bolas
+    var campoQuantidadeBolas = grupoBolasSelecao.add("edittext", undefined, "1");
+    campoQuantidadeBolas.characters = 5;
+    apenasNumerosEVirgula(campoQuantidadeBolas);
+
+    // Botão adicionar bola
+    var botaoAdicionarBola = grupoBolasSelecao.add("button", undefined, "Adicionar Bola");
+
+    // Função para atualizar a lista de acabamentos com base na cor selecionada
+    function atualizarAcabamentos() {
+        if (listaCoresBolas.selection.index === 0) {
+            listaAcabamentos.removeAll();
+            listaAcabamentos.add("item", "Selecione um acabamento");
+            listaAcabamentos.selection = 0;
+            return;
+        }
+
+        var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
+        var acabamentosDisponiveis = ["Selecione um acabamento"];
+        var acabamentosIds = [];
+
+        for (var i = 0; i < dados.bolas.length; i++) {
+            if (dados.bolas[i].corId === corSelecionada.id) {
+                var acabamento = encontrarPorId(dados.acabamentos, dados.bolas[i].acabamentoId);
+                if (acabamento && !arrayContains(acabamentosIds, acabamento.id)) {
+                    acabamentosDisponiveis.push(acabamento.nome);
+                    acabamentosIds.push(acabamento.id);
+                }
+            }
+        }
+
+        listaAcabamentos.removeAll();
+        for (var i = 0; i < acabamentosDisponiveis.length; i++) {
+            listaAcabamentos.add("item", acabamentosDisponiveis[i]);
+        }
+        listaAcabamentos.selection = 0;
+
+        // Resetar a lista de tamanhos
+        listaTamanhos.removeAll();
+        listaTamanhos.add("item", "Selecione um tamanho");
+        listaTamanhos.selection = 0;
+    }
+
+    // Função para atualizar a lista de tamanhos com base na cor e acabamento selecionados
+    function atualizarTamanhos() {
+        if (listaCoresBolas.selection.index === 0 || listaAcabamentos.selection.index === 0) {
+            listaTamanhos.removeAll();
+            listaTamanhos.add("item", "Selecione um tamanho");
+            listaTamanhos.selection = 0;
+            return;
+        }
+
+        var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
+        var acabamentoSelecionado = dados.acabamentos[encontrarIndicePorNome(dados.acabamentos, listaAcabamentos.selection.text)];
+        var tamanhosDisponiveis = ["Selecione um tamanho"];
+
+        for (var i = 0; i < dados.bolas.length; i++) {
+            if (dados.bolas[i].corId === corSelecionada.id && dados.bolas[i].acabamentoId === acabamentoSelecionado.id) {
+                var tamanho = encontrarPorId(dados.tamanhos, dados.bolas[i].tamanhoId);
+                if (tamanho && !arrayContains(tamanhosDisponiveis, tamanho.nome)) {
+                    tamanhosDisponiveis.push(tamanho.nome);
+                }
+            }
+        }
+
+        listaTamanhos.removeAll();
+        for (var i = 0; i < tamanhosDisponiveis.length; i++) {
+            listaTamanhos.add("item", tamanhosDisponiveis[i]);
+        }
+        listaTamanhos.selection = 0;
+    }
+
+    // Adicionar eventos de mudança
+    listaCoresBolas.onChange = atualizarAcabamentos;
+    listaAcabamentos.onChange = atualizarTamanhos;
+
+    // Botão para adicionar bola à legenda
+    botaoAdicionarBola.onClick = function() {
+        if (listaCoresBolas.selection.index === 0 || listaAcabamentos.selection.index === 0 || listaTamanhos.selection.index === 0) {
+            alert("Por favor, selecione uma cor, um acabamento e um tamanho para a bola.");
+            return;
+        }
+
+        var quantidade = parseInt(campoQuantidadeBolas.text);
+        if (isNaN(quantidade) || quantidade <= 0) {
+            alert("Por favor, insira uma quantidade válida de bolas.");
+            return;
+        }
+
+        var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
+        var acabamentoSelecionado = dados.acabamentos[encontrarIndicePorNome(dados.acabamentos, listaAcabamentos.selection.text)];
+        var tamanhoSelecionado = dados.tamanhos[encontrarIndicePorNome(dados.tamanhos, listaTamanhos.selection.text)];
+
+        // Encontrar a bola correspondente na base de dados
+        var bolaSelecionada = null;
+        for (var i = 0; i < dados.bolas.length; i++) {
+            if (dados.bolas[i].corId === corSelecionada.id &&
+                dados.bolas[i].acabamentoId === acabamentoSelecionado.id &&
+                dados.bolas[i].tamanhoId === tamanhoSelecionado.id) {
+                bolaSelecionada = dados.bolas[i];
+                break;
+            }
+        }
+
+        if (bolaSelecionada) {
+            var texto = "Bola " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome;
+            if (bolaSelecionada.referencia) {
+                texto += " (Ref: " + bolaSelecionada.referencia + ")";
+            }
+            texto += " units: " + quantidade;
+            
+            itensLegenda.push({
+                tipo: "bola",
+                nome: "Bola",
+                texto: texto
+            });
+            
+            atualizarListaItens();
+            atualizarPreview();
+        } else {
+            alert("Erro: Combinação de bola não encontrada na base de dados.");
+        }
+    }
 
     // Terceiro grupo (Observações)
     var grupoObs = abaLegenda.add("panel", undefined, "Observações");
@@ -398,10 +585,11 @@
         var unidade = listaUnidades.selection.text;
         var quantidade = campoQuantidade.text;
         
-        var texto = componente.nome + " " + cor.nome + " " + unidade + ": " + quantidade;
+        var texto = componente.nome + " " + cor.nome + " " + unidade;
         if (componente.referencia) {
             texto += " (Ref: " + componente.referencia + ")";
         }
+        texto += " " + unidade + ": " + quantidade;
         
         itensLegenda.push({
             tipo: "componente",
@@ -420,8 +608,18 @@
             var componente = encontrarPorId(dados.componentes, combinacaoSelecionada.componenteId);
             var cor = encontrarPorId(dados.cores, combinacaoSelecionada.corId);
             
+            var quantidade = parseInt(campoQuantidadeCombinacoes.text);
+            if (isNaN(quantidade) || quantidade <= 0) {
+                alert("Por favor, insira uma quantidade válida para a combinação.");
+                return;
+            }
+            
             if (componente && cor) {
-                var texto = componente.nome + " " + cor.nome + " " + combinacaoSelecionada.unidade + " (Ref: " + combinacaoSelecionada.referencia + ")";
+                var texto = componente.nome + " " + cor.nome + " " + combinacaoSelecionada.unidade;
+                if (combinacaoSelecionada.referencia) {
+                    texto += " (Ref: " + combinacaoSelecionada.referencia + ")";
+                }
+                texto += " " + combinacaoSelecionada.unidade + ": " + quantidade;
                 
                 itensLegenda.push({
                     tipo: "combinacao",

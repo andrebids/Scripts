@@ -36,11 +36,12 @@ function stringifyJSON(obj) {
     }
 }
 
-// Modifique a função carregarJSON para usar parseJSON em vez de JSON.parse
-function carregarJSON(arquivo) {
-    var file = new File(arquivo);
+// Função para carregar o caminho do banco de dados a partir do arquivo de configuração
+function carregarCaminhoBaseDados() {
+    var caminhoConfig = Folder.myDocuments + "/cartouche_config.json";
+    var file = new File(caminhoConfig);
     if (!file.exists) {
-        throw new Error("O arquivo não existe: " + arquivo);
+        throw new Error("O arquivo de configuração não existe: " + caminhoConfig);
     }
     file.encoding = "UTF-8";
     file.open("r");
@@ -48,64 +49,104 @@ function carregarJSON(arquivo) {
     file.close();
     
     if (conteudo === "") {
-        throw new Error("O arquivo está vazio: " + arquivo);
+        throw new Error("O arquivo de configuração está vazio: " + caminhoConfig);
     }
     try {
-        var dados = parseJSON(conteudo);
-        // Verificar se todas as seções necessárias existem
-        var secoes = ["componentes", "cores", "combinacoes", "acabamentos", "tamanhos", "bolas"];
-        for (var i = 0; i < secoes.length; i++) {
-            if (!dados.hasOwnProperty(secoes[i]) || !isArray(dados[secoes[i]])) {
-                throw new Error("Seção '" + secoes[i] + "' ausente ou inválida");
+        // Tentar analisar o JSON diretamente
+        var config = JSON.parse(conteudo);
+        if (!config.hasOwnProperty("caminhoBaseDados")) {
+            throw new Error("A configuração não contém 'caminhoBaseDados'");
+        }
+        return config.caminhoBaseDados;
+    } catch (e) {
+        // Se falhar, tentar corrigir problemas comuns e analisar novamente
+        conteudo = conteudo.replace(/[\u0000-\u001F]+/g, "")
+                           .replace(/,\s*}/g, "}")
+                           .replace(/,\s*]/g, "]");
+        try {
+            var config = JSON.parse(conteudo);
+            if (!config.hasOwnProperty("caminhoBaseDados")) {
+                throw new Error("A configuração não contém 'caminhoBaseDados'");
             }
-        }
-        return dados;
-    } catch (e) {
-        throw new Error("Erro ao analisar o JSON: " + e.message);
-    }
-}
-
-// Função para salvar o arquivo JSON
-function salvarJSON(arquivo, dados) {
-    try {
-        var arquivo = new File(arquivo);
-        arquivo.encoding = "UTF-8";
-        arquivo.open('w');
-        var conteudo = stringifyJSON(dados);
-        arquivo.write(conteudo);
-        arquivo.close();
-        $.writeln("Arquivo salvo com sucesso: " + arquivo.fsName);
-    } catch (e) {
-        alert("Erro ao salvar o arquivo: " + e.toString());
-        $.writeln("Erro ao salvar o arquivo: " + e.toString());
-    }
-}
-
-// Obter o caminho do script atual
-var scriptFile = new File($.fileName);
-var scriptPath = scriptFile.path;
-
-// Caminho para o arquivo de banco de dados na mesma pasta do script
-var caminhoDatabase = scriptPath + "/database2.json";
-
-// Função para verificar se um valor é um array
-function isArray(value) {
-    return value && typeof value === 'object' && value.constructor === Array;
-}
-
-// Adicione esta função no início do seu script
-function filterArray(array, callback) {
-    var filteredArray = [];
-    for (var i = 0; i < array.length; i++) {
-        if (callback(array[i], i, array)) {
-            filteredArray.push(array[i]);
+            return config.caminhoBaseDados;
+        } catch (e) {
+            throw new Error("Erro ao analisar o arquivo de configuração: " + e.message);
         }
     }
-    return filteredArray;
 }
 
 // Função principal do script
 function executarScript() {
+    // Caminho para o arquivo de banco de dados a partir do arquivo de configuração
+    var caminhoDatabase;
+    try {
+        caminhoDatabase = carregarCaminhoBaseDados();
+    } catch (e) {
+        alert("Erro ao carregar o caminho do banco de dados: " + e.message);
+        return;
+    }
+
+    // Modifique a função carregarJSON para usar parseJSON em vez de JSON.parse
+    function carregarJSON(arquivo) {
+        var file = new File(arquivo);
+        if (!file.exists) {
+            throw new Error("O arquivo não existe: " + arquivo);
+        }
+        file.encoding = "UTF-8";
+        file.open("r");
+        var conteudo = file.read();
+        file.close();
+        
+        if (conteudo === "") {
+            throw new Error("O arquivo está vazio: " + arquivo);
+        }
+        try {
+            var dados = parseJSON(conteudo);
+            // Verificar se todas as seções necessárias existem
+            var secoes = ["componentes", "cores", "combinacoes", "acabamentos", "tamanhos", "bolas"];
+            for (var i = 0; i < secoes.length; i++) {
+                if (!dados.hasOwnProperty(secoes[i]) || !isArray(dados[secoes[i]])) {
+                    throw new Error("Seção '" + secoes[i] + "' ausente ou inválida");
+                }
+            }
+            return dados;
+        } catch (e) {
+            throw new Error("Erro ao analisar o JSON: " + e.message);
+        }
+    }
+
+    // Função para salvar o arquivo JSON
+    function salvarJSON(arquivo, dados) {
+        try {
+            var arquivo = new File(arquivo);
+            arquivo.encoding = "UTF-8";
+            arquivo.open('w');
+            var conteudo = stringifyJSON(dados);
+            arquivo.write(conteudo);
+            arquivo.close();
+            $.writeln("Arquivo salvo com sucesso: " + arquivo.fsName);
+        } catch (e) {
+            alert("Erro ao salvar o arquivo: " + e.toString());
+            $.writeln("Erro ao salvar o arquivo: " + e.toString());
+        }
+    }
+
+    // Função para verificar se um valor é um array
+    function isArray(value) {
+        return value && typeof value === 'object' && value.constructor === Array;
+    }
+
+    // Adicione esta função no início do seu script
+    function filterArray(array, callback) {
+        var filteredArray = [];
+        for (var i = 0; i < array.length; i++) {
+            if (callback(array[i], i, array)) {
+                filteredArray.push(array[i]);
+            }
+        }
+        return filteredArray;
+    }
+
     // Carregar o banco de dados existente
     var database;
     try {
@@ -774,6 +815,316 @@ function executarScript() {
     }
 
     // Modifique a função atualizarListaBolas para usar a nova função
+    function atualizarListaBolas() {
+        removerBolasIncompletas();
+        listaBolas.removeAll();
+        for (var i = 0; i < database.bolas.length; i++) {
+            var bola = database.bolas[i];
+            var cor = findById(database.cores, bola.corId);
+            var acabamento = findById(database.acabamentos, bola.acabamentoId);
+            var tamanho = findById(database.tamanhos, bola.tamanhoId);
+            var referencia = bola.referencia || "";
+            listaBolas.add("item", cor.nome + " - " + acabamento.nome + " - " + tamanho.nome + (referencia ? " (Ref: " + referencia + ")" : ""));
+        }
+    }
+
+    // Função para atualizar os dropdowns das bolas
+    function atualizarDropdownsBolas() {
+        dropdownCoresBolas.removeAll();
+        dropdownAcabamentos.removeAll();
+        dropdownTamanhos.removeAll();
+        
+        for (var i = 0; i < database.cores.length; i++) {
+            dropdownCoresBolas.add("item", database.cores[i].nome);
+        }
+        
+        for (var i = 0; i < database.acabamentos.length; i++) {
+            dropdownAcabamentos.add("item", database.acabamentos[i].nome);
+        }
+
+        for (var i = 0; i < database.tamanhos.length; i++) {
+            dropdownTamanhos.add("item", database.tamanhos[i].nome);
+        }
+    }
+
+    // Função para adicionar nova bola
+    botaoAdicionarBola.onClick = function() {
+        if (dropdownCoresBolas.selection && dropdownAcabamentos.selection && dropdownTamanhos.selection) {
+            var corId = database.cores[dropdownCoresBolas.selection.index].id;
+            var acabamentoId = database.acabamentos[dropdownAcabamentos.selection.index].id;
+            var tamanhoId = database.tamanhos[dropdownTamanhos.selection.index].id;
+            var referencia = campoReferenciaBola.text;
+            
+            var existe = false;
+            for (var i = 0; i < database.bolas.length; i++) {
+                var b = database.bolas[i];
+                if (b.corId === corId && b.acabamentoId === acabamentoId && b.tamanhoId === tamanhoId) {
+                    existe = true;
+                    break;
+                }
+            }
+            
+            if (!existe) {
+                var novaBola = {
+                    "id": getNextId(database.bolas),
+                    "corId": corId,
+                    "acabamentoId": acabamentoId,
+                    "tamanhoId": tamanhoId,
+                    "referencia": referencia
+                };
+                database.bolas.push(novaBola);
+                salvarJSON(caminhoDatabase, database);
+                atualizarListaBolas();
+                campoReferenciaBola.text = "";
+                alert("Bola adicionada com sucesso!");
+            } else {
+                alert("Esta combinação de bola já existe.");
+            }
+        } else {
+            alert("Por favor, selecione uma cor, um acabamento e um tamanho.");
+        }
+    }
+
+    // Função para atualizar a referência da bola selecionada
+    botaoSalvarReferenciaBola.onClick = function() {
+        var selectedIndex = listaBolas.selection.index;
+        if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < database.bolas.length) {
+            var bolaSelecionada = database.bolas[selectedIndex];
+            bolaSelecionada.referencia = campoEditarReferenciaBola.text;
+            salvarJSON(caminhoDatabase, database);
+            atualizarListaBolas();
+            alert("Referência da bola atualizada com sucesso!");
+        } else {
+            alert("Por favor, selecione uma bola para editar a referência.");
+        }
+    }
+
+    // Atualizar o campo de edição quando uma bola é selecionada
+    listaBolas.onChange = function() {
+        var selectedIndex = listaBolas.selection.index;
+        if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < database.bolas.length) {
+            var bolaSelecionada = database.bolas[selectedIndex];
+            campoEditarReferenciaBola.text = bolaSelecionada.referencia || "";
+        }
+    }
+
+    // Atualizar listas e dropdowns iniciais
+    atualizarListaBolas();
+    atualizarDropdownsBolas();
+
+    // Botão para fechar a janela
+    var botaoFechar = janela.add("button", undefined, "Fechar");
+    botaoFechar.onClick = function() { janela.close(); };
+
+    // Mostrar a janela
+    janela.show();
+
+    // Adicione um botão para limpar manualmente as bolas incompletas
+    var botaoLimparBolasIncompletas = abaBolas.add("button", undefined, "Limpar Bolas Incompletas");
+    botaoLimparBolasIncompletas.onClick = function() {
+        var bolasRemovidas = removerBolasIncompletas();
+        if (bolasRemovidas > 0) {
+            atualizarListaBolas();
+        } else {
+            alert("Não foram encontradas bolas com dados incompletos.");
+        }
+    };
+
+    // Modifique o evento onChange das abas para incluir a atualização dos tamanhos
+    abas.onChange = function() {
+        if (abas.selection === abaBolas) {
+            atualizarDropdownsBolas();
+        } else if (abas.selection === abaTamanhos) {
+            interfaceTamanhos.atualizar();
+        }
+    };
+}
+
+// Função para carregar o caminho do banco de dados a partir do arquivo de configuração
+function carregarCaminhoBaseDados() {
+    var caminhoConfig = Folder.myDocuments + "/cartouche_config.json";
+    var file = new File(caminhoConfig);
+    if (!file.exists) {
+        throw new Error("O arquivo de configuração não existe: " + caminhoConfig);
+    }
+    file.encoding = "UTF-8";
+    file.open("r");
+    var conteudo = file.read();
+    file.close();
+    
+    if (conteudo === "") {
+        throw new Error("O arquivo de configuração está vazio: " + caminhoConfig);
+    }
+    try {
+        // Tentar analisar o JSON diretamente
+        var config = JSON.parse(conteudo);
+        if (!config.hasOwnProperty("caminhoBaseDados")) {
+            throw new Error("A configuração não contém 'caminhoBaseDados'");
+        }
+        return config.caminhoBaseDados;
+    } catch (e) {
+        // Se falhar, tentar corrigir problemas comuns e analisar novamente
+        conteudo = conteudo.replace(/[\u0000-\u001F]+/g, "")
+                           .replace(/,\s*}/g, "}")
+                           .replace(/,\s*]/g, "]");
+        try {
+            var config = JSON.parse(conteudo);
+            if (!config.hasOwnProperty("caminhoBaseDados")) {
+                throw new Error("A configuração não contém 'caminhoBaseDados'");
+            }
+            return config.caminhoBaseDados;
+        } catch (e) {
+            throw new Error("Erro ao analisar o arquivo de configuração: " + e.message);
+        }
+    }
+}
+
+// Função principal do script
+function executarScript() {
+    // Caminho para o arquivo de banco de dados a partir do arquivo de configuração
+    var caminhoDatabase;
+    try {
+        caminhoDatabase = carregarCaminhoBaseDados();
+    } catch (e) {
+        alert("Erro ao carregar o caminho do banco de dados: " + e.message);
+        return;
+    }
+
+    // Função para carregar JSON
+    function carregarJSON(arquivo) {
+        var file = new File(arquivo);
+        if (!file.exists) {
+            throw new Error("O arquivo não existe: " + arquivo);
+        }
+        file.encoding = "UTF-8";
+        file.open("r");
+        var conteudo = file.read();
+        file.close();
+        
+        if (conteudo === "") {
+            throw new Error("O arquivo está vazio: " + arquivo);
+        }
+        try {
+            var dados = parseJSON(conteudo);
+            // Verificar se todas as seções necessárias existem
+            var secoes = ["componentes", "cores", "combinacoes", "acabamentos", "tamanhos", "bolas"];
+            for (var i = 0; i < secoes.length; i++) {
+                if (!dados.hasOwnProperty(secoes[i]) || !isArray(dados[secoes[i]])) {
+                    throw new Error("Seção '" + secoes[i] + "' ausente ou inválida");
+                }
+            }
+            return dados;
+        } catch (e) {
+            throw new Error("Erro ao analisar o JSON: " + e.message);
+        }
+    }
+
+    // Carregar o banco de dados
+    var database;
+    try {
+        database = carregarJSON(caminhoDatabase);
+    } catch (e) {
+        alert("Erro ao carregar o banco de dados: " + e.message);
+        return;
+    }
+
+    // Função para salvar JSON
+    function salvarJSON(arquivo, dados) {
+        var file = new File(arquivo);
+        file.encoding = "UTF-8";
+        file.open("w");
+        file.write(stringify(dados, null, 2));
+        file.close();
+    }
+
+    // Função para encontrar um item por ID
+    function findById(array, id) {
+        for (var i = 0; i < array.length; i++) {
+            if (array[i].id === id) {
+                return array[i];
+            }
+        }
+        return null;
+    }
+
+    // Função para obter o próximo ID
+    function getNextId(array) {
+        var maxId = 0;
+        for (var i = 0; i < array.length; i++) {
+            if (array[i].id > maxId) {
+                maxId = array[i].id;
+            }
+        }
+        return maxId + 1;
+    }
+
+    // Função para verificar se um valor é um array
+    function isArray(obj) {
+        return Object.prototype.toString.call(obj) === '[object Array]';
+    }
+
+    // Função para analisar JSON
+    function parseJSON(json) {
+        try {
+            return JSON.parse(json);
+        } catch (e) {
+            throw new Error("Erro ao analisar JSON: " + e.message);
+        }
+    }
+
+    // Função para stringificar JSON
+    function stringify(obj, replacer, space) {
+        try {
+            return JSON.stringify(obj, replacer, space);
+        } catch (e) {
+            throw new Error("Erro ao stringificar JSON: " + e.message);
+        }
+    }
+
+    // Função para atualizar a lista de componentes
+    function atualizarListaComponentes() {
+        listaComponentes.removeAll();
+        for (var i = 0; i < database.componentes.length; i++) {
+            listaComponentes.add("item", database.componentes[i].nome);
+        }
+    }
+
+    // Função para atualizar a lista de cores
+    function atualizarListaCores() {
+        listaCores.removeAll();
+        for (var i = 0; i < database.cores.length; i++) {
+            listaCores.add("item", database.cores[i].nome);
+        }
+    }
+
+    // Função para atualizar a lista de combinações
+    function atualizarListaCombinacoes() {
+        listaCombinacoes.removeAll();
+        for (var i = 0; i < database.combinacoes.length; i++) {
+            var combinacao = database.combinacoes[i];
+            var cor1 = findById(database.cores, combinacao.cor1Id);
+            var cor2 = findById(database.cores, combinacao.cor2Id);
+            listaCombinacoes.add("item", cor1.nome + " - " + cor2.nome);
+        }
+    }
+
+    // Função para atualizar a lista de acabamentos
+    function atualizarListaAcabamentos() {
+        listaAcabamentos.removeAll();
+        for (var i = 0; i < database.acabamentos.length; i++) {
+            listaAcabamentos.add("item", database.acabamentos[i].nome);
+        }
+    }
+
+    // Função para atualizar a lista de tamanhos
+    function atualizarListaTamanhos() {
+        listaTamanhos.removeAll();
+        for (var i = 0; i < database.tamanhos.length; i++) {
+            listaTamanhos.add("item", database.tamanhos[i].nome);
+        }
+    }
+
+    // Função para atualizar a lista de bolas
     function atualizarListaBolas() {
         removerBolasIncompletas();
         listaBolas.removeAll();

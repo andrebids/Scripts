@@ -1,4 +1,5 @@
-// @target illustrator
+#target illustrator
+#targetengine maintarget illustrator
 
 (function() {
     // Função para analisar JSON
@@ -49,7 +50,7 @@
     function selecionarArquivo() {
         var arquivo = File.openDialog("Selecione o arquivo da base de dados", "*.json");
         if (arquivo) {
-            return arquivo.fsName;
+            return arquivo.fsName.replace(/\\/g, '/'); // Substitui \ por /
         }
         return null;
     }
@@ -72,7 +73,7 @@
         arquivo.close();
     }
 
-    // Função para verificar se um objeto é um array
+    // Funão para verificar se um objeto é um array
     function isArray(obj) {
         return obj && typeof obj === 'object' && obj.constructor === Array;
     }
@@ -86,7 +87,7 @@
         return nomes;
     }
 
-    // Função auxiliar para encontrar um item em um array por id
+    // Funço auxiliar para encontrar um item em um array por id
     function encontrarPorId(array, id) {
         for (var i = 0; i < array.length; i++) {
             if (array[i].id === id) {
@@ -96,7 +97,7 @@
         return null;
     }
 
-    // Função auxiliar para verificar se um elemento está em um array
+    // Funo auxiliar para verificar se um elemento está em um array
     function arrayContains(array, element) {
         for (var i = 0; i < array.length; i++) {
             if (array[i] === element) {
@@ -120,36 +121,65 @@
     var caminhoConfig = getPastaDocumentos() + "/cartouche_config.json";
 
     // Verificar se o arquivo de configuração existe
-    var nomeDesigner;
+    var nomeDesigner, caminhoBaseDados;
     if (arquivoExiste(caminhoConfig)) {
         var config = lerArquivoJSON(caminhoConfig);
         nomeDesigner = config.nomeDesigner;
+        caminhoBaseDados = config.caminhoBaseDados;
     } else {
-        // Criar janela para pedir o nome do designer
-        var janelaDesigner = new Window("dialog", "Nome do Designer");
+        // Criar janela para pedir o nome do designer e o caminho da base de dados
+        var janelaDesigner = new Window("dialog", "Configuração Inicial");
         janelaDesigner.add("statictext", undefined, "Por favor, insira o nome do designer:");
         var campoNome = janelaDesigner.add("edittext", undefined, "");
         campoNome.characters = 30;
+
+        janelaDesigner.add("statictext", undefined, "Selecione o caminho para o arquivo da base de dados:");
+        var campoCaminho = janelaDesigner.add("edittext", undefined, "");
+        campoCaminho.characters = 30;
+        var botaoNavegar = janelaDesigner.add("button", undefined, "Navegar");
+
+        botaoNavegar.onClick = function() {
+            var caminhoSelecionado = selecionarArquivo();
+            if (caminhoSelecionado) {
+                campoCaminho.text = caminhoSelecionado;
+            }
+        };
+
         var botaoOK = janelaDesigner.add("button", undefined, "OK");
-        
+
         botaoOK.onClick = function() {
             nomeDesigner = campoNome.text;
+            caminhoBaseDados = campoCaminho.text;
             janelaDesigner.close();
-        }
-        
+        };
+
         janelaDesigner.show();
-        
-        // Salvar o nome do designer no arquivo de configuração
-        escreverArquivoJSON(caminhoConfig, {nomeDesigner: nomeDesigner});
+
+        // Salvar o nome do designer e o caminho da base de dados no arquivo de configuração
+        escreverArquivoJSON(caminhoConfig, {nomeDesigner: nomeDesigner, caminhoBaseDados: caminhoBaseDados});
+    }
+
+    // Verificar se o caminho da base de dados é válido
+    if (!arquivoExiste(caminhoBaseDados)) {
+        var caminhoSelecionado = selecionarArquivo();
+        if (caminhoSelecionado) {
+            caminhoBaseDados = caminhoSelecionado;
+            // Atualizar o arquivo de configuração com o novo caminho
+            var config = lerArquivoJSON(caminhoConfig);
+            config.caminhoBaseDados = caminhoBaseDados;
+            escreverArquivoJSON(caminhoConfig, config);
+        } else {
+            alert("Erro: O caminho para o arquivo da base de dados não foi selecionado.");
+            return;
+        }
     }
 
     // Carregar dados do arquivo database2.json
-    var caminhoArquivo = File($.fileName).parent.fsName + "/database2.json";
     var dados;
     try {
-        dados = lerArquivoJSON(caminhoArquivo);
+        dados = lerArquivoJSON(caminhoBaseDados);
     } catch (e) {
-        alert("Erro ao ler o arquivo database2.json: " + e.message + "\nO script será encerrado.");
+        alert("Erro ao ler o arquivo da base de dados: " + e.message + "\nO script será encerrado.");
         return;
     }
 
@@ -160,8 +190,17 @@
     }
 
     // Criar a janela principal
-    var janela = new Window("dialog", "Cartouche by Bids");
-    janela.orientation = "row";
+    var janela = new Window("palette", "Cartouche by Bids", undefined, {
+        resizeable: true,
+        closeButton: true      // Garante que haja um botão de fechar
+    });
+    janela.orientation = "column";
+    janela.alignChildren = ["fill", "top"];
+    janela.spacing = 10;
+    janela.margins = 16;
+
+    // Ajustar o tamanho máximo da janela principal
+    janela.maximumSize = [800, 800]; // Aumentada a largura para 800
 
     // Criar painel esquerdo para campos de preenchimento
     var painelEsquerdo = janela.add("panel");
@@ -465,12 +504,13 @@
             
             itensLegenda.push({
                 tipo: "bola",
-                nome: "Bola",
-                texto: texto
+                nome: "Bola " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome,
+                texto: texto,
+                referencia: bolaSelecionada.referencia,
+                quantidade: quantidade
             });
             
             atualizarListaItens();
-            atualizarPreview();
         } else {
             alert("Erro: Combinação de bola não encontrada na base de dados.");
         }
@@ -484,67 +524,75 @@
     campoObs.characters = 30;
 
     // Quarto grupo (Componentes adicionados)
-    var grupoComponentesAdicionados = abaLegenda.add("panel", undefined, "Componentes Adicionados");
+    var grupoComponentesAdicionados = abaLegenda.add("panel", undefined, "Itens Adicionados");
     grupoComponentesAdicionados.orientation = "column";
     grupoComponentesAdicionados.alignChildren = "left";
+    grupoComponentesAdicionados.maximumSize = [550, 200]; // Altura máxima de 200px
 
-    // Área de preview
-    var grupoPreview = abaLegenda.add("group");
-    grupoPreview.orientation = "column";
-    grupoPreview.alignChildren = ["fill", "top"];
-    var botaoAtualizar = grupoPreview.add("button", undefined, "Atualizar");
-    var areaPreview = grupoPreview.add("edittext", undefined, "", {multiline: true, scrollable: true});
-    areaPreview.preferredSize = [400, 400];
+    // Lista de itens adicionados com barra de rolagem
+    var listaItens = grupoComponentesAdicionados.add("listbox", undefined, [], {multiselect: false});
+    listaItens.preferredSize = [530, 180]; // Ajuste o tamanho conforme necessário
+
+    // Botão para remover item selecionado (movido para fora do grupoComponentesAdicionados)
+    var botaoRemoverItem = abaLegenda.add("button", undefined, "Remover Selecionado");
+
+    // Função para atualizar a lista de itens
+    function atualizarListaItens() {
+        listaItens.removeAll();
+        for (var i = 0; i < itensLegenda.length; i++) {
+            listaItens.add("item", itensLegenda[i].texto);
+        }
+    }
+
+    // Evento de clique no botão remover
+    botaoRemoverItem.onClick = function() {
+        var selectedIndex = listaItens.selection.index;
+        if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < itensLegenda.length) {
+            itensLegenda.splice(selectedIndex, 1);
+            atualizarListaItens();
+        } else {
+            alert("Por favor, selecione um item para remover.");
+        }
+    }
+
+    // Botão para adicionar legenda
     var botaoGerar = abaLegenda.add("button", undefined, "Adicionar legenda");
 
     // Array para armazenar os itens da legenda
     var itensLegenda = [];
 
-    // Função para atualizar a lista de itens
-    function atualizarListaItens() {
-        // Limpar o grupo de itens adicionados
-        for (var i = grupoComponentesAdicionados.children.length - 1; i >= 0; i--) {
-            grupoComponentesAdicionados.remove(grupoComponentesAdicionados.children[i]);
-        }
-
-        // Adicionar cada item à lista
-        for (var i = 0; i < itensLegenda.length; i++) {
-            var grupoItem = grupoComponentesAdicionados.add("group");
-            grupoItem.orientation = "row";
-            
-            var textoItem = grupoItem.add("statictext", undefined, itensLegenda[i].texto);
-            textoItem.size = [250, 20];
-            
-            var botaoRemover = grupoItem.add("button", undefined, "X");
-            botaoRemover.size = [20, 20];
-            botaoRemover.index = i;
-            
-            botaoRemover.onClick = function() {
-                itensLegenda.splice(this.index, 1);
-                atualizarListaItens();
-                atualizarPreview();
-            }
-        }
-
-        janela.layout.layout(true);
-    }
-
-    // Função para atualizar o preview
+    // Função para atualizar o preview (agora sem exibição visual)
     function atualizarPreview() {
-        var previewText = "";
-        previewText += "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + campoNomeTipo.text + "\" avec, ";
+        var previewText = [];
+        previewText.push("Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + campoNomeTipo.text + "\" avec, ");
         
         var itensNomes = [];
+        var referencias = [];
         for (var i = 0; i < itensLegenda.length; i++) {
-            itensNomes.push(itensLegenda[i].nome);
+            if (itensLegenda[i].referencia) {
+                // Adiciona o nome do item à frase principal
+                if (itensLegenda[i].tipo === "bola") {
+                    // Remover o tamanho e unidade métrica da bola na frase principal
+                    var nomeSemTamanho = itensLegenda[i].nome.replace(/ \d+(\.\d+)?\s*(cm|mm|m|in|ft)?$/, '');
+                    itensNomes.push(nomeSemTamanho);
+                } else {
+                    itensNomes.push(itensLegenda[i].nome);
+                }
+                // Adiciona a referência e quantidade à lista de referências
+                referencias.push(itensLegenda[i].referencia + " " + itensLegenda[i].unidade + ": " + itensLegenda[i].quantidade);
+            } else {
+                // Adiciona o nome do item à frase principal
+                itensNomes.push(itensLegenda[i].nome);
+                // Adiciona o nome, unidade e quantidade à lista de referências
+                referencias.push(itensLegenda[i].nome + " " + itensLegenda[i].unidade + ": " + itensLegenda[i].quantidade);
+            }
         }
-        previewText += itensNomes.join(", ");
+        previewText[0] += itensNomes.join(", ");
         
-        previewText += " sur structure aluminium";
+        previewText[0] += " sur structure aluminium";
         if (checkStructure.value) {
-            previewText += " laqué " + (corStructure.selection ? corStructure.selection.text : "");
+            previewText[0] += " laqué " + (corStructure.selection ? corStructure.selection.text : "");
         }
-        previewText += "\n";
 
         var dimensoesTexto = "";
         for (var i = 0; i < dimensoes.length; i++) {
@@ -556,52 +604,54 @@
                 dimensoesTexto += dimensao + ": " + grupoDimensoes.children[i*2 + 1].text + "m ";
             }
         }
-        previewText += dimensoesTexto + "\n";
+        previewText.push(dimensoesTexto);
 
-        previewText += "Fixation: " + (listaFixacao.selection ? listaFixacao.selection.text : "") + "\n\n";
+        previewText.push("Fixation: " + (listaFixacao.selection ? listaFixacao.selection.text : ""));
+        
+        previewText.push("\u200B"); // Caractere de largura zero para forçar uma linha vazia
 
-        for (var i = 0; i < itensLegenda.length; i++) {
-            previewText += itensLegenda[i].texto + "\n";
+        // Adiciona as referências e quantidades à lista de itens
+        for (var i = 0; i < referencias.length; i++) {
+            previewText.push(referencias[i]);
         }
 
-        previewText += "\nObs: " + campoObs.text;
+        previewText.push("\u200B"); // Outra linha vazia antes das observações
+        previewText.push("Obs: " + campoObs.text);
 
-        areaPreview.text = previewText;
+        return previewText.join("\n");
     }
 
-    // Adicionar evento de clique ao botão Atualizar
-    botaoAtualizar.onClick = function() {
-        try {
-            atualizarPreview();
-        } catch (e) {
-            alert("Erro ao atualizar preview: " + e + "\nLinha: " + e.line);
-        }
-    };
-
-    // Botão para adicionar componente à legenda
+    // Modificar o botão para adicionar componente à legenda
     botaoAdicionarComponente.onClick = function() {
         var componente = dados.componentes[listaComponentes.selection.index];
         var cor = dados.cores[listaCores.selection.index];
         var unidade = listaUnidades.selection.text;
-        var quantidade = campoQuantidade.text;
+        var quantidade = parseInt(campoQuantidade.text);
+        
+        if (isNaN(quantidade) || quantidade <= 0) {
+            alert("Por favor, insira uma quantidade válida para o componente.");
+            return;
+        }
         
         var texto = componente.nome + " " + cor.nome + " " + unidade;
         if (componente.referencia) {
             texto += " (Ref: " + componente.referencia + ")";
         }
-        texto += " " + unidade + ": " + quantidade;
+        texto += " units: " + quantidade;
         
         itensLegenda.push({
             tipo: "componente",
-            nome: componente.nome,
-            texto: texto
+            nome: componente.nome + " " + cor.nome,
+            texto: texto,
+            referencia: componente.referencia,
+            quantidade: quantidade,
+            unidade: unidade // Adiciona a unidade ao objeto
         });
         
         atualizarListaItens();
-        atualizarPreview();
     }
 
-    // Botão para adicionar combinação existente à legenda
+    // Modificar o botão para adicionar combinação existente à legenda
     botaoAdicionarCombinacao.onClick = function() {
         if (listaCombinacoes.selection.index > 0) {
             var combinacaoSelecionada = dados.combinacoes[listaCombinacoes.selection.index - 1];
@@ -619,16 +669,18 @@
                 if (combinacaoSelecionada.referencia) {
                     texto += " (Ref: " + combinacaoSelecionada.referencia + ")";
                 }
-                texto += " " + combinacaoSelecionada.unidade + ": " + quantidade;
+                texto += " units: " + quantidade;
                 
                 itensLegenda.push({
                     tipo: "combinacao",
                     nome: componente.nome,
-                    texto: texto
+                    texto: texto,
+                    referencia: combinacaoSelecionada.referencia,
+                    quantidade: quantidade,
+                    unidade: combinacaoSelecionada.unidade
                 });
                 
                 atualizarListaItens();
-                atualizarPreview();
             } else {
                 alert("Erro: Componente ou cor não encontrados para a combinação selecionada.");
             }
@@ -637,59 +689,180 @@
         }
     }
 
-    // Botão para adicionar legenda ao Illustrator
-    botaoGerar.onClick = function() {
-        try {
-            var doc = app.activeDocument;
-            if (!doc) {
-                alert("Nenhum documento ativo. Por favor, abra um documento no Illustrator.");
-                return;
+    // Modificar o botão para adicionar bola à legenda
+    botaoAdicionarBola.onClick = function() {
+        if (listaCoresBolas.selection.index === 0 || listaAcabamentos.selection.index === 0 || listaTamanhos.selection.index === 0) {
+            alert("Por favor, selecione uma cor, um acabamento e um tamanho para a bola.");
+            return;
+        }
+
+        var quantidade = parseInt(campoQuantidadeBolas.text);
+        if (isNaN(quantidade) || quantidade <= 0) {
+            alert("Por favor, insira uma quantidade válida de bolas.");
+            return;
+        }
+
+        var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
+        var acabamentoSelecionado = dados.acabamentos[encontrarIndicePorNome(dados.acabamentos, listaAcabamentos.selection.text)];
+        var tamanhoSelecionado = dados.tamanhos[encontrarIndicePorNome(dados.tamanhos, listaTamanhos.selection.text)];
+
+        // Encontrar a bola correspondente na base de dados
+        var bolaSelecionada = null;
+        for (var i = 0; i < dados.bolas.length; i++) {
+            if (dados.bolas[i].corId === corSelecionada.id &&
+                dados.bolas[i].acabamentoId === acabamentoSelecionado.id &&
+                dados.bolas[i].tamanhoId === tamanhoSelecionado.id) {
+                bolaSelecionada = dados.bolas[i];
+                break;
             }
+        }
 
-            // Verificar se há uma artboard ativa
-            if (doc.artboards.length === 0) {
-                alert("Erro: O documento não tem artboards. Por favor, crie uma artboard antes de adicionar a legenda.");
-                return;
+        if (bolaSelecionada) {
+            var texto = "Bola " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome;
+            if (bolaSelecionada.referencia) {
+                texto += " (Ref: " + bolaSelecionada.referencia + ")";
             }
-
-            // Resto do código para criar a legenda
-            var novaLayer = doc.layers.add();
-            novaLayer.name = "Legenda";
-
-            // Criar o "P" grande
-            var textoP = novaLayer.textFrames.add();
-            textoP.contents = "P";
-            textoP.textRange.characterAttributes.size = 50;
-            textoP.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
-            textoP.textRange.characterAttributes.textFont = app.textFonts.getByName("Arial-BoldMT");
-
-            // Posicionar o "P" no canto inferior esquerdo do artboard ativo
-            var artboard = doc.artboards[doc.artboards.getActiveArtboardIndex()];
-            textoP.position = [artboard.artboardRect[0], artboard.artboardRect[3] - textoP.height];
-
-            // Adicionar o nome abaixo do "P"
-            var textoNome = novaLayer.textFrames.add();
-            textoNome.contents = nomeDesigner;
-            textoNome.textRange.characterAttributes.size = 12;
-            textoNome.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
-            textoNome.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
-            textoNome.position = [textoP.position[0], textoP.position[1] - textoP.height - 5];
-
-            // Adicionar o conteúdo da legenda
-            var textoLegenda = novaLayer.textFrames.add();
-            textoLegenda.contents = areaPreview.text;
-            textoLegenda.textRange.characterAttributes.size = 10;
-            textoLegenda.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
-            textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
-            textoLegenda.position = [textoNome.position[0], textoNome.position[1] - textoNome.height - 10];
-
-            alert("Legenda adicionada com sucesso!");
-            janela.close(); // Fechar a janela após adicionar a legenda
-        } catch (e) {
-            alert("Erro ao adicionar legenda: " + e + "\nLinha: " + e.line);
+            texto += " units: " + quantidade;
+            
+            itensLegenda.push({
+                tipo: "bola",
+                nome: "Bola " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome,
+                texto: texto,
+                referencia: bolaSelecionada.referencia,
+                quantidade: quantidade
+            });
+            
+            atualizarListaItens();
+        } else {
+            alert("Erro: Combinação de bola não encontrada na base de dados.");
         }
     }
 
+    // Modificar o evento de clique no botão remover
+    botaoRemoverItem.onClick = function() {
+        var selectedIndex = listaItens.selection.index;
+        if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < itensLegenda.length) {
+            itensLegenda.splice(selectedIndex, 1);
+            atualizarListaItens();
+        } else {
+            alert("Por favor, selecione um item para remover.");
+        }
+    }
+
+    // Modificar a funcionalidade do botão de gerar legenda
+    botaoGerar.onClick = function() {
+        try {
+            var legendaConteudo = atualizarPreview(); // Agora chamamos atualizarPreview() aqui
+            
+            // Função para escapar strings
+            function escapeString(str) {
+                return str.replace(/\\/g, '\\\\')
+                          .replace(/'/g, "\\'")
+                          .replace(/\n/g, '\\n')
+                          .replace(/\r/g, '\\r');
+            }
+
+            var scriptIllustrator = function(nomeDesigner, conteudoLegenda) {
+                var doc = app.activeDocument;
+
+                if (!doc) {
+                    return "Nenhum documento ativo. Por favor, abra um documento no Illustrator.";
+                }
+
+                // Verificar se há uma artboard ativa
+                if (doc.artboards.length === 0) {
+                    return "Erro: O documento não tem artboards. Por favor, crie uma artboard antes de adicionar a legenda.";
+                }
+
+                // Criar uma nova camada para a legenda
+                var novaLayer = doc.layers.add();
+                novaLayer.name = "Legenda";
+
+                // Obter as dimensões da artboard ativa
+                var artboard = doc.artboards[doc.artboards.getActiveArtboardIndex()];
+                var artboardBounds = artboard.artboardRect;
+
+                // Adicionar o nome do designer com "Bids -" na frente
+                var textoNome = novaLayer.textFrames.add();
+                textoNome.contents = "Bids - " + nomeDesigner;
+                textoNome.textRange.characterAttributes.size = 8;
+                textoNome.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
+                textoNome.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
+                
+                // Posicionar o nome no canto inferior esquerdo do artboard ativo
+                textoNome.position = [artboardBounds[0], artboardBounds[3] - textoNome.height];
+
+                // Criar o quadro de texto para a legenda
+                var textoLegenda = novaLayer.textFrames.add();
+                textoLegenda.position = [textoNome.position[0], textoNome.position[1] - textoNome.height - 10];
+
+                // Configurar as propriedades do texto
+                textoLegenda.textRange.characterAttributes.size = 9;
+                textoLegenda.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
+                textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
+
+                // Definir o conteúdo da legenda com quebras de linha
+                var linhas = conteudoLegenda.split('\n');
+                textoLegenda.contents = linhas[0]; // Adiciona a primeira linha
+
+                // Adiciona as linhas restantes como novos parágrafos
+                for (var i = 1; i < linhas.length; i++) {
+                    var novoParag = textoLegenda.paragraphs.add(linhas[i]);
+                    novoParag.paragraphAttributes.spaceBefore = 0; // Garante que não haja espaço extra entre parágrafos
+                    novoParag.paragraphAttributes.spaceAfter = 0;
+                    
+                    // Adiciona espaço extra após a linha de fixação e antes das observações
+                    if (linhas[i] === "\u200B") {
+                        novoParag.paragraphAttributes.spaceAfter = 6; // Ajuste este valor conforme necessário
+                    }
+                }
+
+                // Ajustar o tamanho inicial do quadro de texto
+                textoLegenda.geometricBounds = [
+                    textoLegenda.geometricBounds[0],
+                    textoLegenda.geometricBounds[1],
+                    textoLegenda.geometricBounds[2],
+                    textoLegenda.geometricBounds[1] + 400
+                ];
+
+                return "success";
+            };
+
+            var scriptString = "(" + scriptIllustrator.toString() + ")";
+            scriptString += "('" + escapeString(nomeDesigner) + "', '" + escapeString(legendaConteudo) + "');";
+
+            var bt = new BridgeTalk();
+            bt.target = "illustrator";
+            bt.body = scriptString;
+            bt.onResult = function(resObj) {
+                if (resObj.body === "success") {
+                    alert("Legenda adicionada com sucesso!");
+                    janela.close(); // Fecha a janela após adicionar a legenda com sucesso
+                    janela = null; // Ajuda a liberar a memória
+                } else {
+                    alert("Ocorreu um problema ao adicionar a legenda: " + resObj.body);
+                }
+            };
+            bt.onError = function(err) {
+                alert("Erro ao adicionar legenda: " + err.body);
+            };
+            bt.send();
+
+        } catch (e) {
+            alert("Erro ao adicionar legenda: " + e + "\nLinha: " + e.line);
+        }
+    };
+
     // Exibir a janela
     janela.show();
+
+    // Função para limpar recursos (pode ser chamada no final do script)
+    function limparRecursos() {
+        if (janela && janela.toString() !== "[object Window]") {
+            janela.close();
+            janela = null;
+        }
+        // Adicione aqui qualquer outra limpeza necessária
+    }
 })();
+

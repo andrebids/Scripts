@@ -1,0 +1,10 @@
+var csInterface = new CSInterface();
+
+// Aqui você irá converter a lógica do seu script para JavaScript
+// e criar funções para interagir com a interface do usuário
+
+function init() {
+    // Inicialização do painel
+}
+
+init();

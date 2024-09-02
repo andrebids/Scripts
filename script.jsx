@@ -73,7 +73,7 @@
         arquivo.close();
     }
 
-    // Funão para verificar se um objeto é um array
+    // Funo para verificar se um objeto é um array
     function isArray(obj) {
         return obj && typeof obj === 'object' && obj.constructor === Array;
     }
@@ -301,6 +301,21 @@
     var grupoComponentes = abaLegenda.add("panel", undefined, "Componentes");
     grupoComponentes.orientation = "column";
     grupoComponentes.alignChildren = "left";
+
+    // Grupo para o campo de pesquisa
+    var grupoPesquisa = grupoComponentes.add("group");
+    grupoPesquisa.orientation = "row";
+    grupoPesquisa.alignChildren = "center";
+
+    // Label para o campo de pesquisa
+    var labelPesquisa = grupoPesquisa.add("statictext", undefined, "Procurar:");
+    
+    // Campo de pesquisa
+    var campoPesquisa = grupoPesquisa.add("edittext", undefined, "");
+    campoPesquisa.characters = 20;
+    campoPesquisa.onChanging = function() {
+        filtrarComponentes(campoPesquisa.text);
+    };
 
     var grupo2 = grupoComponentes.add("group");
     grupo2.orientation = "row";
@@ -747,6 +762,18 @@
         } else {
             alert("Por favor, selecione um item para remover.");
         }
+    }
+
+    // Função para filtrar a lista de componentes
+    function filtrarComponentes(pesquisa) {
+        listaComponentes.removeAll();
+        var pesquisaLower = pesquisa.toLowerCase();
+        for (var i = 0; i < componentesNomes.length; i++) {
+            if (componentesNomes[i].toLowerCase().indexOf(pesquisaLower) !== -1) {
+                listaComponentes.add("item", componentesNomes[i]);
+            }
+        }
+        listaComponentes.selection = 0;
     }
 
     // Modificar a funcionalidade do botão de gerar legenda

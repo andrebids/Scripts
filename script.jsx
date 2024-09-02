@@ -812,7 +812,7 @@
                 // Adicionar o nome do designer com "Bids -" na frente
                 var textoNome = novaLayer.textFrames.add();
                 textoNome.contents = "Bids - " + nomeDesigner;
-                textoNome.textRange.characterAttributes.size = 8;
+                textoNome.textRange.characterAttributes.size = 30; // Aumentar o tamanho da fonte para 12
                 textoNome.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
                 textoNome.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
                 
@@ -824,7 +824,7 @@
                 textoLegenda.position = [textoNome.position[0], textoNome.position[1] - textoNome.height - 10];
 
                 // Configurar as propriedades do texto
-                textoLegenda.textRange.characterAttributes.size = 9;
+                textoLegenda.textRange.characterAttributes.size = 30; // Aumentar o tamanho da fonte para 14
                 textoLegenda.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
                 textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
 

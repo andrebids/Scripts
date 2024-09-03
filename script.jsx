@@ -751,7 +751,7 @@
             return;
         }
 
-        var quantidade = parseInt(campoQuantidade.text);
+        var quantidade = parseFloat(campoQuantidade.text.replace(',', '.'));
         if (isNaN(quantidade) || quantidade <= 0) {
             alert("Por favor, insira uma quantidade válida para o componente.");
             return;
@@ -777,7 +777,7 @@
             if (combinacaoSelecionada.referencia) {
                 texto += " (Ref: " + combinacaoSelecionada.referencia + ")";
             }
-            texto += " (" + unidadeSelecionada + "): " + quantidade;
+            texto += " (" + unidadeSelecionada + "): " + quantidade.toFixed(2).replace('.', ',');
             
             itensLegenda.push({
                 tipo: "componente",
@@ -799,6 +799,9 @@
         try {
             var legendaConteudo = atualizarPreview(); // Agora chamamos atualizarPreview() aqui
             
+            // Substituir pontos por vírgulas em todos os números decimais
+            legendaConteudo = legendaConteudo.replace(/(\d+)\.(\d+)/g, "$1,$2");
+
             // Função para escapar strings
             function escapeString(str) {
                 return str.replace(/\\/g, '\\\\')
@@ -842,7 +845,12 @@
                 // Função para processar cada linha da legenda
                 function processarLinha(linha) {
                     // Procura por padrões de unidade seguidos por dois pontos
-                    return linha.replace(/(ml|m2|unit):/g, "($1):");
+                    linha = linha.replace(/(ml|m2|unit):/g, "($1):");
+                    
+                    // Substitui pontos por vírgulas em todos os números decimais
+                    linha = linha.replace(/(\d+)\.(\d+)/g, "$1,$2");
+                    
+                    return linha;
                 }
 
                 // Definir o conteúdo da legenda com quebras de linha

@@ -626,9 +626,9 @@
             var item = itensLegenda[i];
             itensNomes.push(item.nome);
             if (item.referencia) {
-                referencias.push(item.referencia + " " + item.unidade + ": " + item.quantidade);
+                referencias.push(item.referencia + " (" + item.unidade + "): " + item.quantidade);
             } else {
-                referencias.push(item.nome + " " + item.unidade + ": " + item.quantidade);
+                referencias.push(item.nome + " (" + item.unidade + "): " + item.quantidade);
             }
         }
         previewText[0] += itensNomes.join(", ");
@@ -773,11 +773,11 @@
         }
 
         if (combinacaoSelecionada) {
-            var texto = componenteSelecionado.nome + " " + corSelecionada.nome + " " + unidadeSelecionada;
+            var texto = componenteSelecionado.nome + " " + corSelecionada.nome;
             if (combinacaoSelecionada.referencia) {
                 texto += " (Ref: " + combinacaoSelecionada.referencia + ")";
             }
-            texto += " " + unidadeSelecionada + ": " + quantidade;
+            texto += " (" + unidadeSelecionada + "): " + quantidade;
             
             itensLegenda.push({
                 tipo: "componente",
@@ -839,13 +839,20 @@
                 // Adicionar o nome do designer com "Bids -" na frente
                 var textoCompleto = "Bids - " + nomeDesigner + "\n" + conteudoLegenda;
 
+                // Função para processar cada linha da legenda
+                function processarLinha(linha) {
+                    // Procura por padrões de unidade seguidos por dois pontos
+                    return linha.replace(/(ml|m2|unit):/g, "($1):");
+                }
+
                 // Definir o conteúdo da legenda com quebras de linha
                 var linhas = textoCompleto.split('\n');
                 textoLegenda.contents = linhas[0]; // Adiciona a primeira linha
 
                 // Adiciona as linhas restantes como novos parágrafos
                 for (var i = 1; i < linhas.length; i++) {
-                    var novoParag = textoLegenda.paragraphs.add(linhas[i]);
+                    var linhaProcessada = processarLinha(linhas[i]);
+                    var novoParag = textoLegenda.paragraphs.add(linhaProcessada);
                     novoParag.paragraphAttributes.spaceBefore = 0; // Garante que não haja espaço extra entre parágrafos
                     novoParag.paragraphAttributes.spaceAfter = 0;
                     

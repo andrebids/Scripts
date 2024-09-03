@@ -253,7 +253,15 @@
     var grupoStructure = subgrupo1.add("group");
     grupoStructure.orientation = "row";
     var checkStructure = grupoStructure.add("checkbox", undefined, "Structure laqué");
-    var coresStructure = ["Blanc RAL 9010", "Or PANTONE 131C", "Rouge RAL 3000", "Bleu RAL 5005", "Vert RAL 6029", "Rose RAL 3015", "Noir RAL 9011"];
+    var coresStructure = [
+        "Blanc RAL 9010",
+        "Or PANTONE 131C",
+        "Rouge RAL 3000",
+        "Bleu RAL 5005",
+        "Vert RAL 6029",
+        "Rose RAL 3015",
+        "Noir RAL 9011"
+    ];
     var corStructure = grupoStructure.add("dropdownlist", undefined, coresStructure);
     corStructure.selection = 0;
     corStructure.enabled = false;
@@ -320,8 +328,25 @@
     var grupo2 = grupoComponentes.add("group");
     grupo2.orientation = "row";
 
-    // Lista dropdown componentes
-    var componentesNomes = extrairNomes(dados.componentes);
+    // Função para obter componentes com combinações
+    function getComponentesComCombinacoes() {
+        var componentesDisponiveis = ["Selecione um componente"];
+        var componentesIds = [];
+        for (var i = 0; i < dados.combinacoes.length; i++) {
+            var componenteId = dados.combinacoes[i].componenteId;
+            if (!arrayContains(componentesIds, componenteId)) {
+                var componente = encontrarPorId(dados.componentes, componenteId);
+                if (componente) {
+                    componentesDisponiveis.push(componente.nome);
+                    componentesIds.push(componenteId);
+                }
+            }
+        }
+        return componentesDisponiveis;
+    }
+
+    // Atualizar a criação da lista de componentes
+    var componentesNomes = getComponentesComCombinacoes();
     var listaComponentes = grupo2.add("dropdownlist", undefined, componentesNomes);
     listaComponentes.selection = 0;
 
@@ -342,31 +367,6 @@
 
     // Botão adicionar componente
     var botaoAdicionarComponente = grupo2.add("button", undefined, "Adicionar Componente");
-
-    // Grupo para combinações existentes
-    var grupoCombinacoes = grupoComponentes.add("group");
-    grupoCombinacoes.orientation = "row";
-
-    // Lista de combinações existentes
-    var combinacoesNomes = ["Selecione uma combinação"];
-    for (var i = 0; i < dados.combinacoes.length; i++) {
-        var comb = dados.combinacoes[i];
-        var componente = encontrarPorId(dados.componentes, comb.componenteId);
-        var cor = encontrarPorId(dados.cores, comb.corId);
-        if (componente && cor) {
-            combinacoesNomes.push(componente.nome + " " + cor.nome + " - " + comb.unidade + " (Ref: " + comb.referencia + ")");
-        }
-    }
-    var listaCombinacoes = grupoCombinacoes.add("dropdownlist", undefined, combinacoesNomes);
-    listaCombinacoes.selection = 0;
-
-    // Campo de quantidade para combinações
-    var campoQuantidadeCombinacoes = grupoCombinacoes.add("edittext", undefined, "1");
-    campoQuantidadeCombinacoes.characters = 5;
-    apenasNumerosEVirgula(campoQuantidadeCombinacoes);
-
-    // Botão adicionar combinação
-    var botaoAdicionarCombinacao = grupoCombinacoes.add("button", undefined, "Adicionar Combinação");
 
     // Grupo para bolas
     var grupoBolas = abaLegenda.add("panel", undefined, "Bolas");
@@ -585,22 +585,12 @@
         var itensNomes = [];
         var referencias = [];
         for (var i = 0; i < itensLegenda.length; i++) {
-            if (itensLegenda[i].referencia) {
-                // Adiciona o nome do item à frase principal
-                if (itensLegenda[i].tipo === "bola") {
-                    // Remover o tamanho e unidade métrica da bola na frase principal
-                    var nomeSemTamanho = itensLegenda[i].nome.replace(/ \d+(\.\d+)?\s*(cm|mm|m|in|ft)?$/, '');
-                    itensNomes.push(nomeSemTamanho);
-                } else {
-                    itensNomes.push(itensLegenda[i].nome);
-                }
-                // Adiciona a referência e quantidade à lista de referências
-                referencias.push(itensLegenda[i].referencia + " " + itensLegenda[i].unidade + ": " + itensLegenda[i].quantidade);
+            var item = itensLegenda[i];
+            itensNomes.push(item.nome);
+            if (item.referencia) {
+                referencias.push(item.referencia + " " + item.unidade + ": " + item.quantidade);
             } else {
-                // Adiciona o nome do item à frase principal
-                itensNomes.push(itensLegenda[i].nome);
-                // Adiciona o nome, unidade e quantidade à lista de referências
-                referencias.push(itensLegenda[i].nome + " " + itensLegenda[i].unidade + ": " + itensLegenda[i].quantidade);
+                referencias.push(item.nome + " " + item.unidade + ": " + item.quantidade);
             }
         }
         previewText[0] += itensNomes.join(", ");
@@ -641,148 +631,167 @@
         return previewText.join("\n");
     }
 
-    // Modificar o botão para adicionar componente à legenda
-    botaoAdicionarComponente.onClick = function() {
-        var componente = dados.componentes[listaComponentes.selection.index];
-        var cor = dados.cores[listaCores.selection.index];
-        var unidade = listaUnidades.selection.text;
-        var quantidade = parseInt(campoQuantidade.text);
+    // Função para filtrar cores baseadas no componente selecionado
+    function filtrarCores(componenteId) {
+        listaCores.removeAll();
+        var coresDisponiveis = dados.combinacoes.filter(function(comb) {
+            return comb.componenteId === componenteId;
+        }).map(function(comb) {
+            return encontrarPorId(dados.cores, comb.corId);
+        });
         
+        var coresUnicas = coresDisponiveis.filter(function(cor, index, self) {
+            return index === self.findIndex(function(t) {
+                return t.id === cor.id;
+            });
+        });
+        
+        coresUnicas.forEach(function(cor) {
+            listaCores.add("item", cor.nome);
+        });
+        listaCores.selection = 0;
+    }
+
+    // Função para filtrar unidades baseadas no componente e cor selecionados
+    function filtrarUnidades(componenteId, corId) {
+        listaUnidades.removeAll();
+        var unidadesDisponiveis = dados.combinacoes.filter(function(comb) {
+            return comb.componenteId === componenteId && comb.corId === corId;
+        }).map(function(comb) {
+            return comb.unidade;
+        });
+        
+        var unidadesUnicas = unidadesDisponiveis.filter(function(unidade, index, self) {
+            return self.indexOf(unidade) === index;
+        });
+        
+        unidadesUnicas.forEach(function(unidade) {
+            listaUnidades.add("item", unidade);
+        });
+        listaUnidades.selection = 0;
+    }
+
+    // Função para atualizar a lista de cores com base no componente selecionado
+    function atualizarCores() {
+        if (listaComponentes.selection.index === 0) {
+            listaCores.removeAll();
+            listaCores.add("item", "Selecione uma cor");
+            listaCores.selection = 0;
+            listaUnidades.removeAll();
+            listaUnidades.add("item", "Selecione uma unidade");
+            listaUnidades.selection = 0;
+            return;
+        }
+
+        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
+        var coresDisponiveis = ["Selecione uma cor"];
+        var coresIds = [];
+
+        for (var i = 0; i < dados.combinacoes.length; i++) {
+            if (dados.combinacoes[i].componenteId === componenteSelecionado.id) {
+                var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
+                if (cor && !arrayContains(coresIds, cor.id)) {
+                    coresDisponiveis.push(cor.nome);
+                    coresIds.push(cor.id);
+                }
+            }
+        }
+
+        listaCores.removeAll();
+        for (var i = 0; i < coresDisponiveis.length; i++) {
+            listaCores.add("item", coresDisponiveis[i]);
+        }
+        listaCores.selection = 0;
+
+        // Resetar a lista de unidades
+        listaUnidades.removeAll();
+        listaUnidades.add("item", "Selecione uma unidade");
+        listaUnidades.selection = 0;
+    }
+
+    // Função para atualizar a lista de unidades com base no componente e cor selecionados
+    function atualizarUnidades() {
+        if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0) {
+            listaUnidades.removeAll();
+            listaUnidades.add("item", "Selecione uma unidade");
+            listaUnidades.selection = 0;
+            return;
+        }
+
+        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
+        var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
+        var unidadesDisponiveis = ["Selecione uma unidade"];
+
+        for (var i = 0; i < dados.combinacoes.length; i++) {
+            if (dados.combinacoes[i].componenteId === componenteSelecionado.id && dados.combinacoes[i].corId === corSelecionada.id) {
+                if (!arrayContains(unidadesDisponiveis, dados.combinacoes[i].unidade)) {
+                    unidadesDisponiveis.push(dados.combinacoes[i].unidade);
+                }
+            }
+        }
+
+        listaUnidades.removeAll();
+        for (var i = 0; i < unidadesDisponiveis.length; i++) {
+            listaUnidades.add("item", unidadesDisponiveis[i]);
+        }
+        listaUnidades.selection = 0;
+    }
+
+    // Adicionar eventos de mudança
+    listaComponentes.onChange = atualizarCores;
+    listaCores.onChange = atualizarUnidades;
+
+    // Botão para adicionar componente à legenda
+    botaoAdicionarComponente.onClick = function() {
+        if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0 || listaUnidades.selection.index === 0) {
+            alert("Por favor, selecione um componente, uma cor e uma unidade.");
+            return;
+        }
+
+        var quantidade = parseInt(campoQuantidade.text);
         if (isNaN(quantidade) || quantidade <= 0) {
             alert("Por favor, insira uma quantidade válida para o componente.");
             return;
         }
-        
-        var texto = componente.nome + " " + cor.nome + " " + unidade;
-        if (componente.referencia) {
-            texto += " (Ref: " + componente.referencia + ")";
-        }
-        texto += " units: " + quantidade;
-        
-        itensLegenda.push({
-            tipo: "componente",
-            nome: componente.nome + " " + cor.nome,
-            texto: texto,
-            referencia: componente.referencia,
-            quantidade: quantidade,
-            unidade: unidade // Adiciona a unidade ao objeto
-        });
-        
-        atualizarListaItens();
-    }
 
-    // Modificar o botão para adicionar combinação existente à legenda
-    botaoAdicionarCombinacao.onClick = function() {
-        if (listaCombinacoes.selection.index > 0) {
-            var combinacaoSelecionada = dados.combinacoes[listaCombinacoes.selection.index - 1];
-            var componente = encontrarPorId(dados.componentes, combinacaoSelecionada.componenteId);
-            var cor = encontrarPorId(dados.cores, combinacaoSelecionada.corId);
-            
-            var quantidade = parseInt(campoQuantidadeCombinacoes.text);
-            if (isNaN(quantidade) || quantidade <= 0) {
-                alert("Por favor, insira uma quantidade válida para a combinação.");
-                return;
-            }
-            
-            if (componente && cor) {
-                var texto = componente.nome + " " + cor.nome + " " + combinacaoSelecionada.unidade;
-                if (combinacaoSelecionada.referencia) {
-                    texto += " (Ref: " + combinacaoSelecionada.referencia + ")";
-                }
-                texto += " units: " + quantidade;
-                
-                itensLegenda.push({
-                    tipo: "combinacao",
-                    nome: componente.nome,
-                    texto: texto,
-                    referencia: combinacaoSelecionada.referencia,
-                    quantidade: quantidade,
-                    unidade: combinacaoSelecionada.unidade
-                });
-                
-                atualizarListaItens();
-            } else {
-                alert("Erro: Componente ou cor não encontrados para a combinação selecionada.");
-            }
-        } else {
-            alert("Por favor, selecione uma combinação válida.");
-        }
-    }
+        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
+        var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
+        var unidadeSelecionada = listaUnidades.selection.text;
 
-    // Modificar o botão para adicionar bola à legenda
-    botaoAdicionarBola.onClick = function() {
-        if (listaCoresBolas.selection.index === 0 || listaAcabamentos.selection.index === 0 || listaTamanhos.selection.index === 0) {
-            alert("Por favor, selecione uma cor, um acabamento e um tamanho para a bola.");
-            return;
-        }
-
-        var quantidade = parseInt(campoQuantidadeBolas.text);
-        if (isNaN(quantidade) || quantidade <= 0) {
-            alert("Por favor, insira uma quantidade válida de bolas.");
-            return;
-        }
-
-        var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
-        var acabamentoSelecionado = dados.acabamentos[encontrarIndicePorNome(dados.acabamentos, listaAcabamentos.selection.text)];
-        var tamanhoSelecionado = dados.tamanhos[encontrarIndicePorNome(dados.tamanhos, listaTamanhos.selection.text)];
-
-        // Encontrar a bola correspondente na base de dados
-        var bolaSelecionada = null;
-        for (var i = 0; i < dados.bolas.length; i++) {
-            if (dados.bolas[i].corId === corSelecionada.id &&
-                dados.bolas[i].acabamentoId === acabamentoSelecionado.id &&
-                dados.bolas[i].tamanhoId === tamanhoSelecionado.id) {
-                bolaSelecionada = dados.bolas[i];
+        // Encontrar a combinação correspondente na base de dados
+        var combinacaoSelecionada = null;
+        for (var i = 0; i < dados.combinacoes.length; i++) {
+            if (dados.combinacoes[i].componenteId === componenteSelecionado.id &&
+                dados.combinacoes[i].corId === corSelecionada.id &&
+                dados.combinacoes[i].unidade === unidadeSelecionada) {
+                combinacaoSelecionada = dados.combinacoes[i];
                 break;
             }
         }
 
-        if (bolaSelecionada) {
-            var texto = "bola " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome;
-            if (bolaSelecionada.referencia) {
-                texto += " (Ref: " + bolaSelecionada.referencia + ")";
+        if (combinacaoSelecionada) {
+            var texto = componenteSelecionado.nome + " " + corSelecionada.nome + " " + unidadeSelecionada;
+            if (combinacaoSelecionada.referencia) {
+                texto += " (Ref: " + combinacaoSelecionada.referencia + ")";
             }
-            texto += " units: " + quantidade;
+            texto += " " + unidadeSelecionada + ": " + quantidade;
             
             itensLegenda.push({
-                tipo: "bola",
-                nome: "bola " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome,
+                tipo: "componente",
+                nome: componenteSelecionado.nome + " " + corSelecionada.nome,
                 texto: texto,
-                referencia: bolaSelecionada.referencia,
+                referencia: combinacaoSelecionada.referencia,
                 quantidade: quantidade,
-                unidade: "units" // Adiciona a unidade ao objeto
+                unidade: unidadeSelecionada
             });
             
             atualizarListaItens();
         } else {
-            alert("Erro: Combinação de bola não encontrada na base de dados.");
+            alert("Erro: Combinação de componente não encontrada na base de dados.");
         }
     }
 
-    // Modificar o evento de clique no botão remover
-    botaoRemoverItem.onClick = function() {
-        var selectedIndex = listaItens.selection.index;
-        if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < itensLegenda.length) {
-            itensLegenda.splice(selectedIndex, 1);
-            atualizarListaItens();
-        } else {
-            alert("Por favor, selecione um item para remover.");
-        }
-    }
-
-    // Função para filtrar a lista de componentes
-    function filtrarComponentes(pesquisa) {
-        listaComponentes.removeAll();
-        var pesquisaLower = pesquisa.toLowerCase();
-        for (var i = 0; i < componentesNomes.length; i++) {
-            if (componentesNomes[i].toLowerCase().indexOf(pesquisaLower) !== -1) {
-                listaComponentes.add("item", componentesNomes[i]);
-            }
-        }
-        listaComponentes.selection = 0;
-    }
-
-    // Modificar a funcionalidade do botão de gerar legenda
+    // Modificar o botão para gerar legenda
     botaoGerar.onClick = function() {
         try {
             var legendaConteudo = atualizarPreview(); // Agora chamamos atualizarPreview() aqui
@@ -827,7 +836,7 @@
 
                 // Criar o quadro de texto para a legenda
                 var textoLegenda = novaLayer.textFrames.add();
-                textoLegenda.position = [textoNome.position[0], textoNome.position[1] - textoNome.height - 30];
+                textoLegenda.position = [textoNome.position[0], textoNome.position[1] - textoNome.height - 20];
 
                 // Configurar as propriedades do texto
                 textoLegenda.textRange.characterAttributes.size = 40; // Aumentar o tamanho da fonte para 14

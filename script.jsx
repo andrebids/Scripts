@@ -253,7 +253,7 @@
     var grupoStructure = subgrupo1.add("group");
     grupoStructure.orientation = "row";
     var checkStructure = grupoStructure.add("checkbox", undefined, "Structure laqué");
-    var coresStructure = ["Blanc", "Noir", "Gris", "Argent", "Or"];
+    var coresStructure = ["Blanc RAL 9010", "Or PANTONE 131C", "Rouge RAL 3000", "Bleu RAL 5005", "Vert RAL 6029", "Rose RAL 3015", "Noir RAL 9011"];
     var corStructure = grupoStructure.add("dropdownlist", undefined, coresStructure);
     corStructure.selection = 0;
     corStructure.enabled = false;
@@ -293,7 +293,7 @@
     // Tipo de fixação
     var grupoFixacao = grupoDimensoesFixacao.add("group");
     grupoFixacao.add("statictext", undefined, "Tipo de fixação:");
-    var tiposFixacao = ["Murale", "Suspendue", "Sur pied", "Encastrée", "Magnétique"];
+    var tiposFixacao = ["poteau", "transversée", "murale", "suspendue", "au sol", "spéciale"];
     var listaFixacao = grupoFixacao.add("dropdownlist", undefined, tiposFixacao);
     listaFixacao.selection = 0;
 
@@ -511,7 +511,7 @@
         }
 
         if (bolaSelecionada) {
-            var texto = "Bola " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome;
+            var texto = "bola " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome;
             if (bolaSelecionada.referencia) {
                 texto += " (Ref: " + bolaSelecionada.referencia + ")";
             }
@@ -519,10 +519,11 @@
             
             itensLegenda.push({
                 tipo: "bola",
-                nome: "Bola " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome,
+                nome: "bola " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome,
                 texto: texto,
                 referencia: bolaSelecionada.referencia,
-                quantidade: quantidade
+                quantidade: quantidade,
+                unidade: "units" // Adiciona a unidade ao objeto
             });
             
             atualizarListaItens();
@@ -631,7 +632,11 @@
         }
 
         previewText.push("\u200B"); // Outra linha vazia antes das observações
-        previewText.push("Obs: " + campoObs.text);
+        
+        // Adiciona a linha de observações apenas se o campo não estiver vazio
+        if (campoObs.text && campoObs.text.toString().replace(/\s/g, '').length > 0) {
+            previewText.push("Obs: " + campoObs.text);
+        }
 
         return previewText.join("\n");
     }
@@ -733,7 +738,7 @@
         }
 
         if (bolaSelecionada) {
-            var texto = "Bola " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome;
+            var texto = "bola " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome;
             if (bolaSelecionada.referencia) {
                 texto += " (Ref: " + bolaSelecionada.referencia + ")";
             }
@@ -741,10 +746,11 @@
             
             itensLegenda.push({
                 tipo: "bola",
-                nome: "Bola " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome,
+                nome: "bola " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome,
                 texto: texto,
                 referencia: bolaSelecionada.referencia,
-                quantidade: quantidade
+                quantidade: quantidade,
+                unidade: "units" // Adiciona a unidade ao objeto
             });
             
             atualizarListaItens();
@@ -812,7 +818,7 @@
                 // Adicionar o nome do designer com "Bids -" na frente
                 var textoNome = novaLayer.textFrames.add();
                 textoNome.contents = "Bids - " + nomeDesigner;
-                textoNome.textRange.characterAttributes.size = 30; // Aumentar o tamanho da fonte para 12
+                textoNome.textRange.characterAttributes.size = 40; // Aumentar o tamanho da fonte para 12
                 textoNome.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
                 textoNome.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
                 
@@ -821,10 +827,10 @@
 
                 // Criar o quadro de texto para a legenda
                 var textoLegenda = novaLayer.textFrames.add();
-                textoLegenda.position = [textoNome.position[0], textoNome.position[1] - textoNome.height - 10];
+                textoLegenda.position = [textoNome.position[0], textoNome.position[1] - textoNome.height - 30];
 
                 // Configurar as propriedades do texto
-                textoLegenda.textRange.characterAttributes.size = 30; // Aumentar o tamanho da fonte para 14
+                textoLegenda.textRange.characterAttributes.size = 40; // Aumentar o tamanho da fonte para 14
                 textoLegenda.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
                 textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
 

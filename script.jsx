@@ -638,14 +638,24 @@
             previewText[0] += " laqué " + (corStructure.selection ? corStructure.selection.text : "");
         }
 
+        // Função para formatar as dimensões com duas casas decimais
+        function formatarDimensao(valor) {
+            if (valor === "") return "";
+            var numero = parseFloat(valor.replace(',', '.'));
+            if (isNaN(numero)) return "";
+            return numero.toFixed(2).replace('.', ',') + " m";
+        }
+
+        // Modificar a parte do código que lida com as dimensões no preview
         var dimensoesTexto = "";
         for (var i = 0; i < dimensoes.length; i++) {
-            if (grupoDimensoes.children[i*2 + 1].text !== "") {
+            var valorDimensao = grupoDimensoes.children[i*2 + 1].text;
+            if (valorDimensao !== "") {
                 var dimensao = dimensoes[i];
                 if (dimensao === "⌀") {
                     dimensao = "\u00D8"; // Símbolo de diâmetro Unicode (Ø)
                 }
-                dimensoesTexto += dimensao + ": " + grupoDimensoes.children[i*2 + 1].text + "m ";
+                dimensoesTexto += dimensao + ": " + formatarDimensao(valorDimensao) + " ";
             }
         }
         previewText.push(dimensoesTexto);

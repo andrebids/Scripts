@@ -817,27 +817,20 @@
                 var artboard = doc.artboards[doc.artboards.getActiveArtboardIndex()];
                 var artboardBounds = artboard.artboardRect;
 
-                // Adicionar o nome do designer com "Bids -" na frente
-                var textoNome = novaLayer.textFrames.add();
-                textoNome.contents = "Bids - " + nomeDesigner;
-                textoNome.textRange.characterAttributes.size = 40; // Aumentar o tamanho da fonte para 12
-                textoNome.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
-                textoNome.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
-                
-                // Posicionar o nome no canto inferior esquerdo do artboard ativo
-                textoNome.position = [artboardBounds[0], artboardBounds[3] - textoNome.height];
-
                 // Criar o quadro de texto para a legenda
                 var textoLegenda = novaLayer.textFrames.add();
-                textoLegenda.position = [textoNome.position[0], textoNome.position[1] - textoNome.height - 20];
+                textoLegenda.position = [artboardBounds[0], artboardBounds[3] - 40]; // Posiciona no canto inferior esquerdo
 
                 // Configurar as propriedades do texto
-                textoLegenda.textRange.characterAttributes.size = 40; // Aumentar o tamanho da fonte para 14
+                textoLegenda.textRange.characterAttributes.size = 40; // Tamanho da fonte
                 textoLegenda.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
                 textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
 
+                // Adicionar o nome do designer com "Bids -" na frente
+                var textoCompleto = "Bids - " + nomeDesigner + "\n" + conteudoLegenda;
+
                 // Definir o conteúdo da legenda com quebras de linha
-                var linhas = conteudoLegenda.split('\n');
+                var linhas = textoCompleto.split('\n');
                 textoLegenda.contents = linhas[0]; // Adiciona a primeira linha
 
                 // Adiciona as linhas restantes como novos parágrafos
@@ -900,4 +893,3 @@
         // Adicione aqui qualquer outra limpeza necessária
     }
 })();
-

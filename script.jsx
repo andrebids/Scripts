@@ -744,134 +744,288 @@
     listaComponentes.onChange = atualizarCores;
     listaCores.onChange = atualizarUnidades;
 
-    // Função para arredondar para a décima
-    function arredondarParaDecima(valor) {
-        return Math.ceil(valor * 10) / 10;
-    }
-
-    // Função de arredondamento especial
-    function arredondamentoEspecial(valor, componenteId, unidade) {
+    // Função para arredondar para cima apenas para os componentes "fil lumiére" e "fil cométe"
+    function arredondamentoEspecial(valor, componenteId) {
         if (componenteId === 13 || componenteId === 14) { // IDs do fil lumiére e fil cométe
             return Math.ceil(valor);
-        } else if (unidade === 'm2' || unidade === 'ml') {
-            return arredondarParaDecima(valor);
         }
         return valor;
     }
 
+    // Função para arredondar para a próxima décima
+    function arredondarParaDecima(valor) {
+        return Math.ceil(valor * 10) / 10;
+    }
+
     // Botão para adicionar componente à legenda
     botaoAdicionarComponente.onClick = function() {
-        try {
-            if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0 || listaUnidades.selection.index === 0) {
-                alert("Por favor, selecione um componente, uma cor e uma unidade.");
-                return;
+        if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0 || listaUnidades.selection.index === 0) {
+            alert("Por favor, selecione um componente, uma cor e uma unidade.");
+            return;
+        }
+
+        var quantidade = parseFloat(campoQuantidade.text.replace(',', '.'));
+        if (isNaN(quantidade) || quantidade <= 0) {
+            alert("Por favor, insira uma quantidade válida para o componente.");
+            return;
+        }
+
+        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
+        var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
+        var unidadeSelecionada = listaUnidades.selection.text;
+
+        // Aplicar arredondamento especial para fil lumiére e fil cométe
+        quantidade = arredondamentoEspecial(quantidade, componenteSelecionado.id);
+
+        // Aplicar arredondamento para a próxima décima para "m2" ou "ml", exceto para fil lumiére e fil cométe
+        if (unidadeSelecionada !== "units" && componenteSelecionado.id !== 13 && componenteSelecionado.id !== 14) {
+            quantidade = arredondarParaDecima(quantidade);
+        }
+
+        // Encontrar a combinação correspondente na base de dados
+        var combinacaoSelecionada = null;
+        for (var i = 0; i < dados.combinacoes.length; i++) {
+            if (dados.combinacoes[i].componenteId === componenteSelecionado.id &&
+                dados.combinacoes[i].corId === corSelecionada.id &&
+                dados.combinacoes[i].unidade === unidadeSelecionada) {
+                combinacaoSelecionada = dados.combinacoes[i];
+                break;
             }
+        }
 
-            var quantidade = parseFloat(campoQuantidade.text.replace(',', '.'));
-            if (isNaN(quantidade) || quantidade <= 0) {
-                alert("Por favor, insira uma quantidade válida para o componente.");
-                return;
+        if (combinacaoSelecionada) {
+            var texto = componenteSelecionado.nome + " " + corSelecionada.nome;
+            if (combinacaoSelecionada.referencia) {
+                texto += " (Ref: " + combinacaoSelecionada.referencia + ")";
             }
-
-            var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
-            var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
-            var unidadeSelecionada = listaUnidades.selection.text;
-
-            // Aplicar arredondamento especial
-            quantidade = arredondamentoEspecial(quantidade, componenteSelecionado.id, unidadeSelecionada);
-
-            // Encontrar a combinação correspondente na base de dados
-            var combinacaoSelecionada = null;
-            for (var i = 0; i < dados.combinacoes.length; i++) {
-                if (dados.combinacoes[i].componenteId === componenteSelecionado.id &&
-                    dados.combinacoes[i].corId === corSelecionada.id &&
-                    dados.combinacoes[i].unidade === unidadeSelecionada) {
-                    combinacaoSelecionada = dados.combinacoes[i];
-                    break;
-                }
-            }
-
-            if (combinacaoSelecionada) {
-                var texto = componenteSelecionado.nome + " " + corSelecionada.nome;
-                if (combinacaoSelecionada.referencia) {
-                    texto += " (Ref: " + combinacaoSelecionada.referencia + ")";
-                }
-                
-                // Formatar a quantidade com base no componente e unidade
-                var quantidadeFormatada;
-                if (componenteSelecionado.id === 13 || componenteSelecionado.id === 14) {
-                    quantidadeFormatada = quantidade.toString();
-                } else if (unidadeSelecionada === 'm2' || unidadeSelecionada === 'ml') {
-                    quantidadeFormatada = quantidade.toFixed(1).replace('.', ',');
-                } else {
-                    quantidadeFormatada = quantidade.toFixed(2).replace('.', ',');
-                }
-                
-                texto += " (" + unidadeSelecionada + "): " + quantidadeFormatada;
-                
-                itensLegenda.push({
-                    tipo: "componente",
-                    nome: componenteSelecionado.nome + " " + corSelecionada.nome,
-                    texto: texto,
-                    referencia: combinacaoSelecionada.referencia,
-                    quantidade: quantidade,
-                    unidade: unidadeSelecionada,
-                    componenteId: componenteSelecionado.id
-                });
-                
-                atualizarListaItens();
-                
-                // Limpar campos após adicionar
-                listaComponentes.selection = 0;
-                listaCores.selection = 0;
-                listaUnidades.selection = 0;
-                campoQuantidade.text = "";
-            } else {
-                alert("Erro: Combinação de componente não encontrada na base de dados.");
-            }
-        } catch (e) {
-            alert("Ocorreu um erro ao adicionar o componente: " + e.message);
+            
+            // Formatar a quantidade com base no componente e unidade
+            var quantidadeFormatada = (componenteSelecionado.id === 13 || componenteSelecionado.id === 14) ? 
+                quantidade.toString() : 
+                quantidade.toFixed(2).replace('.', ',');
+            
+            texto += " (" + unidadeSelecionada + "): " + quantidadeFormatada;
+            
+            itensLegenda.push({
+                tipo: "componente",
+                nome: componenteSelecionado.nome + " " + corSelecionada.nome,
+                texto: texto,
+                referencia: combinacaoSelecionada.referencia,
+                quantidade: quantidade,
+                unidade: unidadeSelecionada,
+                componenteId: componenteSelecionado.id
+            });
+            
+            atualizarListaItens();
+        } else {
+            alert("Erro: Combinação de componente não encontrada na base de dados.");
         }
     }
 
-    // Botão para adicionar legenda
+    // ... código existente ...
+
+    // Botão para adicionar componente à legenda
+    botaoAdicionarComponente.onClick = function() {
+        if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0 || listaUnidades.selection.index === 0) {
+            alert("Por favor, selecione um componente, uma cor e uma unidade.");
+            return;
+        }
+
+        var quantidade = parseFloat(campoQuantidade.text.replace(',', '.'));
+        if (isNaN(quantidade) || quantidade <= 0) {
+            alert("Por favor, insira uma quantidade válida para o componente.");
+            return;
+        }
+
+        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
+        var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
+        var unidadeSelecionada = listaUnidades.selection.text;
+
+        // Aplicar arredondamento especial para fil lumiére e fil cométe
+        quantidade = arredondamentoEspecial(quantidade, componenteSelecionado.id);
+
+        // Aplicar arredondamento para a próxima décima para "m2" ou "ml", exceto para fil lumiére e fil cométe
+        if (unidadeSelecionada !== "units" && componenteSelecionado.id !== 13 && componenteSelecionado.id !== 14) {
+            quantidade = arredondarParaDecima(quantidade);
+        }
+
+        // Encontrar a combinação correspondente na base de dados
+        var combinacaoSelecionada = null;
+        for (var i = 0; i < dados.combinacoes.length; i++) {
+            if (dados.combinacoes[i].componenteId === componenteSelecionado.id &&
+                dados.combinacoes[i].corId === corSelecionada.id &&
+                dados.combinacoes[i].unidade === unidadeSelecionada) {
+                combinacaoSelecionada = dados.combinacoes[i];
+                break;
+            }
+        }
+
+        if (combinacaoSelecionada) {
+            var texto = componenteSelecionado.nome + " " + corSelecionada.nome;
+            if (combinacaoSelecionada.referencia) {
+                texto += " (Ref: " + combinacaoSelecionada.referencia + ")";
+            }
+            
+            // Formatar a quantidade com base no componente e unidade
+            var quantidadeFormatada = (componenteSelecionado.id === 13 || componenteSelecionado.id === 14) ? 
+                quantidade.toString() : 
+                quantidade.toFixed(2).replace('.', ',');
+            
+            texto += " (" + unidadeSelecionada + "): " + quantidadeFormatada;
+            
+            itensLegenda.push({
+                tipo: "componente",
+                nome: componenteSelecionado.nome + " " + corSelecionada.nome,
+                texto: texto,
+                referencia: combinacaoSelecionada.referencia,
+                quantidade: quantidade,
+                unidade: unidadeSelecionada,
+                componenteId: componenteSelecionado.id
+            });
+            
+            atualizarListaItens();
+        } else {
+            alert("Erro: Combinação de componente não encontrada na base de dados.");
+        }
+    }
+
+    // Modificar o botão para gerar legenda
     botaoGerar.onClick = function() {
         try {
-            var legendaConteudo = atualizarPreview();
+            var legendaConteudo = atualizarPreview(); // Agora chamamos atualizarPreview() aqui
             
-            // Substituir pontos por vírgulas e garantir duas casas decimais
-            legendaConteudo = legendaConteudo.replace(/(\d+)\.(\d+)/g, function(match, inteiro, decimal) {
+            // Função para formatar números com duas casas decimais
+            function formatarNumero(match, inteiro, decimal) {
                 var numero = parseFloat(inteiro + "." + decimal);
                 return numero.toFixed(2).replace(".", ",");
-            });
+            }
+            
+            // Substituir pontos por vírgulas e garantir duas casas decimais
+            legendaConteudo = legendaConteudo.replace(/(\d+)\.(\d+)/g, formatarNumero);
+
+            // Função para escapar strings
+            function escapeString(str) {
+                return str.replace(/\\/g, '\\\\')
+                          .replace(/'/g, "\\'")
+                          .replace(/\n/g, '\\n')
+                          .replace(/\r/g, '\\r');
+            }
+
+            var scriptIllustrator = function(nomeDesigner, conteudoLegenda) {
+                var doc = app.activeDocument;
+
+                if (!doc) {
+                    return "Nenhum documento ativo. Por favor, abra um documento no Illustrator.";
+                }
+
+                // Verificar se há uma artboard ativa
+                if (doc.artboards.length === 0) {
+                    return "Erro: O documento não tem artboards. Por favor, crie uma artboard antes de adicionar a legenda.";
+                }
+
+                // Criar uma nova camada para a legenda
+                var novaLayer = doc.layers.add();
+                novaLayer.name = "Legenda";
+
+                // Obter as dimensões da artboard ativa
+                var artboard = doc.artboards[doc.artboards.getActiveArtboardIndex()];
+                var artboardBounds = artboard.artboardRect;
+
+                // Criar o quadro de texto para a legenda
+                var textoLegenda = novaLayer.textFrames.add();
+                textoLegenda.position = [artboardBounds[0], artboardBounds[3] - 40]; // Posiciona no canto inferior esquerdo
+
+                // Configurar as propriedades do texto
+                textoLegenda.textRange.characterAttributes.size = 40; // Tamanho da fonte
+                textoLegenda.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
+                textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
+
+                // Adicionar o nome do designer com "Bids -" na frente
+                var textoCompleto = "Bids - " + nomeDesigner + "\n" + conteudoLegenda;
+
+                // Função para processar cada linha da legenda
+                function processarLinha(linha) {
+                    // Procura por padrões de unidade seguidos por dois pontos
+                    linha = linha.replace(/(ml|m2|unit):/g, "($1):");
+                    
+                    // Função para formatar números com duas casas decimais, exceto para fil lumiére
+                    function formatarNumero(match, inteiro, decimal, offset, string) {
+                        // Verifica se é o componente fil lumiére
+                        if (string.indexOf("fil lumiére") !== -1) {
+                            return inteiro; // Retorna apenas a parte inteira
+                        }
+                        var numero = parseFloat(inteiro + "." + decimal);
+                        return numero.toFixed(2).replace(".", ",");
+                    }
+                    
+                    // Substitui pontos por vírgulas e garante duas casas decimais (exceto para fil lumiére)
+                    linha = linha.replace(/(\d+)\.(\d+)/g, formatarNumero);
+                    
+                    return linha;
+                }
+
+                // Definir o conteúdo da legenda com quebras de linha
+                var linhas = textoCompleto.split('\n');
+                textoLegenda.contents = linhas[0]; // Adiciona a primeira linha
+
+                // Adiciona as linhas restantes como novos parágrafos
+                for (var i = 1; i < linhas.length; i++) {
+                    var linhaProcessada = processarLinha(linhas[i]);
+                    var novoParag = textoLegenda.paragraphs.add(linhaProcessada);
+                    novoParag.paragraphAttributes.spaceBefore = 0; // Garante que não haja espaço extra entre parágrafos
+                    novoParag.paragraphAttributes.spaceAfter = 0;
+                    
+                    // Adiciona espaço extra após a linha de fixação e antes das observações
+                    if (linhas[i] === "\u200B") {
+                        novoParag.paragraphAttributes.spaceAfter = 6; // Ajuste este valor conforme necessário
+                    }
+                }
+
+                // Ajustar o tamanho inicial do quadro de texto
+                textoLegenda.geometricBounds = [
+                    textoLegenda.geometricBounds[0],
+                    textoLegenda.geometricBounds[1],
+                    textoLegenda.geometricBounds[2],
+                    textoLegenda.geometricBounds[1] + 400
+                ];
+
+                return "success";
+            };
 
             var scriptString = "(" + scriptIllustrator.toString() + ")";
             scriptString += "('" + escapeString(nomeDesigner) + "', '" + escapeString(legendaConteudo) + "');";
 
-            // ... (restante do código)
+            var bt = new BridgeTalk();
+            bt.target = "illustrator";
+            bt.body = scriptString;
+            bt.onResult = function(resObj) {
+                if (resObj.body === "success") {
+                    alert("Legenda adicionada com sucesso!");
+                    janela.close(); // Fecha a janela após adicionar a legenda com sucesso
+                    janela = null; // Ajuda a liberar a memória
+                } else {
+                    alert("Ocorreu um problema ao adicionar a legenda: " + resObj.body);
+                }
+            };
+            bt.onError = function(err) {
+                alert("Erro ao adicionar legenda: " + err.body);
+            };
+            bt.send();
+
         } catch (e) {
             alert("Erro ao adicionar legenda: " + e + "\nLinha: " + e.line);
         }
     };
 
-    // Função para escapar strings
-    function escapeString(str) {
-        return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-    }
-
-    // Função para adicionar legenda ao Illustrator
-    var scriptIllustrator = function(nomeDesigner, conteudoLegenda) {
-        var doc = app.activeDocument;
-
-        if (!doc) {
-            return "Nenhum documento ativo. Por favor, abra um documento no Illustrator.";
-        }
-
-        // ... (restante do código)
-
-        return "success";
-    };
-
-    // Mostrar a janela
+    // Exibir a janela
     janela.show();
+
+    // Função para limpar recursos (pode ser chamada no final do script)
+    function limparRecursos() {
+        if (janela && janela.toString() !== "[object Window]") {
+            janela.close();
+            janela = null;
+        }
+        // Adicione aqui qualquer outra limpeza necessária
+    }
 })();

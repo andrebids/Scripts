@@ -325,6 +325,44 @@
         filtrarComponentes(campoPesquisa.text);
     };
 
+    // Função para filtrar componentes
+    function filtrarComponentes(termo) {
+        var componentesFiltrados = ["Selecione um componente"];
+        
+        if (termo.length > 0) {
+            for (var i = 1; i < componentesNomes.length; i++) {
+                if (componentesNomes[i].toLowerCase().indexOf(termo.toLowerCase()) !== -1) {
+                    componentesFiltrados.push(componentesNomes[i]);
+                }
+            }
+        } else {
+            componentesFiltrados = componentesNomes;
+        }
+
+        // Salvar a seleção atual
+        var selecaoAtual = listaComponentes.selection;
+
+        // Limpar e repopular a lista
+        listaComponentes.removeAll();
+        for (var i = 0; i < componentesFiltrados.length; i++) {
+            listaComponentes.add("item", componentesFiltrados[i]);
+        }
+
+        // Restaurar a seleção se possível, ou selecionar o primeiro item filtrado
+        if (componentesFiltrados.length > 1) {
+            if (selecaoAtual && componentesFiltrados.indexOf(selecaoAtual.text) !== -1) {
+                listaComponentes.selection = componentesFiltrados.indexOf(selecaoAtual.text);
+            } else {
+                listaComponentes.selection = 1; // Seleciona o primeiro componente filtrado
+            }
+        } else {
+            listaComponentes.selection = 0; // Seleciona "Selecione um componente" se não houver resultados
+        }
+
+        // Atualizar cores e unidades
+        atualizarCores();
+    }
+
     var grupo2 = grupoComponentes.add("group");
     grupo2.orientation = "row";
 
@@ -631,81 +669,36 @@
         return previewText.join("\n");
     }
 
-    // Função para filtrar cores baseadas no componente selecionado
-    function filtrarCores(componenteId) {
-        listaCores.removeAll();
-        var coresDisponiveis = dados.combinacoes.filter(function(comb) {
-            return comb.componenteId === componenteId;
-        }).map(function(comb) {
-            return encontrarPorId(dados.cores, comb.corId);
-        });
-        
-        var coresUnicas = coresDisponiveis.filter(function(cor, index, self) {
-            return index === self.findIndex(function(t) {
-                return t.id === cor.id;
-            });
-        });
-        
-        coresUnicas.forEach(function(cor) {
-            listaCores.add("item", cor.nome);
-        });
-        listaCores.selection = 0;
-    }
-
-    // Função para filtrar unidades baseadas no componente e cor selecionados
-    function filtrarUnidades(componenteId, corId) {
-        listaUnidades.removeAll();
-        var unidadesDisponiveis = dados.combinacoes.filter(function(comb) {
-            return comb.componenteId === componenteId && comb.corId === corId;
-        }).map(function(comb) {
-            return comb.unidade;
-        });
-        
-        var unidadesUnicas = unidadesDisponiveis.filter(function(unidade, index, self) {
-            return self.indexOf(unidade) === index;
-        });
-        
-        unidadesUnicas.forEach(function(unidade) {
-            listaUnidades.add("item", unidade);
-        });
-        listaUnidades.selection = 0;
-    }
-
     // Função para atualizar a lista de cores com base no componente selecionado
     function atualizarCores() {
-        if (listaComponentes.selection.index === 0) {
-            listaCores.removeAll();
-            listaCores.add("item", "Selecione uma cor");
-            listaCores.selection = 0;
-            listaUnidades.removeAll();
-            listaUnidades.add("item", "Selecione uma unidade");
-            listaUnidades.selection = 0;
-            return;
-        }
+        listaCores.removeAll();
+        listaUnidades.removeAll();
+        
+        if (listaComponentes.selection && listaComponentes.selection.index > 0) {
+            var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
+            var coresDisponiveis = ["Selecione uma cor"];
+            var coresIds = [];
 
-        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
-        var coresDisponiveis = ["Selecione uma cor"];
-        var coresIds = [];
-
-        for (var i = 0; i < dados.combinacoes.length; i++) {
-            if (dados.combinacoes[i].componenteId === componenteSelecionado.id) {
-                var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
-                if (cor && !arrayContains(coresIds, cor.id)) {
-                    coresDisponiveis.push(cor.nome);
-                    coresIds.push(cor.id);
+            for (var i = 0; i < dados.combinacoes.length; i++) {
+                if (dados.combinacoes[i].componenteId === componenteSelecionado.id) {
+                    var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
+                    if (cor && !arrayContains(coresIds, cor.id)) {
+                        coresDisponiveis.push(cor.nome);
+                        coresIds.push(cor.id);
+                    }
                 }
             }
-        }
 
-        listaCores.removeAll();
-        for (var i = 0; i < coresDisponiveis.length; i++) {
-            listaCores.add("item", coresDisponiveis[i]);
+            for (var i = 0; i < coresDisponiveis.length; i++) {
+                listaCores.add("item", coresDisponiveis[i]);
+            }
+            listaCores.selection = 0;
+        } else {
+            listaCores.add("item", "Selecione uma cor");
         }
-        listaCores.selection = 0;
-
-        // Resetar a lista de unidades
-        listaUnidades.removeAll();
+        
         listaUnidades.add("item", "Selecione uma unidade");
+        listaCores.selection = 0;
         listaUnidades.selection = 0;
     }
 

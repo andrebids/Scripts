@@ -527,7 +527,7 @@
             return;
         }
 
-        var quantidade = parseInt(campoQuantidadeBolas.text);
+        var quantidade = parseFloat(campoQuantidadeBolas.text.replace(',', '.'));
         if (isNaN(quantidade) || quantidade <= 0) {
             alert("Por favor, insira uma quantidade válida de bolas.");
             return;
@@ -553,7 +553,7 @@
             if (bolaSelecionada.referencia) {
                 texto += " (Ref: " + bolaSelecionada.referencia + ")";
             }
-            texto += " units: " + quantidade;
+            texto += " units: " + quantidade.toFixed(2).replace('.', ',');
             
             itensLegenda.push({
                 tipo: "bola",
@@ -626,9 +626,9 @@
             var item = itensLegenda[i];
             itensNomes.push(item.nome);
             if (item.referencia) {
-                referencias.push(item.referencia + " (" + item.unidade + "): " + item.quantidade);
+                referencias.push(item.referencia + " (" + item.unidade + "): " + item.quantidade.toFixed(2).replace('.', ','));
             } else {
-                referencias.push(item.nome + " (" + item.unidade + "): " + item.quantidade);
+                referencias.push(item.nome + " (" + item.unidade + "): " + item.quantidade.toFixed(2).replace('.', ','));
             }
         }
         previewText[0] += itensNomes.join(", ");
@@ -744,6 +744,14 @@
     listaComponentes.onChange = atualizarCores;
     listaCores.onChange = atualizarUnidades;
 
+    // Função para arredondar para cima apenas para o componente "fil lumiére"
+    function arredondamentoEspecial(valor, componenteId) {
+        if (componenteId === 13) { // ID do fil lumiére
+            return Math.ceil(valor);
+        }
+        return valor;
+    }
+
     // Botão para adicionar componente à legenda
     botaoAdicionarComponente.onClick = function() {
         if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0 || listaUnidades.selection.index === 0) {
@@ -761,6 +769,9 @@
         var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
         var unidadeSelecionada = listaUnidades.selection.text;
 
+        // Aplicar arredondamento especial para fil lumiére
+        quantidade = arredondamentoEspecial(quantidade, componenteSelecionado.id);
+
         // Encontrar a combinação correspondente na base de dados
         var combinacaoSelecionada = null;
         for (var i = 0; i < dados.combinacoes.length; i++) {
@@ -777,7 +788,13 @@
             if (combinacaoSelecionada.referencia) {
                 texto += " (Ref: " + combinacaoSelecionada.referencia + ")";
             }
-            texto += " (" + unidadeSelecionada + "): " + quantidade.toFixed(2).replace('.', ',');
+            
+            // Formatar a quantidade com base no componente
+            var quantidadeFormatada = componenteSelecionado.id === 13 ? 
+                quantidade.toString() : 
+                quantidade.toFixed(2).replace('.', ',');
+            
+            texto += " (" + unidadeSelecionada + "): " + quantidadeFormatada;
             
             itensLegenda.push({
                 tipo: "componente",
@@ -785,7 +802,8 @@
                 texto: texto,
                 referencia: combinacaoSelecionada.referencia,
                 quantidade: quantidade,
-                unidade: unidadeSelecionada
+                unidade: unidadeSelecionada,
+                componenteId: componenteSelecionado.id
             });
             
             atualizarListaItens();
@@ -799,8 +817,14 @@
         try {
             var legendaConteudo = atualizarPreview(); // Agora chamamos atualizarPreview() aqui
             
-            // Substituir pontos por vírgulas em todos os números decimais
-            legendaConteudo = legendaConteudo.replace(/(\d+)\.(\d+)/g, "$1,$2");
+            // Função para formatar números com duas casas decimais
+            function formatarNumero(match, inteiro, decimal) {
+                var numero = parseFloat(inteiro + "." + decimal);
+                return numero.toFixed(2).replace(".", ",");
+            }
+            
+            // Substituir pontos por vírgulas e garantir duas casas decimais
+            legendaConteudo = legendaConteudo.replace(/(\d+)\.(\d+)/g, formatarNumero);
 
             // Função para escapar strings
             function escapeString(str) {
@@ -847,8 +871,18 @@
                     // Procura por padrões de unidade seguidos por dois pontos
                     linha = linha.replace(/(ml|m2|unit):/g, "($1):");
                     
-                    // Substitui pontos por vírgulas em todos os números decimais
-                    linha = linha.replace(/(\d+)\.(\d+)/g, "$1,$2");
+                    // Função para formatar números com duas casas decimais, exceto para fil lumiére
+                    function formatarNumero(match, inteiro, decimal, offset, string) {
+                        // Verifica se é o componente fil lumiére
+                        if (string.indexOf("fil lumiére") !== -1) {
+                            return inteiro; // Retorna apenas a parte inteira
+                        }
+                        var numero = parseFloat(inteiro + "." + decimal);
+                        return numero.toFixed(2).replace(".", ",");
+                    }
+                    
+                    // Substitui pontos por vírgulas e garante duas casas decimais (exceto para fil lumiére)
+                    linha = linha.replace(/(\d+)\.(\d+)/g, formatarNumero);
                     
                     return linha;
                 }

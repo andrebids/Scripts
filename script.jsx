@@ -108,7 +108,7 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
     abaLegenda.alignChildren = ["fill", "top"];
 
     // Primeiro grupo (Informações principais)
-    var grupoPrincipal = abaLegenda.add("panel", undefined, "Informações Principais223");
+    var grupoPrincipal = abaLegenda.add("panel", undefined, "Informações Principais2234");
     grupoPrincipal.orientation = "column";
     grupoPrincipal.alignChildren = "left";
 

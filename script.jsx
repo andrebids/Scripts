@@ -108,7 +108,7 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
     abaLegenda.alignChildren = ["fill", "top"];
 
     // Primeiro grupo (Informações principais)
-    var grupoPrincipal = abaLegenda.add("panel", undefined, "Informações Principais2");
+    var grupoPrincipal = abaLegenda.add("panel", undefined, "Informações Principais223");
     grupoPrincipal.orientation = "column";
     grupoPrincipal.alignChildren = "left";
 
@@ -693,7 +693,7 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
     botaoVerificarAtualizacoes.onClick = function() {
         var atualizacaoRealizada = funcoes.verificarAtualizacoes();
         if (atualizacaoRealizada) {
-            janela.close(); // Fecha a janela do script após a atualização
+            alert("Teste de atualização concluído. A janela não será fechada.");
         }
     };
 
@@ -702,14 +702,53 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
     botaoAtualizarGit.size = [150, 25];
 
     // Adicione este evento de clique
-    botaoAtualizarGit.onClick = function() {
-        var resposta = confirm("Isso irá fechar o script atual e executar a atualização via Git. Deseja continuar?");
-        if (resposta) {
-            var scriptAtualizador = new File(File($.fileName).path + "/atualizador.jsx");
-            janela.close();
-            app.doScript(scriptAtualizador);
+// Modificar o evento de clique para o botão Atualizar via Git
+// Modificar o evento de clique para o botão Atualizar via Git
+botaoAtualizarGit.onClick = function() {
+    var resposta = confirm("Isso irá criar e executar um script para 'git pull'. Deseja continuar?");
+    if (resposta) {
+        try {
+            var scriptFile;
+            var isWindows = $.os.indexOf("Windows") >= 0;
+            var currentDir = File($.fileName).parent.fsName;
+
+            // Perguntar ao usuário se quer usar um diretório diferente
+            var useDifferentDir = confirm("O diretório atual é:\n" + currentDir + "\n\nDeseja usar um diretório diferente para o git pull?");
+            
+            if (useDifferentDir) {
+                var selectedFolder = Folder.selectDialog("Selecione o diretório do repositório Git");
+                if (selectedFolder) {
+                    currentDir = selectedFolder.fsName;
+                } else {
+                    alert("Nenhum diretório selecionado. Usando o diretório atual.");
+                }
+            }
+
+            if (isWindows) {
+                // Criar arquivo .bat para Windows
+                scriptFile = new File(currentDir + "/update_script.bat");
+                scriptFile.open('w');
+                scriptFile.write("@echo off\ncd /d \"" + currentDir + "\"\ngit pull\npause");
+                scriptFile.close();
+            } else {
+                // Criar arquivo .sh para macOS
+                scriptFile = new File(currentDir + "/update_script.sh");
+                scriptFile.open('w');
+                scriptFile.write("#!/bin/bash\ncd \"" + currentDir + "\"\ngit pull\nread -p 'Press Enter to continue...'");
+                scriptFile.close();
+            }
+
+            // Executar o script
+            if (scriptFile.execute()) {
+                alert("O script de atualização foi executado no diretório:\n" + currentDir + "\n\nVerifique o terminal para ver o resultado.");
+            } else {
+                alert("Houve um problema ao executar o script. Por favor, verifique se o Git está instalado e acessível.");
+            }
+        } catch (e) {
+            alert("Erro ao criar ou executar o script: " + e);
         }
-    };
+    }
+};
 
     // Exibir a janela
     janela.show();

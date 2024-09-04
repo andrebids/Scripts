@@ -113,37 +113,30 @@ function encontrarIndicePorNome(array, nome) {
 
     // Função para verificar atualizações
     function verificarAtualizacoes() {
-        alert("Iniciando verificação de atualizações...");
-        var versaoAtual = lerVersao();
-        alert("Versão atual: " + versaoAtual);
+        alert("Iniciando teste de atualização...");
+        var scriptPath = File($.fileName).path + "/update_test.sh";
+        var updateScript = new File(scriptPath);
         
-        alert("Tentando obter versão do GitHub...");
-        var versaoGitHub = obterVersaoGitHub();
-        alert("Resultado da obtenção da versão do GitHub: " + (versaoGitHub ? versaoGitHub : "falha"));
-
-        if (!versaoGitHub) {
-            alert("Não foi possível obter a versão do GitHub. Verifique sua conexão com a internet.");
+        // Create the bash script
+        updateScript.open('w');
+        updateScript.write("#!/bin/bash\n");
+        updateScript.write("touch ~/Desktop/update_test_file.txt\n");
+        updateScript.close();
+        
+        // Make the script executable
+        system("chmod +x " + scriptPath);
+        
+        // Run the script
+        var result = system(scriptPath);
+        
+        if (result === 0) {
+            alert("Teste de atualização concluído. Verifique se um novo arquivo foi criado na área de trabalho.");
+            return true;
+        } else {
+            alert("Erro ao executar o teste de atualização.");
             return false;
         }
-
-        alert("Comparando versões - Atual: " + versaoAtual + ", GitHub: " + versaoGitHub);
-
-        if (versaoGitHub !== versaoAtual) {
-            var resposta = confirm("Nova versão disponível: " + versaoGitHub + ". Versão atual: " + versaoAtual + "\nDeseja atualizar agora?");
-            if (resposta) {
-                alert("Iniciando atualização via Git...");
-                var scriptAtualizador = new File(File($.fileName).path + "/atualizador.jsx");
-                app.doScript(scriptAtualizador);
-                return true; // Indica que uma atualização foi realizada
-            } else {
-                alert("Atualização cancelada pelo usuário.");
-            }
-        } else {
-            alert("O script já está na versão mais recente (" + versaoAtual + ").");
-        }
-        alert("Verificação de atualizações concluída.");
-        return false; // Indica que nenhuma atualização foi realizada
-}
+    }
 
 // Função para ler a versão do arquivo version.json
 function lerVersao() {
@@ -197,7 +190,8 @@ $.global.funcoes = {
     encontrarPorId: encontrarPorId,
     arrayContains: arrayContains,
     encontrarIndicePorNome: encontrarIndicePorNome,
-    lerVersao: lerVersao
+    lerVersao: lerVersao,
+    verificarAtualizacoes: verificarAtualizacoes
 };
 
 // Adicione estas funções no arquivo funcoes.jsx
@@ -276,46 +270,6 @@ function atualizarArquivos() {
     }
     return true;
 }
-
-// Função para verificar e realizar a atualização
-function verificarAtualizacoes() {
-    alert("Iniciando verificação de atualizações...");
-    var versaoAtual = lerVersao();
-    alert("Versão atual: " + versaoAtual);
-    
-    alert("Tentando obter versão do GitHub...");
-    var versaoGitHub = obterVersaoGitHub();
-    alert("Resultado da obtenção da versão do GitHub: " + (versaoGitHub ? versaoGitHub : "falha"));
-
-    if (!versaoGitHub) {
-        alert("Não foi possível obter a versão do GitHub. Verifique sua conexão com a internet.");
-        return false;
-    }
-
-    alert("Comparando versões - Atual: " + versaoAtual + ", GitHub: " + versaoGitHub);
-
-    if (versaoGitHub !== versaoAtual) {
-        var resposta = confirm("Nova versão disponível: " + versaoGitHub + ". Versão atual: " + versaoAtual + "\nDeseja atualizar agora?");
-        if (resposta) {
-            alert("Iniciando atualização de arquivos...");
-            if (atualizarArquivos()) {
-                alert("Atualização concluída. O script será fechado. Por favor, execute-o novamente.");
-                return true; // Indica que uma atualização foi realizada
-            } else {
-                alert("Ocorreu um erro durante a atualização. O script continuará usando a versão atual.");
-            }
-        } else {
-            alert("Atualização cancelada pelo usuário.");
-        }
-    } else {
-        alert("O script já está na versão mais recente (" + versaoAtual + ").");
-    }
-    alert("Verificação de atualizações concluída.");
-    return false; // Indica que nenhuma atualização foi realizada
-}
-
-// Atualize a exportação global
-$.global.funcoes.verificarAtualizacoes = verificarAtualizacoes;
 
 function testeRequisicao() {
     var url = "https://raw.githubusercontent.com/andrebids/Scripts/main/version.json";

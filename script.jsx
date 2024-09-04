@@ -690,7 +690,12 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
     versaoScript.characters = 10; // Ajusta o tamanho do campo de texto
 
     // Evento de clique para o botão de verificar atualizações
-    botaoVerificarAtualizacoes.onClick = verificarAtualizacoes;
+    botaoVerificarAtualizacoes.onClick = function() {
+        var atualizacaoRealizada = funcoes.verificarAtualizacoes();
+        if (atualizacaoRealizada) {
+            janela.close(); // Fecha a janela do script após a atualização
+        }
+    };
 
     // Exibir a janela
     janela.show();

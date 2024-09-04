@@ -113,23 +113,33 @@ function encontrarIndicePorNome(array, nome) {
 
     // Função para verificar atualizações
     function verificarAtualizacoes() {
-        // Simular uma verificação de atualização
-        var atualizacaoDisponivel = Math.random() < 0.5; // 50% de chance de ter uma atualização
+        alert("Iniciando verificação de atualizações...");
+        var versaoAtual = lerVersao();
+        alert("Versão atual: " + versaoAtual);
+        var versaoGitHub = obterVersaoGitHub();
+        alert("Versão do GitHub: " + versaoGitHub);
 
-        if (atualizacaoDisponivel) {
-            var resposta = confirm("Atualização encontrada. Deseja atualizar agora?");
+        if (!versaoGitHub) {
+            alert("Não foi possível obter a versão do GitHub. Por favor, verifique sua conexão com a internet.");
+            return false;
+        }
+
+        if (versaoGitHub !== versaoAtual) {
+            var resposta = confirm("Nova versão disponível: " + versaoGitHub + ". Versão atual: " + versaoAtual + "\nDeseja atualizar agora?");
             if (resposta) {
-                alert("Iniciando atualização...");
-                // Aqui você implementaria a lógica real de atualização
-                // Por exemplo:
-                // atualizarArquivos();
-                alert("Atualização concluída. O script será fechado. Por favor, execute-o novamente.");
-                janela.close();
+                alert("Iniciando atualização dos arquivos...");
+                if (atualizarArquivos()) {
+                    alert("Atualização concluída. O script será fechado. Por favor, execute-o novamente.");
+                    return true; // Indica que uma atualização foi realizada
+                } else {
+                    alert("Ocorreu um erro durante a atualização. O script continuará usando a versão atual.");
+                }
             }
         } else {
-            alert("Nenhuma atualização disponível.");
+            alert("O script já está na versão mais recente (" + versaoAtual + ").");
         }
-    }
+        return false; // Indica que nenhuma atualização foi realizada
+}
 
 // Função para ler a versão do arquivo version.json
 function lerVersao() {
@@ -183,3 +193,116 @@ $.global.funcoes = {
     encontrarIndicePorNome: encontrarIndicePorNome,
     lerVersao: lerVersao
 };
+
+// Adicione estas funções no arquivo funcoes.jsx
+
+// Função para obter a versão mais recente do GitHub
+function obterVersaoGitHub() {
+    var url = "https://raw.githubusercontent.com/andrebids/Scripts/main/version.json";
+    var arquivo = new File(url);
+    
+    try {
+        arquivo.open('r');
+        var conteudo = arquivo.read();
+        arquivo.close();
+        
+        var dadosVersao = JSON.parse(conteudo);
+        return dadosVersao.version;
+    } catch (e) {
+        if (e instanceof SocketError) {
+            alert("Erro de conexão ao verificar a versão: " + e.message + "\nVerifique sua conexão com a internet.");
+        } else if (e instanceof Error) {
+            alert("Erro ao obter a versão do GitHub: " + e.message);
+        } else {
+            alert("Erro desconhecido ao obter a versão do GitHub.");
+        }
+        return null;
+    }
+}
+
+// Função para baixar um arquivo do GitHub
+function baixarArquivoGitHub(nomeArquivo) {
+    var url = "https://raw.githubusercontent.com/andrebids/Scripts/main/" + nomeArquivo;
+    alert("Tentando baixar arquivo: " + url);
+    var arquivo = new File(url);
+    
+    try {
+        arquivo.open('r');
+        var conteudo = arquivo.read();
+        arquivo.close();
+        alert("Arquivo baixado com sucesso: " + nomeArquivo);
+        return conteudo;
+    } catch (e) {
+        if (e instanceof SocketError) {
+            alert("Erro de conexão ao baixar o arquivo " + nomeArquivo + ": " + e.message + "\nVerifique sua conexão com a internet.");
+        } else if (e instanceof Error) {
+            alert("Erro ao baixar o arquivo " + nomeArquivo + ": " + e.message);
+        } else {
+            alert("Erro desconhecido ao baixar o arquivo " + nomeArquivo);
+        }
+        return null;
+    }
+}
+
+// Função para atualizar os arquivos
+function atualizarArquivos() {
+    var arquivosParaAtualizar = ["script.jsx", "regras.jsx", "funcoes.jsx", "version.json"];
+    var pastaScript = File($.fileName).path;
+
+    for (var i = 0; i < arquivosParaAtualizar.length; i++) {
+        var nomeArquivo = arquivosParaAtualizar[i];
+        var conteudoNovo = baixarArquivoGitHub(nomeArquivo);
+        
+        if (conteudoNovo) {
+            try {
+                var arquivoLocal = new File(pastaScript + "/" + nomeArquivo);
+                arquivoLocal.open('w');
+                arquivoLocal.write(conteudoNovo);
+                arquivoLocal.close();
+            } catch (e) {
+                if (e.name === "PermissionError") {
+                    alert("Erro de permissão ao atualizar o arquivo " + nomeArquivo + ". Verifique se você tem permissões de escrita na pasta do script.");
+                } else {
+                    alert("Erro ao atualizar o arquivo " + nomeArquivo + ": " + e.message);
+                }
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Função para verificar e realizar a atualização
+function verificarAtualizacoes() {
+    alert("Iniciando verificação de atualizações...");
+    var versaoAtual = lerVersao();
+    alert("Versão atual: " + versaoAtual);
+    var versaoGitHub = obterVersaoGitHub();
+    alert("Versão do GitHub: " + versaoGitHub);
+
+    if (!versaoGitHub) {
+        alert("Não foi possível obter a versão do GitHub. Por favor, verifique sua conexão com a internet.");
+        return false;
+    }
+
+    if (versaoGitHub !== versaoAtual) {
+        var resposta = confirm("Nova versão disponível: " + versaoGitHub + ". Versão atual: " + versaoAtual + "\nDeseja atualizar agora?");
+        if (resposta) {
+            alert("Iniciando atualização dos arquivos...");
+            if (atualizarArquivos()) {
+                alert("Atualização concluída. O script será fechado. Por favor, execute-o novamente.");
+                return true; // Indica que uma atualização foi realizada
+            } else {
+                alert("Ocorreu um erro durante a atualização. O script continuará usando a versão atual.");
+            }
+        }
+    } else {
+        alert("O script já está na versão mais recente (" + versaoAtual + ").");
+    }
+    return false; // Indica que nenhuma atualização foi realizada
+}
+
+// Atualize a exportação global
+$.global.funcoes.verificarAtualizacoes = verificarAtualizacoes;

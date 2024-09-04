@@ -697,6 +697,20 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
         }
     };
 
+    // Adicione isto junto com os outros botões na barra de status
+    var botaoAtualizarGit = barraStatus.add("button", undefined, "Atualizar via Git");
+    botaoAtualizarGit.size = [150, 25];
+
+    // Adicione este evento de clique
+    botaoAtualizarGit.onClick = function() {
+        var resposta = confirm("Isso irá fechar o script atual e executar a atualização via Git. Deseja continuar?");
+        if (resposta) {
+            var scriptAtualizador = new File(File($.fileName).path + "/atualizador.jsx");
+            janela.close();
+            app.doScript(scriptAtualizador);
+        }
+    };
+
     // Exibir a janela
     janela.show();
 

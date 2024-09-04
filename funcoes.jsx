@@ -116,46 +116,50 @@ function encontrarIndicePorNome(array, nome) {
         alert("Iniciando verificação de atualizações...");
         var versaoAtual = lerVersao();
         alert("Versão atual: " + versaoAtual);
+        
+        alert("Tentando obter versão do GitHub...");
         var versaoGitHub = obterVersaoGitHub();
-        alert("Versão do GitHub: " + versaoGitHub);
+        alert("Resultado da obtenção da versão do GitHub: " + (versaoGitHub ? versaoGitHub : "falha"));
 
         if (!versaoGitHub) {
-            alert("Não foi possível obter a versão do GitHub. Por favor, verifique sua conexão com a internet.");
+            alert("Não foi possível obter a versão do GitHub. Verifique sua conexão com a internet.");
             return false;
         }
+
+        alert("Comparando versões - Atual: " + versaoAtual + ", GitHub: " + versaoGitHub);
 
         if (versaoGitHub !== versaoAtual) {
             var resposta = confirm("Nova versão disponível: " + versaoGitHub + ". Versão atual: " + versaoAtual + "\nDeseja atualizar agora?");
             if (resposta) {
-                alert("Iniciando atualização dos arquivos...");
-                if (atualizarArquivos()) {
-                    alert("Atualização concluída. O script será fechado. Por favor, execute-o novamente.");
-                    return true; // Indica que uma atualização foi realizada
-                } else {
-                    alert("Ocorreu um erro durante a atualização. O script continuará usando a versão atual.");
-                }
+                alert("Iniciando atualização via Git...");
+                var scriptAtualizador = new File(File($.fileName).path + "/atualizador.jsx");
+                app.doScript(scriptAtualizador);
+                return true; // Indica que uma atualização foi realizada
+            } else {
+                alert("Atualização cancelada pelo usuário.");
             }
         } else {
             alert("O script já está na versão mais recente (" + versaoAtual + ").");
         }
+        alert("Verificação de atualizações concluída.");
         return false; // Indica que nenhuma atualização foi realizada
 }
 
 // Função para ler a versão do arquivo version.json
 function lerVersao() {
-    var caminhoVersao = File($.fileName).path + "/version.json";
-    if (arquivoExiste(caminhoVersao)) {
+    var arquivoVersao = new File(File($.fileName).path + "/version.json");
+    if (arquivoVersao.exists) {
+        arquivoVersao.open('r');
+        var conteudo = arquivoVersao.read();
+        arquivoVersao.close();
         try {
-            var dadosVersao = lerArquivoJSON(caminhoVersao);
-            return dadosVersao.version || "Versão desconhecida";
+            var dadosVersao = parseJSON(conteudo);
+            return dadosVersao.version;
         } catch (e) {
             alert("Erro ao ler o arquivo de versão: " + e.message);
-            return "Erro na leitura";
         }
-    } else {
-        alert("Arquivo de versão não encontrado.");
-        return "Arquivo não encontrado";
     }
+    return "0.0.0"; // Versão padrão se não for possível ler o arquivo
 }
 
         // Função para formatar as dimensões com duas casas decimais
@@ -174,8 +178,10 @@ function lerVersao() {
                           .replace(/\r/g, '\\r');
             }
 
-// Adicione esta função à exportação global
+// Certifique-se de que esta linha está presente no final do arquivo funcoes.jsx
+$.global.funcoes = $.global.funcoes || {};
 $.global.funcoes.lerVersao = lerVersao;
+$.global.funcoes.parseJSON = parseJSON;
 
 // Exportar as funções para uso em outros scripts
 $.global.funcoes = {
@@ -198,24 +204,26 @@ $.global.funcoes = {
 
 // Função para obter a versão mais recente do GitHub
 function obterVersaoGitHub() {
-    var url = "https://raw.githubusercontent.com/andrebids/Scripts/main/version.json";
-    var arquivo = new File(url);
+    var url = "https://raw.githubusercontent.com/andrebids/Scripts/main/version.json?token=GHSAT0AAAAAACWMHVDEVGSVE3PNKE4QDPDKZWYHWUQ";
+    var request = new XMLHttpRequest();
     
     try {
-        arquivo.open('r');
-        var conteudo = arquivo.read();
-        arquivo.close();
+        request.open("GET", url, false);
+        request.setRequestHeader("User-Agent", "ScriptUpdateAgent");
+        request.send();
         
-        var dadosVersao = JSON.parse(conteudo);
-        return dadosVersao.version;
-    } catch (e) {
-        if (e instanceof SocketError) {
-            alert("Erro de conexão ao verificar a versão: " + e.message + "\nVerifique sua conexão com a internet.");
-        } else if (e instanceof Error) {
-            alert("Erro ao obter a versão do GitHub: " + e.message);
+        if (request.status === 200) {
+            var conteudo = request.responseText;
+            var dadosVersao = parseJSON(conteudo);
+            if (!dadosVersao || !dadosVersao.version) {
+                throw new Error("Formato de versão inválido");
+            }
+            return dadosVersao.version;
         } else {
-            alert("Erro desconhecido ao obter a versão do GitHub.");
+            throw new Error("Falha ao obter o arquivo. Status: " + request.status);
         }
+    } catch (e) {
+        alert("Erro ao obter a versão do GitHub: " + e.message);
         return null;
     }
 }
@@ -223,23 +231,15 @@ function obterVersaoGitHub() {
 // Função para baixar um arquivo do GitHub
 function baixarArquivoGitHub(nomeArquivo) {
     var url = "https://raw.githubusercontent.com/andrebids/Scripts/main/" + nomeArquivo;
-    alert("Tentando baixar arquivo: " + url);
     var arquivo = new File(url);
     
     try {
         arquivo.open('r');
         var conteudo = arquivo.read();
         arquivo.close();
-        alert("Arquivo baixado com sucesso: " + nomeArquivo);
         return conteudo;
     } catch (e) {
-        if (e instanceof SocketError) {
-            alert("Erro de conexão ao baixar o arquivo " + nomeArquivo + ": " + e.message + "\nVerifique sua conexão com a internet.");
-        } else if (e instanceof Error) {
-            alert("Erro ao baixar o arquivo " + nomeArquivo + ": " + e.message);
-        } else {
-            alert("Erro desconhecido ao baixar o arquivo " + nomeArquivo);
-        }
+        alert("Erro ao baixar o arquivo " + nomeArquivo + ": " + e.message);
         return null;
     }
 }
@@ -251,23 +251,26 @@ function atualizarArquivos() {
 
     for (var i = 0; i < arquivosParaAtualizar.length; i++) {
         var nomeArquivo = arquivosParaAtualizar[i];
-        var conteudoNovo = baixarArquivoGitHub(nomeArquivo);
+        var url = "https://raw.githubusercontent.com/andrebids/Scripts/main/" + nomeArquivo;
         
-        if (conteudoNovo) {
-            try {
+        var request = new XMLHttpRequest();
+        request.open("GET", url, false);
+        request.setRequestHeader("User-Agent", "ScriptUpdateAgent");
+        
+        try {
+            request.send();
+            
+            if (request.status === 200) {
+                var conteudoNovo = request.responseText;
                 var arquivoLocal = new File(pastaScript + "/" + nomeArquivo);
                 arquivoLocal.open('w');
                 arquivoLocal.write(conteudoNovo);
                 arquivoLocal.close();
-            } catch (e) {
-                if (e.name === "PermissionError") {
-                    alert("Erro de permissão ao atualizar o arquivo " + nomeArquivo + ". Verifique se você tem permissões de escrita na pasta do script.");
-                } else {
-                    alert("Erro ao atualizar o arquivo " + nomeArquivo + ": " + e.message);
-                }
-                return false;
+            } else {
+                throw new Error("Falha ao obter o arquivo " + nomeArquivo + ". Status: " + request.status);
             }
-        } else {
+        } catch (e) {
+            alert("Erro ao atualizar o arquivo " + nomeArquivo + ": " + e.message);
             return false;
         }
     }
@@ -279,30 +282,65 @@ function verificarAtualizacoes() {
     alert("Iniciando verificação de atualizações...");
     var versaoAtual = lerVersao();
     alert("Versão atual: " + versaoAtual);
+    
+    alert("Tentando obter versão do GitHub...");
     var versaoGitHub = obterVersaoGitHub();
-    alert("Versão do GitHub: " + versaoGitHub);
+    alert("Resultado da obtenção da versão do GitHub: " + (versaoGitHub ? versaoGitHub : "falha"));
 
     if (!versaoGitHub) {
-        alert("Não foi possível obter a versão do GitHub. Por favor, verifique sua conexão com a internet.");
+        alert("Não foi possível obter a versão do GitHub. Verifique sua conexão com a internet.");
         return false;
     }
+
+    alert("Comparando versões - Atual: " + versaoAtual + ", GitHub: " + versaoGitHub);
 
     if (versaoGitHub !== versaoAtual) {
         var resposta = confirm("Nova versão disponível: " + versaoGitHub + ". Versão atual: " + versaoAtual + "\nDeseja atualizar agora?");
         if (resposta) {
-            alert("Iniciando atualização dos arquivos...");
+            alert("Iniciando atualização de arquivos...");
             if (atualizarArquivos()) {
                 alert("Atualização concluída. O script será fechado. Por favor, execute-o novamente.");
                 return true; // Indica que uma atualização foi realizada
             } else {
                 alert("Ocorreu um erro durante a atualização. O script continuará usando a versão atual.");
             }
+        } else {
+            alert("Atualização cancelada pelo usuário.");
         }
     } else {
         alert("O script já está na versão mais recente (" + versaoAtual + ").");
     }
+    alert("Verificação de atualizações concluída.");
     return false; // Indica que nenhuma atualização foi realizada
 }
 
 // Atualize a exportação global
 $.global.funcoes.verificarAtualizacoes = verificarAtualizacoes;
+
+function testeRequisicao() {
+    var url = "https://raw.githubusercontent.com/andrebids/Scripts/main/version.json";
+    var request = new XMLHttpRequest();
+    
+    alert("Iniciando teste de requisição para: " + url);
+    
+    try {
+        request.open("GET", url, false);
+        request.setRequestHeader("User-Agent", "ScriptUpdateAgent");
+        
+        alert("Enviando requisição de teste...");
+        request.send();
+        
+        alert("Requisição de teste enviada. Status: " + request.status + "\nResposta: " + request.responseText);
+        
+        if (request.status === 200) {
+            var conteudo = JSON.parse(request.responseText);
+            alert("Versão obtida: " + conteudo.version + "\nURL de download: " + conteudo.downloadUrl);
+        } else {
+            alert("Erro na requisição. Status: " + request.status);
+        }
+    } catch (e) {
+        alert("Erro no teste de requisição: " + e.message + "\nTipo de erro: " + e.name);
+    }
+}
+
+$.global.funcoes.testeRequisicao = testeRequisicao;

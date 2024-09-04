@@ -130,7 +130,7 @@ function encontrarIndicePorNome(array, nome) {
             alert("Nenhuma atualização disponível.");
         }
     }
-    
+
 // Função para ler a versão do arquivo version.json
 function lerVersao() {
     var caminhoVersao = File($.fileName).path + "/version.json";
@@ -147,6 +147,22 @@ function lerVersao() {
         return "Arquivo não encontrado";
     }
 }
+
+        // Função para formatar as dimensões com duas casas decimais
+        function formatarDimensao(valor) {
+            if (valor === "") return "";
+            var numero = parseFloat(valor.replace(',', '.'));
+            if (isNaN(numero)) return "";
+    return numero.toFixed(2).replace('.', ',') + " m";
+}
+
+            // Função para escapar strings
+            function escapeString(str) {
+                return str.replace(/\\/g, '\\\\')
+                          .replace(/'/g, "\\'")
+                          .replace(/\n/g, '\\n')
+                          .replace(/\r/g, '\\r');
+            }
 
 // Adicione esta função à exportação global
 $.global.funcoes.lerVersao = lerVersao;

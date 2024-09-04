@@ -501,14 +501,6 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
             previewText[0] += " laqué " + (corStructure.selection ? corStructure.selection.text : "");
         }
 
-        // Função para formatar as dimensões com duas casas decimais
-        function formatarDimensao(valor) {
-            if (valor === "") return "";
-            var numero = parseFloat(valor.replace(',', '.'));
-            if (isNaN(numero)) return "";
-            return numero.toFixed(2).replace('.', ',') + " m";
-        }
-
         // Modificar a parte do código que lida com as dimensões no preview
         var dimensoesTexto = "";
         for (var i = 0; i < dimensoes.length; i++) {
@@ -697,15 +689,11 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
     versaoScript.alignment = ["right", "center"];
     versaoScript.characters = 10; // Ajusta o tamanho do campo de texto
 
-
-
     // Evento de clique para o botão de verificar atualizações
     botaoVerificarAtualizacoes.onClick = verificarAtualizacoes;
 
     // Exibir a janela
     janela.show();
-
-
 
     // Modificar o botão para gerar legenda
     botaoGerar.onClick = function() {
@@ -715,13 +703,7 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
             // Substituir pontos por vírgulas e garantir duas casas decimais
             legendaConteudo = legendaConteudo.replace(/(\d+)\.(\d+)/g, formatarNumero);
 
-            // Função para escapar strings
-            function escapeString(str) {
-                return str.replace(/\\/g, '\\\\')
-                          .replace(/'/g, "\\'")
-                          .replace(/\n/g, '\\n')
-                          .replace(/\r/g, '\\r');
-            }
+
 
             var scriptIllustrator = function(nomeDesigner, conteudoLegenda) {
                 var doc = app.activeDocument;

@@ -111,32 +111,7 @@ function encontrarIndicePorNome(array, nome) {
     return -1;
 }
 
-    // Função para verificar atualizações
-    function verificarAtualizacoes() {
-        alert("Iniciando teste de atualização...");
-        var scriptPath = File($.fileName).path + "/update_test.sh";
-        var updateScript = new File(scriptPath);
-        
-        // Create the bash script
-        updateScript.open('w');
-        updateScript.write("#!/bin/bash\n");
-        updateScript.write("touch ~/Desktop/update_test_file.txt\n");
-        updateScript.close();
-        
-        // Make the script executable
-        system("chmod +x " + scriptPath);
-        
-        // Run the script
-        var result = system(scriptPath);
-        
-        if (result === 0) {
-            alert("Teste de atualização concluído. Verifique se um novo arquivo foi criado na área de trabalho.");
-            return true;
-        } else {
-            alert("Erro ao executar o teste de atualização.");
-            return false;
-        }
-    }
+
 
 // Função para ler a versão do arquivo version.json
 function lerVersao() {
@@ -196,80 +171,11 @@ $.global.funcoes = {
 
 // Adicione estas funções no arquivo funcoes.jsx
 
-// Função para obter a versão mais recente do GitHub
-function obterVersaoGitHub() {
-    var url = "https://raw.githubusercontent.com/andrebids/Scripts/main/version.json?token=GHSAT0AAAAAACWMHVDEVGSVE3PNKE4QDPDKZWYHWUQ";
-    var request = new XMLHttpRequest();
-    
-    try {
-        request.open("GET", url, false);
-        request.setRequestHeader("User-Agent", "ScriptUpdateAgent");
-        request.send();
-        
-        if (request.status === 200) {
-            var conteudo = request.responseText;
-            var dadosVersao = parseJSON(conteudo);
-            if (!dadosVersao || !dadosVersao.version) {
-                throw new Error("Formato de versão inválido");
-            }
-            return dadosVersao.version;
-        } else {
-            throw new Error("Falha ao obter o arquivo. Status: " + request.status);
-        }
-    } catch (e) {
-        alert("Erro ao obter a versão do GitHub: " + e.message);
-        return null;
-    }
-}
 
-// Função para baixar um arquivo do GitHub
-function baixarArquivoGitHub(nomeArquivo) {
-    var url = "https://raw.githubusercontent.com/andrebids/Scripts/main/" + nomeArquivo;
-    var arquivo = new File(url);
-    
-    try {
-        arquivo.open('r');
-        var conteudo = arquivo.read();
-        arquivo.close();
-        return conteudo;
-    } catch (e) {
-        alert("Erro ao baixar o arquivo " + nomeArquivo + ": " + e.message);
-        return null;
-    }
-}
 
-// Função para atualizar os arquivos
-function atualizarArquivos() {
-    var arquivosParaAtualizar = ["script.jsx", "regras.jsx", "funcoes.jsx", "version.json"];
-    var pastaScript = File($.fileName).path;
 
-    for (var i = 0; i < arquivosParaAtualizar.length; i++) {
-        var nomeArquivo = arquivosParaAtualizar[i];
-        var url = "https://raw.githubusercontent.com/andrebids/Scripts/main/" + nomeArquivo;
-        
-        var request = new XMLHttpRequest();
-        request.open("GET", url, false);
-        request.setRequestHeader("User-Agent", "ScriptUpdateAgent");
-        
-        try {
-            request.send();
-            
-            if (request.status === 200) {
-                var conteudoNovo = request.responseText;
-                var arquivoLocal = new File(pastaScript + "/" + nomeArquivo);
-                arquivoLocal.open('w');
-                arquivoLocal.write(conteudoNovo);
-                arquivoLocal.close();
-            } else {
-                throw new Error("Falha ao obter o arquivo " + nomeArquivo + ". Status: " + request.status);
-            }
-        } catch (e) {
-            alert("Erro ao atualizar o arquivo " + nomeArquivo + ": " + e.message);
-            return false;
-        }
-    }
-    return true;
-}
+
+
 
 function testeRequisicao() {
     var url = "https://raw.githubusercontent.com/andrebids/Scripts/main/version.json";

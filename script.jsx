@@ -97,7 +97,7 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
     painelEsquerdo.orientation = "column";
     painelEsquerdo.alignChildren = "left";
 
-    // Criar painel direito para preview
+    // Criar painel direito para previewcriar a
     var painelDireito = janela.add("panel");
     painelDireito.orientation = "column";
     painelDireito.alignChildren = "left";
@@ -667,86 +667,62 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
         }
     }
 
-    // Adicionar barra de status na parte inferior da janela
-    var barraStatus = janela.add("group");
-    barraStatus.orientation = "row";
-    barraStatus.alignment = ["fill", "bottom"];
-    barraStatus.alignChildren = ["left", "center"];
-    barraStatus.spacing = 5;
-    barraStatus.margins = [5, 10, 5, 5];
+// Adicionar barra de status na parte inferior da janela
 
-    // Botão de verificar atualizações
-    var botaoVerificarAtualizacoes = barraStatus.add("button", undefined, "Verificar Atualizações");
-    botaoVerificarAtualizacoes.size = [150, 25];
+var barraStatus = janela.add("group");
+barraStatus.orientation = "row";
+barraStatus.alignment = ["fill", "bottom"]; 
+barraStatus.alignChildren = ["left", "center"];
+barraStatus.spacing = 5;
+barraStatus.margins = [5, 10, 5, 5];
 
-    // Espaço flexível
-    var espacoFlexivel = barraStatus.add("group");
-    espacoFlexivel.alignment = ["fill", "center"];
+// Botão Update (anteriormente "Atualizar via Git")
+var botaoAtualizarGit = barraStatus.add("button", undefined, "Update");
+botaoAtualizarGit.size = [100, 25];
 
-    // Versão do script
-    var versaoAtual = funcoes.lerVersao();
-    var versaoScript = barraStatus.add("statictext", undefined, "v" + versaoAtual);
-    versaoScript.alignment = ["right", "center"];
-    versaoScript.characters = 10; // Ajusta o tamanho do campo de texto
+// Espaço flexível
+var espacoFlexivel = barraStatus.add("group");
+espacoFlexivel.alignment = ["fill", "center"];
 
-    // Evento de clique para o botão de verificar atualizações
-    botaoVerificarAtualizacoes.onClick = function() {
-        var atualizacaoRealizada = funcoes.verificarAtualizacoes();
-        if (atualizacaoRealizada) {
-            alert("Teste de atualização concluído. A janela não será fechada.");
-        }
-    };
-
-    // Adicione isto junto com os outros botões na barra de status
-    var botaoAtualizarGit = barraStatus.add("button", undefined, "Atualizar via Git");
-    botaoAtualizarGit.size = [150, 25];
-
-    // Adicione este evento de clique
-// Modificar o evento de clique para o botão Atualizar via Git
-// Modificar o evento de clique para o botão Atualizar via Git
+// Evento de clique para o botão Atualizar via Git
 botaoAtualizarGit.onClick = function() {
-    var resposta = confirm("Isso irá criar e executar um script para 'git pull'. Deseja continuar?");
-    if (resposta) {
-        try {
-            var scriptFile;
-            var isWindows = $.os.indexOf("Windows") >= 0;
-            var currentDir = File($.fileName).parent.fsName;
+    try {
+        var currentDir = File($.fileName).parent.fsName;
 
-            // Perguntar ao usuário se quer usar um diretório diferente
-            var useDifferentDir = confirm("O diretório atual é:\n" + currentDir + "\n\nDeseja usar um diretório diferente para o git pull?");
+        // Criar arquivo .bat para Windows
+        var scriptFile = new File(currentDir + "/update_script.bat");
+        scriptFile.open('w');
+        scriptFile.write("@echo off\n");
+        scriptFile.write("cd /d \"" + currentDir + "\"\n");
+        scriptFile.write("git pull\n");
+        scriptFile.write("if %ERRORLEVEL% NEQ 0 (\n");
+        scriptFile.write("    echo Falha na atualização. Pressione qualquer tecla para sair.\n");
+        scriptFile.write("    pause >nul\n");
+        scriptFile.write(") else (\n");
+        scriptFile.write("    echo Atualização concluída com sucesso!\n");
+        scriptFile.write("    echo success > update_success.tmp\n");
+        scriptFile.write(")\n");
+        scriptFile.write("exit\n");
+        scriptFile.close();
+
+        // Executar o script
+        if (scriptFile.execute()) {
+            // Aguardar um pouco para dar tempo do script terminar
+            $.sleep(2000);
             
-            if (useDifferentDir) {
-                var selectedFolder = Folder.selectDialog("Selecione o diretório do repositório Git");
-                if (selectedFolder) {
-                    currentDir = selectedFolder.fsName;
-                } else {
-                    alert("Nenhum diretório selecionado. Usando o diretório atual.");
-                }
-            }
-
-            if (isWindows) {
-                // Criar arquivo .bat para Windows
-                scriptFile = new File(currentDir + "/update_script.bat");
-                scriptFile.open('w');
-                scriptFile.write("@echo off\ncd /d \"" + currentDir + "\"\ngit pull\npause");
-                scriptFile.close();
+            // Verificar se o arquivo de sucesso foi criado
+            var successFile = new File(currentDir + "/update_success.tmp");
+            if (successFile.exists) {
+                alert("Atualização concluída com sucesso. Por favor, reinicie o script.");
+                successFile.remove();
             } else {
-                // Criar arquivo .sh para macOS
-                scriptFile = new File(currentDir + "/update_script.sh");
-                scriptFile.open('w');
-                scriptFile.write("#!/bin/bash\ncd \"" + currentDir + "\"\ngit pull\nread -p 'Press Enter to continue...'");
-                scriptFile.close();
+                alert("A atualização pode não ter sido concluída. Verifique o console para mais detalhes.");
             }
-
-            // Executar o script
-            if (scriptFile.execute()) {
-                alert("O script de atualização foi executado no diretório:\n" + currentDir + "\n\nVerifique o terminal para ver o resultado.");
-            } else {
-                alert("Houve um problema ao executar o script. Por favor, verifique se o Git está instalado e acessível.");
-            }
-        } catch (e) {
-            alert("Erro ao criar ou executar o script: " + e);
+        } else {
+            alert("Houve um problema ao iniciar a atualização. Verifique se o Git está instalado e acessível.");
         }
+    } catch (e) {
+        alert("Erro ao atualizar: " + e);
     }
 };
 

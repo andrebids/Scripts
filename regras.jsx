@@ -54,11 +54,44 @@ function formatarDimensao(valor) {
     return numero.toFixed(2).replace('.', ',') + " m";
 }
 
+// Cores para Structure laqueé
+var coresStructure = [
+    "Blanc RAL 9010",
+    "Or PANTONE 131C",
+    "Rouge RAL 3000",
+    "Bleu RAL 5005",
+    "Vert RAL 6029",
+    "Rose RAL 3015",
+    "Noir RAL 9011"
+];
+
+// Função para criar o grupo Structure laqueé
+function criarGrupoStructure(parentGroup) {
+    var grupoStructure = parentGroup.add("group");
+    grupoStructure.orientation = "row";
+    var checkStructure = grupoStructure.add("checkbox", undefined, "Structure laqué");
+    var corStructure = grupoStructure.add("dropdownlist", undefined, coresStructure);
+    corStructure.selection = 0;
+    corStructure.enabled = false;
+
+    checkStructure.onClick = function() {
+        corStructure.enabled = checkStructure.value;
+    };
+
+    return {
+        grupo: grupoStructure,
+        checkbox: checkStructure,
+        corDropdown: corStructure
+    };
+}
+
 // Exportar as funções para uso em outros scripts
 $.global.regras = {
     arredondarParaDecima: arredondarParaDecima,
     arredondamentoEspecial: arredondamentoEspecial,
     formatarQuantidade: formatarQuantidade,
     apenasNumerosEVirgula: apenasNumerosEVirgula,
-    formatarDimensao: formatarDimensao
+    formatarDimensao: formatarDimensao,
+    coresStructure: coresStructure,
+    criarGrupoStructure: criarGrupoStructure
 };

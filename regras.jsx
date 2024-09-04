@@ -40,10 +40,25 @@ function apenasNumerosEVirgula(campo) {
     };
 }
 
+// Função para formatar números com duas casas decimais
+function formatarNumero(match, inteiro, decimal) {
+    var numero = parseFloat(inteiro + "." + decimal);
+    return numero.toFixed(2).replace(".", ",");
+}
+
+// Função para formatar as dimensões com duas casas decimais
+function formatarDimensao(valor) {
+    if (valor === "") return "";
+    var numero = parseFloat(valor.replace(',', '.'));
+    if (isNaN(numero)) return "";
+    return numero.toFixed(2).replace('.', ',') + " m";
+}
+
 // Exportar as funções para uso em outros scripts
 $.global.regras = {
     arredondarParaDecima: arredondarParaDecima,
     arredondamentoEspecial: arredondamentoEspecial,
     formatarQuantidade: formatarQuantidade,
-    apenasNumerosEVirgula: apenasNumerosEVirgula
+    apenasNumerosEVirgula: apenasNumerosEVirgula,
+    formatarDimensao: formatarDimensao
 };

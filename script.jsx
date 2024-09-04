@@ -164,7 +164,7 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
     // Tipo de fixação
     var grupoFixacao = grupoDimensoesFixacao.add("group");
     grupoFixacao.add("statictext", undefined, "Tipo de fixação:");
-    var tiposFixacao = ["poteau", "transversée", "murale", "suspendue", "au sol", "spéciale"];
+    var tiposFixacao = ["poteau", "suspendue/transversée", "murale", "au sol", "spéciale"];
     var listaFixacao = grupoFixacao.add("dropdownlist", undefined, tiposFixacao);
     listaFixacao.selection = 0;
 
@@ -619,67 +619,6 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
             return;
         }
 
-        quantidade = regras.arredondamentoEspecial(quantidade, componenteSelecionado.id, unidadeSelecionada);
-
-        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
-        var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
-        var unidadeSelecionada = listaUnidades.selection.text;
-
-        // Aplicar arredondamento especial para fil lumiére e fil cométe
-        quantidade = regras.arredondamentoEspecial(quantidade, componenteSelecionado.id, unidadeSelecionada);
-
-        // Aplicar arredondamento para a próxima décima para "m2" ou "ml", exceto para fil lumiére e fil cométe
-        if (unidadeSelecionada !== "units" && componenteSelecionado.id !== 13 && componenteSelecionado.id !== 14) {
-            quantidade = arredondarParaDecima(quantidade);
-        }
-
-        // Encontrar a combinação correspondente na base de dados
-        var combinacaoSelecionada = null;
-        for (var i = 0; i < dados.combinacoes.length; i++) {
-            if (dados.combinacoes[i].componenteId === componenteSelecionado.id &&
-                dados.combinacoes[i].corId === corSelecionada.id &&
-                dados.combinacoes[i].unidade === unidadeSelecionada) {
-                combinacaoSelecionada = dados.combinacoes[i];
-                break;
-            }
-        }
-
-        if (combinacaoSelecionada) {
-            var texto = componenteSelecionado.nome + " " + corSelecionada.nome;
-            if (combinacaoSelecionada.referencia) {
-                texto += " (Ref: " + combinacaoSelecionada.referencia + ")";
-            }
-            
-            // Formatar a quantidade com base no componente e unidade
-            var quantidadeFormatada = (componenteSelecionado.id === 13 || componenteSelecionado.id === 14) ? 
-                quantidade.toString() : 
-                quantidade.toFixed(2).replace('.', ',');
-            
-            texto += " (" + unidadeSelecionada + "): " + quantidadeFormatada;
-            
-            itensLegenda.push({
-                tipo: "componente",
-                nome: componenteSelecionado.nome + " " + corSelecionada.nome,
-                texto: texto,
-                referencia: combinacaoSelecionada.referencia,
-                quantidade: quantidade,
-                unidade: unidadeSelecionada,
-                componenteId: componenteSelecionado.id
-            });
-            
-            atualizarListaItens();
-        } else {
-            alert("Erro: Combinação de componente não encontrada na base de dados.");
-        }
-    }
-
-    // Botão para adicionar componente à legenda
-    botaoAdicionarComponente.onClick = function() {
-        if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0 || listaUnidades.selection.index === 0) {
-            alert("Por favor, selecione um componente, uma cor e uma unidade.");
-            return;
-        }
-
         var quantidade = parseFloat(campoQuantidade.text.replace(',', '.'));
         if (isNaN(quantidade) || quantidade <= 0) {
             alert("Por favor, insira uma quantidade válida para o componente.");
@@ -691,7 +630,7 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
         var unidadeSelecionada = listaUnidades.selection.text;
 
         // Aplicar arredondamento especial para fil lumiére e fil cométe
-        quantidade = arredondamentoEspecial(quantidade, componenteSelecionado.id);
+        quantidade = regras.arredondamentoEspecial(quantidade, componenteSelecionado.id, unidadeSelecionada);
 
         // Aplicar arredondamento para a próxima décima para "m2" ou "ml", exceto para fil lumiére e fil cométe
         if (unidadeSelecionada !== "units" && componenteSelecionado.id !== 13 && componenteSelecionado.id !== 14) {
@@ -717,8 +656,7 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
             
             // Formatar a quantidade com base no componente e unidade
             var quantidadeFormatada = regras.formatarQuantidade(quantidade, componenteSelecionado.id, unidadeSelecionada);
- 
-
+            
             texto += " (" + unidadeSelecionada + "): " + quantidadeFormatada;
             
             itensLegenda.push({
@@ -736,6 +674,38 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
             alert("Erro: Combinação de componente não encontrada na base de dados.");
         }
     }
+
+    // Adicionar barra de status na parte inferior da janela
+    var barraStatus = janela.add("group");
+    barraStatus.orientation = "row";
+    barraStatus.alignment = ["fill", "bottom"];
+    barraStatus.alignChildren = ["left", "center"];
+    barraStatus.spacing = 5;
+    barraStatus.margins = [5, 10, 5, 5];
+
+    // Botão de verificar atualizações
+    var botaoVerificarAtualizacoes = barraStatus.add("button", undefined, "Verificar Atualizações");
+    botaoVerificarAtualizacoes.size = [150, 25];
+
+    // Espaço flexível
+    var espacoFlexivel = barraStatus.add("group");
+    espacoFlexivel.alignment = ["fill", "center"];
+
+    // Versão do script
+    var versaoAtual = funcoes.lerVersao();
+    var versaoScript = barraStatus.add("statictext", undefined, "v" + versaoAtual);
+    versaoScript.alignment = ["right", "center"];
+    versaoScript.characters = 10; // Ajusta o tamanho do campo de texto
+
+
+
+    // Evento de clique para o botão de verificar atualizações
+    botaoVerificarAtualizacoes.onClick = verificarAtualizacoes;
+
+    // Exibir a janela
+    janela.show();
+
+
 
     // Modificar o botão para gerar legenda
     botaoGerar.onClick = function() {

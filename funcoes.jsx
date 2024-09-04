@@ -111,11 +111,59 @@ function encontrarIndicePorNome(array, nome) {
     return -1;
 }
 
+    // Função para verificar atualizações
+    function verificarAtualizacoes() {
+        // Simular uma verificação de atualização
+        var atualizacaoDisponivel = Math.random() < 0.5; // 50% de chance de ter uma atualização
 
+        if (atualizacaoDisponivel) {
+            var resposta = confirm("Atualização encontrada. Deseja atualizar agora?");
+            if (resposta) {
+                alert("Iniciando atualização...");
+                // Aqui você implementaria a lógica real de atualização
+                // Por exemplo:
+                // atualizarArquivos();
+                alert("Atualização concluída. O script será fechado. Por favor, execute-o novamente.");
+                janela.close();
+            }
+        } else {
+            alert("Nenhuma atualização disponível.");
+        }
+    }
+    
+// Função para ler a versão do arquivo version.json
+function lerVersao() {
+    var caminhoVersao = File($.fileName).path + "/version.json";
+    if (arquivoExiste(caminhoVersao)) {
+        try {
+            var dadosVersao = lerArquivoJSON(caminhoVersao);
+            return dadosVersao.version || "Versão desconhecida";
+        } catch (e) {
+            alert("Erro ao ler o arquivo de versão: " + e.message);
+            return "Erro na leitura";
+        }
+    } else {
+        alert("Arquivo de versão não encontrado.");
+        return "Arquivo não encontrado";
+    }
+}
 
+// Adicione esta função à exportação global
+$.global.funcoes.lerVersao = lerVersao;
 
 // Exportar as funções para uso em outros scripts
 $.global.funcoes = {
     parseJSON: parseJSON,
-    stringifyJSON: stringifyJSON
+    stringifyJSON: stringifyJSON,
+    lerArquivoJSON: lerArquivoJSON,
+    selecionarArquivo: selecionarArquivo,
+    getPastaDocumentos: getPastaDocumentos,
+    arquivoExiste: arquivoExiste,
+    escreverArquivoJSON: escreverArquivoJSON,
+    isArray: isArray,
+    extrairNomes: extrairNomes,
+    encontrarPorId: encontrarPorId,
+    arrayContains: arrayContains,
+    encontrarIndicePorNome: encontrarIndicePorNome,
+    lerVersao: lerVersao
 };

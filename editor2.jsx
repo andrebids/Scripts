@@ -86,7 +86,7 @@ var scriptFile = new File($.fileName);
 var scriptPath = scriptFile.path;
 
 // Caminho para o arquivo de banco de dados na mesma pasta do script
-var caminhoDatabase = scriptPath + "/database2.json";
+var caminhoDatabase = scriptPath + "data.json";
 
 // Função para verificar se um valor é um array
 function isArray(value) {

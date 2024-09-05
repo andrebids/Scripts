@@ -166,7 +166,7 @@ $.global.funcoes = {
     arrayContains: arrayContains,
     encontrarIndicePorNome: encontrarIndicePorNome,
     lerVersao: lerVersao,
-    verificarAtualizacoes: verificarAtualizacoes
+  
 };
 
 // Adicione estas funções no arquivo funcoes.jsx

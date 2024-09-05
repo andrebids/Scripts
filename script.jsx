@@ -4,6 +4,9 @@
 // Importar o arquivo de regras
 $.evalFile(File($.fileName).path + "/regras.jsx");
 $.evalFile(File($.fileName).path + "/funcoes.jsx");
+$.evalFile(File($.fileName).path + "/database.jsx");
+$.evalFile(File($.fileName).path + "/ui.jsx");
+
 
 (function() {
     

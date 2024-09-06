@@ -677,6 +677,10 @@ botaoAtualizarGit.onClick = function() {
         scriptFile.write(") else (\n");
         scriptFile.write("    echo Atualização concluída com sucesso!\n");
         scriptFile.write("    echo success > update_success.tmp\n");
+        scriptFile.write("    if not exist update_success.tmp (\n");
+        scriptFile.write("        echo Nenhuma atualização disponível.\n");
+        scriptFile.write("        echo no_updates > no_updates.tmp\n");
+        scriptFile.write("    )\n");
         scriptFile.write(")\n");
         scriptFile.write("del \"%~f0\"\n");  // Delete the .bat file itself
         scriptFile.write("exit\n");
@@ -693,7 +697,13 @@ botaoAtualizarGit.onClick = function() {
                 alert("Atualização concluída com sucesso. Por favor, reinicie o script.");
                 successFile.remove();  // Remove the .tmp file
             } else {
-                alert("A atualização pode não ter sido concluída. Verifique o console para mais detalhes.");
+                var noUpdatesFile = new File(currentDir + "/no_updates.tmp");
+                if (noUpdatesFile.exists) {
+                    alert("Nenhuma atualização disponível.");
+                    noUpdatesFile.remove();  // Remove the .tmp file
+                } else {
+                    alert("A atualização pode não ter sido concluída. Verifique o console para mais detalhes.");
+                }
             }
 
             // Tentar remover o arquivo .bat (caso ainda exista)

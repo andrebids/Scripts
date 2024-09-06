@@ -84,7 +84,7 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
     abaLegenda.alignChildren = ["fill", "top"];
 
     // Primeiro grupo (Informações principais)
-    var grupoPrincipal = abaLegenda.add("panel", undefined, "Informações Principais @@@33330000999999999991111177778888888885666666");
+    var grupoPrincipal = abaLegenda.add("panel", undefined, "Informações Principais @@@3333000099999999999111117777888888888");
     grupoPrincipal.orientation = "column";
     grupoPrincipal.alignChildren = "left";
 
@@ -672,54 +672,48 @@ botaoAtualizarGit.onClick = function() {
         scriptFile.write("cd /d \"" + currentDir + "\"\n");
         scriptFile.write("git pull > git_output.tmp 2>&1\n");
         scriptFile.write("set /p GIT_OUTPUT=<git_output.tmp\n");
-        scriptFile.write("echo %GIT_OUTPUT% > git_output_full.tmp\n");
         scriptFile.write("del git_output.tmp\n");
         scriptFile.write("if \"%GIT_OUTPUT%\"==\"Already up to date.\" (\n");
         scriptFile.write("    echo up_to_date > update_status.tmp\n");
         scriptFile.write(") else if %ERRORLEVEL% NEQ 0 (\n");
-        scriptFile.write("    echo error > update_status.tmp\n");
+        scriptFile.write("    echo Falha na atualização. Pressione qualquer tecla para sair.\n");
+        scriptFile.write("    pause >nul\n");
         scriptFile.write(") else (\n");
+        scriptFile.write("    echo Atualização concluída com sucesso!\n");
         scriptFile.write("    echo success > update_status.tmp\n");
         scriptFile.write(")\n");
+        scriptFile.write("del \"%~f0\"\n");  // Delete the .bat file itself
         scriptFile.write("exit\n");
         scriptFile.close();
 
         // Executar o script
         if (scriptFile.execute()) {
             // Aguardar um pouco para dar tempo do script terminar
-            $.sleep(3000);
+            $.sleep(2000);
             
             // Verificar o status da atualização
             var statusFile = new File(currentDir + "/update_status.tmp");
-            var outputFile = new File(currentDir + "/git_output_full.tmp");
-            var status = "unknown";
-            var output = "";
-
             if (statusFile.exists) {
                 statusFile.open('r');
-                status = statusFile.read();
+                var status = statusFile.read();
                 statusFile.close();
-            }
+                statusFile.remove();  // Remove the .tmp file
 
-            if (outputFile.exists) {
-                outputFile.open('r');
-                output = outputFile.read();
-                outputFile.close();
-            }
-
-            // Limpar arquivos temporários
-            statusFile.remove();
-            outputFile.remove();
-            scriptFile.remove();
-
-            if (status === "success" || output.indexOf("files changed") !== -1) {
-                alert("Atualização concluída com sucesso. Por favor, reinicie o script.");
-            } else if (status === "up_to_date" || output.indexOf("Already up to date") !== -1) {
-                alert("O repositório já está atualizado. Nenhuma alteração necessária.");
-            } else if (status === "error") {
-                alert("Ocorreu um erro durante a atualização. Verifique se você tem permissão para atualizar o repositório.");
+                if (status.indexOf("success") !== -1) {
+                    alert("Atualização concluída com sucesso. Por favor, reinicie o script.");
+                } else if (status.indexOf("up_to_date") !== -1) {
+                    alert("O repositório já está atualizado. Nenhuma alteração necessária.");
+                } else {
+                    alert("A atualização pode não ter sido concluída. Verifique o console para mais detalhes.");
+                }
             } else {
-                alert("Status da atualização: " + status + "\nSaída do Git: " + output);
+                alert("Atualizado com sucesso");
+            }
+
+            // Tentar remover o arquivo .bat (caso ainda exista)
+            var batFile = new File(currentDir + "/update_script.bat");
+            if (batFile.exists) {
+                batFile.remove();
             }
         } else {
             alert("Houve um problema ao iniciar a atualização. Verifique se o Git está instalado e acessível.");

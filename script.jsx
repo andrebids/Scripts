@@ -670,19 +670,13 @@ botaoAtualizarGit.onClick = function() {
         scriptFile.open('w');
         scriptFile.write("@echo off\n");
         scriptFile.write("cd /d \"" + currentDir + "\"\n");
-        scriptFile.write("git fetch\n");
-        scriptFile.write("git status -uno | findstr \"Your branch is up to date\" > nul\n");
-        scriptFile.write("if %ERRORLEVEL% EQU 0 (\n");
-        scriptFile.write("    echo No updates available > update_status.tmp\n");
+        scriptFile.write("git pull\n");
+        scriptFile.write("if %ERRORLEVEL% NEQ 0 (\n");
+        scriptFile.write("    echo Falha na atualização. Pressione qualquer tecla para sair.\n");
+        scriptFile.write("    pause >nul\n");
         scriptFile.write(") else (\n");
-        scriptFile.write("    git pull\n");
-        scriptFile.write("    if %ERRORLEVEL% NEQ 0 (\n");
-        scriptFile.write("        echo Falha na atualização. Pressione qualquer tecla para sair.\n");
-        scriptFile.write("        pause >nul\n");
-        scriptFile.write("    ) else (\n");
-        scriptFile.write("        echo Atualização concluída com sucesso!\n");
-        scriptFile.write("        echo success > update_status.tmp\n");
-        scriptFile.write("    )\n");
+        scriptFile.write("    echo Atualização concluída com sucesso!\n");
+        scriptFile.write("    echo success > update_success.tmp\n");
         scriptFile.write(")\n");
         scriptFile.write("exit\n");
         scriptFile.close();
@@ -692,23 +686,13 @@ botaoAtualizarGit.onClick = function() {
             // Aguardar um pouco para dar tempo do script terminar
             $.sleep(2000);
             
-            // Verificar o status da atualização
-            var statusFile = new File(currentDir + "/update_status.tmp");
-            if (statusFile.exists) {
-                statusFile.open('r');
-                var status = statusFile.read();
-                statusFile.close();
-                statusFile.remove();
-
-                if (status.indexOf("No updates available") !== -1) {
-                    alert("Não há atualizações disponíveis. O script já está na versão mais recente.");
-                } else if (status.indexOf("success") !== -1) {
-                    alert("Atualização concluída com sucesso. Por favor, reinicie o script.");
-                } else {
-                    alert("A atualização pode não ter sido concluída. Verifique o console para mais detalhes.");
-                }
+            // Verificar se o arquivo de sucesso foi criado
+            var successFile = new File(currentDir + "/update_success.tmp");
+            if (successFile.exists) {
+                alert("Atualização concluída com sucesso. Por favor, reinicie o script.");
+                successFile.remove();
             } else {
-                alert("Não foi possível determinar o status da atualização. Verifique o console para mais detalhes.");
+                alert("A atualização pode não ter sido concluída. Verifique o console para mais detalhes.");
             }
         } else {
             alert("Houve um problema ao iniciar a atualização. Verifique se o Git está instalado e acessível.");

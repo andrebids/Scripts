@@ -678,6 +678,7 @@ botaoAtualizarGit.onClick = function() {
         scriptFile.write("    echo Atualização concluída com sucesso!\n");
         scriptFile.write("    echo success > update_success.tmp\n");
         scriptFile.write(")\n");
+        scriptFile.write("del \"%~f0\"\n");  // Delete the .bat file itself
         scriptFile.write("exit\n");
         scriptFile.close();
 
@@ -690,9 +691,15 @@ botaoAtualizarGit.onClick = function() {
             var successFile = new File(currentDir + "/update_success.tmp");
             if (successFile.exists) {
                 alert("Atualização concluída com sucesso. Por favor, reinicie o script.");
-                successFile.remove();
+                successFile.remove();  // Remove the .tmp file
             } else {
                 alert("A atualização pode não ter sido concluída. Verifique o console para mais detalhes.");
+            }
+
+            // Tentar remover o arquivo .bat (caso ainda exista)
+            var batFile = new File(currentDir + "/update_script.bat");
+            if (batFile.exists) {
+                batFile.remove();
             }
         } else {
             alert("Houve um problema ao iniciar a atualização. Verifique se o Git está instalado e acessível.");

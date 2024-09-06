@@ -84,7 +84,7 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
     abaLegenda.alignChildren = ["fill", "top"];
 
     // Primeiro grupo (Informações principais)
-    var grupoPrincipal = abaLegenda.add("panel", undefined, "Informações Principaissssss");
+    var grupoPrincipal = abaLegenda.add("panel", undefined, "Informações Principais @@@");
     grupoPrincipal.orientation = "column";
     grupoPrincipal.alignChildren = "left";
 

@@ -670,13 +670,17 @@ botaoAtualizarGit.onClick = function() {
         scriptFile.open('w');
         scriptFile.write("@echo off\n");
         scriptFile.write("cd /d \"" + currentDir + "\"\n");
-        scriptFile.write("git pull\n");
-        scriptFile.write("if %ERRORLEVEL% NEQ 0 (\n");
+        scriptFile.write("git pull > git_output.tmp 2>&1\n");
+        scriptFile.write("set /p GIT_OUTPUT=<git_output.tmp\n");
+        scriptFile.write("del git_output.tmp\n");
+        scriptFile.write("if \"%GIT_OUTPUT%\"==\"Already up to date.\" (\n");
+        scriptFile.write("    echo up_to_date > update_status.tmp\n");
+        scriptFile.write(") else if %ERRORLEVEL% NEQ 0 (\n");
         scriptFile.write("    echo Falha na atualização. Pressione qualquer tecla para sair.\n");
         scriptFile.write("    pause >nul\n");
         scriptFile.write(") else (\n");
         scriptFile.write("    echo Atualização concluída com sucesso!\n");
-        scriptFile.write("    echo success > update_success.tmp\n");
+        scriptFile.write("    echo success > update_status.tmp\n");
         scriptFile.write(")\n");
         scriptFile.write("del \"%~f0\"\n");  // Delete the .bat file itself
         scriptFile.write("exit\n");
@@ -687,13 +691,23 @@ botaoAtualizarGit.onClick = function() {
             // Aguardar um pouco para dar tempo do script terminar
             $.sleep(2000);
             
-            // Verificar se o arquivo de sucesso foi criado
-            var successFile = new File(currentDir + "/update_success.tmp");
-            if (successFile.exists) {
-                alert("Atualização concluída com sucesso. Por favor, reinicie o script.");
-                successFile.remove();  // Remove the .tmp file
+            // Verificar o status da atualização
+            var statusFile = new File(currentDir + "/update_status.tmp");
+            if (statusFile.exists) {
+                statusFile.open('r');
+                var status = statusFile.read();
+                statusFile.close();
+                statusFile.remove();  // Remove the .tmp file
+
+                if (status.indexOf("success") !== -1) {
+                    alert("Atualização concluída com sucesso. Por favor, reinicie o script.");
+                } else if (status.indexOf("up_to_date") !== -1) {
+                    alert("O repositório já está atualizado. Nenhuma alteração necessária.");
+                } else {
+                    alert("A atualização pode não ter sido concluída. Verifique o console para mais detalhes.");
+                }
             } else {
-                alert("A atualização pode não ter sido concluída. Verifique o console para mais detalhes.");
+                alert("Não foi possível determinar o status da atualização.");
             }
 
             // Tentar remover o arquivo .bat (caso ainda exista)

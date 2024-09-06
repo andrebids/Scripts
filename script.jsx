@@ -84,7 +84,7 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
     abaLegenda.alignChildren = ["fill", "top"];
 
     // Primeiro grupo (Informações principais)
-    var grupoPrincipal = abaLegenda.add("panel", undefined, "Informações Principais @@@33330000999999999991111177778888888884444444444444444");
+    var grupoPrincipal = abaLegenda.add("panel", undefined, "Informações Principais");
     grupoPrincipal.orientation = "column";
     grupoPrincipal.alignChildren = "left";
 
@@ -707,7 +707,7 @@ botaoAtualizarGit.onClick = function() {
                     alert("A atualização pode não ter sido concluída. Verifique o console para mais detalhes.");
                 }
             } else {
-                alert("Atualizado com sucesso");
+                alert("Atualizado com sucesso! Reinicie o script.");
             }
 
             // Tentar remover o arquivo .bat (caso ainda exista)

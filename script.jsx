@@ -10,78 +10,51 @@ $.evalFile(File($.fileName).path + "/ui.jsx");
 
 (function() {
     
-    // Caminho do arquivo de configuração
-    var caminhoConfig = getPastaDocumentos() + "/cartouche_config.json";
+     // Caminho do arquivo de configuração
+var caminhoConfig = getPastaDocumentos() + "/cartouche_config.json";
 
-    // Verificar se o arquivo de configuração existe
-    var nomeDesigner, caminhoBaseDados;
-    if (arquivoExiste(caminhoConfig)) {
-        var config = lerArquivoJSON(caminhoConfig);
-        nomeDesigner = config.nomeDesigner;
-        caminhoBaseDados = config.caminhoBaseDados;
-    } else {
-        // Criar janela para pedir o nome do designer e o caminho da base de dados
-        var janelaDesigner = new Window("dialog", "Configuração Inicial");
-        janelaDesigner.add("statictext", undefined, "Por favor, insira o nome do designer:");
-        var campoNome = janelaDesigner.add("edittext", undefined, "");
-        campoNome.characters = 30;
+// Caminho hardcoded para a base de dados
+var caminhoBaseDadosHardcoded = "\\\\192.168.1.104\\Olimpo\\DS\\_BASE DE DADOS\\07. TOOLS\\ILLUSTRATOR\\basededados\\database2.json";
 
-        janelaDesigner.add("statictext", undefined, "Selecione o caminho para o arquivo da base de dados:");
-        var campoCaminho = janelaDesigner.add("edittext", undefined, "");
-        campoCaminho.characters = 30;
-        var botaoNavegar = janelaDesigner.add("button", undefined, "Navegar");
+// Verificar se o arquivo de configuração existe
+var nomeDesigner;
+if (arquivoExiste(caminhoConfig)) {
+    var config = lerArquivoJSON(caminhoConfig);
+    nomeDesigner = config.nomeDesigner;
+} else {
+    // Criar janela para pedir o nome do designer
+    var janelaDesigner = new Window("dialog", "Configuração Inicial");
+    janelaDesigner.add("statictext", undefined, "Por favor, insira o nome do designer:");
+    var campoNome = janelaDesigner.add("edittext", undefined, "");
+    campoNome.characters = 30;
 
-        botaoNavegar.onClick = function() {
-            var caminhoSelecionado = selecionarArquivo();
-            if (caminhoSelecionado) {
-                campoCaminho.text = caminhoSelecionado;
-            }
-        };
+    var botaoOK = janelaDesigner.add("button", undefined, "OK");
 
-        var botaoOK = janelaDesigner.add("button", undefined, "OK");
+    botaoOK.onClick = function() {
+        nomeDesigner = campoNome.text;
+        janelaDesigner.close();
+    };
 
-        botaoOK.onClick = function() {
-            nomeDesigner = campoNome.text;
-            caminhoBaseDados = campoCaminho.text;
-            janelaDesigner.close();
-        };
+    janelaDesigner.show();
 
-        janelaDesigner.show();
+    // Salvar o nome do designer no arquivo de configuração
+    escreverArquivoJSON(caminhoConfig, {nomeDesigner: nomeDesigner});
+}
 
-        // Salvar o nome do designer e o caminho da base de dados no arquivo de configuração
-        escreverArquivoJSON(caminhoConfig, {nomeDesigner: nomeDesigner, caminhoBaseDados: caminhoBaseDados});
-    }
+// Carregar dados do arquivo database2.json
+var dados;
+try {
+    dados = lerArquivoJSON(caminhoBaseDadosHardcoded);
+} catch (e) {
+    alert("Erro ao ler o arquivo da base de dados: " + e.message + "\nO script será encerrado.");
+    return;
+}
 
-    // Verificar se o caminho da base de dados é válido
-    if (!arquivoExiste(caminhoBaseDados)) {
-        var caminhoSelecionado = selecionarArquivo();
-        if (caminhoSelecionado) {
-            caminhoBaseDados = caminhoSelecionado;
-            // Atualizar o arquivo de configuração com o novo caminho
-            var config = lerArquivoJSON(caminhoConfig);
-            config.caminhoBaseDados = caminhoBaseDados;
-            escreverArquivoJSON(caminhoConfig, config);
-        } else {
-            alert("Erro: O caminho para o arquivo da base de dados não foi selecionado.");
-            return;
-        }
-    }
-
-    // Carregar dados do arquivo database2.json
-    var dados;
-    try {
-        dados = lerArquivoJSON(caminhoBaseDados);
-    } catch (e) {
-        alert("Erro ao ler o arquivo da base de dados: " + e.message + "\nO script será encerrado.");
-        return;
-    }
-
-    // Verificar se os dados foram carregados corretamente
-    if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.componentes)) {
-        alert("Erro: Os dados não foram carregados corretamente ou estão em um formato inválido.");
-        return;
-    }
-
+// Verificar se os dados foram carregados corretamente
+if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.componentes)) {
+    alert("Erro: Os dados não foram carregados corretamente ou estão em um formato inválido.");
+    return;
+}
     // Criar a janela principal
     var janela = new Window("palette", "Cartouche by Bids", undefined, {
         resizeable: true,

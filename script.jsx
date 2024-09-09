@@ -84,7 +84,7 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
     abaLegenda.alignChildren = ["fill", "top"];
 
     // Primeiro grupo (Informações principais)
-    var grupoPrincipal = abaLegenda.add("panel", undefined, "Informações Principais @@@");
+    var grupoPrincipal = abaLegenda.add("panel", undefined, "Informações Principais");
     grupoPrincipal.orientation = "column";
     grupoPrincipal.alignChildren = "left";
 
@@ -763,7 +763,12 @@ botaoAtualizarGit.onClick = function() {
                 // Configurar as propriedades do texto
                 textoLegenda.textRange.characterAttributes.size = 40; // Tamanho da fonte
                 textoLegenda.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
-                textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
+                try {
+                    textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
+                } catch (e) {
+                    // Fallback para Arial se Helvetica não estiver disponível
+                    textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
+                }
 
                 // Adicionar o nome do designer com "Bids -" na frente
                 var textoCompleto = "Bids - " + nomeDesigner + "\n" + conteudoLegenda;

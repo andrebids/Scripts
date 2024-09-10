@@ -425,6 +425,9 @@ function processarAlfabeto() {
     var tamanhoSelecionado = tamanhoAlfabeto.selection.text;
     var referenciasUsadas = {};
     
+    // Armazenar a palavra digitada
+    var palavraDigitada = campoPalavraChave.text;
+    
     var referenciasMapeadas = {
         'A': 'GX214LW', 'B': 'GX215LW', 'C': 'GX216LW', 'D': 'GX217LW',
         'E': 'GX218LW', 'G': 'GX220LW', 'H': 'GX221LW', 'I': 'GX222LW',
@@ -449,7 +452,7 @@ function processarAlfabeto() {
     var referenciasTexto = [];
     for (var letra in referenciasUsadas) {
         if (referenciasUsadas.hasOwnProperty(letra)) {
-            referenciasTexto.push(referenciasMapeadas[letra] + " (T) " + tamanhoSelecionado + ": " + referenciasUsadas[letra]);
+            referenciasTexto.push(referenciasMapeadas[letra] + " (" + letra + ") " + tamanhoSelecionado + ": " + referenciasUsadas[letra]);
         }
     }
     
@@ -462,11 +465,15 @@ function processarAlfabeto() {
             referencia: "",
             quantidade: 1,
             unidade: "",
-            tamanho: tamanhoSelecionado
+            tamanho: tamanhoSelecionado,
+            palavraDigitada: palavraDigitada // Adicionar a palavra digitada ao objeto
         });
         
         atualizarListaItens();
         campoPalavraChave.text = "";
+        
+        // Atualizar o campo nome/tipo com a palavra digitada
+        campoNomeTipo.text = palavraDigitada;
     } else {
         alert("Nenhuma letra válida foi inserida.");
     }
@@ -521,7 +528,20 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
     // Função para atualizar o preview (agora sem exibição visual)
     function atualizarPreview() {
         var previewText = [];
-        previewText.push("Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + campoNomeTipo.text + "\" avec, ");
+        var palavraDigitada = "";
+        
+        // Procurar pela palavra digitada no alfabeto
+        for (var i = 0; i < itensLegenda.length; i++) {
+            if (itensLegenda[i].tipo === "alfabeto" && itensLegenda[i].palavraDigitada) {
+                palavraDigitada = itensLegenda[i].palavraDigitada;
+                break;
+            }
+        }
+        
+        // Usar a palavra digitada ou o conteúdo do campoNomeTipo
+        var nomeTipo = palavraDigitada || campoNomeTipo.text;
+        
+        previewText.push("Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + nomeTipo + "\" avec, ");
         
         var itensNomes = [];
         var referencias = [];
@@ -541,7 +561,6 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
             }
         }
         previewText[0] += itensNomes.join(", ");
-        
         previewText[0] += " sur structure aluminium";
         if (checkStructure.value) {
             previewText[0] += " laqué " + (corStructure.selection ? corStructure.selection.text : "");

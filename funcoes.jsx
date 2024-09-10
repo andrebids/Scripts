@@ -170,13 +170,6 @@ $.global.funcoes = {
 };
 
 // Adicione estas funções no arquivo funcoes.jsx
-
-
-
-
-
-
-
 function testeRequisicao() {
     var url = "https://raw.githubusercontent.com/andrebids/Scripts/main/version.json";
     var request = new XMLHttpRequest();

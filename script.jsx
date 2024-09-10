@@ -565,7 +565,11 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
         for (var i = 0; i < referencias.length; i++) {
             previewText.push(referencias[i]);
         }
-
+        // Adiciona as referências do alfabeto, se existirem
+        if (referenciasAlfabeto.length > 0) {
+            var referenciasTexto = referenciasAlfabeto[referenciasAlfabeto.length - 1].texto.split("\n");
+            previewText = previewText.concat(referenciasTexto);
+        }
         previewText.push("\u200B"); // Outra linha vazia antes das observações
         
         // Adiciona a linha de observações apenas se o campo não estiver vazio
@@ -573,12 +577,7 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
             previewText.push("Obs: " + campoObs.text);
         }
 
-    // Adiciona as referências do alfabeto, se existirem
-        if (referenciasAlfabeto.length > 0) {
-        previewText.push("\u200B"); // Linha vazia antes das referências do alfabeto
-        var referenciasTexto = referenciasAlfabeto[referenciasAlfabeto.length - 1].texto.split("\n");
-        previewText = previewText.concat(referenciasTexto);
-    }
+
 
     return previewText.join("\n");
     }

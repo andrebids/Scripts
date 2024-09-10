@@ -409,25 +409,17 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
         }
     }
 
-// Grupo para palavra-chave e tamanho
-var grupoAlfabeto = abaLegenda.add("panel", undefined, "Alfabeto GX");
+// Grupo para palavra-chave
+var grupoAlfabeto = abaLegenda.add("panel", undefined, "Alfabeto");
 grupoAlfabeto.orientation = "row";
-grupoAlfabeto.alignChildren = "center";
-
 grupoAlfabeto.add("statictext", undefined, "Alfabeto:");
 var campoPalavraChave = grupoAlfabeto.add("edittext", undefined, "");
 campoPalavraChave.characters = 20;
-
-grupoAlfabeto.add("statictext", undefined, "Tamanho:");
-var listaTamanhos = grupoAlfabeto.add("dropdownlist", undefined, ["1,20 m", "2,00 m"]);
-listaTamanhos.selection = 0; // Seleciona o primeiro item por padrão
-
 var botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, "Adicionar");
 
 // Função para processar a palavra-chave
 function processarAlfabeto() {
     var alfabeto = campoPalavraChave.text.toUpperCase();
-    var tamanhoSelecionado = listaTamanhos.selection.text;
     var referenciasUsadas = {};
     
     var referenciasMapeadas = {
@@ -454,7 +446,7 @@ function processarAlfabeto() {
     var referenciasTexto = [];
     for (var letra in referenciasUsadas) {
         if (referenciasUsadas.hasOwnProperty(letra)) {
-            referenciasTexto.push(referenciasMapeadas[letra] + " (" + letra + ") " + tamanhoSelecionado + ": " + referenciasUsadas[letra]);
+            referenciasTexto.push(referenciasMapeadas[letra] + " (" + letra + "): " + referenciasUsadas[letra]);
         }
     }
     
@@ -477,7 +469,6 @@ function processarAlfabeto() {
 }
 
 botaoAdicionarPalavraChave.onClick = processarAlfabeto;
-
     // Terceiro grupo (Observações)
     var grupoObs = abaLegenda.add("panel", undefined, "Observações");
     grupoObs.orientation = "row";

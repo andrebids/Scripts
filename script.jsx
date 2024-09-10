@@ -420,7 +420,7 @@ var botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, "Adicion
 // Função para processar a palavra-chave
 function processarAlfabeto() {
     var alfabeto = campoPalavraChave.text.toUpperCase();
-    var referenciasUsadas = [];
+    var referenciasUsadas = {};
     
     var referenciasMapeadas = {
         'A': 'GX214LW', 'B': 'GX215LW', 'C': 'GX216LW', 'D': 'GX217LW',
@@ -435,16 +435,27 @@ function processarAlfabeto() {
     for (var i = 0; i < alfabeto.length; i++) {
         var letra = alfabeto[i];
         if (referenciasMapeadas.hasOwnProperty(letra)) {
-            referenciasUsadas.push(letra + ": " + referenciasMapeadas[letra] + " (" + letra + ")");
+            if (!referenciasUsadas[letra]) {
+                referenciasUsadas[letra] = 1;
+            } else {
+                referenciasUsadas[letra]++;
+            }
+        }
+    }
+    
+    var referenciasTexto = [];
+    for (var letra in referenciasUsadas) {
+        if (referenciasUsadas.hasOwnProperty(letra)) {
+            referenciasTexto.push(referenciasMapeadas[letra] + " (" + letra + "): " + referenciasUsadas[letra]);
         }
     }
     
     // Adicionar as referências usadas à legenda
-    if (referenciasUsadas.length > 0) {
+    if (referenciasTexto.length > 0) {
         itensLegenda.push({
             tipo: "alfabeto",
             nome: "Referências do Alfabeto",
-            texto: referenciasUsadas.join("\n"),
+            texto: referenciasTexto.join("\n"),
             referencia: "",
             quantidade: 1,
             unidade: ""

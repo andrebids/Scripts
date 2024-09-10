@@ -593,12 +593,14 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
         var previewText = [];
         var palavraDigitada = "";
         var corBioprint = "";
+        var alfabetoUsado = false;
         
         // Procurar pela palavra digitada no alfabeto e a cor do bioprint
         for (var i = 0; i < itensLegenda.length; i++) {
             if (itensLegenda[i].tipo === "alfabeto" && itensLegenda[i].palavraDigitada) {
-                palavraDigitada = itensLegenda[i].palavraDigitada.split(" bioprint ")[0]; // Remove "bioprint" da palavra digitada
+                palavraDigitada = itensLegenda[i].palavraDigitada;
                 corBioprint = itensLegenda[i].corBioprint;
+                alfabetoUsado = true;
                 break;
             }
         }
@@ -607,9 +609,19 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
         var nomeTipo = palavraDigitada || campoNomeTipo.text;
         
         // Determinar se deve usar "avec" ou "en"
-        var preposicao = palavraDigitada ? "en" : "avec";
+        var preposicao = alfabetoUsado ? "en" : "avec";
         
-        previewText.push("Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + nomeTipo + "\" " + preposicao + " bioprint " + corBioprint + ", ");
+        // Construir a primeira parte da frase
+        var frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + nomeTipo + "\" " + preposicao;
+        
+        // Adicionar "bioprint" e cor apenas se o alfabeto foi usado
+        if (alfabetoUsado) {
+            frasePrincipal += " bioprint " + corBioprint;
+        }
+        
+        frasePrincipal += ", ";
+        previewText.push(frasePrincipal);
+    
         var itensNomes = [];
         var referencias = [];
         var referenciasAlfabeto = [];

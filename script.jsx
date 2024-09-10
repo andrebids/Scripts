@@ -409,6 +409,55 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
         }
     }
 
+// Grupo para palavra-chave
+var grupoAlfabeto = abaLegenda.add("panel", undefined, "Alfabeto");
+grupoAlfabeto.orientation = "row";
+grupoAlfabeto.add("statictext", undefined, "Alfabeto:");
+var campoPalavraChave = grupoAlfabeto.add("edittext", undefined, "");
+campoPalavraChave.characters = 20;
+var botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, "Adicionar");
+
+// Função para processar a palavra-chave
+function processarAlfabeto() {
+    var alfabeto = campoPalavraChave.text.toUpperCase();
+    var referenciasUsadas = [];
+    
+    var referenciasMapeadas = {
+        'A': 'GX214LW', 'B': 'GX215LW', 'C': 'GX216LW', 'D': 'GX217LW',
+        'E': 'GX218LW', 'G': 'GX220LW', 'H': 'GX221LW', 'I': 'GX222LW',
+        'J': 'GX223LW', 'K': 'GX224LW', 'L': 'GX225LW', 'M': 'GX226LW',
+        'N': 'GX227LW', 'O': 'GX228LW', 'P': 'GX229LW', 'Q': 'GX230LW',
+        'R': 'GX231LW', 'S': 'GX232LW', 'T': 'GX233LW', 'U': 'GX234LW',
+        'V': 'GX235LW', 'W': 'GX236LW', 'X': 'GX237LW', 'Y': 'GX238LW',
+        '#': 'GX241LW'
+    };
+    
+    for (var i = 0; i < alfabeto.length; i++) {
+        var letra = alfabeto[i];
+        if (referenciasMapeadas.hasOwnProperty(letra)) {
+            referenciasUsadas.push(letra + ": " + referenciasMapeadas[letra] + " (" + letra + ")");
+        }
+    }
+    
+    // Adicionar as referências usadas à legenda
+    if (referenciasUsadas.length > 0) {
+        itensLegenda.push({
+            tipo: "alfabeto",
+            nome: "Referências do Alfabeto",
+            texto: referenciasUsadas.join("\n"),
+            referencia: "",
+            quantidade: 1,
+            unidade: ""
+        });
+        
+        atualizarListaItens();
+        campoPalavraChave.text = "";
+    } else {
+        alert("Nenhuma letra válida foi inserida.");
+    }
+}
+
+botaoAdicionarPalavraChave.onClick = processarAlfabeto;
     // Terceiro grupo (Observações)
     var grupoObs = abaLegenda.add("panel", undefined, "Observações");
     grupoObs.orientation = "row";
@@ -451,7 +500,7 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
     // Botão para adicionar legenda
     var botaoGerar = abaLegenda.add("button", undefined, "Adicionar legenda");
 
-    // Array para armazenar os itens da legenda
+    // Certifique-se de que itensLegenda seja definido como um array no início do script
     var itensLegenda = [];
 
     // Função para atualizar o preview (agora sem exibição visual)
@@ -461,13 +510,19 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
         
         var itensNomes = [];
         var referencias = [];
+        var referenciasAlfabeto = [];
+        
         for (var i = 0; i < itensLegenda.length; i++) {
             var item = itensLegenda[i];
-            itensNomes.push(item.nome);
-            if (item.referencia) {
-                referencias.push(item.referencia + " (" + item.unidade + "): " + item.quantidade.toFixed(2).replace('.', ','));
+            if (item.tipo === "alfabeto") {
+                referenciasAlfabeto.push(item);
             } else {
-                referencias.push(item.nome + " (" + item.unidade + "): " + item.quantidade.toFixed(2).replace('.', ','));
+                itensNomes.push(item.nome);
+                if (item.referencia) {
+                    referencias.push(item.referencia + " (" + item.unidade + "): " + item.quantidade.toFixed(2).replace('.', ','));
+                } else {
+                    referencias.push(item.nome + " (" + item.unidade + "): " + item.quantidade.toFixed(2).replace('.', ','));
+                }
             }
         }
         previewText[0] += itensNomes.join(", ");
@@ -507,7 +562,14 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
             previewText.push("Obs: " + campoObs.text);
         }
 
-        return previewText.join("\n");
+    // Adiciona as referências do alfabeto, se existirem
+        if (referenciasAlfabeto.length > 0) {
+        previewText.push("\u200B"); // Linha vazia antes das referências do alfabeto
+        var referenciasTexto = referenciasAlfabeto[referenciasAlfabeto.length - 1].texto.split("\n");
+        previewText = previewText.concat(referenciasTexto);
+    }
+
+    return previewText.join("\n");
     }
 
     // Função para atualizar a lista de cores com base no componente selecionado
@@ -733,6 +795,7 @@ botaoAtualizarGit.onClick = function() {
             
             // Substituir pontos por vírgulas e garantir duas casas decimais
             legendaConteudo = legendaConteudo.replace(/(\d+)\.(\d+)/g, formatarNumero);
+
 
 
 

@@ -433,8 +433,7 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
     // Função para preencher o dropdown de cores do bioprint
     function preencherCoresBioprint() {
         dropdownCorBioprint.removeAll();
-        dropdownCorBioprint.add("item", "Selecione a cor");
-    
+        
         var componenteBioprint = null;
         for (var i = 0; i < dados.componentes.length; i++) {
             if (dados.componentes[i].nome.toLowerCase() === "bioprint") {
@@ -445,11 +444,15 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
     
         if (componenteBioprint) {
             var coresBioprint = [];
+            var indexOr = -1;
             for (var i = 0; i < dados.combinacoes.length; i++) {
                 if (dados.combinacoes[i].componenteId === componenteBioprint.id) {
                     var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
                     if (cor && !arrayContains(coresBioprint, cor)) {
                         coresBioprint.push(cor);
+                        if (cor.nome.toLowerCase() === "or") {
+                            indexOr = coresBioprint.length - 1;
+                        }
                     }
                 }
             }
@@ -457,9 +460,20 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
             for (var i = 0; i < coresBioprint.length; i++) {
                 dropdownCorBioprint.add("item", coresBioprint[i].nome);
             }
+    
+            // Pré-selecionar "or" se existir, caso contrário, selecionar o primeiro item
+            if (indexOr !== -1) {
+                dropdownCorBioprint.selection = indexOr;
+            } else if (coresBioprint.length > 0) {
+                dropdownCorBioprint.selection = 0;
+            }
         }
     
-        dropdownCorBioprint.selection = 0;
+        // Se não houver cores disponíveis, adicionar um item padrão
+        if (dropdownCorBioprint.items.length === 0) {
+            dropdownCorBioprint.add("item", "Sem cores disponíveis");
+            dropdownCorBioprint.selection = 0;
+        }
     }
 
     // Chamar a função para preencher as cores do bioprint
@@ -514,18 +528,19 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
                 tamanho: tamanhoSelecionado,
                 bioprint: "bioprint",
                 corBioprint: corBioprintSelecionada,
-                palavraDigitada: palavraDigitada
+                palavraDigitada: palavraDigitada // Removido "bioprint" e cor da palavra digitada
             });
             
             atualizarListaItens();
             campoPalavraChave.text = "";
             
-            // Atualizar o campo nome/tipo com a palavra digitada
+            // Atualizar o campo nome/tipo apenas com a palavra digitada
             campoNomeTipo.text = palavraDigitada;
         } else {
             alert("Nenhuma letra válida foi inserida.");
         }
     }
+
 
 botaoAdicionarPalavraChave.onClick = processarAlfabeto;
     // Terceiro grupo (Observações)
@@ -577,11 +592,13 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
     function atualizarPreview() {
         var previewText = [];
         var palavraDigitada = "";
+        var corBioprint = "";
         
-        // Procurar pela palavra digitada no alfabeto
+        // Procurar pela palavra digitada no alfabeto e a cor do bioprint
         for (var i = 0; i < itensLegenda.length; i++) {
             if (itensLegenda[i].tipo === "alfabeto" && itensLegenda[i].palavraDigitada) {
-                palavraDigitada = itensLegenda[i].palavraDigitada;
+                palavraDigitada = itensLegenda[i].palavraDigitada.split(" bioprint ")[0]; // Remove "bioprint" da palavra digitada
+                corBioprint = itensLegenda[i].corBioprint;
                 break;
             }
         }
@@ -589,8 +606,10 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
         // Usar a palavra digitada ou o conteúdo do campoNomeTipo
         var nomeTipo = palavraDigitada || campoNomeTipo.text;
         
-        previewText.push("Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + nomeTipo + "\" avec, ");
+        // Determinar se deve usar "avec" ou "en"
+        var preposicao = palavraDigitada ? "en" : "avec";
         
+        previewText.push("Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + nomeTipo + "\" " + preposicao + " bioprint " + corBioprint + ", ");
         var itensNomes = [];
         var referencias = [];
         var referenciasAlfabeto = [];

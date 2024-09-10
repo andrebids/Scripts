@@ -415,11 +415,14 @@ grupoAlfabeto.orientation = "row";
 grupoAlfabeto.add("statictext", undefined, "Alfabeto:");
 var campoPalavraChave = grupoAlfabeto.add("edittext", undefined, "");
 campoPalavraChave.characters = 20;
+var tamanhoAlfabeto = grupoAlfabeto.add("dropdownlist", undefined, ["1,20 m", "2,00 m"]);
+tamanhoAlfabeto.selection = 0;
 var botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, "Adicionar");
 
 // Função para processar a palavra-chave
 function processarAlfabeto() {
     var alfabeto = campoPalavraChave.text.toUpperCase();
+    var tamanhoSelecionado = tamanhoAlfabeto.selection.text;
     var referenciasUsadas = {};
     
     var referenciasMapeadas = {
@@ -446,7 +449,7 @@ function processarAlfabeto() {
     var referenciasTexto = [];
     for (var letra in referenciasUsadas) {
         if (referenciasUsadas.hasOwnProperty(letra)) {
-            referenciasTexto.push(referenciasMapeadas[letra] + " (" + letra + "): " + referenciasUsadas[letra]);
+            referenciasTexto.push(referenciasMapeadas[letra] + " (T) " + tamanhoSelecionado + ": " + referenciasUsadas[letra]);
         }
     }
     
@@ -458,7 +461,8 @@ function processarAlfabeto() {
             texto: referenciasTexto.join("\n"),
             referencia: "",
             quantidade: 1,
-            unidade: ""
+            unidade: "",
+            tamanho: tamanhoSelecionado
         });
         
         atualizarListaItens();

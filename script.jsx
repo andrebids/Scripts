@@ -622,7 +622,7 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
         frasePrincipal += ", ";
         previewText.push(frasePrincipal);
     
-        var itensNomes = [];
+        var itensAgrupados = {};
         var referencias = [];
         var referenciasAlfabeto = [];
         
@@ -631,7 +631,11 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
             if (item.tipo === "alfabeto") {
                 referenciasAlfabeto.push(item);
             } else {
-                itensNomes.push(item.nome);
+                var componenteNome = item.nome.split(' ')[0];
+                if (!itensAgrupados[componenteNome]) {
+                    itensAgrupados[componenteNome] = [];
+                }
+                itensAgrupados[componenteNome].push(item);
                 if (item.referencia) {
                     referencias.push(item.referencia + " (" + item.unidade + "): " + item.quantidade.toFixed(2).replace('.', ','));
                 } else {
@@ -639,6 +643,28 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
                 }
             }
         }
+        
+        var itensNomes = [];
+        for (var componente in itensAgrupados) {
+            if (itensAgrupados.hasOwnProperty(componente)) {
+                var cores = [];
+                for (var j = 0; j < itensAgrupados[componente].length; j++) {
+                    var cor = itensAgrupados[componente][j].nome.split(' ').slice(1).join(' ');
+                    var corJaExiste = false;
+                    for (var k = 0; k < cores.length; k++) {
+                        if (cores[k] === cor) {
+                            corJaExiste = true;
+                            break;
+                        }
+                    }
+                    if (!corJaExiste) {
+                        cores.push(cor);
+                    }
+                }
+                itensNomes.push(componente + " " + cores.join(', '));
+            }
+        }
+        
         previewText[0] += itensNomes.join(", ");
         previewText[0] += " sur structure aluminium";
         if (checkStructure.value) {

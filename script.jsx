@@ -673,6 +673,7 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
 
         // Modificar a parte do código que lida com as dimensões no preview
         var dimensoesTexto = "";
+        var dimensoesValidas = [];
         for (var i = 0; i < dimensoes.length; i++) {
             var valorDimensao = grupoDimensoes.children[i*2 + 1].text;
             if (valorDimensao !== "") {
@@ -680,10 +681,13 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
                 if (dimensao === "⌀") {
                     dimensao = "\u00D8"; // Símbolo de diâmetro Unicode (Ø)
                 }
-                dimensoesTexto += dimensao + ": " + regras.formatarDimensao(valorDimensao) + " ";
+                dimensoesValidas.push(dimensao + ": " + regras.formatarDimensao(valorDimensao));
             }
         }
-        previewText.push(dimensoesTexto);
+        dimensoesTexto = dimensoesValidas.join(" - ");
+        if (dimensoesTexto !== "") {
+            previewText.push(dimensoesTexto);
+        }
 
         previewText.push("Fixation: " + (listaFixacao.selection ? listaFixacao.selection.text : ""));
         
@@ -711,6 +715,23 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
     }
 
     // Função para atualizar a lista de cores com base no componente selecionado
+    function selecionarUnidadeMetrica(unidades) {
+        var prioridade = ["m2", "ml", "unit"];
+        
+        // Primeiro, verifica se há apenas uma unidade disponível (excluindo "Selecione uma unidade")
+        if (unidades.length === 2 && unidades[1] === "unit") {
+            return "unit";
+        }
+        
+        // Se houver mais de uma opção, segue a ordem de prioridade
+        for (var i = 0; i < prioridade.length; i++) {
+            if (arrayContains(unidades, prioridade[i])) {
+                return prioridade[i];
+            }
+        }
+        return null;
+    }
+
     function atualizarCores() {
         listaCores.removeAll();
         listaUnidades.removeAll();
@@ -719,7 +740,8 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
             var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
             var coresDisponiveis = ["Selecione uma cor"];
             var coresIds = [];
-
+            var unidadesDisponiveis = ["Selecione uma unidade"];
+    
             for (var i = 0; i < dados.combinacoes.length; i++) {
                 if (dados.combinacoes[i].componenteId === componenteSelecionado.id) {
                     var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
@@ -727,35 +749,53 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
                         coresDisponiveis.push(cor.nome);
                         coresIds.push(cor.id);
                     }
+                    if (!arrayContains(unidadesDisponiveis, dados.combinacoes[i].unidade)) {
+                        unidadesDisponiveis.push(dados.combinacoes[i].unidade);
+                    }
                 }
             }
-
+    
             for (var i = 0; i < coresDisponiveis.length; i++) {
                 listaCores.add("item", coresDisponiveis[i]);
             }
             listaCores.selection = 0;
+    
+            for (var i = 0; i < unidadesDisponiveis.length; i++) {
+                listaUnidades.add("item", unidadesDisponiveis[i]);
+            }
+    
+            // Selecionar unidade métrica automaticamente
+            var unidadeParaSelecionar = selecionarUnidadeMetrica(unidadesDisponiveis);
+            if (unidadeParaSelecionar) {
+                for (var i = 0; i < listaUnidades.items.length; i++) {
+                    if (listaUnidades.items[i].text === unidadeParaSelecionar) {
+                        listaUnidades.selection = i;
+                        break;
+                    }
+                }
+            } else if (selecaoAtual && arrayContains(unidadesDisponiveis, selecaoAtual)) {
+                listaUnidades.selection = unidadesDisponiveis.indexOf(selecaoAtual);
+            } else {
+                listaUnidades.selection = 0;
+            }
+
         } else {
             listaCores.add("item", "Selecione uma cor");
+            listaUnidades.add("item", "Selecione uma unidade");
+            listaCores.selection = 0;
+            listaUnidades.selection = 0;
         }
-        
-        listaUnidades.add("item", "Selecione uma unidade");
-        listaCores.selection = 0;
-        listaUnidades.selection = 0;
     }
-
-    // Função para atualizar a lista de unidades com base no componente e cor selecionados
+    
     function atualizarUnidades() {
         if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0) {
-            listaUnidades.removeAll();
-            listaUnidades.add("item", "Selecione uma unidade");
-            listaUnidades.selection = 0;
             return;
         }
-
+    
         var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
         var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
         var unidadesDisponiveis = ["Selecione uma unidade"];
-
+    
         for (var i = 0; i < dados.combinacoes.length; i++) {
             if (dados.combinacoes[i].componenteId === componenteSelecionado.id && dados.combinacoes[i].corId === corSelecionada.id) {
                 if (!arrayContains(unidadesDisponiveis, dados.combinacoes[i].unidade)) {
@@ -763,16 +803,34 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
                 }
             }
         }
-
+    
+        var selecaoAtual = listaUnidades.selection ? listaUnidades.selection.text : null;
         listaUnidades.removeAll();
         for (var i = 0; i < unidadesDisponiveis.length; i++) {
             listaUnidades.add("item", unidadesDisponiveis[i]);
         }
-        listaUnidades.selection = 0;
+    
+        // Selecionar unidade métrica automaticamente
+        var unidadeParaSelecionar = selecionarUnidadeMetrica(unidadesDisponiveis);
+        if (unidadeParaSelecionar) {
+            for (var i = 0; i < listaUnidades.items.length; i++) {
+                if (listaUnidades.items[i].text === unidadeParaSelecionar) {
+                    listaUnidades.selection = i;
+                    break;
+                }
+            }
+        } else if (selecaoAtual && arrayContains(unidadesDisponiveis, selecaoAtual)) {
+            listaUnidades.selection = unidadesDisponiveis.indexOf(selecaoAtual);
+        } else {
+            listaUnidades.selection = 0;
+        }
     }
-
-    // Adicionar eventos de mudança
-    listaComponentes.onChange = atualizarCores;
+    
+    // Atualizar os event listeners
+    listaComponentes.onChange = function() {
+        atualizarCores();
+    };
+    
     listaCores.onChange = atualizarUnidades;
 
     // Função para arredondar para a próxima décima

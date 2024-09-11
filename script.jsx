@@ -587,6 +587,7 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
 
     // Certifique-se de que itensLegenda seja definido como um array no início do script
     var itensLegenda = [];
+    var itensNomes = [];
 
     // Função para atualizar o preview (agora sem exibição visual)
     function atualizarPreview() {
@@ -594,6 +595,7 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
         var palavraDigitada = "";
         var corBioprint = "";
         var alfabetoUsado = false;
+        var itensNomes = [];
         
         // Procurar pela palavra digitada no alfabeto e a cor do bioprint
         for (var i = 0; i < itensLegenda.length; i++) {
@@ -611,16 +613,28 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
         // Determinar se deve usar "avec" ou "en"
         var preposicao = alfabetoUsado ? "en" : "avec";
         
-        // Construir a primeira parte da frase
-        var frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + nomeTipo + "\" " + preposicao;
-        
-        // Adicionar "bioprint" e cor apenas se o alfabeto foi usado
-        if (alfabetoUsado) {
-            frasePrincipal += " bioprint " + corBioprint;
-        }
-        
-        frasePrincipal += ", ";
-        previewText.push(frasePrincipal);
+    // Construir a primeira parte da frase
+    var frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + nomeTipo + "\" " + preposicao;
+
+    if (alfabetoUsado) {
+        frasePrincipal += " bioprint " + (corBioprint || "");
+    }
+
+    frasePrincipal += ", ";
+    
+    // Adicionar itensNomes à frasePrincipal
+    if (itensNomes && itensNomes.length > 0) {
+        frasePrincipal += itensNomes.join(", ") + ", ";
+    }
+    
+    // Adicionar informação sobre a estrutura apenas uma vez
+    frasePrincipal += "sur structure aluminium";
+    if (checkStructure.value) {
+        frasePrincipal += " laqué " + (corStructure.selection ? corStructure.selection.text : "");
+    }
+    frasePrincipal += ".";
+
+    previewText.push(frasePrincipal);
     
         var itensAgrupados = {};
         var referencias = [];
@@ -665,11 +679,6 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
             }
         }
         
-        previewText[0] += itensNomes.join(", ");
-        previewText[0] += " sur structure aluminium";
-        if (checkStructure.value) {
-            previewText[0] += " laqué " + (corStructure.selection ? corStructure.selection.text : "");
-        }
 
         // Modificar a parte do código que lida com as dimensões no preview
         var dimensoesTexto = "";

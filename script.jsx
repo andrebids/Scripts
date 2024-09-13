@@ -617,27 +617,41 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
         var palavraDigitada = "";
         var corBioprint = "";
         var alfabetoUsado = false;
-        var itensNomes = [];
+        var componentesAgrupados = {};
         var bolasCores = [];
         
-        // Procurar pela palavra digitada no alfabeto, a cor do bioprint e as bolas
+        // Procurar pela palavra digitada no alfabeto, a cor do bioprint, componentes e bolas
         for (var i = 0; i < itensLegenda.length; i++) {
             if (itensLegenda[i].tipo === "alfabeto" && itensLegenda[i].palavraDigitada) {
                 palavraDigitada = itensLegenda[i].palavraDigitada;
                 corBioprint = itensLegenda[i].corBioprint;
                 alfabetoUsado = true;
             } else if (itensLegenda[i].tipo === "componente") {
-                itensNomes.push(itensLegenda[i].nome);
-            } else if (itensLegenda[i].tipo === "bola") {
-                var corBola = itensLegenda[i].nome.split(' ')[1]; // Pega apenas a cor da bola
+                var nomeComponente = itensLegenda[i].nome.split(' ')[0];
+                var corComponente = itensLegenda[i].nome.split(' ').slice(1).join(' ');
+                if (!componentesAgrupados[nomeComponente]) {
+                    componentesAgrupados[nomeComponente] = [];
+                }
                 var corJaExiste = false;
-                for (var j = 0; j < bolasCores.length; j++) {
-                    if (bolasCores[j] === corBola) {
+                for (var j = 0; j < componentesAgrupados[nomeComponente].length; j++) {
+                    if (componentesAgrupados[nomeComponente][j] === corComponente) {
                         corJaExiste = true;
                         break;
                     }
                 }
                 if (!corJaExiste) {
+                    componentesAgrupados[nomeComponente].push(corComponente);
+                }
+            } else if (itensLegenda[i].tipo === "bola") {
+                var corBola = itensLegenda[i].nome.split(' ')[1];
+                var corBolaJaExiste = false;
+                for (var k = 0; k < bolasCores.length; k++) {
+                    if (bolasCores[k] === corBola) {
+                        corBolaJaExiste = true;
+                        break;
+                    }
+                }
+                if (!corBolaJaExiste) {
                     bolasCores.push(corBola);
                 }
             }
@@ -656,9 +670,15 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
             frasePrincipal += " bioprint " + (corBioprint || "");
         }
     
-        // Adicionar os nomes dos componentes
-        if (itensNomes.length > 0) {
-            frasePrincipal += " " + itensNomes.join(", ");
+        // Adicionar os componentes agrupados
+        var componentesTexto = [];
+        for (var componente in componentesAgrupados) {
+            if (componentesAgrupados.hasOwnProperty(componente)) {
+                componentesTexto.push(componente + " " + componentesAgrupados[componente].join(", "));
+            }
+        }
+        if (componentesTexto.length > 0) {
+            frasePrincipal += " " + componentesTexto.join(", ");
         }
     
         // Adicionar as bolas

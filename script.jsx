@@ -603,7 +603,8 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
                 palavraDigitada = itensLegenda[i].palavraDigitada;
                 corBioprint = itensLegenda[i].corBioprint;
                 alfabetoUsado = true;
-                break;
+            } else if (itensLegenda[i].tipo === "componente") {
+                itensNomes.push(itensLegenda[i].nome);
             }
         }
         
@@ -613,28 +614,25 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
         // Determinar se deve usar "avec" ou "en"
         var preposicao = alfabetoUsado ? "en" : "avec";
         
-    // Construir a primeira parte da frase
-    var frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + nomeTipo + "\" " + preposicao;
-
-    if (alfabetoUsado) {
-        frasePrincipal += " bioprint " + (corBioprint || "");
-    }
-
-    frasePrincipal += ", ";
+        // Construir a primeira parte da frase
+        var frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + nomeTipo + "\" " + preposicao;
     
-    // Adicionar itensNomes à frasePrincipal
-    if (itensNomes && itensNomes.length > 0) {
-        frasePrincipal += itensNomes.join(", ") + ", ";
-    }
+        if (alfabetoUsado) {
+            frasePrincipal += " bioprint " + (corBioprint || "");
+        }
     
-    // Adicionar informação sobre a estrutura apenas uma vez
-    frasePrincipal += "sur structure aluminium";
-    if (checkStructure.value) {
-        frasePrincipal += " laqué " + (corStructure.selection ? corStructure.selection.text : "");
-    }
-    frasePrincipal += ".";
-
-    previewText.push(frasePrincipal);
+        // Adicionar os nomes dos componentes
+        if (itensNomes.length > 0) {
+            frasePrincipal += " " + itensNomes.join(", ");
+        }
+    
+        frasePrincipal += ", sur structure aluminium";
+        if (checkStructure.value) {
+            frasePrincipal += " laqué " + (corStructure.selection ? corStructure.selection.text : "");
+        }
+        frasePrincipal += ".";
+    
+        previewText.push(frasePrincipal);
     
         var itensAgrupados = {};
         var referencias = [];

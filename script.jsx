@@ -596,8 +596,9 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
         var corBioprint = "";
         var alfabetoUsado = false;
         var itensNomes = [];
+        var bolasCores = [];
         
-        // Procurar pela palavra digitada no alfabeto e a cor do bioprint
+        // Procurar pela palavra digitada no alfabeto, a cor do bioprint e as bolas
         for (var i = 0; i < itensLegenda.length; i++) {
             if (itensLegenda[i].tipo === "alfabeto" && itensLegenda[i].palavraDigitada) {
                 palavraDigitada = itensLegenda[i].palavraDigitada;
@@ -605,6 +606,18 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
                 alfabetoUsado = true;
             } else if (itensLegenda[i].tipo === "componente") {
                 itensNomes.push(itensLegenda[i].nome);
+            } else if (itensLegenda[i].tipo === "bola") {
+                var corBola = itensLegenda[i].nome.split(' ')[1]; // Pega apenas a cor da bola
+                var corJaExiste = false;
+                for (var j = 0; j < bolasCores.length; j++) {
+                    if (bolasCores[j] === corBola) {
+                        corJaExiste = true;
+                        break;
+                    }
+                }
+                if (!corJaExiste) {
+                    bolasCores.push(corBola);
+                }
             }
         }
         
@@ -624,6 +637,11 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
         // Adicionar os nomes dos componentes
         if (itensNomes.length > 0) {
             frasePrincipal += " " + itensNomes.join(", ");
+        }
+    
+        // Adicionar as bolas
+        if (bolasCores.length > 0) {
+            frasePrincipal += ", bola" + (bolasCores.length > 1 ? "s" : "") + " " + bolasCores.join(", ");
         }
     
         frasePrincipal += ", sur structure aluminium";

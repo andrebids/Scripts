@@ -381,24 +381,22 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
     listaCoresBolas.onChange = atualizarAcabamentos;
     listaAcabamentos.onChange = atualizarTamanhos;
 
-    // Botão para adicionar bola à legenda
     botaoAdicionarBola.onClick = function() {
         if (listaCoresBolas.selection.index === 0 || listaAcabamentos.selection.index === 0 || listaTamanhos.selection.index === 0) {
             alert("Por favor, selecione uma cor, um acabamento e um tamanho para a bola.");
             return;
         }
-
+    
         var quantidade = parseFloat(campoQuantidadeBolas.text.replace(',', '.'));
         if (isNaN(quantidade) || quantidade <= 0) {
             alert("Por favor, insira uma quantidade válida de bolas.");
             return;
         }
-
+    
         var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
         var acabamentoSelecionado = dados.acabamentos[encontrarIndicePorNome(dados.acabamentos, listaAcabamentos.selection.text)];
         var tamanhoSelecionado = dados.tamanhos[encontrarIndicePorNome(dados.tamanhos, listaTamanhos.selection.text)];
-
-        // Encontrar a bola correspondente na base de dados
+    
         var bolaSelecionada = null;
         for (var i = 0; i < dados.bolas.length; i++) {
             if (dados.bolas[i].corId === corSelecionada.id &&
@@ -408,9 +406,10 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
                 break;
             }
         }
-
+    
         if (bolaSelecionada) {
-            var texto = "bola " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome;
+            var textoBoule = quantidade === 1 ? "boule" : "boules";
+            var texto = textoBoule + " " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome;
             if (bolaSelecionada.referencia) {
                 texto += " (Ref: " + bolaSelecionada.referencia + ")";
             }
@@ -418,11 +417,11 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
             
             itensLegenda.push({
                 tipo: "bola",
-                nome: "bola " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome,
+                nome: textoBoule + " " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome,
                 texto: texto,
                 referencia: bolaSelecionada.referencia,
                 quantidade: quantidade,
-                unidade: "units" // Adiciona a unidade ao objeto
+                unidade: "units"
             });
             
             atualizarListaItens();
@@ -608,7 +607,7 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
     var botaoGerar = abaLegenda.add("button", undefined, "Adicionar legenda");
 
     // Certifique-se de que itensLegenda seja definido como um array no início do script
-    var itensLegenda = [];
+    var itensLegenda = itensLegenda || [];
     var itensNomes = [];
 
     // Função para atualizar o preview (agora sem exibição visual)
@@ -683,7 +682,16 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
     
         // Adicionar as bolas
         if (bolasCores.length > 0) {
-            frasePrincipal += ", bola" + (bolasCores.length > 1 ? "s" : "") + " " + bolasCores.join(", ");
+            var totalBolas = 0;
+            if (Object.prototype.toString.call(itensLegenda) === '[object Array]') {
+                for (var i = 0; i < itensLegenda.length; i++) {
+                    if (itensLegenda[i].tipo === "bola") {
+                        totalBolas += itensLegenda[i].quantidade;
+                    }
+                }
+            }
+            var textoBoule = totalBolas > 1 ? "boules" : "boule";
+            frasePrincipal += ", " + textoBoule + " " + bolasCores.join(", ");
         }
     
         frasePrincipal += ", sur structure aluminium";
@@ -918,26 +926,23 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
             alert("Por favor, selecione um componente, uma cor e uma unidade.");
             return;
         }
-
+    
         var quantidade = parseFloat(campoQuantidade.text.replace(',', '.'));
         if (isNaN(quantidade) || quantidade <= 0) {
             alert("Por favor, insira uma quantidade válida para o componente.");
             return;
         }
-
+    
         var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
         var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
         var unidadeSelecionada = listaUnidades.selection.text;
-
+    
         // Aplicar arredondamento especial para fil lumiére e fil cométe
         quantidade = regras.arredondamentoEspecial(quantidade, componenteSelecionado.id, unidadeSelecionada);
-
-        // Aplicar arredondamento para a próxima décima para "m2" ou "ml", exceto para fil lumiére e fil cométe
         if (unidadeSelecionada !== "units" && componenteSelecionado.id !== 13 && componenteSelecionado.id !== 14) {
             quantidade = arredondarParaDecima(quantidade);
         }
-
-        // Encontrar a combinação correspondente na base de dados
+    
         var combinacaoSelecionada = null;
         for (var i = 0; i < dados.combinacoes.length; i++) {
             if (dados.combinacoes[i].componenteId === componenteSelecionado.id &&
@@ -947,14 +952,13 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
                 break;
             }
         }
-
+    
         if (combinacaoSelecionada) {
             var texto = componenteSelecionado.nome + " " + corSelecionada.nome;
             if (combinacaoSelecionada.referencia) {
                 texto += " (Ref: " + combinacaoSelecionada.referencia + ")";
             }
             
-            // Formatar a quantidade com base no componente e unidade
             var quantidadeFormatada = regras.formatarQuantidade(quantidade, componenteSelecionado.id, unidadeSelecionada);
             
             texto += " (" + unidadeSelecionada + "): " + quantidadeFormatada;

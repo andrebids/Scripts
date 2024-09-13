@@ -318,12 +318,28 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
         for (var i = 0; i < acabamentosDisponiveis.length; i++) {
             listaAcabamentos.add("item", acabamentosDisponiveis[i]);
         }
-        listaAcabamentos.selection = 0;
+        
+        // Pré-selecionar o acabamento se houver apenas uma opção
+        if (acabamentosDisponiveis.length === 2) {
+            listaAcabamentos.selection = 1;
+        } else {
+            listaAcabamentos.selection = 0;
+        }
 
-        // Resetar a lista de tamanhos
-        listaTamanhos.removeAll();
-        listaTamanhos.add("item", "Selecione um tamanho");
-        listaTamanhos.selection = 0;
+        listaAcabamentos.removeAll();
+        for (var i = 0; i < acabamentosDisponiveis.length; i++) {
+            listaAcabamentos.add("item", acabamentosDisponiveis[i]);
+        }
+        
+        // Pré-selecionar o acabamento se houver apenas uma opção
+        if (acabamentosDisponiveis.length === 2) {
+            listaAcabamentos.selection = 1;
+        } else {
+            listaAcabamentos.selection = 0;
+        }
+    
+        // Atualizar tamanhos após selecionar o acabamento
+        atualizarTamanhos();
     }
 
     // Função para atualizar a lista de tamanhos com base na cor e acabamento selecionados
@@ -352,7 +368,13 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
         for (var i = 0; i < tamanhosDisponiveis.length; i++) {
             listaTamanhos.add("item", tamanhosDisponiveis[i]);
         }
-        listaTamanhos.selection = 0;
+        
+        // Pré-selecionar o tamanho se houver apenas uma opção
+        if (tamanhosDisponiveis.length === 2) {
+            listaTamanhos.selection = 1;
+        } else {
+            listaTamanhos.selection = 0;
+        }
     }
 
     // Adicionar eventos de mudança
@@ -784,22 +806,27 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
                 listaCores.add("item", coresDisponiveis[i]);
             }
             listaCores.selection = 0;
+
+        // Pré-selecionar a cor se houver apenas uma opção
+        if (coresDisponiveis.length === 2) {
+            listaCores.selection = 1;
+        } else {
+            listaCores.selection = 0;
+        }
+
+        for (var i = 0; i < unidadesDisponiveis.length; i++) {
+            listaUnidades.add("item", unidadesDisponiveis[i]);
+        }
     
-            for (var i = 0; i < unidadesDisponiveis.length; i++) {
-                listaUnidades.add("item", unidadesDisponiveis[i]);
-            }
-    
-            // Selecionar unidade métrica automaticamente
-            var unidadeParaSelecionar = selecionarUnidadeMetrica(unidadesDisponiveis);
-            if (unidadeParaSelecionar) {
-                for (var i = 0; i < listaUnidades.items.length; i++) {
-                    if (listaUnidades.items[i].text === unidadeParaSelecionar) {
-                        listaUnidades.selection = i;
-                        break;
-                    }
+        // Selecionar unidade métrica automaticamente
+        var unidadeParaSelecionar = selecionarUnidadeMetrica(unidadesDisponiveis);
+        if (unidadeParaSelecionar) {
+            for (var i = 0; i < listaUnidades.items.length; i++) {
+                if (listaUnidades.items[i].text === unidadeParaSelecionar) {
+                    listaUnidades.selection = i;
+                    break;
                 }
-            } else if (selecaoAtual && arrayContains(unidadesDisponiveis, selecaoAtual)) {
-                listaUnidades.selection = unidadesDisponiveis.indexOf(selecaoAtual);
+            }
             } else {
                 listaUnidades.selection = 0;
             }
@@ -810,7 +837,9 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
             listaCores.selection = 0;
             listaUnidades.selection = 0;
         }
-    }
+    // Chamar atualizarUnidades() para atualizar as unidades com base na cor selecionada
+    atualizarUnidades();
+}
     
     function atualizarUnidades() {
         if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0) {
@@ -835,21 +864,21 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
             listaUnidades.add("item", unidadesDisponiveis[i]);
         }
     
-        // Selecionar unidade métrica automaticamente
-        var unidadeParaSelecionar = selecionarUnidadeMetrica(unidadesDisponiveis);
-        if (unidadeParaSelecionar) {
-            for (var i = 0; i < listaUnidades.items.length; i++) {
-                if (listaUnidades.items[i].text === unidadeParaSelecionar) {
-                    listaUnidades.selection = i;
-                    break;
-                }
+    // Selecionar unidade métrica automaticamente
+    var unidadeParaSelecionar = selecionarUnidadeMetrica(unidadesDisponiveis);
+    if (unidadeParaSelecionar) {
+        for (var i = 0; i < listaUnidades.items.length; i++) {
+            if (listaUnidades.items[i].text === unidadeParaSelecionar) {
+                listaUnidades.selection = i;
+                break;
             }
-        } else if (selecaoAtual && arrayContains(unidadesDisponiveis, selecaoAtual)) {
-            listaUnidades.selection = unidadesDisponiveis.indexOf(selecaoAtual);
-        } else {
-            listaUnidades.selection = 0;
         }
+    } else if (unidadesDisponiveis.length === 2) {
+        listaUnidades.selection = 1; // Seleciona automaticamente se houver apenas uma opção
+    } else {
+        listaUnidades.selection = 0;
     }
+}
     
     // Atualizar os event listeners
     listaComponentes.onChange = function() {

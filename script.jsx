@@ -66,7 +66,7 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
     janela.margins = 16;
 
     // Ajustar o tamanho máximo da janela principal
-    janela.maximumSize = [800, 800]; // Aumentada a largura para 800
+    janela.preferredSize = [-1, -1]; // Tamanho preferido da janela
 
     // Criar painel esquerdo para campos de preenchimento
     var painelEsquerdo = janela.add("panel");

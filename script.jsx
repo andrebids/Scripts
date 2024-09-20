@@ -241,6 +241,11 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
     var campoQuantidade = grupo2.add("edittext", undefined, "1");
     campoQuantidade.characters = 5;
     apenasNumerosEVirgula(campoQuantidade);
+    // Campo de multiplicador
+    grupo2.add("statictext", undefined, "x");
+    var campoMultiplicador = grupo2.add("edittext", undefined, "1");
+    campoMultiplicador.characters = 3;
+    apenasNumerosEVirgula(campoMultiplicador);
 
     // Botão adicionar componente
     var botaoAdicionarComponente = grupo2.add("button", undefined, "Adicionar Componente");
@@ -716,11 +721,14 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
                     itensAgrupados[componenteNome] = [];
                 }
                 itensAgrupados[componenteNome].push(item);
-                if (item.referencia) {
-                    referencias.push(item.referencia + " (" + item.unidade + "): " + item.quantidade.toFixed(2).replace('.', ','));
-                } else {
-                    referencias.push(item.nome + " (" + item.unidade + "): " + item.quantidade.toFixed(2).replace('.', ','));
+                var referenciaTexto = item.referencia ? item.referencia : item.nome;
+                var quantidadeFormatada = item.quantidade.toFixed(2).replace('.', ',');
+                var linha = referenciaTexto + " (" + item.unidade + ")";
+                if (item.multiplicador && item.multiplicador > 1) {
+                    linha += " x" + item.multiplicador;
                 }
+                linha += ": " + quantidadeFormatada;
+                referencias.push(linha);
             }
         }
         
@@ -928,10 +936,13 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
         }
     
         var quantidade = parseFloat(campoQuantidade.text.replace(',', '.'));
-        if (isNaN(quantidade) || quantidade <= 0) {
-            alert("Por favor, insira uma quantidade válida para o componente.");
+        var multiplicador = parseFloat(campoMultiplicador.text.replace(',', '.'));
+        if (isNaN(quantidade) || quantidade <= 0 || isNaN(multiplicador) || multiplicador <= 0) {
+            alert("Por favor, insira uma quantidade e um multiplicador válidos para o componente.");
             return;
         }
+        
+        quantidade *= multiplicador;
     
         var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
         var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
@@ -959,9 +970,13 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
                 texto += " (Ref: " + combinacaoSelecionada.referencia + ")";
             }
             
-            var quantidadeFormatada = regras.formatarQuantidade(quantidade, componenteSelecionado.id, unidadeSelecionada);
-            
-            texto += " (" + unidadeSelecionada + "): " + quantidadeFormatada;
+            texto += " (" + unidadeSelecionada + ")";
+        
+            if (multiplicador > 1) {
+                texto += " x" + multiplicador;
+            }
+        
+            texto += ": " + regras.formatarQuantidade(quantidade, componenteSelecionado.id, unidadeSelecionada);
             
             itensLegenda.push({
                 tipo: "componente",
@@ -970,7 +985,8 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
                 referencia: combinacaoSelecionada.referencia,
                 quantidade: quantidade,
                 unidade: unidadeSelecionada,
-                componenteId: componenteSelecionado.id
+                componenteId: componenteSelecionado.id,
+                multiplicador: multiplicador
             });
             
             atualizarListaItens();
@@ -1070,9 +1086,6 @@ botaoAtualizarGit.onClick = function() {
             // Substituir pontos por vírgulas e garantir duas casas decimais
             legendaConteudo = legendaConteudo.replace(/(\d+)\.(\d+)/g, formatarNumero);
 
-
-
-
             var scriptIllustrator = function(nomeDesigner, conteudoLegenda) {
                 var doc = app.activeDocument;
 
@@ -1112,8 +1125,8 @@ botaoAtualizarGit.onClick = function() {
 
                 // Função para processar cada linha da legenda
                 function processarLinha(linha) {
-                    // Procura por padrões de unidade seguidos por dois pontos
-                    linha = linha.replace(/(ml|m2|unit):/g, "($1):");
+                    // Procura por padrões de unidade seguidos por dois pontos e possivelmente um multiplicador
+                    linha = linha.replace(/(\(ml|munit\))(\s*x\d+)?:/g, "$1$2:");
                     
                     // Função para formatar números com duas casas decimais, exceto para fil lumiére
                     function formatarNumero(match, inteiro, decimal, offset, string) {

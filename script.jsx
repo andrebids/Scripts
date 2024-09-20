@@ -65,28 +65,37 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
     janela.spacing = 10;
     janela.margins = 16;
 
+// Criar abas para Legenda e Contador de Bolas
+var abas = janela.add("tabbedpanel");
+abas.alignChildren = ["fill", "fill"];
+var abaLegenda = abas.add("tab", undefined, "Legenda");
+var abaContadorBolas = abas.add("tab", undefined, "Contador de Bolas");
+
+// Criar conteúdo para a aba Legenda
+var conteudoLegenda = abaLegenda.add("group");
+conteudoLegenda.orientation = "column";
+conteudoLegenda.alignChildren = ["fill", "top"];
+
+// Criar conteúdo para a aba Contador de Bolas
+var conteudoContadorBolas = abaContadorBolas.add("group");
+conteudoContadorBolas.orientation = "column";
+conteudoContadorBolas.alignChildren = ["fill", "top"];
+
+// Adicionar elementos à aba Contador de Bolas
+var botaoContarBolas = conteudoContadorBolas.add("button", undefined, "Contar Bolas na Artboard");
+var textoResultadoContagem = conteudoContadorBolas.add("statictext", undefined, "Resultado: ");
+
+botaoContarBolas.onClick = function() {
+    // Aqui você implementará a lógica para contar as bolas
+    alert("Funcionalidade de contagem de bolas será implementada em breve!");
+};
     // Ajustar o tamanho máximo da janela principal
     janela.preferredSize = [-1, -1]; // Tamanho preferido da janela
 
-    // Criar painel esquerdo para campos de preenchimento
-    var painelEsquerdo = janela.add("panel");
-    painelEsquerdo.orientation = "column";
-    painelEsquerdo.alignChildren = "left";
-
-    // Criar painel direito para previewcriar a
-    var painelDireito = janela.add("panel");
-    painelDireito.orientation = "column";
-    painelDireito.alignChildren = "left";
-
-    // Aba: Legenda
-    var abaLegenda = painelEsquerdo.add("panel", undefined, "Legenda");
-    abaLegenda.orientation = "column";
-    abaLegenda.alignChildren = ["fill", "top"];
-
-    // Primeiro grupo (Informações principais)
-    var grupoPrincipal = abaLegenda.add("panel", undefined, "Informações Principais");
+    // Adicionar elementos à aba Legenda
+    var grupoPrincipal = conteudoLegenda.add("panel", undefined, "Informações Principais");
     grupoPrincipal.orientation = "column";
-    grupoPrincipal.alignChildren = "left";
+    grupoPrincipal.alignChildren = ["fill", "top"];
 
     var grupo1 = grupoPrincipal.add("group");
     grupo1.orientation = "column";
@@ -145,7 +154,7 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
     listaFixacao.selection = 0;
 
     // Segundo grupo (Componentes)
-    var grupoComponentes = abaLegenda.add("panel", undefined, "Componentes");
+    var grupoComponentes = conteudoLegenda.add("panel", undefined, "Componentes");
     grupoComponentes.orientation = "column";
     grupoComponentes.alignChildren = "left";
 
@@ -251,7 +260,7 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
     var botaoAdicionarComponente = grupo2.add("button", undefined, "Adicionar Componente");
 
     // Grupo para bolas
-    var grupoBolas = abaLegenda.add("panel", undefined, "Bolas");
+    var grupoBolas = conteudoLegenda.add("panel", undefined, "Bolas");
     grupoBolas.orientation = "column";
     grupoBolas.alignChildren = "left";
 
@@ -436,7 +445,7 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
     }
 
     // Grupo para palavra-chave
-    var grupoAlfabeto = abaLegenda.add("panel", undefined, "Alfabeto");
+    var grupoAlfabeto = conteudoLegenda.add("panel", undefined, "Alfabeto");
     grupoAlfabeto.orientation = "row";
     grupoAlfabeto.add("statictext", undefined, "Alfabeto:");
     var campoPalavraChave = grupoAlfabeto.add("edittext", undefined, "");
@@ -1143,7 +1152,16 @@ botaoAtualizarGit.onClick = function() {
                     
                     return linha;
                 }
-
+                function contarBolasNaArtboard() {
+                    var contagem = 0;
+                    for (var i = 0; i < doc.pageItems.length; i++) {
+                        var item = doc.pageItems[i];
+                        if (item.typename === "PathItem" && item.closed && item.filled) {
+                            contagem++;
+                        }
+                    }
+                    return contagem;
+                }
                 // Definir o conteúdo da legenda com quebras de linha
                 var linhas = textoCompleto.split('\n');
                 textoLegenda.contents = linhas[0]; // Adiciona a primeira linha

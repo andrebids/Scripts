@@ -328,7 +328,120 @@ function executarScript() {
         var campoNovo = grupoAdicionar.add("edittext", undefined, "");
         campoNovo.preferredSize.width = 200;
         var botaoAdicionar = grupoAdicionar.add("button", undefined, "Adicionar");
+        if (tipo === "cores") {
+            // Adicionar campos para valores CMYK
+            var grupoCMYK = aba.add("group");
+            grupoCMYK.orientation = "row";
+            grupoCMYK.alignChildren = ["left", "center"];
+            grupoCMYK.add("statictext", undefined, "C:");
+            var campoCyan = grupoCMYK.add("edittext", undefined, "");
+            campoCyan.preferredSize.width = 40;
+            grupoCMYK.add("statictext", undefined, "M:");
+            var campoMagenta = grupoCMYK.add("edittext", undefined, "");
+            campoMagenta.preferredSize.width = 40;
+            grupoCMYK.add("statictext", undefined, "Y:");
+            var campoYellow = grupoCMYK.add("edittext", undefined, "");
+            campoYellow.preferredSize.width = 40;
+            grupoCMYK.add("statictext", undefined, "K:");
+            var campoBlack = grupoCMYK.add("edittext", undefined, "");
+            campoBlack.preferredSize.width = 40;
+    
+                   // Modificar a função de atualizar lista para incluir os valores CMYK
+        function atualizarLista(filtro) {
+            lista.removeAll();
+            var itens = database[tipo].sort(function(a, b) {
+                return a.nome.localeCompare(b.nome);
+            });
+            for (var i = 0; i < itens.length; i++) {
+                if (!filtro || itens[i].nome.toLowerCase().indexOf(filtro.toLowerCase()) !== -1) {
+                    var displayText = itens[i].nome;
+                    if (itens[i].cmyk) {
+                        displayText += " (CMYK: " + itens[i].cmyk.join(",") + ")";
+                    }
+                    lista.add("item", displayText);
+                }
+            }
+        }
+    
+            // Modificar a função de adicionar novo item para incluir os valores CMYK
+        function adicionarNovoItem() {
+            var novoNome = campoNovo.text;
+            var novoCMYK = [
+                parseInt(campoCyan.text) || 0,
+                parseInt(campoMagenta.text) || 0,
+                parseInt(campoYellow.text) || 0,
+                parseInt(campoBlack.text) || 0
+            ];
+            if (novoNome) {
+                var existe = false;
+                for (var i = 0; i < database[tipo].length; i++) {
+                    if (database[tipo][i].nome.toLowerCase() === novoNome.toLowerCase()) {
+                        existe = true;
+                        break;
+                    }
+                }
+                if (!existe) {
+                    var novoId = getNextId(database[tipo]);
+                    database[tipo].push({"id": novoId, "nome": novoNome, "cmyk": novoCMYK});
+                    salvarJSON(caminhoDatabase, database);
+                    atualizarLista();
+                    campoNovo.text = "";
+                    campoCyan.text = "";
+                    campoMagenta.text = "";
+                    campoYellow.text = "";
+                    campoBlack.text = "";
+                    campoNovo.active = true;
+                    alert("Cor '" + novoNome + "' adicionada com sucesso!");
+                    if (callback) callback();
+                } else {
+                    alert("Esta cor já existe.");
+                }
+            } else {
+                alert("Por favor, insira um nome para a cor.");
+            }
+        }
 
+        // Adicionar função para editar os valores CMYK
+        function editarCMYK() {
+            var selectedIndex = lista.selection.index;
+            if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < database[tipo].length) {
+                var corSelecionada = database[tipo][selectedIndex];
+                corSelecionada.cmyk = [
+                    parseInt(campoCyan.text) || 0,
+                    parseInt(campoMagenta.text) || 0,
+                    parseInt(campoYellow.text) || 0,
+                    parseInt(campoBlack.text) || 0
+                ];
+                salvarJSON(caminhoDatabase, database);
+                atualizarLista();
+                alert("Valores CMYK atualizados com sucesso!");
+            } else {
+                alert("Por favor, selecione uma cor para editar os valores CMYK.");
+            }
+        }
+
+        var botaoEditarCMYK = aba.add("button", undefined, "Editar CMYK");
+        botaoEditarCMYK.onClick = editarCMYK;
+
+        // Atualizar os campos CMYK quando uma cor é selecionada
+        lista.onChange = function() {
+            var selectedIndex = lista.selection.index;
+            if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < database[tipo].length) {
+                var corSelecionada = database[tipo][selectedIndex];
+                if (corSelecionada.cmyk) {
+                    campoCyan.text = corSelecionada.cmyk[0] || "";
+                    campoMagenta.text = corSelecionada.cmyk[1] || "";
+                    campoYellow.text = corSelecionada.cmyk[2] || "";
+                    campoBlack.text = corSelecionada.cmyk[3] || "";
+                } else {
+                    campoCyan.text = "";
+                    campoMagenta.text = "";
+                    campoYellow.text = "";
+                    campoBlack.text = "";
+                }
+            }
+        };
+    }
         // Botão para remover item selecionado
         var botaoRemover = aba.add("button", undefined, "Remover Selecionado");
 

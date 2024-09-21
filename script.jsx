@@ -7,6 +7,55 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
 $.evalFile(File($.fileName).path + "/database.jsx");
 $.evalFile(File($.fileName).path + "/ui.jsx");
 
+
+
+(function() {
+    
+     // Caminho do arquivo de configuração
+var caminhoConfig = getPastaDocumentos() + "/cartouche_config.json";
+
+// Caminho hardcoded para a base de dados
+var caminhoBaseDadosHardcoded = "\\\\192.168.1.104\\Olimpo\\DS\\_BASE DE DADOS\\07. TOOLS\\ILLUSTRATOR\\basededados\\database2.json";
+
+// Verificar se o arquivo de configuração existe
+var nomeDesigner;
+if (arquivoExiste(caminhoConfig)) {
+    var config = lerArquivoJSON(caminhoConfig);
+    nomeDesigner = config.nomeDesigner;
+} else {
+    // Criar janela para pedir o nome do designer
+    var janelaDesigner = new Window("dialog", "Configuração Inicial");
+    janelaDesigner.add("statictext", undefined, "Por favor, insira o nome do designer:");
+    var campoNome = janelaDesigner.add("edittext", undefined, "");
+    campoNome.characters = 30;
+
+    var botaoOK = janelaDesigner.add("button", undefined, "OK");
+
+    botaoOK.onClick = function() {
+        nomeDesigner = campoNome.text;
+        janelaDesigner.close();
+    };
+
+    janelaDesigner.show();
+
+    // Salvar o nome do designer no arquivo de configuração
+    escreverArquivoJSON(caminhoConfig, {nomeDesigner: nomeDesigner});
+}
+
+// Carregar dados do arquivo database2.json
+var dados;
+try {
+    dados = lerArquivoJSON(caminhoBaseDadosHardcoded);
+} catch (e) {
+    alert("Erro ao ler o arquivo da base de dados: " + e.message + "\nO script será encerrado.");
+    return;
+}
+
+// Verificar se os dados foram carregados corretamente
+if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.componentes)) {
+    alert("Erro: Os dados não foram carregados corretamente ou estão em um formato inválido.");
+    return;
+}
 function criarInterfaceContadorBolas(aba) {
     var grupo = aba.add("group");
     grupo.orientation = "column";
@@ -21,6 +70,12 @@ function criarInterfaceContadorBolas(aba) {
     botaoContar.onClick = function() {
         alert("Botão clicado");
         try {
+            if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.componentes)) {
+                alert("Erro: A base de dados não está acessível ou está em um formato inválido.");
+                return;
+            }
+            alert("Base de dados acessível. Iniciando contagem...");
+            
             alert("Iniciando contagem...");
             var bt = new BridgeTalk();
             bt.target = "illustrator";
@@ -181,54 +236,6 @@ function contarBolasNaArtboard() {
     } catch (e) {
         return "Erro ao contar bolas: " + e.message;
     }
-}
-
-(function() {
-    
-     // Caminho do arquivo de configuração
-var caminhoConfig = getPastaDocumentos() + "/cartouche_config.json";
-
-// Caminho hardcoded para a base de dados
-var caminhoBaseDadosHardcoded = "\\\\192.168.1.104\\Olimpo\\DS\\_BASE DE DADOS\\07. TOOLS\\ILLUSTRATOR\\basededados\\database2.json";
-
-// Verificar se o arquivo de configuração existe
-var nomeDesigner;
-if (arquivoExiste(caminhoConfig)) {
-    var config = lerArquivoJSON(caminhoConfig);
-    nomeDesigner = config.nomeDesigner;
-} else {
-    // Criar janela para pedir o nome do designer
-    var janelaDesigner = new Window("dialog", "Configuração Inicial");
-    janelaDesigner.add("statictext", undefined, "Por favor, insira o nome do designer:");
-    var campoNome = janelaDesigner.add("edittext", undefined, "");
-    campoNome.characters = 30;
-
-    var botaoOK = janelaDesigner.add("button", undefined, "OK");
-
-    botaoOK.onClick = function() {
-        nomeDesigner = campoNome.text;
-        janelaDesigner.close();
-    };
-
-    janelaDesigner.show();
-
-    // Salvar o nome do designer no arquivo de configuração
-    escreverArquivoJSON(caminhoConfig, {nomeDesigner: nomeDesigner});
-}
-
-// Carregar dados do arquivo database2.json
-var dados;
-try {
-    dados = lerArquivoJSON(caminhoBaseDadosHardcoded);
-} catch (e) {
-    alert("Erro ao ler o arquivo da base de dados: " + e.message + "\nO script será encerrado.");
-    return;
-}
-
-// Verificar se os dados foram carregados corretamente
-if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.componentes)) {
-    alert("Erro: Os dados não foram carregados corretamente ou estão em um formato inválido.");
-    return;
 }
     // Criar a janela principal
     var janela = new Window("palette", "Cartouche by Bids", undefined, {

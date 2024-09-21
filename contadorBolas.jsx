@@ -114,18 +114,12 @@ function contarBolasNaArtboard() {
                 // Coletar informações sobre cor
                 var cor = item.fillColor;
                 var corKey = "";
-                if (cor.typename === "RGBColor") {
-                    corKey = "HEX:" + rgbToHex(cor.red, cor.green, cor.blue);
-                } else if (cor.typename === "CMYKColor") {
-                    var rgb = cmykToRgb(cor.cyan, cor.magenta, cor.yellow, cor.black);
-                    corKey = "HEX:" + rgbToHex(rgb.r, rgb.g, rgb.b);
+                if (cor.typename === "CMYKColor") {
+                    corKey = "CMYK:" + cmykToString(cor);
                 } else if (cor.typename === "SpotColor") {
                     var spotColor = cor.spot.color;
-                    if (spotColor.typename === "RGBColor") {
-                        corKey = "Spot HEX:" + rgbToHex(spotColor.red, spotColor.green, spotColor.blue);
-                    } else if (spotColor.typename === "CMYKColor") {
-                        var rgb = cmykToRgb(spotColor.cyan, spotColor.magenta, spotColor.yellow, spotColor.black);
-                        corKey = "Spot HEX:" + rgbToHex(rgb.r, rgb.g, rgb.b);
+                    if (spotColor.typename === "CMYKColor") {
+                        corKey = "Spot CMYK:" + cmykToString(spotColor);
                     } else {
                         corKey = "Spot:" + cor.spot.name;
                     }
@@ -139,29 +133,29 @@ function contarBolasNaArtboard() {
                 tamanhos[tamanho] = (tamanhos[tamanho] || 0) + 1;
             }
         }
-        // Funções auxiliares para conversão de cores
-        function rgbToHex(r, g, b) {
-            r = Math.round(r);
-            g = Math.round(g);
-            b = Math.round(b);
-            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
-        }
-
-        function cmykToRgb(c, m, y, k) {
-            c = c / 100;
-            m = m / 100;
-            y = y / 100;
-            k = k / 100;
-
-            var r = 1 - Math.min(1, c * (1 - k) + k);
-            var g = 1 - Math.min(1, m * (1 - k) + k);
-            var b = 1 - Math.min(1, y * (1 - k) + k);
-
+        function rgbToCmyk(r, g, b) {
+            var c = 1 - (r / 255);
+            var m = 1 - (g / 255);
+            var y = 1 - (b / 255);
+            var k = Math.min(c, m, y);
+            
+            c = (c - k) / (1 - k);
+            m = (m - k) / (1 - k);
+            y = (y - k) / (1 - k);
+            
             return {
-                r: Math.round(r * 255),
-                g: Math.round(g * 255),
-                b: Math.round(b * 255)
+                cyan: Math.round(c * 100),
+                magenta: Math.round(m * 100),
+                yellow: Math.round(y * 100),
+                black: Math.round(k * 100)
             };
+        }
+        
+        function cmykToString(cmykColor) {
+            return Math.round(cmykColor.cyan) + "," + 
+                   Math.round(cmykColor.magenta) + "," + 
+                   Math.round(cmykColor.yellow) + "," + 
+                   Math.round(cmykColor.black);
         }
         // Preparar o resultado como uma string formatada
         var resultado = "contagem:" + contagem + "|";

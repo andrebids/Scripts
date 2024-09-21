@@ -6,6 +6,7 @@ $.evalFile(File($.fileName).path + "/regras.jsx");
 $.evalFile(File($.fileName).path + "/funcoes.jsx");
 $.evalFile(File($.fileName).path + "/database.jsx");
 $.evalFile(File($.fileName).path + "/ui.jsx");
+$.evalFile(File($.fileName).path + "/contadorBolas.jsx");
 
 
 (function() {
@@ -65,32 +66,21 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
     janela.spacing = 10;
     janela.margins = 16;
 
+    // Ajustar o tamanho máximo da janela principal
+    janela.preferredSize = [-1, -1]; // Tamanho preferido da janela
+
 // Criar abas para Legenda e Contador de Bolas
 var abas = janela.add("tabbedpanel");
 abas.alignChildren = ["fill", "fill"];
 var abaLegenda = abas.add("tab", undefined, "Legenda");
 var abaContadorBolas = abas.add("tab", undefined, "Contador de Bolas");
 
-// Criar conteúdo para a aba Legenda
-var conteudoLegenda = abaLegenda.add("group");
-conteudoLegenda.orientation = "column";
-conteudoLegenda.alignChildren = ["fill", "top"];
-
-// Criar conteúdo para a aba Contador de Bolas
-var conteudoContadorBolas = abaContadorBolas.add("group");
-conteudoContadorBolas.orientation = "column";
-conteudoContadorBolas.alignChildren = ["fill", "top"];
-
-// Adicionar elementos à aba Contador de Bolas
-var botaoContarBolas = conteudoContadorBolas.add("button", undefined, "Contar Bolas na Artboard");
-var textoResultadoContagem = conteudoContadorBolas.add("statictext", undefined, "Resultado: ");
-
-botaoContarBolas.onClick = function() {
-    // Aqui você implementará a lógica para contar as bolas
-    alert("Funcionalidade de contagem de bolas será implementada em breve!");
-};
-    // Ajustar o tamanho máximo da janela principal
-    janela.preferredSize = [-1, -1]; // Tamanho preferido da janela
+    // Criar interface do contador de bolas
+    var interfaceContadorBolas = criarInterfaceContadorBolas(abaContadorBolas);
+    // Criar conteúdo para a aba Legenda
+    var conteudoLegenda = abaLegenda.add("group");
+    conteudoLegenda.orientation = "column";
+    conteudoLegenda.alignChildren = ["fill", "top"];
 
     // Adicionar elementos à aba Legenda
     var grupoPrincipal = conteudoLegenda.add("panel", undefined, "Informações Principais");
@@ -460,7 +450,7 @@ botaoContarBolas.onClick = function() {
 
     // Manter o dropdown de tamanho existente
     grupoAlfabeto.add("statictext", undefined, "Tamanho:");
-    var tamanhoAlfabeto = grupoAlfabeto.add("dropdownlist", undefined, ["1,20 m", "2,00 m"]);
+    var tamanhoAlfabeto = grupoAlfabeto.add("dropdownlist", undefined, ["1,40 m", "2,00 m"]);
     tamanhoAlfabeto.selection = 0;
 
     var botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, "Adicionar");
@@ -1092,6 +1082,11 @@ botaoAtualizarGit.onClick = function() {
         try {
             var legendaConteudo = atualizarPreview(); // Agora chamamos atualizarPreview() aqui 
             
+            if (legendaConteudo === undefined) {
+                alert("Erro: Não foi possível gerar o conteúdo da legenda.");
+                return;
+            }
+    
             // Substituir pontos por vírgulas e garantir duas casas decimais
             legendaConteudo = legendaConteudo.replace(/(\d+)\.(\d+)/g, formatarNumero);
 
@@ -1152,16 +1147,7 @@ botaoAtualizarGit.onClick = function() {
                     
                     return linha;
                 }
-                function contarBolasNaArtboard() {
-                    var contagem = 0;
-                    for (var i = 0; i < doc.pageItems.length; i++) {
-                        var item = doc.pageItems[i];
-                        if (item.typename === "PathItem" && item.closed && item.filled) {
-                            contagem++;
-                        }
-                    }
-                    return contagem;
-                }
+
                 // Definir o conteúdo da legenda com quebras de linha
                 var linhas = textoCompleto.split('\n');
                 textoLegenda.contents = linhas[0]; // Adiciona a primeira linha

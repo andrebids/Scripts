@@ -260,13 +260,6 @@ var abas = janela.add("tabbedpanel");
 abas.alignChildren = ["fill", "fill"];
 var abaLegenda = abas.add("tab", undefined, "Legenda");
 
-// Remover a criação da aba Contador de Bolas
-// var abaContadorBolas = abas.add("tab", undefined, "Contador de Bolas");
-
-// Criar interface do contador de bolas
-// Mover a criação da interface do contador de bolas para o final do conteúdo da aba Legenda
-// var interfaceContadorBolas = criarInterfaceContadorBolas(abaContadorBolas);
-
 // Criar conteúdo para a aba Legenda
 var conteudoLegenda = abaLegenda.add("group");
 conteudoLegenda.orientation = "column";
@@ -756,8 +749,8 @@ function processarAlfabeto() {
     }
 }
 
-
 botaoAdicionarPalavraChave.onClick = processarAlfabeto;
+
     // Terceiro grupo (Observações)
     var grupoObs = abaLegenda.add("panel", undefined, "Observações");
     grupoObs.orientation = "row";
@@ -766,36 +759,62 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
     campoObs.characters = 30;
 
     // Quarto grupo (Componentes adicionados)
-    var grupoComponentesAdicionados = abaLegenda.add("panel", undefined, "Itens Adicionados");
-    grupoComponentesAdicionados.orientation = "column";
-    grupoComponentesAdicionados.alignChildren = "left";
-    grupoComponentesAdicionados.maximumSize = [550, 200]; // Altura máxima de 200px
+ var grupoComponentesAdicionados = abaLegenda.add("group");
+ grupoComponentesAdicionados.orientation = "row";
+ grupoComponentesAdicionados.alignChildren = ["fill", "top"];
+ grupoComponentesAdicionados.spacing = 10;
+ 
+ // Subgrupo para a lista de itens adicionados
+ var subgrupoListaItens = grupoComponentesAdicionados.add("group");
+ subgrupoListaItens.orientation = "column";
+ subgrupoListaItens.alignChildren = ["fill", "top"];
+ subgrupoListaItens.maximumSize = [400, 200]; // Ajuste a largura conforme necessário
+ 
+ // Lista de itens adicionados com barra de rolagem
+ var listaItens = subgrupoListaItens.add("listbox", undefined, [], {multiselect: false});
+ listaItens.preferredSize = [380, 180]; // Ajuste o tamanho conforme necessário
+ 
+ // Subgrupo para o botão remover item
+ var subgrupoBotaoRemover = grupoComponentesAdicionados.add("group");
+ subgrupoBotaoRemover.orientation = "column";
+ subgrupoBotaoRemover.alignChildren = ["fill", "top"];
+ 
+ // Espaço flexível para centralizar verticalmente
+ var espacoFlexivel = subgrupoBotaoRemover.add("group");
+ espacoFlexivel.size = [1, 60]; // Ajuste a altura conforme necessário
+ 
+ // Botão para remover item selecionado
+ var botaoRemoverItem = subgrupoBotaoRemover.add("button", undefined, "Remover Selecionado");
 
-    // Lista de itens adicionados com barra de rolagem
-    var listaItens = grupoComponentesAdicionados.add("listbox", undefined, [], {multiselect: false});
-    listaItens.preferredSize = [530, 180]; // Ajuste o tamanho conforme necessário
-
-    // Botão para remover item selecionado (movido para fora do grupoComponentesAdicionados)
-    var botaoRemoverItem = abaLegenda.add("button", undefined, "Remover Selecionado");
-
-    // Função para atualizar a lista de itens
-    function atualizarListaItens() {
-        listaItens.removeAll();
-        for (var i = 0; i < itensLegenda.length; i++) {
-            listaItens.add("item", itensLegenda[i].texto);
-        }
+ // Botão para remover todos os itens
+ var botaoRemoverTodos = subgrupoBotaoRemover.add("button", undefined, "Remover Todos");
+ 
+// Função para atualizar a lista de itens
+function atualizarListaItens() {
+    listaItens.removeAll();
+    for (var i = 0; i < itensLegenda.length; i++) {
+        listaItens.add("item", itensLegenda[i].texto);
     }
+}
 
-    // Evento de clique no botão remover
-    botaoRemoverItem.onClick = function() {
-        var selectedIndex = listaItens.selection.index;
-        if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < itensLegenda.length) {
-            itensLegenda.splice(selectedIndex, 1);
-            atualizarListaItens();
-        } else {
-            alert("Por favor, selecione um item para remover.");
-        }
+// Evento de clique no botão remover
+botaoRemoverItem.onClick = function() {
+    var selectedIndex = listaItens.selection.index;
+    if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < itensLegenda.length) {
+        itensLegenda.splice(selectedIndex, 1);
+        atualizarListaItens();
+    } else {
+        alert("Por favor, selecione um item para remover.");
     }
+};
+
+// Evento de clique no botão remover todos
+botaoRemoverTodos.onClick = function() {
+    if (confirm("Tem certeza de que deseja remover todos os itens?")) {
+        itensLegenda = [];
+        atualizarListaItens();
+    }
+};
 
     // Botão para adicionar legenda
     var botaoGerar = abaLegenda.add("button", undefined, "Adicionar legenda");

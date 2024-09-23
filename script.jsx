@@ -704,31 +704,45 @@ checkboxMostrarAlfabeto.value = false; // Inicialmente desmarcado
 
 // Adicionar evento para o checkbox de alfabeto
 var grupoAlfabeto, campoPalavraChave, dropdownCorBioprint, tamanhoAlfabeto, botaoAdicionarPalavraChave;
+
 checkboxMostrarAlfabeto.onClick = function() {
     if (this.value) {
         // Adicionar o grupo de alfabeto
         grupoAlfabeto = grupoExtra.add("panel", undefined, "Alfabeto");
-        grupoAlfabeto.orientation = "row";
+        grupoAlfabeto.orientation = "column"; // Alterar para "column" para alinhar verticalmente
         grupoAlfabeto.alignChildren = ["fill", "top"]; // Preencher a largura
         grupoAlfabeto.spacing = 10; // Adicionar espaçamento entre os elementos
 
-        grupoAlfabeto.add("statictext", undefined, "Alfabeto:");
-        campoPalavraChave = grupoAlfabeto.add("edittext", undefined, "");
+        var subGrupoAlfabeto = grupoAlfabeto.add("group");
+        subGrupoAlfabeto.orientation = "row";
+        subGrupoAlfabeto.alignChildren = ["fill", "top"];
+        subGrupoAlfabeto.spacing = 10;
+
+        subGrupoAlfabeto.add("statictext", undefined, "Alfabeto:");
+        campoPalavraChave = subGrupoAlfabeto.add("edittext", undefined, "");
         campoPalavraChave.characters = 20;
 
         // Adicionar texto estático para bioprint
-        grupoAlfabeto.add("statictext", undefined, "Bioprint");
+        subGrupoAlfabeto.add("statictext", undefined, "Bioprint");
 
         // Adicionar dropdown para cor do bioprint
-        grupoAlfabeto.add("statictext", undefined, "Cor:");
-        dropdownCorBioprint = grupoAlfabeto.add("dropdownlist", undefined, ["Selecione a cor"]);
+        subGrupoAlfabeto.add("statictext", undefined, "Cor:");
+        dropdownCorBioprint = subGrupoAlfabeto.add("dropdownlist", undefined, ["Selecione a cor"]);
 
         // Manter o dropdown de tamanho existente
-        grupoAlfabeto.add("statictext", undefined, "Tamanho:");
-        tamanhoAlfabeto = grupoAlfabeto.add("dropdownlist", undefined, ["1,40 m", "2,00 m"]);
+        subGrupoAlfabeto.add("statictext", undefined, "Tamanho:");
+        tamanhoAlfabeto = subGrupoAlfabeto.add("dropdownlist", undefined, ["1,40 m", "2,00 m"]);
         tamanhoAlfabeto.selection = 0;
 
         botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, "Adicionar");
+
+        // Adicionar linha separadora
+        var linhaSeparadora = grupoAlfabeto.add("panel");
+        linhaSeparadora.preferredSize = [-1, 2]; // Ajustar a largura para preencher e altura para 2px
+        linhaSeparadora.graphics.backgroundColor = linhaSeparadora.graphics.newBrush(linhaSeparadora.graphics.BrushType.SOLID_COLOR, [0, 0, 0, 1]);
+
+        // Adicionar texto de informação
+        grupoAlfabeto.add("statictext", undefined, "Escreve a tua frase GX, e adiciona á legenda, não precisas de preencher o Nome/tipo.");
 
         // Função para preencher o dropdown de cores do bioprint
         function preencherCoresBioprint() {

@@ -7,8 +7,6 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
 $.evalFile(File($.fileName).path + "/database.jsx");
 $.evalFile(File($.fileName).path + "/ui.jsx");
 
-
-
 (function() {
     
      // Caminho do arquivo de configuração
@@ -116,7 +114,7 @@ function criarInterfaceContadorBolas(aba) {
                     textoCompleto += "\nTamanhos:\n";
                     for (var i = 0; i < tamanhos.length; i++) {
                         var tamanhoInfo = tamanhos[i].split("=");
-                        textoCompleto += tamanhoInfo[0] + "px: " + tamanhoInfo[1] + "\n";
+                        textoCompleto += tamanhoInfo[0] + " m: " + tamanhoInfo[1] + "\n";
                     }
                     
                     textoResultado.text = textoCompleto;
@@ -188,10 +186,13 @@ function contarBolasNaArtboard() {
                 cores[corKey] = (cores[corKey] || 0) + 1;
                 
                 // Coletar informações sobre tamanho
-                var tamanho = Math.round(item.width); // Assumindo que os círculos são perfeitos
-                tamanhos[tamanho] = (tamanhos[tamanho] || 0) + 1;
+                var tamanhoPx = Math.round(item.width); // Assumindo que os círculos são perfeitos
+                var tamanhoM = tamanhoPx * 0.0003461538; // Converter de pixels para metros
+                var tamanhoMKey = tamanhoM.toFixed(3) ; 
+                tamanhos[tamanhoMKey] = (tamanhos[tamanhoMKey] || 0) + 1;
             }
         }
+
         function rgbToCmyk(r, g, b) {
             var c = 1 - (r / 255);
             var m = 1 - (g / 255);
@@ -216,6 +217,7 @@ function contarBolasNaArtboard() {
                    Math.round(cmykColor.yellow) + "," + 
                    Math.round(cmykColor.black);
         }
+
         // Preparar o resultado como uma string formatada
         var resultado = "contagem:" + contagem + "|";
         resultado += "cores:";
@@ -226,9 +228,12 @@ function contarBolasNaArtboard() {
         resultado += coresArray.join(",") + "|";
         
         resultado += "tamanhos:";
+        var tamanhosArray = [];
         for (var tamanho in tamanhos) {
-            resultado += tamanho + "=" + tamanhos[tamanho] + ",";
+            tamanhosArray.push(tamanho + "=" + tamanhos[tamanho]);
         }
+        resultado += tamanhosArray.join(",") + "|";
+
         resultado = resultado.slice(0, -1); // Remover a última vírgula
 
         alert("Resultado antes de retornar: " + resultado); // Log para depuração
@@ -254,498 +259,502 @@ function contarBolasNaArtboard() {
 var abas = janela.add("tabbedpanel");
 abas.alignChildren = ["fill", "fill"];
 var abaLegenda = abas.add("tab", undefined, "Legenda");
-var abaContadorBolas = abas.add("tab", undefined, "Contador de Bolas");
 
-    // Criar interface do contador de bolas
-    var interfaceContadorBolas = criarInterfaceContadorBolas(abaContadorBolas);
-    // Criar conteúdo para a aba Legenda
-    var conteudoLegenda = abaLegenda.add("group");
-    conteudoLegenda.orientation = "column";
-    conteudoLegenda.alignChildren = ["fill", "top"];
+// Remover a criação da aba Contador de Bolas
+// var abaContadorBolas = abas.add("tab", undefined, "Contador de Bolas");
 
-    // Adicionar elementos à aba Legenda
-    var grupoPrincipal = conteudoLegenda.add("panel", undefined, "Informações Principais");
-    grupoPrincipal.orientation = "column";
-    grupoPrincipal.alignChildren = ["fill", "top"];
+// Criar interface do contador de bolas
+// Mover a criação da interface do contador de bolas para o final do conteúdo da aba Legenda
+// var interfaceContadorBolas = criarInterfaceContadorBolas(abaContadorBolas);
 
-    var grupo1 = grupoPrincipal.add("group");
-    grupo1.orientation = "column";
+// Criar conteúdo para a aba Legenda
+var conteudoLegenda = abaLegenda.add("group");
+conteudoLegenda.orientation = "column";
+conteudoLegenda.alignChildren = ["fill", "top"];
 
-    var subgrupo1 = grupo1.add("group");
-    subgrupo1.orientation = "row";
+// Adicionar elementos à aba Legenda
+var grupoPrincipal = conteudoLegenda.add("panel", undefined, "Informações Principais");
+grupoPrincipal.orientation = "column";
+grupoPrincipal.alignChildren = ["fill", "top"];
 
-    // Campo do nome
-    var grupoNome = subgrupo1.add("group");
-    grupoNome.add("statictext", undefined, "Nome:");
-    var campoNome = grupoNome.add("statictext", undefined, nomeDesigner);
-    campoNome.characters = 20;
+var grupo1 = grupoPrincipal.add("group");
+grupo1.orientation = "column";
 
-    // Dropdown L1-L20
-    subgrupo1.add("statictext", undefined, "L:");
-    var opcoesL = [];
-    for (var i = 1; i <= 20; i++) {
-        opcoesL.push("L" + i);
-    }
-    var listaL = subgrupo1.add("dropdownlist", undefined, opcoesL);
-    listaL.selection = 0;
+var subgrupo1 = grupo1.add("group");
+subgrupo1.orientation = "row";
 
-    // Campo do nome ou tipo
-    var grupoNomeTipo = grupoPrincipal.add("group");
-    grupoNomeTipo.add("statictext", undefined, "Nome/tipo:");
-    var campoNomeTipo = grupoNomeTipo.add("edittext", undefined, "");
-    campoNomeTipo.characters = 20;
+// Campo do nome
+var grupoNome = subgrupo1.add("group");
+grupoNome.add("statictext", undefined, "Nome:");
+var campoNome = grupoNome.add("statictext", undefined, nomeDesigner);
+campoNome.characters = 20;
 
-    // Structure laqueé
-    var structureElements = regras.criarGrupoStructure(subgrupo1);
-    var checkStructure = structureElements.checkbox;
-    var corStructure = structureElements.corDropdown;
+// Dropdown L1-L20
+subgrupo1.add("statictext", undefined, "L:");
+var opcoesL = [];
+for (var i = 1; i <= 20; i++) {
+    opcoesL.push("L" + i);
+}
+var listaL = subgrupo1.add("dropdownlist", undefined, opcoesL);
+listaL.selection = 0;
 
-    // Importar a função do arquivo regras.jsx
-    var apenasNumerosEVirgula = regras.apenasNumerosEVirgula;
+// Campo do nome ou tipo
+var grupoNomeTipo = grupoPrincipal.add("group");
+grupoNomeTipo.add("statictext", undefined, "Nome/tipo:");
+var campoNomeTipo = grupoNomeTipo.add("edittext", undefined, "");
+campoNomeTipo.characters = 20;
 
-    // Grupo para dimensões e tipo de fixação
-    var grupoDimensoesFixacao = grupoPrincipal.add("group");
-    grupoDimensoesFixacao.orientation = "row";
+// Structure laqueé
+var structureElements = regras.criarGrupoStructure(subgrupo1);
+var checkStructure = structureElements.checkbox;
+var corStructure = structureElements.corDropdown;
 
-    // Campos H, L, P, ⌀
-    var grupoDimensoes = grupoDimensoesFixacao.add("group");
-    var dimensoes = ["H", "L", "P", "⌀"];
-    for (var i = 0; i < dimensoes.length; i++) {
-        grupoDimensoes.add("statictext", undefined, dimensoes[i] + ":");
-        var campoDimensao = grupoDimensoes.add("edittext", undefined, "");
-        campoDimensao.characters = 5;
-        apenasNumerosEVirgula(campoDimensao);
-    }
+// Importar a função do arquivo regras.jsx
+var apenasNumerosEVirgula = regras.apenasNumerosEVirgula;
 
-    // Tipo de fixação
-    var grupoFixacao = grupoDimensoesFixacao.add("group");
-    grupoFixacao.add("statictext", undefined, "Tipo de fixação:");
-    var tiposFixacao = ["poteau", "suspendue/transversée", "murale", "au sol", "spéciale"];
-    var listaFixacao = grupoFixacao.add("dropdownlist", undefined, tiposFixacao);
-    listaFixacao.selection = 0;
+// Grupo para dimensões e tipo de fixação
+var grupoDimensoesFixacao = grupoPrincipal.add("group");
+grupoDimensoesFixacao.orientation = "row";
 
-    // Segundo grupo (Componentes)
-    var grupoComponentes = conteudoLegenda.add("panel", undefined, "Componentes");
-    grupoComponentes.orientation = "column";
-    grupoComponentes.alignChildren = "left";
+// Campos H, L, P, ⌀
+var grupoDimensoes = grupoDimensoesFixacao.add("group");
+var dimensoes = ["H", "L", "P", "⌀"];
+for (var i = 0; i < dimensoes.length; i++) {
+    grupoDimensoes.add("statictext", undefined, dimensoes[i] + ":");
+    var campoDimensao = grupoDimensoes.add("edittext", undefined, "");
+    campoDimensao.characters = 5;
+    apenasNumerosEVirgula(campoDimensao);
+}
 
-    // Grupo para o campo de pesquisa
-    var grupoPesquisa = grupoComponentes.add("group");
-    grupoPesquisa.orientation = "row";
-    grupoPesquisa.alignChildren = "center";
+// Tipo de fixação
+var grupoFixacao = grupoDimensoesFixacao.add("group");
+grupoFixacao.add("statictext", undefined, "Tipo de fixação:");
+var tiposFixacao = ["poteau", "suspendue/transversée", "murale", "au sol", "spéciale"];
+var listaFixacao = grupoFixacao.add("dropdownlist", undefined, tiposFixacao);
+listaFixacao.selection = 0;
 
-    // Label para o campo de pesquisa
-    var labelPesquisa = grupoPesquisa.add("statictext", undefined, "Procurar:");
+// Segundo grupo (Componentes)
+var grupoComponentes = conteudoLegenda.add("panel", undefined, "Componentes");
+grupoComponentes.orientation = "column";
+grupoComponentes.alignChildren = "left";
+
+// Grupo para o campo de pesquisa
+var grupoPesquisa = grupoComponentes.add("group");
+grupoPesquisa.orientation = "row";
+grupoPesquisa.alignChildren = "center";
+
+// Label para o campo de pesquisa
+var labelPesquisa = grupoPesquisa.add("statictext", undefined, "Procurar:");
     
-    // Campo de pesquisa
-    var campoPesquisa = grupoPesquisa.add("edittext", undefined, "");
-    campoPesquisa.characters = 20;
-    campoPesquisa.onChanging = function() {
-        filtrarComponentes(campoPesquisa.text);
-    };
+// Campo de pesquisa
+var campoPesquisa = grupoPesquisa.add("edittext", undefined, "");
+campoPesquisa.characters = 20;
+campoPesquisa.onChanging = function() {
+    filtrarComponentes(campoPesquisa.text);
+};
 
-    // Função para filtrar componentes
-    function filtrarComponentes(termo) {
-        var componentesFiltrados = ["Selecione um componente"];
-        
-        if (termo.length > 0) {
-            for (var i = 1; i < componentesNomes.length; i++) {
-                if (componentesNomes[i].toLowerCase().indexOf(termo.toLowerCase()) !== -1) {
-                    componentesFiltrados.push(componentesNomes[i]);
-                }
-            }
-        } else {
-            componentesFiltrados = componentesNomes;
-        }
-
-        // Salvar a seleção atual
-        var selecaoAtual = listaComponentes.selection;
-
-        // Limpar e repopular a lista
-        listaComponentes.removeAll();
-        for (var i = 0; i < componentesFiltrados.length; i++) {
-            listaComponentes.add("item", componentesFiltrados[i]);
-        }
-
-        // Restaurar a seleção se possível, ou selecionar o primeiro item filtrado
-        if (componentesFiltrados.length > 1) {
-            if (selecaoAtual && componentesFiltrados.indexOf(selecaoAtual.text) !== -1) {
-                listaComponentes.selection = componentesFiltrados.indexOf(selecaoAtual.text);
-            } else {
-                listaComponentes.selection = 1; // Seleciona o primeiro componente filtrado
-            }
-        } else {
-            listaComponentes.selection = 0; // Seleciona "Selecione um componente" se não houver resultados
-        }
-
-        // Atualizar cores e unidades
-        atualizarCores();
-    }
-
-    var grupo2 = grupoComponentes.add("group");
-    grupo2.orientation = "row";
-
-    // Função para obter componentes com combinações
-    function getComponentesComCombinacoes() {
-        var componentesDisponiveis = ["Selecione um componente"];
-        var componentesIds = [];
-        for (var i = 0; i < dados.combinacoes.length; i++) {
-            var componenteId = dados.combinacoes[i].componenteId;
-            if (!arrayContains(componentesIds, componenteId)) {
-                var componente = encontrarPorId(dados.componentes, componenteId);
-                if (componente) {
-                    componentesDisponiveis.push(componente.nome);
-                    componentesIds.push(componenteId);
-                }
-            }
-        }
-        return componentesDisponiveis;
-    }
-
-    // Atualizar a criação da lista de componentes
-    var componentesNomes = getComponentesComCombinacoes();
-    var listaComponentes = grupo2.add("dropdownlist", undefined, componentesNomes);
-    listaComponentes.selection = 0;
-
-    // Lista de cores
-    var coresNomes = extrairNomes(dados.cores);
-    var listaCores = grupo2.add("dropdownlist", undefined, coresNomes);
-    listaCores.selection = 0;
-
-    // Lista de unidades
-    var unidades = ["ml", "m2", "unit"];
-    var listaUnidades = grupo2.add("dropdownlist", undefined, unidades);
-    listaUnidades.selection = 0;
-
-    // Campo de quantidade
-    var campoQuantidade = grupo2.add("edittext", undefined, "1");
-    campoQuantidade.characters = 5;
-    apenasNumerosEVirgula(campoQuantidade);
-    // Campo de multiplicador
-    grupo2.add("statictext", undefined, "x");
-    var campoMultiplicador = grupo2.add("edittext", undefined, "1");
-    campoMultiplicador.characters = 3;
-    apenasNumerosEVirgula(campoMultiplicador);
-
-    // Botão adicionar componente
-    var botaoAdicionarComponente = grupo2.add("button", undefined, "Adicionar Componente");
-
-    // Grupo para bolas
-    var grupoBolas = conteudoLegenda.add("panel", undefined, "Bolas");
-    grupoBolas.orientation = "column";
-    grupoBolas.alignChildren = "left";
-
-    var grupoBolasSelecao = grupoBolas.add("group");
-    grupoBolasSelecao.orientation = "row";
-
-    // Função para obter cores disponíveis para bolas
-    function getCoresDisponiveisBolas() {
-        var coresDisponiveis = ["Selecione uma cor"];
-        var coresIds = [];
-        for (var i = 0; i < dados.bolas.length; i++) {
-            var corId = dados.bolas[i].corId;
-            if (!arrayContains(coresIds, corId)) {
-                var cor = encontrarPorId(dados.cores, corId);
-                if (cor) {
-                    coresDisponiveis.push(cor.nome);
-                    coresIds.push(corId);
-                }
-            }
-        }
-        return coresDisponiveis;
-    }
-
-    // Lista de cores para bolas
-    var coresBolasDisponiveis = getCoresDisponiveisBolas();
-    var listaCoresBolas = grupoBolasSelecao.add("dropdownlist", undefined, coresBolasDisponiveis);
-    listaCoresBolas.selection = 0;
-
-    // Lista de acabamentos (inicialmente vazia)
-    var listaAcabamentos = grupoBolasSelecao.add("dropdownlist", undefined, ["Selecione um acabamento"]);
-    listaAcabamentos.selection = 0;
-
-    // Lista de tamanhos (inicialmente vazia)
-    var listaTamanhos = grupoBolasSelecao.add("dropdownlist", undefined, ["Selecione um tamanho"]);
-    listaTamanhos.selection = 0;
-
-    // Campo para quantidade de bolas
-    var campoQuantidadeBolas = grupoBolasSelecao.add("edittext", undefined, "1");
-    campoQuantidadeBolas.characters = 5;
-    apenasNumerosEVirgula(campoQuantidadeBolas);
-
-    // Botão adicionar bola
-    var botaoAdicionarBola = grupoBolasSelecao.add("button", undefined, "Adicionar Bola");
-
-    // Função para atualizar a lista de acabamentos com base na cor selecionada
-    function atualizarAcabamentos() {
-        if (listaCoresBolas.selection.index === 0) {
-            listaAcabamentos.removeAll();
-            listaAcabamentos.add("item", "Selecione um acabamento");
-            listaAcabamentos.selection = 0;
-            return;
-        }
-
-        var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
-        var acabamentosDisponiveis = ["Selecione um acabamento"];
-        var acabamentosIds = [];
-
-        for (var i = 0; i < dados.bolas.length; i++) {
-            if (dados.bolas[i].corId === corSelecionada.id) {
-                var acabamento = encontrarPorId(dados.acabamentos, dados.bolas[i].acabamentoId);
-                if (acabamento && !arrayContains(acabamentosIds, acabamento.id)) {
-                    acabamentosDisponiveis.push(acabamento.nome);
-                    acabamentosIds.push(acabamento.id);
-                }
-            }
-        }
-
-        listaAcabamentos.removeAll();
-        for (var i = 0; i < acabamentosDisponiveis.length; i++) {
-            listaAcabamentos.add("item", acabamentosDisponiveis[i]);
-        }
-        
-        // Pré-selecionar o acabamento se houver apenas uma opção
-        if (acabamentosDisponiveis.length === 2) {
-            listaAcabamentos.selection = 1;
-        } else {
-            listaAcabamentos.selection = 0;
-        }
-
-        listaAcabamentos.removeAll();
-        for (var i = 0; i < acabamentosDisponiveis.length; i++) {
-            listaAcabamentos.add("item", acabamentosDisponiveis[i]);
-        }
-        
-        // Pré-selecionar o acabamento se houver apenas uma opção
-        if (acabamentosDisponiveis.length === 2) {
-            listaAcabamentos.selection = 1;
-        } else {
-            listaAcabamentos.selection = 0;
-        }
+// Função para filtrar componentes
+function filtrarComponentes(termo) {
+    var componentesFiltrados = ["Selecione um componente"];
     
-        // Atualizar tamanhos após selecionar o acabamento
-        atualizarTamanhos();
-    }
-
-    // Função para atualizar a lista de tamanhos com base na cor e acabamento selecionados
-    function atualizarTamanhos() {
-        if (listaCoresBolas.selection.index === 0 || listaAcabamentos.selection.index === 0) {
-            listaTamanhos.removeAll();
-            listaTamanhos.add("item", "Selecione um tamanho");
-            listaTamanhos.selection = 0;
-            return;
-        }
-
-        var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
-        var acabamentoSelecionado = dados.acabamentos[encontrarIndicePorNome(dados.acabamentos, listaAcabamentos.selection.text)];
-        var tamanhosDisponiveis = ["Selecione um tamanho"];
-
-        for (var i = 0; i < dados.bolas.length; i++) {
-            if (dados.bolas[i].corId === corSelecionada.id && dados.bolas[i].acabamentoId === acabamentoSelecionado.id) {
-                var tamanho = encontrarPorId(dados.tamanhos, dados.bolas[i].tamanhoId);
-                if (tamanho && !arrayContains(tamanhosDisponiveis, tamanho.nome)) {
-                    tamanhosDisponiveis.push(tamanho.nome);
-                }
+    if (termo.length > 0) {
+        for (var i = 1; i < componentesNomes.length; i++) {
+            if (componentesNomes[i].toLowerCase().indexOf(termo.toLowerCase()) !== -1) {
+                componentesFiltrados.push(componentesNomes[i]);
             }
         }
+    } else {
+        componentesFiltrados = componentesNomes;
+    }
 
+    // Salvar a seleção atual
+    var selecaoAtual = listaComponentes.selection;
+
+    // Limpar e repopular a lista
+    listaComponentes.removeAll();
+    for (var i = 0; i < componentesFiltrados.length; i++) {
+        listaComponentes.add("item", componentesFiltrados[i]);
+    }
+
+    // Restaurar a seleção se possível, ou selecionar o primeiro item filtrado
+    if (componentesFiltrados.length > 1) {
+        if (selecaoAtual && componentesFiltrados.indexOf(selecaoAtual.text) !== -1) {
+            listaComponentes.selection = componentesFiltrados.indexOf(selecaoAtual.text);
+        } else {
+            listaComponentes.selection = 1; // Seleciona o primeiro componente filtrado
+        }
+    } else {
+        listaComponentes.selection = 0; // Seleciona "Selecione um componente" se não houver resultados
+    }
+
+    // Atualizar cores e unidades
+    atualizarCores();
+}
+
+var grupo2 = grupoComponentes.add("group");
+grupo2.orientation = "row";
+
+// Função para obter componentes com combinações
+function getComponentesComCombinacoes() {
+    var componentesDisponiveis = ["Selecione um componente"];
+    var componentesIds = [];
+    for (var i = 0; i < dados.combinacoes.length; i++) {
+        var componenteId = dados.combinacoes[i].componenteId;
+        if (!arrayContains(componentesIds, componenteId)) {
+            var componente = encontrarPorId(dados.componentes, componenteId);
+            if (componente) {
+                componentesDisponiveis.push(componente.nome);
+                componentesIds.push(componenteId);
+            }
+        }
+    }
+    return componentesDisponiveis;
+}
+
+// Atualizar a criação da lista de componentes
+var componentesNomes = getComponentesComCombinacoes();
+var listaComponentes = grupo2.add("dropdownlist", undefined, componentesNomes);
+listaComponentes.selection = 0;
+
+// Lista de cores
+var coresNomes = extrairNomes(dados.cores);
+var listaCores = grupo2.add("dropdownlist", undefined, coresNomes);
+listaCores.selection = 0;
+
+// Lista de unidades
+var unidades = ["ml", "m2", "unit"];
+var listaUnidades = grupo2.add("dropdownlist", undefined, unidades);
+listaUnidades.selection = 0;
+
+// Campo de quantidade
+var campoQuantidade = grupo2.add("edittext", undefined, "1");
+campoQuantidade.characters = 5;
+apenasNumerosEVirgula(campoQuantidade);
+// Campo de multiplicador
+grupo2.add("statictext", undefined, "x");
+var campoMultiplicador = grupo2.add("edittext", undefined, "1");
+campoMultiplicador.characters = 3;
+apenasNumerosEVirgula(campoMultiplicador);
+
+// Botão adicionar componente
+var botaoAdicionarComponente = grupo2.add("button", undefined, "Adicionar Componente");
+
+// Grupo para bolas
+var grupoBolas = conteudoLegenda.add("panel", undefined, "Bolas");
+grupoBolas.orientation = "column";
+grupoBolas.alignChildren = "left";
+
+var grupoBolasSelecao = grupoBolas.add("group");
+grupoBolasSelecao.orientation = "row";
+
+// Função para obter cores disponíveis para bolas
+function getCoresDisponiveisBolas() {
+    var coresDisponiveis = ["Selecione uma cor"];
+    var coresIds = [];
+    for (var i = 0; i < dados.bolas.length; i++) {
+        var corId = dados.bolas[i].corId;
+        if (!arrayContains(coresIds, corId)) {
+            var cor = encontrarPorId(dados.cores, corId);
+            if (cor) {
+                coresDisponiveis.push(cor.nome);
+                coresIds.push(corId);
+            }
+        }
+    }
+    return coresDisponiveis;
+}
+
+// Lista de cores para bolas
+var coresBolasDisponiveis = getCoresDisponiveisBolas();
+var listaCoresBolas = grupoBolasSelecao.add("dropdownlist", undefined, coresBolasDisponiveis);
+listaCoresBolas.selection = 0;
+
+// Lista de acabamentos (inicialmente vazia)
+var listaAcabamentos = grupoBolasSelecao.add("dropdownlist", undefined, ["Selecione um acabamento"]);
+listaAcabamentos.selection = 0;
+
+// Lista de tamanhos (inicialmente vazia)
+var listaTamanhos = grupoBolasSelecao.add("dropdownlist", undefined, ["Selecione um tamanho"]);
+listaTamanhos.selection = 0;
+
+// Campo para quantidade de bolas
+var campoQuantidadeBolas = grupoBolasSelecao.add("edittext", undefined, "1");
+campoQuantidadeBolas.characters = 5;
+apenasNumerosEVirgula(campoQuantidadeBolas);
+
+// Botão adicionar bola
+var botaoAdicionarBola = grupoBolasSelecao.add("button", undefined, "Adicionar Bola");
+
+// Função para atualizar a lista de acabamentos com base na cor selecionada
+function atualizarAcabamentos() {
+    if (listaCoresBolas.selection.index === 0) {
+        listaAcabamentos.removeAll();
+        listaAcabamentos.add("item", "Selecione um acabamento");
+        listaAcabamentos.selection = 0;
+        return;
+    }
+
+    var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
+    var acabamentosDisponiveis = ["Selecione um acabamento"];
+    var acabamentosIds = [];
+
+    for (var i = 0; i < dados.bolas.length; i++) {
+        if (dados.bolas[i].corId === corSelecionada.id) {
+            var acabamento = encontrarPorId(dados.acabamentos, dados.bolas[i].acabamentoId);
+            if (acabamento && !arrayContains(acabamentosIds, acabamento.id)) {
+                acabamentosDisponiveis.push(acabamento.nome);
+                acabamentosIds.push(acabamento.id);
+            }
+        }
+    }
+
+    listaAcabamentos.removeAll();
+    for (var i = 0; i < acabamentosDisponiveis.length; i++) {
+        listaAcabamentos.add("item", acabamentosDisponiveis[i]);
+    }
+    
+    // Pré-selecionar o acabamento se houver apenas uma opção
+    if (acabamentosDisponiveis.length === 2) {
+        listaAcabamentos.selection = 1;
+    } else {
+        listaAcabamentos.selection = 0;
+    }
+
+    listaAcabamentos.removeAll();
+    for (var i = 0; i < acabamentosDisponiveis.length; i++) {
+        listaAcabamentos.add("item", acabamentosDisponiveis[i]);
+    }
+    
+    // Pré-selecionar o acabamento se houver apenas uma opção
+    if (acabamentosDisponiveis.length === 2) {
+        listaAcabamentos.selection = 1;
+    } else {
+        listaAcabamentos.selection = 0;
+    }
+    
+    // Atualizar tamanhos após selecionar o acabamento
+    atualizarTamanhos();
+}
+
+// Função para atualizar a lista de tamanhos com base na cor e acabamento selecionados
+function atualizarTamanhos() {
+    if (listaCoresBolas.selection.index === 0 || listaAcabamentos.selection.index === 0) {
         listaTamanhos.removeAll();
-        for (var i = 0; i < tamanhosDisponiveis.length; i++) {
-            listaTamanhos.add("item", tamanhosDisponiveis[i]);
-        }
-        
-        // Pré-selecionar o tamanho se houver apenas uma opção
-        if (tamanhosDisponiveis.length === 2) {
-            listaTamanhos.selection = 1;
-        } else {
-            listaTamanhos.selection = 0;
+        listaTamanhos.add("item", "Selecione um tamanho");
+        listaTamanhos.selection = 0;
+        return;
+    }
+
+    var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
+    var acabamentoSelecionado = dados.acabamentos[encontrarIndicePorNome(dados.acabamentos, listaAcabamentos.selection.text)];
+    var tamanhosDisponiveis = ["Selecione um tamanho"];
+
+    for (var i = 0; i < dados.bolas.length; i++) {
+        if (dados.bolas[i].corId === corSelecionada.id && dados.bolas[i].acabamentoId === acabamentoSelecionado.id) {
+            var tamanho = encontrarPorId(dados.tamanhos, dados.bolas[i].tamanhoId);
+            if (tamanho && !arrayContains(tamanhosDisponiveis, tamanho.nome)) {
+                tamanhosDisponiveis.push(tamanho.nome);
+            }
         }
     }
 
-    // Adicionar eventos de mudança
-    listaCoresBolas.onChange = atualizarAcabamentos;
-    listaAcabamentos.onChange = atualizarTamanhos;
+    listaTamanhos.removeAll();
+    for (var i = 0; i < tamanhosDisponiveis.length; i++) {
+        listaTamanhos.add("item", tamanhosDisponiveis[i]);
+    }
+    
+    // Pré-selecionar o tamanho se houver apenas uma opção
+    if (tamanhosDisponiveis.length === 2) {
+        listaTamanhos.selection = 1;
+    } else {
+        listaTamanhos.selection = 0;
+    }
+}
 
-    botaoAdicionarBola.onClick = function() {
-        if (listaCoresBolas.selection.index === 0 || listaAcabamentos.selection.index === 0 || listaTamanhos.selection.index === 0) {
-            alert("Por favor, selecione uma cor, um acabamento e um tamanho para a bola.");
-            return;
-        }
+// Adicionar eventos de mudança
+listaCoresBolas.onChange = atualizarAcabamentos;
+listaAcabamentos.onChange = atualizarTamanhos;
+
+botaoAdicionarBola.onClick = function() {
+    if (listaCoresBolas.selection.index === 0 || listaAcabamentos.selection.index === 0 || listaTamanhos.selection.index === 0) {
+        alert("Por favor, selecione uma cor, um acabamento e um tamanho para a bola.");
+        return;
+    }
     
-        var quantidade = parseFloat(campoQuantidadeBolas.text.replace(',', '.'));
-        if (isNaN(quantidade) || quantidade <= 0) {
-            alert("Por favor, insira uma quantidade válida de bolas.");
-            return;
-        }
+    var quantidade = parseFloat(campoQuantidadeBolas.text.replace(',', '.'));
+    if (isNaN(quantidade) || quantidade <= 0) {
+        alert("Por favor, insira uma quantidade válida de bolas.");
+        return;
+    }
     
-        var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
-        var acabamentoSelecionado = dados.acabamentos[encontrarIndicePorNome(dados.acabamentos, listaAcabamentos.selection.text)];
-        var tamanhoSelecionado = dados.tamanhos[encontrarIndicePorNome(dados.tamanhos, listaTamanhos.selection.text)];
+    var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
+    var acabamentoSelecionado = dados.acabamentos[encontrarIndicePorNome(dados.acabamentos, listaAcabamentos.selection.text)];
+    var tamanhoSelecionado = dados.tamanhos[encontrarIndicePorNome(dados.tamanhos, listaTamanhos.selection.text)];
     
-        var bolaSelecionada = null;
-        for (var i = 0; i < dados.bolas.length; i++) {
-            if (dados.bolas[i].corId === corSelecionada.id &&
-                dados.bolas[i].acabamentoId === acabamentoSelecionado.id &&
-                dados.bolas[i].tamanhoId === tamanhoSelecionado.id) {
-                bolaSelecionada = dados.bolas[i];
-                break;
-            }
-        }
-    
-        if (bolaSelecionada) {
-            var textoBoule = quantidade === 1 ? "boule" : "boules";
-            var texto = textoBoule + " " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome;
-            if (bolaSelecionada.referencia) {
-                texto += " (Ref: " + bolaSelecionada.referencia + ")";
-            }
-            texto += " units: " + quantidade.toFixed(2).replace('.', ',');
-            
-            itensLegenda.push({
-                tipo: "bola",
-                nome: textoBoule + " " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome,
-                texto: texto,
-                referencia: bolaSelecionada.referencia,
-                quantidade: quantidade,
-                unidade: "units"
-            });
-            
-            atualizarListaItens();
-        } else {
-            alert("Erro: Combinação de bola não encontrada na base de dados.");
+    var bolaSelecionada = null;
+    for (var i = 0; i < dados.bolas.length; i++) {
+        if (dados.bolas[i].corId === corSelecionada.id &&
+            dados.bolas[i].acabamentoId === acabamentoSelecionado.id &&
+            dados.bolas[i].tamanhoId === tamanhoSelecionado.id) {
+            bolaSelecionada = dados.bolas[i];
+            break;
         }
     }
-
-    // Grupo para palavra-chave
-    var grupoAlfabeto = conteudoLegenda.add("panel", undefined, "Alfabeto");
-    grupoAlfabeto.orientation = "row";
-    grupoAlfabeto.add("statictext", undefined, "Alfabeto:");
-    var campoPalavraChave = grupoAlfabeto.add("edittext", undefined, "");
-    campoPalavraChave.characters = 20;
-
-    // Adicionar texto estático para bioprint
-    grupoAlfabeto.add("statictext", undefined, "Bioprint");
-
-    // Adicionar dropdown para cor do bioprint
-    grupoAlfabeto.add("statictext", undefined, "Cor:");
-    var dropdownCorBioprint = grupoAlfabeto.add("dropdownlist", undefined, ["Selecione a cor"]);
-
-    // Manter o dropdown de tamanho existente
-    grupoAlfabeto.add("statictext", undefined, "Tamanho:");
-    var tamanhoAlfabeto = grupoAlfabeto.add("dropdownlist", undefined, ["1,40 m", "2,00 m"]);
-    tamanhoAlfabeto.selection = 0;
-
-    var botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, "Adicionar");
-
-    // Função para preencher o dropdown de cores do bioprint
-    function preencherCoresBioprint() {
-        dropdownCorBioprint.removeAll();
-        
-        var componenteBioprint = null;
-        for (var i = 0; i < dados.componentes.length; i++) {
-            if (dados.componentes[i].nome.toLowerCase() === "bioprint") {
-                componenteBioprint = dados.componentes[i];
-                break;
-            }
-        }
     
-        if (componenteBioprint) {
-            var coresBioprint = [];
-            var indexOr = -1;
-            for (var i = 0; i < dados.combinacoes.length; i++) {
-                if (dados.combinacoes[i].componenteId === componenteBioprint.id) {
-                    var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
-                    if (cor && !arrayContains(coresBioprint, cor)) {
-                        coresBioprint.push(cor);
-                        if (cor.nome.toLowerCase() === "or") {
-                            indexOr = coresBioprint.length - 1;
-                        }
+    if (bolaSelecionada) {
+        var textoBoule = quantidade === 1 ? "boule" : "boules";
+        var texto = textoBoule + " " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome;
+        if (bolaSelecionada.referencia) {
+            texto += " (Ref: " + bolaSelecionada.referencia + ")";
+        }
+        texto += " units: " + quantidade.toFixed(2).replace('.', ',');
+        
+        itensLegenda.push({
+            tipo: "bola",
+            nome: textoBoule + " " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome,
+            texto: texto,
+            referencia: bolaSelecionada.referencia,
+            quantidade: quantidade,
+            unidade: "units"
+        });
+        
+        atualizarListaItens();
+    } else {
+        alert("Erro: Combinação de bola não encontrada na base de dados.");
+    }
+}
+
+// Grupo para palavra-chave
+var grupoAlfabeto = conteudoLegenda.add("panel", undefined, "Alfabeto");
+grupoAlfabeto.orientation = "row";
+grupoAlfabeto.add("statictext", undefined, "Alfabeto:");
+var campoPalavraChave = grupoAlfabeto.add("edittext", undefined, "");
+campoPalavraChave.characters = 20;
+
+// Adicionar texto estático para bioprint
+grupoAlfabeto.add("statictext", undefined, "Bioprint");
+
+// Adicionar dropdown para cor do bioprint
+grupoAlfabeto.add("statictext", undefined, "Cor:");
+var dropdownCorBioprint = grupoAlfabeto.add("dropdownlist", undefined, ["Selecione a cor"]);
+
+// Manter o dropdown de tamanho existente
+grupoAlfabeto.add("statictext", undefined, "Tamanho:");
+var tamanhoAlfabeto = grupoAlfabeto.add("dropdownlist", undefined, ["1,40 m", "2,00 m"]);
+tamanhoAlfabeto.selection = 0;
+
+var botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, "Adicionar");
+
+// Função para preencher o dropdown de cores do bioprint
+function preencherCoresBioprint() {
+    dropdownCorBioprint.removeAll();
+    
+    var componenteBioprint = null;
+    for (var i = 0; i < dados.componentes.length; i++) {
+        if (dados.componentes[i].nome.toLowerCase() === "bioprint") {
+            componenteBioprint = dados.componentes[i];
+            break;
+        }
+    }
+    
+    if (componenteBioprint) {
+        var coresBioprint = [];
+        var indexOr = -1;
+        for (var i = 0; i < dados.combinacoes.length; i++) {
+            if (dados.combinacoes[i].componenteId === componenteBioprint.id) {
+                var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
+                if (cor && !arrayContains(coresBioprint, cor)) {
+                    coresBioprint.push(cor);
+                    if (cor.nome.toLowerCase() === "or") {
+                        indexOr = coresBioprint.length - 1;
                     }
                 }
             }
-    
-            for (var i = 0; i < coresBioprint.length; i++) {
-                dropdownCorBioprint.add("item", coresBioprint[i].nome);
-            }
-    
-            // Pré-selecionar "or" se existir, caso contrário, selecionar o primeiro item
-            if (indexOr !== -1) {
-                dropdownCorBioprint.selection = indexOr;
-            } else if (coresBioprint.length > 0) {
-                dropdownCorBioprint.selection = 0;
-            }
         }
     
-        // Se não houver cores disponíveis, adicionar um item padrão
-        if (dropdownCorBioprint.items.length === 0) {
-            dropdownCorBioprint.add("item", "Sem cores disponíveis");
+        for (var i = 0; i < coresBioprint.length; i++) {
+            dropdownCorBioprint.add("item", coresBioprint[i].nome);
+        }
+    
+        // Pré-selecionar "or" se existir, caso contrário, selecionar o primeiro item
+        if (indexOr !== -1) {
+            dropdownCorBioprint.selection = indexOr;
+        } else if (coresBioprint.length > 0) {
             dropdownCorBioprint.selection = 0;
         }
     }
+    
+    // Se não houver cores disponíveis, adicionar um item padrão
+    if (dropdownCorBioprint.items.length === 0) {
+        dropdownCorBioprint.add("item", "Sem cores disponíveis");
+        dropdownCorBioprint.selection = 0;
+    }
+}
 
-    // Chamar a função para preencher as cores do bioprint
-    preencherCoresBioprint();
+// Chamar a função para preencher as cores do bioprint
+preencherCoresBioprint();
 
-    function processarAlfabeto() {
-        var alfabeto = campoPalavraChave.text.toUpperCase();
-        var corBioprintSelecionada = dropdownCorBioprint.selection ? dropdownCorBioprint.selection.text : "";
-        var tamanhoSelecionado = tamanhoAlfabeto.selection.text;
-        var referenciasUsadas = {};
-        
-        // Armazenar a palavra digitada
-        var palavraDigitada = campoPalavraChave.text;
-        
-        var referenciasMapeadas = {
-            'A': 'GX214LW', 'B': 'GX215LW', 'C': 'GX216LW', 'D': 'GX217LW',
-            'E': 'GX218LW', 'G': 'GX220LW', 'H': 'GX221LW', 'I': 'GX222LW',
-            'J': 'GX223LW', 'K': 'GX224LW', 'L': 'GX225LW', 'M': 'GX226LW',
-            'N': 'GX227LW', 'O': 'GX228LW', 'P': 'GX229LW', 'Q': 'GX230LW',
-            'R': 'GX231LW', 'S': 'GX232LW', 'T': 'GX233LW', 'U': 'GX234LW',
-            'V': 'GX235LW', 'W': 'GX236LW', 'X': 'GX237LW', 'Y': 'GX238LW',
-            '#': 'GX241LW'
-        };
-        
-        for (var i = 0; i < alfabeto.length; i++) {
-            var letra = alfabeto[i];
-            if (referenciasMapeadas.hasOwnProperty(letra)) {
-                if (!referenciasUsadas[letra]) {
-                    referenciasUsadas[letra] = 1;
-                } else {
-                    referenciasUsadas[letra]++;
-                }
+function processarAlfabeto() {
+    var alfabeto = campoPalavraChave.text.toUpperCase();
+    var corBioprintSelecionada = dropdownCorBioprint.selection ? dropdownCorBioprint.selection.text : "";
+    var tamanhoSelecionado = tamanhoAlfabeto.selection.text;
+    var referenciasUsadas = {};
+    
+    // Armazenar a palavra digitada
+    var palavraDigitada = campoPalavraChave.text;
+    
+    var referenciasMapeadas = {
+        'A': 'GX214LW', 'B': 'GX215LW', 'C': 'GX216LW', 'D': 'GX217LW',
+        'E': 'GX218LW', 'G': 'GX220LW', 'H': 'GX221LW', 'I': 'GX222LW',
+        'J': 'GX223LW', 'K': 'GX224LW', 'L': 'GX225LW', 'M': 'GX226LW',
+        'N': 'GX227LW', 'O': 'GX228LW', 'P': 'GX229LW', 'Q': 'GX230LW',
+        'R': 'GX231LW', 'S': 'GX232LW', 'T': 'GX233LW', 'U': 'GX234LW',
+        'V': 'GX235LW', 'W': 'GX236LW', 'X': 'GX237LW', 'Y': 'GX238LW',
+        '#': 'GX241LW'
+    };
+    
+    for (var i = 0; i < alfabeto.length; i++) {
+        var letra = alfabeto[i];
+        if (referenciasMapeadas.hasOwnProperty(letra)) {
+            if (!referenciasUsadas[letra]) {
+                referenciasUsadas[letra] = 1;
+            } else {
+                referenciasUsadas[letra]++;
             }
-        }
-        
-        var referenciasTexto = [];
-        for (var letra in referenciasUsadas) {
-            if (referenciasUsadas.hasOwnProperty(letra)) {
-                referenciasTexto.push(referenciasMapeadas[letra] + " (" + letra + ") bioprint " + corBioprintSelecionada + " " + tamanhoSelecionado + ": " + referenciasUsadas[letra]);
-            }
-        }
-        
-        // Adicionar as referências usadas à legenda
-        if (referenciasTexto.length > 0) {
-            itensLegenda.push({
-                tipo: "alfabeto",
-                nome: "Referências do Alfabeto",
-                texto: referenciasTexto.join("\n"),
-                referencia: "",
-                quantidade: 1,
-                unidade: "",
-                tamanho: tamanhoSelecionado,
-                bioprint: "bioprint",
-                corBioprint: corBioprintSelecionada,
-                palavraDigitada: palavraDigitada // Removido "bioprint" e cor da palavra digitada
-            });
-            
-            atualizarListaItens();
-            campoPalavraChave.text = "";
-            
-            // Atualizar o campo nome/tipo apenas com a palavra digitada
-            campoNomeTipo.text = palavraDigitada;
-        } else {
-            alert("Nenhuma letra válida foi inserida.");
         }
     }
+    
+    var referenciasTexto = [];
+    for (var letra in referenciasUsadas) {
+        if (referenciasUsadas.hasOwnProperty(letra)) {
+            referenciasTexto.push(referenciasMapeadas[letra] + " (" + letra + ") bioprint " + corBioprintSelecionada + " " + tamanhoSelecionado + ": " + referenciasUsadas[letra]);
+        }
+    }
+    
+    // Adicionar as referências usadas à legenda
+    if (referenciasTexto.length > 0) {
+        itensLegenda.push({
+            tipo: "alfabeto",
+            nome: "Referências do Alfabeto",
+            texto: referenciasTexto.join("\n"),
+            referencia: "",
+            quantidade: 1,
+            unidade: "",
+            tamanho: tamanhoSelecionado,
+            bioprint: "bioprint",
+            corBioprint: corBioprintSelecionada,
+            palavraDigitada: palavraDigitada // Removido "bioprint" e cor da palavra digitada
+        });
+        
+        atualizarListaItens();
+        campoPalavraChave.text = "";
+        
+        // Atualizar o campo nome/tipo apenas com a palavra digitada
+        campoNomeTipo.text = palavraDigitada;
+    } else {
+        alert("Nenhuma letra válida foi inserida.");
+    }
+}
 
 
 botaoAdicionarPalavraChave.onClick = processarAlfabeto;
@@ -791,6 +800,8 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
     // Botão para adicionar legenda
     var botaoGerar = abaLegenda.add("button", undefined, "Adicionar legenda");
 
+// Adicionar o conteúdo da aba Contador de Bolas ao final da aba Legenda
+var interfaceContadorBolas = criarInterfaceContadorBolas(abaLegenda);
     // Certifique-se de que itensLegenda seja definido como um array no início do script
     var itensLegenda = itensLegenda || [];
     var itensNomes = [];

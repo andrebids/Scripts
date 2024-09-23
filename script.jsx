@@ -14,7 +14,8 @@ var caminhoConfig = getPastaDocumentos() + "/cartouche_config.json";
 
 // Caminho hardcoded para a base de dados
 var caminhoBaseDadosHardcoded = "\\\\192.168.1.104\\Olimpo\\DS\\_BASE DE DADOS\\07. TOOLS\\ILLUSTRATOR\\basededados\\database2.json";
-
+var itensLegenda = [];
+var itensNomes = [];
 // Verificar se o arquivo de configuração existe
 var nomeDesigner;
 if (arquivoExiste(caminhoConfig)) {
@@ -39,25 +40,26 @@ if (arquivoExiste(caminhoConfig)) {
     // Salvar o nome do designer no arquivo de configuração
     escreverArquivoJSON(caminhoConfig, {nomeDesigner: nomeDesigner});
 }
-function criarInterfaceContadorBolas(grupoExtra) { // Linha 45
-    var grupo = grupoExtra.add("group"); // Linha 46
-    grupo.orientation = "column"; // Linha 47
-    grupo.alignChildren = ["left", "top"]; // Linha 48
-    grupo.spacing = 10; // Linha 49
+
+function criarInterfaceContadorBolas(grupoContar) {
+    var grupo = grupoContar.add("group");
+    grupo.orientation = "column";
+    grupo.alignChildren = ["left", "top"];
+    grupo.spacing = 10;
 
     // Adicionar um subgrupo com orientação horizontal para alinhar o campo de resultado e o botão lado a lado
-    var subgrupoContador = grupo.add("group"); // Linha 50
-    subgrupoContador.orientation = "row"; // Linha 51
-    subgrupoContador.alignChildren = ["left", "center"]; // Linha 52
-    subgrupoContador.spacing = 10; // Linha 53
+    var subgrupoContador = grupo.add("group");
+    subgrupoContador.orientation = "row";
+    subgrupoContador.alignChildren = ["left", "center"];
+    subgrupoContador.spacing = 10;
 
     // Campo de resultado
-    var textoResultado = subgrupoContador.add("edittext", undefined, "Resultado: ", {multiline: true, scrollable: true}); // Linha 54
-    textoResultado.preferredSize.width = 400; // Linha 55
+    var textoResultado = subgrupoContador.add("edittext", undefined, "Resultado: ", {multiline: true, scrollable: true});
+    textoResultado.preferredSize.width = 400;
     textoResultado.preferredSize.height = 150; // Linha 56
 
-    // Botão para contar círculos selecionados
-    var botaoContar = subgrupoContador.add("button", undefined, "Contar Círculos Selecionados"); // Linha 57
+    // Botão para contar
+    var botaoContar = subgrupoContador.add("button", undefined, "Contar elementos");
 
     // Atualizar os eventos conforme necessário
     botaoContar.onClick = function() { // Linha 58
@@ -249,6 +251,7 @@ function contarBolasNaArtboard() {
         return "Erro ao contar bolas: " + e.message;
     }
 }
+
     // Criar a janela principal
     var janela = new Window("palette", "Cartouche by Bids", undefined, {
         resizeable: true,
@@ -757,13 +760,8 @@ function processarAlfabeto() {
 }
 
 botaoAdicionarPalavraChave.onClick = processarAlfabeto;
+// Linha 265: Adicionar um checkbox para mostrar/ocultar o campo de Observações
 
-    // Terceiro grupo (Observações)
-    var grupoObs = abaLegenda.add("panel", undefined, "Observações");
-    grupoObs.orientation = "row";
-    grupoObs.add("statictext", undefined, "Obs:");
-    var campoObs = grupoObs.add("edittext", undefined, "");
-    campoObs.characters = 60;
 
     // Quarto grupo (Componentes adicionados)
  var grupoComponentesAdicionados = abaLegenda.add("group");
@@ -781,23 +779,24 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
  var listaItens = subgrupoListaItens.add("listbox", undefined, [], {multiselect: false});
  listaItens.preferredSize = [380, 180]; // Ajuste o tamanho conforme necessário
  
- // Subgrupo para o botão remover item
- var subgrupoBotaoRemover = grupoComponentesAdicionados.add("group");
- subgrupoBotaoRemover.orientation = "column";
- subgrupoBotaoRemover.alignChildren = ["fill", "top"];
- 
- // Espaço flexível para centralizar verticalmente
- var espacoFlexivel = subgrupoBotaoRemover.add("group");
- espacoFlexivel.size = [1, 20]; // Ajuste a altura conforme necessário
- 
- // Botão para remover item selecionado
- var botaoRemoverItem = subgrupoBotaoRemover.add("button", undefined, "Remover Selecionado");
+// Subgrupo para o botão remover item e adicionar legenda - linha 270
+var subgrupoBotaoRemover = grupoComponentesAdicionados.add("group");
+subgrupoBotaoRemover.orientation = "column";
+subgrupoBotaoRemover.alignChildren = ["fill", "top"];
+subgrupoBotaoRemover.spacing = 10;
+subgrupoBotaoRemover.preferredSize = [200, 100]; // Linha 275 - Definir tamanho adequado
 
-   // Botão para remover todos os itens
-   var botaoRemoverTodos = subgrupoBotaoRemover.add("button", undefined, "Remover Todos");
-  
-    // Botão para adicionar legenda
-  var botaoGerar = subgrupoBotaoRemover.add("button", undefined, "Adicionar legenda");
+// Botão para remover item selecionado - Linha 276
+var botaoRemoverItem = subgrupoBotaoRemover.add("button", undefined, "Remover Selecionado");
+botaoRemoverItem.preferredSize = [180, 30]; // Linha 277
+
+// Botão para remover todos os itens - Linha 278
+var botaoRemoverTodos = subgrupoBotaoRemover.add("button", undefined, "Remover Todos");
+botaoRemoverTodos.preferredSize = [180, 30]; // Linha 279
+
+// Botão para adicionar legenda - Linha 280
+var botaoGerar = subgrupoBotaoRemover.add("button", undefined, "Adicionar Legenda");
+botaoGerar.preferredSize = [180, 30]; // Linha 281
   
   // Função para atualizar a lista de itens
   function atualizarListaItens() {
@@ -826,16 +825,72 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
       }
   };
 
-    // Adicionar o conteúdo da aba Contador de Bolas ao final da aba Legenda
-    var interfaceContadorBolas = criarInterfaceContadorBolas(abaLegenda);
-        // Certifique-se de que itensLegenda seja definido como um array no início do script
-        var itensLegenda = itensLegenda || [];
-        var itensNomes = [];
-        // Grupo "Extra"
-    var grupoExtra = abaLegenda.add("panel", undefined, "Extra");
-    grupoExtra.orientation = "column";
-    grupoExtra.alignChildren = ["left", "top"];
-    grupoExtra.spacing = 10;
+  var grupoExtra = abaLegenda.add("panel", undefined, "Extra"); 
+  grupoExtra.orientation = "column"; 
+  grupoExtra.alignChildren = ["fill", "top"]; 
+  grupoExtra.spacing = 10;
+  grupoExtra.preferredSize.width = 700; 
+
+  // Mover o checkbox para dentro do grupoExtra
+  var checkboxMostrarObs = grupoExtra.add("checkbox", undefined, "Adicionar Observações");
+  checkboxMostrarObs.value = false; // Inicialmente desmarcado
+
+  // Adicionar checkbox para ocultar/mostrar o campo "Contar elementos"
+  var checkboxMostrarContar = grupoExtra.add("checkbox", undefined, "Mostrar Contar Elementos");
+  checkboxMostrarContar.value = false; // Inicialmente desmarcado
+
+  // Adicionar evento para o checkbox de contar elementos
+  checkboxMostrarContar.onClick = function() {
+    if (this.value) {
+        // Adicionar o grupo de contar elementos
+        grupoContar = grupoExtra.add("panel", undefined, "Contar Elementos");
+        grupoContar.orientation = "column";
+        grupoContar.alignChildren = ["fill", "top"];
+        grupoContar.spacing = 10;
+
+        // Criar a interface do contador de bolas
+        var interfaceContador = criarInterfaceContadorBolas(grupoContar);
+
+        janela.layout.layout(true);
+        janela.preferredSize.height += 200; // Aumentar a altura da janela
+    } else {
+        // Remover o grupo de contar elementos
+        grupoContar.parent.remove(grupoContar);
+        janela.layout.layout(true);
+        janela.preferredSize.height -= 200; // Diminuir a altura da janela
+    }
+    janela.layout.resize();
+};
+
+// Adicionar evento para o checkbox de observações
+var grupoObs, campoObs; // Declarar as variáveis no escopo adequado
+checkboxMostrarObs.onClick = function() {
+    if (this.value) {
+        // Adicionar o grupo de observações
+        grupoObs = grupoExtra.add("panel", undefined, "Observações");
+        grupoObs.orientation = "row";
+        grupoObs.alignChildren = ["fill", "top"]; // Preencher a largura
+        grupoObs.spacing = 0;
+
+        grupoObs.add("statictext", undefined, "Obs:");
+
+        // Adicionar uma caixa de texto para observações
+        campoObs = grupoObs.add("edittext", undefined, "", {multiline: true, scrollable: true});
+        campoObs.characters = 60;
+        campoObs.preferredSize.height = 100; // Aumentar a altura da caixa de texto
+        campoObs.alignment = ["fill", "fill"]; // Preencher a largura
+
+        janela.layout.layout(true); // Forçar atualização do layout
+        janela.preferredSize.height += 100; // Aumentar a altura da janela
+    } else {
+        // Remover o grupo de observações
+        grupoObs.parent.remove(grupoObs);
+        campoObs = null; // Definir campoObs como null quando o grupo é removido
+        janela.layout.layout(true); // Forçar atualização do layout
+        janela.preferredSize.height -= 100; // Diminuir a altura da janela
+    }
+    janela.layout.resize();
+};
 
     // Função para atualizar o preview (agora sem exibição visual)
     function atualizarPreview() {
@@ -1009,15 +1064,13 @@ botaoAdicionarPalavraChave.onClick = processarAlfabeto;
         }
         previewText.push("\u200B"); // Outra linha vazia antes das observações
         
-        // Adiciona a linha de observações apenas se o campo não estiver vazio
-        if (campoObs.text && campoObs.text.toString().replace(/\s/g, '').length > 0) {
-            previewText.push("Obs: " + campoObs.text);
-        }
-
-
+    // Adiciona a linha de observações apenas se o campo não estiver vazio e campoObs estiver definido
+    if (campoObs && campoObs.text && campoObs.text.toString().replace(/\s/g, '').length > 0) {
+        previewText.push("Obs: " + campoObs.text);
+    }
 
     return previewText.join("\n");
-    }
+}
 
     // Função para atualizar a lista de cores com base no componente selecionado
     function selecionarUnidadeMetrica(unidades) {

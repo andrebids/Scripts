@@ -627,142 +627,6 @@ botaoAdicionarBola.onClick = function() {
     }
 }
 
-// Grupo para palavra-chave
-var grupoAlfabeto = conteudoLegenda.add("panel", undefined, "Alfabeto");
-grupoAlfabeto.orientation = "row";
-grupoAlfabeto.add("statictext", undefined, "Alfabeto:");
-var campoPalavraChave = grupoAlfabeto.add("edittext", undefined, "");
-campoPalavraChave.characters = 20;
-
-// Adicionar texto estático para bioprint
-grupoAlfabeto.add("statictext", undefined, "Bioprint");
-
-// Adicionar dropdown para cor do bioprint
-grupoAlfabeto.add("statictext", undefined, "Cor:");
-var dropdownCorBioprint = grupoAlfabeto.add("dropdownlist", undefined, ["Selecione a cor"]);
-
-// Manter o dropdown de tamanho existente
-grupoAlfabeto.add("statictext", undefined, "Tamanho:");
-var tamanhoAlfabeto = grupoAlfabeto.add("dropdownlist", undefined, ["1,40 m", "2,00 m"]);
-tamanhoAlfabeto.selection = 0;
-
-var botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, "Adicionar");
-
-// Função para preencher o dropdown de cores do bioprint
-function preencherCoresBioprint() {
-    dropdownCorBioprint.removeAll();
-    
-    var componenteBioprint = null;
-    for (var i = 0; i < dados.componentes.length; i++) {
-        if (dados.componentes[i].nome.toLowerCase() === "bioprint") {
-            componenteBioprint = dados.componentes[i];
-            break;
-        }
-    }
-    
-    if (componenteBioprint) {
-        var coresBioprint = [];
-        var indexOr = -1;
-        for (var i = 0; i < dados.combinacoes.length; i++) {
-            if (dados.combinacoes[i].componenteId === componenteBioprint.id) {
-                var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
-                if (cor && !arrayContains(coresBioprint, cor)) {
-                    coresBioprint.push(cor);
-                    if (cor.nome.toLowerCase() === "or") {
-                        indexOr = coresBioprint.length - 1;
-                    }
-                }
-            }
-        }
-    
-        for (var i = 0; i < coresBioprint.length; i++) {
-            dropdownCorBioprint.add("item", coresBioprint[i].nome);
-        }
-    
-        // Pré-selecionar "or" se existir, caso contrário, selecionar o primeiro item
-        if (indexOr !== -1) {
-            dropdownCorBioprint.selection = indexOr;
-        } else if (coresBioprint.length > 0) {
-            dropdownCorBioprint.selection = 0;
-        }
-    }
-    
-    // Se não houver cores disponíveis, adicionar um item padrão
-    if (dropdownCorBioprint.items.length === 0) {
-        dropdownCorBioprint.add("item", "Sem cores disponíveis");
-        dropdownCorBioprint.selection = 0;
-    }
-}
-
-// Chamar a função para preencher as cores do bioprint
-preencherCoresBioprint();
-
-function processarAlfabeto() {
-    var alfabeto = campoPalavraChave.text.toUpperCase();
-    var corBioprintSelecionada = dropdownCorBioprint.selection ? dropdownCorBioprint.selection.text : "";
-    var tamanhoSelecionado = tamanhoAlfabeto.selection.text;
-    var referenciasUsadas = {};
-    
-    // Armazenar a palavra digitada
-    var palavraDigitada = campoPalavraChave.text;
-    
-    var referenciasMapeadas = {
-        'A': 'GX214LW', 'B': 'GX215LW', 'C': 'GX216LW', 'D': 'GX217LW',
-        'E': 'GX218LW', 'G': 'GX220LW', 'H': 'GX221LW', 'I': 'GX222LW',
-        'J': 'GX223LW', 'K': 'GX224LW', 'L': 'GX225LW', 'M': 'GX226LW',
-        'N': 'GX227LW', 'O': 'GX228LW', 'P': 'GX229LW', 'Q': 'GX230LW',
-        'R': 'GX231LW', 'S': 'GX232LW', 'T': 'GX233LW', 'U': 'GX234LW',
-        'V': 'GX235LW', 'W': 'GX236LW', 'X': 'GX237LW', 'Y': 'GX238LW',
-        '#': 'GX241LW'
-    };
-    
-    for (var i = 0; i < alfabeto.length; i++) {
-        var letra = alfabeto[i];
-        if (referenciasMapeadas.hasOwnProperty(letra)) {
-            if (!referenciasUsadas[letra]) {
-                referenciasUsadas[letra] = 1;
-            } else {
-                referenciasUsadas[letra]++;
-            }
-        }
-    }
-    
-    var referenciasTexto = [];
-    for (var letra in referenciasUsadas) {
-        if (referenciasUsadas.hasOwnProperty(letra)) {
-            referenciasTexto.push(referenciasMapeadas[letra] + " (" + letra + ") bioprint " + corBioprintSelecionada + " " + tamanhoSelecionado + ": " + referenciasUsadas[letra]);
-        }
-    }
-    
-    // Adicionar as referências usadas à legenda
-    if (referenciasTexto.length > 0) {
-        itensLegenda.push({
-            tipo: "alfabeto",
-            nome: "Referências do Alfabeto",
-            texto: referenciasTexto.join("\n"),
-            referencia: "",
-            quantidade: 1,
-            unidade: "",
-            tamanho: tamanhoSelecionado,
-            bioprint: "bioprint",
-            corBioprint: corBioprintSelecionada,
-            palavraDigitada: palavraDigitada // Removido "bioprint" e cor da palavra digitada
-        });
-        
-        atualizarListaItens();
-        campoPalavraChave.text = "";
-        
-        // Atualizar o campo nome/tipo apenas com a palavra digitada
-        campoNomeTipo.text = palavraDigitada;
-    } else {
-        alert("Nenhuma letra válida foi inserida.");
-    }
-}
-
-botaoAdicionarPalavraChave.onClick = processarAlfabeto;
-// Linha 265: Adicionar um checkbox para mostrar/ocultar o campo de Observações
-
-
     // Quarto grupo (Componentes adicionados)
  var grupoComponentesAdicionados = abaLegenda.add("group");
  grupoComponentesAdicionados.orientation = "row";
@@ -834,6 +698,165 @@ botaoGerar.preferredSize = [180, 30]; // Linha 281
   // Mover o checkbox para dentro do grupoExtra
   var checkboxMostrarObs = grupoExtra.add("checkbox", undefined, "Adicionar Observações");
   checkboxMostrarObs.value = false; // Inicialmente desmarcado
+// Adicionar checkbox para ocultar/mostrar o campo "Alfabeto"
+var checkboxMostrarAlfabeto = grupoExtra.add("checkbox", undefined, "Criar GX (Alfabeto)");
+checkboxMostrarAlfabeto.value = false; // Inicialmente desmarcado
+
+// Adicionar evento para o checkbox de alfabeto
+var grupoAlfabeto, campoPalavraChave, dropdownCorBioprint, tamanhoAlfabeto, botaoAdicionarPalavraChave;
+checkboxMostrarAlfabeto.onClick = function() {
+    if (this.value) {
+        // Adicionar o grupo de alfabeto
+        grupoAlfabeto = grupoExtra.add("panel", undefined, "Alfabeto");
+        grupoAlfabeto.orientation = "row";
+        grupoAlfabeto.alignChildren = ["fill", "top"]; // Preencher a largura
+        grupoAlfabeto.spacing = 10; // Adicionar espaçamento entre os elementos
+
+        grupoAlfabeto.add("statictext", undefined, "Alfabeto:");
+        campoPalavraChave = grupoAlfabeto.add("edittext", undefined, "");
+        campoPalavraChave.characters = 20;
+
+        // Adicionar texto estático para bioprint
+        grupoAlfabeto.add("statictext", undefined, "Bioprint");
+
+        // Adicionar dropdown para cor do bioprint
+        grupoAlfabeto.add("statictext", undefined, "Cor:");
+        dropdownCorBioprint = grupoAlfabeto.add("dropdownlist", undefined, ["Selecione a cor"]);
+
+        // Manter o dropdown de tamanho existente
+        grupoAlfabeto.add("statictext", undefined, "Tamanho:");
+        tamanhoAlfabeto = grupoAlfabeto.add("dropdownlist", undefined, ["1,40 m", "2,00 m"]);
+        tamanhoAlfabeto.selection = 0;
+
+        botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, "Adicionar");
+
+        // Função para preencher o dropdown de cores do bioprint
+        function preencherCoresBioprint() {
+            dropdownCorBioprint.removeAll();
+            
+            var componenteBioprint = null;
+            for (var i = 0; i < dados.componentes.length; i++) {
+                if (dados.componentes[i].nome.toLowerCase() === "bioprint") {
+                    componenteBioprint = dados.componentes[i];
+                    break;
+                }
+            }
+            
+            if (componenteBioprint) {
+                var coresBioprint = [];
+                var indexOr = -1;
+                for (var i = 0; i < dados.combinacoes.length; i++) {
+                    if (dados.combinacoes[i].componenteId === componenteBioprint.id) {
+                        var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
+                        if (cor && !arrayContains(coresBioprint, cor)) {
+                            coresBioprint.push(cor);
+                            if (cor.nome.toLowerCase() === "or") {
+                                indexOr = coresBioprint.length - 1;
+                            }
+                        }
+                    }
+                }
+            
+                for (var i = 0; i < coresBioprint.length; i++) {
+                    dropdownCorBioprint.add("item", coresBioprint[i].nome);
+                }
+            
+                // Pré-selecionar "or" se existir, caso contrário, selecionar o primeiro item
+                if (indexOr !== -1) {
+                    dropdownCorBioprint.selection = indexOr;
+                } else if (coresBioprint.length > 0) {
+                    dropdownCorBioprint.selection = 0;
+                }
+            }
+            
+            // Se não houver cores disponíveis, adicionar um item padrão
+            if (dropdownCorBioprint.items.length === 0) {
+                dropdownCorBioprint.add("item", "Sem cores disponíveis");
+                dropdownCorBioprint.selection = 0;
+            }
+        }
+
+        // Chamar a função para preencher as cores do bioprint
+        preencherCoresBioprint();
+
+        function processarAlfabeto() {
+            var alfabeto = campoPalavraChave.text.toUpperCase();
+            var corBioprintSelecionada = dropdownCorBioprint.selection ? dropdownCorBioprint.selection.text : "";
+            var tamanhoSelecionado = tamanhoAlfabeto.selection.text;
+            var referenciasUsadas = {};
+            
+            // Armazenar a palavra digitada
+            var palavraDigitada = campoPalavraChave.text;
+            
+            var referenciasMapeadas = {
+                'A': 'GX214LW', 'B': 'GX215LW', 'C': 'GX216LW', 'D': 'GX217LW',
+                'E': 'GX218LW', 'G': 'GX220LW', 'H': 'GX221LW', 'I': 'GX222LW',
+                'J': 'GX223LW', 'K': 'GX224LW', 'L': 'GX225LW', 'M': 'GX226LW',
+                'N': 'GX227LW', 'O': 'GX228LW', 'P': 'GX229LW', 'Q': 'GX230LW',
+                'R': 'GX231LW', 'S': 'GX232LW', 'T': 'GX233LW', 'U': 'GX234LW',
+                'V': 'GX235LW', 'W': 'GX236LW', 'X': 'GX237LW', 'Y': 'GX238LW',
+                '#': 'GX241LW'
+            };
+            
+            for (var i = 0; i < alfabeto.length; i++) {
+                var letra = alfabeto[i];
+                if (referenciasMapeadas.hasOwnProperty(letra)) {
+                    if (!referenciasUsadas[letra]) {
+                        referenciasUsadas[letra] = 1;
+                    } else {
+                        referenciasUsadas[letra]++;
+                    }
+                }
+            }
+            
+            var referenciasTexto = [];
+            for (var letra in referenciasUsadas) {
+                if (referenciasUsadas.hasOwnProperty(letra)) {
+                    referenciasTexto.push(referenciasMapeadas[letra] + " (" + letra + ") bioprint " + corBioprintSelecionada + " " + tamanhoSelecionado + ": " + referenciasUsadas[letra]);
+                }
+            }
+            
+            // Adicionar as referências usadas à legenda
+            if (referenciasTexto.length > 0) {
+                itensLegenda.push({
+                    tipo: "alfabeto",
+                    nome: "Referências do Alfabeto",
+                    texto: referenciasTexto.join("\n"),
+                    referencia: "",
+                    quantidade: 1,
+                    unidade: "",
+                    tamanho: tamanhoSelecionado,
+                    bioprint: "bioprint",
+                    corBioprint: corBioprintSelecionada,
+                    palavraDigitada: palavraDigitada // Removido "bioprint" e cor da palavra digitada
+                });
+                
+                atualizarListaItens();
+                campoPalavraChave.text = "";
+                
+                // Atualizar o campo nome/tipo apenas com a palavra digitada
+                campoNomeTipo.text = palavraDigitada;
+            } else {
+                alert("Nenhuma letra válida foi inserida.");
+            }
+        }
+
+        botaoAdicionarPalavraChave.onClick = processarAlfabeto;
+
+        janela.layout.layout(true); // Forçar atualização do layout
+        janela.preferredSize.height += 100; // Aumentar a altura da janela
+    } else {
+        // Remover o grupo de alfabeto
+        grupoAlfabeto.parent.remove(grupoAlfabeto);
+        campoPalavraChave = null; // Definir campoPalavraChave como null quando o grupo é removido
+        dropdownCorBioprint = null; // Definir dropdownCorBioprint como null quando o grupo é removido
+        tamanhoAlfabeto = null; // Definir tamanhoAlfabeto como null quando o grupo é removido
+        botaoAdicionarPalavraChave = null; // Definir botaoAdicionarPalavraChave como null quando o grupo é removido
+        janela.layout.layout(true); // Forçar atualização do layout
+        janela.preferredSize.height -= 100; // Diminuir a altura da janela
+    }
+    janela.layout.resize();
+};
 
   // Adicionar checkbox para ocultar/mostrar o campo "Contar elementos"
   var checkboxMostrarContar = grupoExtra.add("checkbox", undefined, "Mostrar Contar Elementos");
@@ -843,7 +866,7 @@ botaoGerar.preferredSize = [180, 30]; // Linha 281
   checkboxMostrarContar.onClick = function() {
     if (this.value) {
         // Adicionar o grupo de contar elementos
-        grupoContar = grupoExtra.add("panel", undefined, "Contar Elementos");
+        grupoContar = grupoExtra.add("panel", undefined, "Contar Elementos (bolas para já)");
         grupoContar.orientation = "column";
         grupoContar.alignChildren = ["fill", "top"];
         grupoContar.spacing = 10;
@@ -1070,7 +1093,7 @@ checkboxMostrarObs.onClick = function() {
     }
 
     return previewText.join("\n");
-}
+    }
 
     // Função para atualizar a lista de cores com base no componente selecionado
     function selecionarUnidadeMetrica(unidades) {

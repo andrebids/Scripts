@@ -174,11 +174,21 @@ function contarBolasNaArtboard() {
                 var cor = item.fillColor;
                 var corKey = "";
                 if (cor.typename === "CMYKColor") {
-                    corKey = "CMYK:" + cmykToString(cor);
+                    var cmykString = cmykToString(cor);
+                    if (cmykString === "87,76,0,0") {
+                        corKey = "bleu";
+                    } else {
+                        corKey = "CMYK:" + cmykString;
+                    }
                 } else if (cor.typename === "SpotColor") {
                     var spotColor = cor.spot.color;
                     if (spotColor.typename === "CMYKColor") {
-                        corKey = "Spot CMYK:" + cmykToString(spotColor);
+                        var spotCmykString = cmykToString(spotColor);
+                        if (spotCmykString === "87,76,0,0") {
+                            corKey = "bleu";
+                        } else {
+                            corKey = "Spot CMYK:" + spotCmykString;
+                        }
                     } else {
                         corKey = "Spot:" + cor.spot.name;
                     }

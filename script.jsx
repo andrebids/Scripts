@@ -196,10 +196,10 @@ function contarBolasNaArtboard() {
                     corKey = cor.typename;
                 }
                 
-                // Coletar informações sobre tamanho
-                var tamanhoPx = Math.round(item.width); // Assumindo que os círculos são perfeitos
-                var tamanhoM = tamanhoPx * 0.0003461538; // Converter de pixels para metros
-                var tamanhoMKey = tamanhoM.toFixed(3);
+// Coletar informações sobre tamanho
+var tamanhoPx = Math.round(item.width); // Assumindo que os círculos são perfeitos
+var tamanhoM = tamanhoPx * 0.0003461538 * 26.8333; // Converter de pixels para metros e ajustar a escala
+var tamanhoMKey = tamanhoM.toFixed(3);
 
                 // Criar uma chave única para cada combinação de cor e tamanho
                 var combinacaoKey = corKey + "|" + tamanhoMKey;

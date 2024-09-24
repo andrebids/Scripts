@@ -76,40 +76,34 @@ function criarInterfaceContadorBolas(grupoContar) {
             bt.body = "(" + contarBolasNaArtboard.toString() + ")()";
             bt.onResult = function(resObj) {
                 var resultado = resObj.body.split("|");
-                var contagem, cores, tamanhos;
-
+                var contagem, combinacoes;
+    
                 for (var i = 0; i < resultado.length; i++) {
                     var parte = resultado[i].split(":");
                     if (parte[0] === "contagem") {
                         contagem = parseInt(parte[1]);
-                    } else if (parte[0] === "cores") {
-                        cores = parte[1].split(",");
-                    } else if (parte[0] === "tamanhos") {
-                        tamanhos = parte[1].split(",");
+                    } else if (parte[0] === "combinacoes") {
+                        combinacoes = parte[1].split(",");
                     }
                 }
-
+    
                 if (contagem !== undefined) {
                     var textoCompleto = "Resultado: " + contagem + " círculos encontrados\n\n";
                     
-                    textoCompleto += "Cores:\n";
-                    if (cores && cores.length > 0) {
-                        for (var i = 0; i < cores.length; i++) {
-                            var corInfo = cores[i].split("=");
-                            if (corInfo.length === 2) {
-                                textoCompleto += decodeURIComponent(corInfo[0]) + " - Quantidade: " + corInfo[1] + "\n";
+                    textoCompleto += "Combinações:\n";
+                    if (combinacoes && combinacoes.length > 0) {
+                        for (var i = 0; i < combinacoes.length; i++) {
+                            var combInfo = combinacoes[i].split("=");
+                            if (combInfo.length === 3) {
+                                textoCompleto += "Cor: " + decodeURIComponent(combInfo[0]) + 
+                                                 " - Tamanho: " + combInfo[1] + " m" +
+                                                 " - Quantidade: " + combInfo[2] + "\n";
                             } else {
-                                textoCompleto += "Formato de cor inválido: " + cores[i] + "\n";
+                                textoCompleto += "Formato de combinação inválido: " + combinacoes[i] + "\n";
                             }
                         }
                     } else {
-                        textoCompleto += "Nenhuma informação de cor disponível\n";
-                    }
-                    
-                    textoCompleto += "\nTamanhos:\n";
-                    for (var i = 0; i < tamanhos.length; i++) {
-                        var tamanhoInfo = tamanhos[i].split("=");
-                        textoCompleto += tamanhoInfo[0] + " m: " + tamanhoInfo[1] + "\n";
+                        textoCompleto += "Nenhuma informação de combinação disponível\n";
                     }
                     
                     textoResultado.text = textoCompleto;
@@ -169,8 +163,7 @@ function contarBolasNaArtboard() {
         }
 
         var contagem = 0;
-        var cores = {};
-        var tamanhos = {};
+        var combinacoes = {};
 
         for (var i = 0; i < selecao.length; i++) {
             var item = selecao[i];
@@ -192,34 +185,27 @@ function contarBolasNaArtboard() {
                 } else {
                     corKey = cor.typename;
                 }
-                cores[corKey] = (cores[corKey] || 0) + 1;
                 
                 // Coletar informações sobre tamanho
                 var tamanhoPx = Math.round(item.width); // Assumindo que os círculos são perfeitos
                 var tamanhoM = tamanhoPx * 0.0003461538; // Converter de pixels para metros
-                var tamanhoMKey = tamanhoM.toFixed(3) ; 
-                tamanhos[tamanhoMKey] = (tamanhos[tamanhoMKey] || 0) + 1;
+                var tamanhoMKey = tamanhoM.toFixed(3);
+
+                // Criar uma chave única para cada combinação de cor e tamanho
+                var combinacaoKey = corKey + "|" + tamanhoMKey;
+                
+                if (!combinacoes[combinacaoKey]) {
+                    combinacoes[combinacaoKey] = {
+                        cor: corKey,
+                        tamanho: tamanhoMKey,
+                        quantidade: 1
+                    };
+                } else {
+                    combinacoes[combinacaoKey].quantidade++;
+                }
             }
         }
 
-        function rgbToCmyk(r, g, b) {
-            var c = 1 - (r / 255);
-            var m = 1 - (g / 255);
-            var y = 1 - (b / 255);
-            var k = Math.min(c, m, y);
-            
-            c = (c - k) / (1 - k);
-            m = (m - k) / (1 - k);
-            y = (y - k) / (1 - k);
-            
-            return {
-                cyan: Math.round(c * 100),
-                magenta: Math.round(m * 100),
-                yellow: Math.round(y * 100),
-                black: Math.round(k * 100)
-            };
-        }
-        
         function cmykToString(cmykColor) {
             return Math.round(cmykColor.cyan) + "," + 
                    Math.round(cmykColor.magenta) + "," + 
@@ -229,21 +215,13 @@ function contarBolasNaArtboard() {
 
         // Preparar o resultado como uma string formatada
         var resultado = "contagem:" + contagem + "|";
-        resultado += "cores:";
-        var coresArray = [];
-        for (var cor in cores) {
-            coresArray.push(encodeURIComponent(cor) + "=" + cores[cor]);
+        resultado += "combinacoes:";
+        var combinacoesArray = [];
+        for (var key in combinacoes) {
+            var comb = combinacoes[key];
+            combinacoesArray.push(encodeURIComponent(comb.cor) + "=" + comb.tamanho + "=" + comb.quantidade);
         }
-        resultado += coresArray.join(",") + "|";
-        
-        resultado += "tamanhos:";
-        var tamanhosArray = [];
-        for (var tamanho in tamanhos) {
-            tamanhosArray.push(tamanho + "=" + tamanhos[tamanho]);
-        }
-        resultado += tamanhosArray.join(",") + "|";
-
-        resultado = resultado.slice(0, -1); // Remover a última vírgula
+        resultado += combinacoesArray.join(",");
 
         alert("Resultado antes de retornar: " + resultado); // Log para depuração
         return resultado;

@@ -64,7 +64,7 @@ function criarInterfaceContadorBolas(grupoContar) {
     var botaoContar = subgrupoContador.add("button", undefined, "Contar elementos");
 
     // Atualizar os eventos conforme necessário
-    botaoContar.onClick = function() { // Linha 58
+    botaoContar.onClick = function() {
         alert("Botão clicado");
         try {
             if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.componentes)) {
@@ -85,33 +85,40 @@ function criarInterfaceContadorBolas(grupoContar) {
                     if (parte[0] === "contagem") {
                         contagem = parseInt(parte[1]);
                     } else if (parte[0] === "combinacoes") {
-                        combinacoes = parte[1].split(",");
+                        combinacoes = parte.slice(1).join(":"); // Para lidar com possíveis ":" nas mensagens de erro
                     }
                 }
     
+                var textoCompleto = "";
                 if (contagem !== undefined) {
-                    var textoCompleto = "Resultado: " + contagem + " círculos encontrados\n\n";
-                    
-                    textoCompleto += "Combinações:\n";
-                    if (combinacoes && combinacoes.length > 0) {
-                        for (var i = 0; i < combinacoes.length; i++) {
-                            var combInfo = combinacoes[i].split("=");
-                            if (combInfo.length === 3) {
-                                textoCompleto += "Cor: " + decodeURIComponent(combInfo[0]) + 
-                                                 " - Tamanho: " + combInfo[1] + " m" +
-                                                 " - Quantidade: " + combInfo[2] + "\n";
-                            } else {
-                                textoCompleto += "Formato de combinação inválido: " + combinacoes[i] + "\n";
-                            }
-                        }
+                    if (contagem === 0) {
+                        textoCompleto = "Resultado: " + (combinacoes || "Nenhum objeto selecionado") + "\n\n";
                     } else {
-                        textoCompleto += "Nenhuma informação de combinação disponível\n";
+                        textoCompleto = "Total de " + contagem + " balles :\n";
+                        
+                        if (combinacoes && combinacoes !== "Nenhum objeto selecionado") {
+                            var combArray = combinacoes.split(",");
+                            for (var i = 0; i < combArray.length; i++) {
+                                var combInfo = combArray[i].split("=");
+                                if (combInfo.length === 3) {
+                                    var cor = decodeURIComponent(combInfo[0]);
+                                    var tamanho = combInfo[1];
+                                    var quantidade = combInfo[2];
+                                    
+                                    textoCompleto += "boule " + cor + " ⌀ " + tamanho + " m: " + quantidade + "\n";
+                                } else {
+                                    textoCompleto += combArray[i] + "\n";
+                                }
+                            }
+                        } else {
+                            textoCompleto += "Nenhuma informação de combinação disponível\n";
+                        }
                     }
-                    
-                    textoResultado.text = textoCompleto;
                 } else {
-                    textoResultado.text = "Erro: " + resObj.body;
+                    textoCompleto = "Erro: " + resObj.body;
                 }
+                
+                textoResultado.text = textoCompleto;
                 textoResultado.notify("onChange");
                 alert("Resultado atualizado na interface");
             };
@@ -122,8 +129,8 @@ function criarInterfaceContadorBolas(grupoContar) {
             };
             bt.send();
         } catch (e) {
-            alert("Erro ao iniciar contagem: " + e.message + "\nTipo de erro: " + e.name);
-            textoResultado.text = "Erro ao iniciar contagem: " + e.message + "\nTipo de erro: " + e.name;
+            alert("Erro ao iniciar contagem: " + (e.message || "Erro desconhecido") + "\nTipo de erro: " + (e.name || "Tipo de erro desconhecido"));
+            textoResultado.text = "Erro ao iniciar contagem: " + (e.message || "Erro desconhecido") + "\nTipo de erro: " + (e.name || "Tipo de erro desconhecido");
             textoResultado.notify("onChange");
         }
     };
@@ -150,11 +157,29 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
 
 function contarBolasNaArtboard() {
     try {
-        alert("Iniciando a função contarBolasNaArtboard.");
+        // Criar janela de progresso
+        var janelaBarra = new Window("palette", "Progresso");
+        janelaBarra.orientation = "column";
+        janelaBarra.alignChildren = ["center", "top"];
+        janelaBarra.spacing = 10;
+        janelaBarra.margins = 16;
+
+        var textoProgresso = janelaBarra.add("statictext", undefined, "Iniciando...");
+        var barraProgresso = janelaBarra.add("progressbar", undefined, 0, 100);
+        barraProgresso.preferredSize.width = 300;
+
+        janelaBarra.show();
+
+        function atualizarProgresso(valor, texto) {
+            barraProgresso.value = valor;
+            textoProgresso.text = texto;
+            janelaBarra.update();
+        }
+
+        atualizarProgresso(0, "Carregando dados...");
 
         // Caminho hardcoded para a base de dados
         var caminhoBaseDadosHardcoded = "//192.168.1.104/Olimpo/DS/_BASE DE DADOS/07. TOOLS/ILLUSTRATOR/basededados/database2.json";
-        alert("Caminho da base de dados: " + caminhoBaseDadosHardcoded);
         
         // Função para verificar se um objeto é um array
         function isArray(obj) {
@@ -163,7 +188,6 @@ function contarBolasNaArtboard() {
 
         // Função para ler e parsear um arquivo JSON
         function lerArquivoJSON(caminho) {
-            alert("Tentando ler o arquivo JSON em: " + caminho);
             var arquivo = new File(caminho);
             if (!arquivo.exists) {
                 throw 'Arquivo não encontrado: ' + caminho;
@@ -171,12 +195,9 @@ function contarBolasNaArtboard() {
             arquivo.open('r');
             var conteudo = arquivo.read();
             arquivo.close();
-            alert("Conteúdo do arquivo JSON lido com sucesso: " + conteudo);
 
             try {
-                // Substitui JSON.parse por eval para compatibilidade com ExtendScript
                 var dados = eval('(' + conteudo + ')');
-                alert("Arquivo JSON parseado com sucesso.");
                 return dados;
             } catch (e) {
                 throw 'Erro ao parsear o JSON: ' + e.message;
@@ -185,22 +206,15 @@ function contarBolasNaArtboard() {
         
         // Carregar dados da base de dados
         var dados = lerArquivoJSON(caminhoBaseDadosHardcoded);
-        alert("Dados carregados: " + eval(dados));
 
-        // Exibir as chaves do objeto JSON para depuração
-        var chaves = "";
-        for (var chave in dados) {
-            chaves += chave + ", ";
-        }
-        alert("Chaves do JSON carregado: " + chaves);
+        atualizarProgresso(10, "Verificando dados...");
 
         // Verificar se a propriedade 'cores' existe e é um array
         if (!dados || !isArray(dados.cores)) {
             throw 'Os dados da base de cores não são um array ou a propriedade "cores" está ausente.';
         }
         var dadosCores = dados.cores;
-        alert("Número de cores carregadas: " + dadosCores.length);
-        
+
         // Função para encontrar o nome da cor baseado em CMYK
         function getNomeCor(cmykArray) {
             for (var i = 0; i < dadosCores.length; i++) {
@@ -219,6 +233,8 @@ function contarBolasNaArtboard() {
             return null;
         }
         
+        atualizarProgresso(20, "Acessando documento...");
+
         if (app.documents.length === 0) {
             throw "Nenhum documento aberto. Por favor, abra um documento no Illustrator.";
         }
@@ -226,13 +242,14 @@ function contarBolasNaArtboard() {
         if (!doc) {
             throw "Não foi possível acessar o documento ativo.";
         }
-        alert("Documento ativo acessado com sucesso.");
         
         var selecao = doc.selection;
         if (!selecao || selecao.length === 0) {
-            throw "Nenhum objeto selecionado. Por favor, selecione os círculos que deseja contar.";
+            janelaBarra.close();
+            return "contagem:0|combinacoes:Nenhum objeto selecionado";
         }
-        alert("Número de objetos selecionados: " + selecao.length);
+
+        atualizarProgresso(30, "Contando bolas...");
     
         var contagem = 0;
         var combinacoes = {};
@@ -282,7 +299,7 @@ function contarBolasNaArtboard() {
 
                 // Coletar informações sobre tamanho
                 var tamanhoPx = Math.round(item.width); // Assumindo que os círculos são perfeitos
-                var tamanhoM = tamanhoPx * 0.0003461538 * 26.8333; // Converter de pixels para metros e ajustar a escala
+                var tamanhoM = tamanhoPx * 0.009285714285714286; // Converter de pixels para metros
                 var tamanhoMKey = tamanhoM.toFixed(3);
 
                 // Criar uma chave única para cada combinação de cor e tamanho
@@ -298,6 +315,8 @@ function contarBolasNaArtboard() {
                     combinacoes[combinacaoKey].quantidade++;
                 }
             }
+
+            atualizarProgresso(30 + Math.round((i / selecao.length) * 60), "Contando bolas: " + (i + 1) + " de " + selecao.length);
         }
     
         function cmykToString(cmykColor) {
@@ -307,6 +326,8 @@ function contarBolasNaArtboard() {
                    Math.round(cmykColor.black);
         }
     
+        atualizarProgresso(90, "Preparando resultado...");
+
         // Preparar o resultado como uma string formatada
         var resultado = "contagem:" + contagem + "|";
         resultado += "combinacoes:";
@@ -319,11 +340,18 @@ function contarBolasNaArtboard() {
         }
         resultado += combinacoesArray.join(",");
 
-        alert("Resultado final antes de retornar: " + resultado); // Log para depuração
+        atualizarProgresso(100, "Concluído!");
+
+        // Fechar a janela de progresso
+        janelaBarra.close();
+
         return resultado;
     } catch (e) {
-        alert("Erro ao contar bolas: " + e.message + "\nTipo de erro: " + e.name);
-        return "Erro ao contar bolas: " + e.message + "\nTipo de erro: " + e.name;
+        // Fechar a janela de progresso em caso de erro
+        if (janelaBarra) {
+            janelaBarra.close();
+        }
+        return "contagem:0|combinacoes:Erro: " + (e.message || "Erro desconhecido");
     }
 }
     // Criar a janela principal

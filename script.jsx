@@ -62,7 +62,24 @@ function criarInterfaceContadorBolas(grupoContar) {
 
     // Botão para contar
     var botaoContar = subgrupoContador.add("button", undefined, "Contar elementos");
+    // Botão para adicionar ao preview
+    var botaoAdicionarPreview = subgrupoContador.add("button", undefined, "Adicionar ao Preview");
 
+    // Atualizar os eventos conforme necessário
+    botaoAdicionarPreview.onClick = function() {
+        var resultado = textoResultado.text;
+        if (resultado && resultado !== "Resultado: ") {
+            itensLegenda.push({
+                tipo: "contagem",
+                nome: "Contagem de Elementos",
+                texto: resultado
+            });
+            atualizarListaItens();
+            alert("Contagem adicionada ao preview.");
+        } else {
+            alert("Por favor, realize uma contagem antes de adicionar ao preview.");
+        }
+    };
     // Atualizar os eventos conforme necessário
     botaoContar.onClick = function() {
         alert("Botão clicado");
@@ -1031,186 +1048,154 @@ checkboxMostrarObs.onClick = function() {
     janela.layout.resize();
 };
 
-    // Função para atualizar o preview (agora sem exibição visual)
-    function atualizarPreview() {
-        var previewText = [];
-        var palavraDigitada = "";
-        var corBioprint = "";
-        var alfabetoUsado = false;
-        var componentesAgrupados = {};
-        var bolasCores = [];
-        
-        // Procurar pela palavra digitada no alfabeto, a cor do bioprint, componentes e bolas
+function atualizarPreview() {
+    var previewText = [];
+    var palavraDigitada = "";
+    var corBioprint = "";
+    var alfabetoUsado = false;
+    var componentesAgrupados = {};
+    var bolasCores = [];
+    var contagemElementos = "";
+    
+    // Procurar pela palavra digitada no alfabeto, a cor do bioprint, componentes e bolas
+    for (var i = 0; i < itensLegenda.length; i++) {
+        if (itensLegenda[i].tipo === "alfabeto" && itensLegenda[i].palavraDigitada) {
+            palavraDigitada = itensLegenda[i].palavraDigitada;
+            corBioprint = itensLegenda[i].corBioprint;
+            alfabetoUsado = true;
+        } else if (itensLegenda[i].tipo === "componente") {
+            var nomeComponente = itensLegenda[i].nome.split(' ')[0];
+            var corComponente = itensLegenda[i].nome.split(' ').slice(1).join(' ');
+            if (!componentesAgrupados[nomeComponente]) {
+                componentesAgrupados[nomeComponente] = [];
+            }
+            if (componentesAgrupados[nomeComponente].join(',').indexOf(corComponente) === -1) {
+                componentesAgrupados[nomeComponente].push(corComponente);
+            }
+        } else if (itensLegenda[i].tipo === "bola") {
+            var corBola = itensLegenda[i].nome.split(' ')[1];
+            if (bolasCores.join(',').indexOf(corBola) === -1) {
+                bolasCores.push(corBola);
+            }
+        } else if (itensLegenda[i].tipo === "contagem") {
+            contagemElementos = itensLegenda[i].texto;
+        }
+    }
+
+    // Construir a primeira parte da frase
+    var nomeTipo = palavraDigitada || campoNomeTipo.text;
+    var preposicao = alfabetoUsado ? "en" : "avec";
+    var frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + nomeTipo + "\" " + preposicao;
+    
+    if (alfabetoUsado) {
+        frasePrincipal += " bioprint " + (corBioprint || "");
+    }
+    
+    var componentesTexto = [];
+    for (var componente in componentesAgrupados) {
+        if (componentesAgrupados.hasOwnProperty(componente)) {
+            componentesTexto.push(componente + " " + componentesAgrupados[componente].join(", "));
+        }
+    }
+    if (componentesTexto.length > 0) {
+        frasePrincipal += " " + componentesTexto.join(", ");
+    }
+
+    if (bolasCores.length > 0) {
+        var totalBolas = 0;
         for (var i = 0; i < itensLegenda.length; i++) {
-            if (itensLegenda[i].tipo === "alfabeto" && itensLegenda[i].palavraDigitada) {
-                palavraDigitada = itensLegenda[i].palavraDigitada;
-                corBioprint = itensLegenda[i].corBioprint;
-                alfabetoUsado = true;
-            } else if (itensLegenda[i].tipo === "componente") {
-                var nomeComponente = itensLegenda[i].nome.split(' ')[0];
-                var corComponente = itensLegenda[i].nome.split(' ').slice(1).join(' ');
-                if (!componentesAgrupados[nomeComponente]) {
-                    componentesAgrupados[nomeComponente] = [];
-                }
-                var corJaExiste = false;
-                for (var j = 0; j < componentesAgrupados[nomeComponente].length; j++) {
-                    if (componentesAgrupados[nomeComponente][j] === corComponente) {
-                        corJaExiste = true;
-                        break;
-                    }
-                }
-                if (!corJaExiste) {
-                    componentesAgrupados[nomeComponente].push(corComponente);
-                }
-            } else if (itensLegenda[i].tipo === "bola") {
-                var corBola = itensLegenda[i].nome.split(' ')[1];
-                var corBolaJaExiste = false;
-                for (var k = 0; k < bolasCores.length; k++) {
-                    if (bolasCores[k] === corBola) {
-                        corBolaJaExiste = true;
-                        break;
-                    }
-                }
-                if (!corBolaJaExiste) {
-                    bolasCores.push(corBola);
-                }
+            if (itensLegenda[i].tipo === "bola") {
+                totalBolas += itensLegenda[i].quantidade;
             }
         }
-        
-        // Usar a palavra digitada ou o conteúdo do campoNomeTipo
-        var nomeTipo = palavraDigitada || campoNomeTipo.text;
-        
-        // Determinar se deve usar "avec" ou "en"
-        var preposicao = alfabetoUsado ? "en" : "avec";
-        
-        // Construir a primeira parte da frase
-        var frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + nomeTipo + "\" " + preposicao;
-    
-        if (alfabetoUsado) {
-            frasePrincipal += " bioprint " + (corBioprint || "");
-        }
-    
-        // Adicionar os componentes agrupados
-        var componentesTexto = [];
-        for (var componente in componentesAgrupados) {
-            if (componentesAgrupados.hasOwnProperty(componente)) {
-                componentesTexto.push(componente + " " + componentesAgrupados[componente].join(", "));
-            }
-        }
-        if (componentesTexto.length > 0) {
-            frasePrincipal += " " + componentesTexto.join(", ");
-        }
-    
-        // Adicionar as bolas
-        if (bolasCores.length > 0) {
-            var totalBolas = 0;
-            if (Object.prototype.toString.call(itensLegenda) === '[object Array]') {
-                for (var i = 0; i < itensLegenda.length; i++) {
-                    if (itensLegenda[i].tipo === "bola") {
-                        totalBolas += itensLegenda[i].quantidade;
-                    }
-                }
-            }
-            var textoBoule = totalBolas > 1 ? "boules" : "boule";
-            frasePrincipal += ", " + textoBoule + " " + bolasCores.join(", ");
-        }
-    
-        frasePrincipal += ", sur structure aluminium";
-        if (checkStructure.value) {
-            frasePrincipal += " laqué " + (corStructure.selection ? corStructure.selection.text : "");
-        }
-        frasePrincipal += ".";
-    
-        previewText.push(frasePrincipal);
-    
-        var itensAgrupados = {};
-        var referencias = [];
-        var referenciasAlfabeto = [];
-        
-        for (var i = 0; i < itensLegenda.length; i++) {
-            var item = itensLegenda[i];
-            if (item.tipo === "alfabeto") {
-                referenciasAlfabeto.push(item);
-            } else {
-                var componenteNome = item.nome.split(' ')[0];
-                if (!itensAgrupados[componenteNome]) {
-                    itensAgrupados[componenteNome] = [];
-                }
-                itensAgrupados[componenteNome].push(item);
-                var referenciaTexto = item.referencia ? item.referencia : item.nome;
-                var quantidadeFormatada = item.quantidade.toFixed(2).replace('.', ',');
-                var linha = referenciaTexto + " (" + item.unidade + ")";
-                if (item.multiplicador && item.multiplicador > 1) {
-                    linha += " x" + item.multiplicador;
-                }
-                linha += ": " + quantidadeFormatada;
-                referencias.push(linha);
-            }
-        }
-        
-        var itensNomes = [];
-        for (var componente in itensAgrupados) {
-            if (itensAgrupados.hasOwnProperty(componente)) {
-                var cores = [];
-                for (var j = 0; j < itensAgrupados[componente].length; j++) {
-                    var cor = itensAgrupados[componente][j].nome.split(' ').slice(1).join(' ');
-                    var corJaExiste = false;
-                    for (var k = 0; k < cores.length; k++) {
-                        if (cores[k] === cor) {
-                            corJaExiste = true;
-                            break;
-                        }
-                    }
-                    if (!corJaExiste) {
-                        cores.push(cor);
-                    }
-                }
-                itensNomes.push(componente + " " + cores.join(', '));
-            }
-        }
-        
+        var textoBoule = totalBolas > 1 ? "boules" : "boule";
+        frasePrincipal += ", " + textoBoule + " " + bolasCores.join(", ");
+    }
 
-        // Modificar a parte do código que lida com as dimensões no preview
-        var dimensoesTexto = "";
-        var dimensoesValidas = [];
-        for (var i = 0; i < dimensoes.length; i++) {
-            var valorDimensao = grupoDimensoes.children[i*2 + 1].text;
-            if (valorDimensao !== "") {
-                var dimensao = dimensoes[i];
-                if (dimensao === "⌀") {
-                    dimensao = "\u00D8"; // Símbolo de diâmetro Unicode (Ø)
-                }
-                dimensoesValidas.push(dimensao + ": " + regras.formatarDimensao(valorDimensao));
-            }
-        }
-        dimensoesTexto = dimensoesValidas.join(" - ");
-        if (dimensoesTexto !== "") {
-            previewText.push(dimensoesTexto);
-        }
+    frasePrincipal += ", sur structure aluminium";
+    if (checkStructure.value) {
+        frasePrincipal += " laqué " + (corStructure.selection ? corStructure.selection.text : "");
+    }
+    frasePrincipal += ".";
 
-        previewText.push("Fixation: " + (listaFixacao.selection ? listaFixacao.selection.text : ""));
-        
-        previewText.push("\u200B"); // Caractere de largura zero para forçar uma linha vazia
+    previewText.push(frasePrincipal);
 
-        // Adiciona as referências e quantidades à lista de itens
-        for (var i = 0; i < referencias.length; i++) {
-            previewText.push(referencias[i]);
+    // Adicionar dimensões
+    var dimensoesValidas = [];
+    for (var i = 0; i < dimensoes.length; i++) {
+        var valorDimensao = grupoDimensoes.children[i*2 + 1].text;
+        if (valorDimensao !== "") {
+            var dimensao = dimensoes[i];
+            dimensoesValidas.push(dimensao + ": " + regras.formatarDimensao(valorDimensao));
         }
-        // Adiciona as referências do alfabeto, se existirem
-        if (referenciasAlfabeto.length > 0) {
-            var referenciasTexto = referenciasAlfabeto[referenciasAlfabeto.length - 1].texto.split("\n");
-            previewText = previewText.concat(referenciasTexto);
+    }
+    if (dimensoesValidas.length > 0) {
+        previewText.push(dimensoesValidas.join(" - "));
+    }
+
+    // Adicionar tipo de fixação
+    previewText.push("Fixation: " + (listaFixacao.selection ? listaFixacao.selection.text : ""));
+
+    previewText.push("\u200B"); // Linha em branco após a fixação
+
+    // Adicionar referências e quantidades
+    var referencias = [];
+    var referenciasAlfabeto = [];
+    var referenciasBolas = [];
+    for (var i = 0; i < itensLegenda.length; i++) {
+        var item = itensLegenda[i];
+        if (item.tipo === "alfabeto") {
+            referenciasAlfabeto.push(item);
+        } else if (item.tipo === "bola") {
+            referenciasBolas.push(criarLinhaReferencia(item));
+        } else if (item.tipo !== "contagem") {
+            referencias.push(criarLinhaReferencia(item));
         }
-        previewText.push("\u200B"); // Outra linha vazia antes das observações
-        
-    // Adiciona a linha de observações apenas se o campo não estiver vazio e campoObs estiver definido
+    }
+
+    // Adicionar referências do alfabeto
+    for (var i = 0; i < referenciasAlfabeto.length; i++) {
+        previewText = previewText.concat(referenciasAlfabeto[i].texto.split('\n'));
+    }
+
+    // Adicionar referências de bolas
+    if (referenciasBolas.length > 0) {
+        previewText.push("Total de " + totalBolas + " balles :");
+        previewText = previewText.concat(referenciasBolas);
+    }
+
+    // Adicionar outras referências
+    previewText = previewText.concat(referencias);
+
+    previewText.push("\u200B"); // Outra linha em branco
+
+    // Adicionar a contagem de elementos, se existir
+    if (contagemElementos) {
+        previewText.push(contagemElementos);
+    }
+
+    // Adicionar observações
     if (campoObs && campoObs.text && campoObs.text.toString().replace(/\s/g, '').length > 0) {
         previewText.push("Obs: " + campoObs.text);
     }
 
     return previewText.join("\n");
-    }
+}
 
+function criarLinhaReferencia(item) {
+    var linha = item.referencia ? item.referencia : item.nome;
+    if (item.unidade) {
+        linha += " (" + item.unidade + ")";
+    }
+    if (item.multiplicador && item.multiplicador > 1) {
+        linha += " x" + item.multiplicador;
+    }
+    if (item.quantidade !== undefined) {
+        var quantidadeFormatada = regras.formatarQuantidade(item.quantidade, item.componenteId, item.unidade);
+        linha += ": " + quantidadeFormatada;
+    }
+    return linha;
+}
     // Função para atualizar a lista de cores com base no componente selecionado
     function selecionarUnidadeMetrica(unidades) {
         var prioridade = ["m2", "ml", "unit"];
@@ -1545,6 +1530,9 @@ botaoAtualizarGit.onClick = function() {
     
                     // Função para processar cada linha da legenda
                     function processarLinha(linha) {
+                        // Substitui o símbolo de diâmetro por Ø
+                        linha = linha.replace(/⌀/g, "Ø");
+                        
                         // Procura por padrões de unidade seguidos por dois pontos e possivelmente um multiplicador
                         linha = linha.replace(/(\(ml|munit\))(\s*x\d+)?:/g, "$1$2:");
                         

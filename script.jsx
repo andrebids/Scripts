@@ -2,10 +2,12 @@
 #targetengine maintarget illustrator
 
 // Importar o arquivo de regras
+$.evalFile(File($.fileName).path + "/json2.js");
 $.evalFile(File($.fileName).path + "/regras.jsx");
 $.evalFile(File($.fileName).path + "/funcoes.jsx");
 $.evalFile(File($.fileName).path + "/database.jsx");
 $.evalFile(File($.fileName).path + "/ui.jsx");
+
 
 (function() {
     
@@ -146,25 +148,95 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
     return;
 }
 
-
 function contarBolasNaArtboard() {
     try {
+        alert("Iniciando a função contarBolasNaArtboard.");
+
+        // Caminho hardcoded para a base de dados
+        var caminhoBaseDadosHardcoded = "//192.168.1.104/Olimpo/DS/_BASE DE DADOS/07. TOOLS/ILLUSTRATOR/basededados/database2.json";
+        alert("Caminho da base de dados: " + caminhoBaseDadosHardcoded);
+        
+        // Função para verificar se um objeto é um array
+        function isArray(obj) {
+            return Object.prototype.toString.call(obj) === '[object Array]';
+        }
+
+        // Função para ler e parsear um arquivo JSON
+        function lerArquivoJSON(caminho) {
+            alert("Tentando ler o arquivo JSON em: " + caminho);
+            var arquivo = new File(caminho);
+            if (!arquivo.exists) {
+                throw 'Arquivo não encontrado: ' + caminho;
+            }
+            arquivo.open('r');
+            var conteudo = arquivo.read();
+            arquivo.close();
+            alert("Conteúdo do arquivo JSON lido com sucesso: " + conteudo);
+
+            try {
+                // Substitui JSON.parse por eval para compatibilidade com ExtendScript
+                var dados = eval('(' + conteudo + ')');
+                alert("Arquivo JSON parseado com sucesso.");
+                return dados;
+            } catch (e) {
+                throw 'Erro ao parsear o JSON: ' + e.message;
+            }
+        }
+        
+        // Carregar dados da base de dados
+        var dados = lerArquivoJSON(caminhoBaseDadosHardcoded);
+        alert("Dados carregados: " + eval(dados));
+
+        // Exibir as chaves do objeto JSON para depuração
+        var chaves = "";
+        for (var chave in dados) {
+            chaves += chave + ", ";
+        }
+        alert("Chaves do JSON carregado: " + chaves);
+
+        // Verificar se a propriedade 'cores' existe e é um array
+        if (!dados || !isArray(dados.cores)) {
+            throw 'Os dados da base de cores não são um array ou a propriedade "cores" está ausente.';
+        }
+        var dadosCores = dados.cores;
+        alert("Número de cores carregadas: " + dadosCores.length);
+        
+        // Função para encontrar o nome da cor baseado em CMYK
+        function getNomeCor(cmykArray) {
+            for (var i = 0; i < dadosCores.length; i++) {
+                var cor = dadosCores[i];
+                if (cor && cor.cmyk && cor.nome) {
+                    if (
+                        cor.cmyk[0] === cmykArray[0] &&
+                        cor.cmyk[1] === cmykArray[1] &&
+                        cor.cmyk[2] === cmykArray[2] &&
+                        cor.cmyk[3] === cmykArray[3]
+                    ) {
+                        return cor.nome;
+                    }
+                }
+            }
+            return null;
+        }
+        
         if (app.documents.length === 0) {
-            return "Nenhum documento aberto. Por favor, abra um documento no Illustrator.";
+            throw "Nenhum documento aberto. Por favor, abra um documento no Illustrator.";
         }
         var doc = app.activeDocument;
         if (!doc) {
-            return "Não foi possível acessar o documento ativo.";
+            throw "Não foi possível acessar o documento ativo.";
         }
+        alert("Documento ativo acessado com sucesso.");
         
         var selecao = doc.selection;
-        if (selecao.length === 0) {
-            return "Nenhum objeto selecionado. Por favor, selecione os círculos que deseja contar.";
+        if (!selecao || selecao.length === 0) {
+            throw "Nenhum objeto selecionado. Por favor, selecione os círculos que deseja contar.";
         }
-
+        alert("Número de objetos selecionados: " + selecao.length);
+    
         var contagem = 0;
         var combinacoes = {};
-
+    
         for (var i = 0; i < selecao.length; i++) {
             var item = selecao[i];
             if (item.typename === "PathItem" && item.closed && item.filled) {
@@ -174,20 +246,32 @@ function contarBolasNaArtboard() {
                 var cor = item.fillColor;
                 var corKey = "";
                 if (cor.typename === "CMYKColor") {
-                    var cmykString = cmykToString(cor);
-                    if (cmykString === "87,76,0,0") {
-                        corKey = "bleu";
+                    var cmykArray = [
+                        Math.round(cor.cyan),
+                        Math.round(cor.magenta),
+                        Math.round(cor.yellow),
+                        Math.round(cor.black)
+                    ];
+                    var nomeCor = getNomeCor(cmykArray);
+                    if (nomeCor) {
+                        corKey = nomeCor;
                     } else {
-                        corKey = "CMYK:" + cmykString;
+                        corKey = "CMYK:" + cmykToString(cor);
                     }
                 } else if (cor.typename === "SpotColor") {
                     var spotColor = cor.spot.color;
                     if (spotColor.typename === "CMYKColor") {
-                        var spotCmykString = cmykToString(spotColor);
-                        if (spotCmykString === "87,76,0,0") {
-                            corKey = "bleu";
+                        var spotCmykArray = [
+                            Math.round(spotColor.cyan),
+                            Math.round(spotColor.magenta),
+                            Math.round(spotColor.yellow),
+                            Math.round(spotColor.black)
+                        ];
+                        var nomeSpotCor = getNomeCor(spotCmykArray);
+                        if (nomeSpotCor) {
+                            corKey = nomeSpotCor;
                         } else {
-                            corKey = "Spot CMYK:" + spotCmykString;
+                            corKey = "Spot CMYK:" + cmykToString(spotColor);
                         }
                     } else {
                         corKey = "Spot:" + cor.spot.name;
@@ -195,11 +279,11 @@ function contarBolasNaArtboard() {
                 } else {
                     corKey = cor.typename;
                 }
-                
-// Coletar informações sobre tamanho
-var tamanhoPx = Math.round(item.width); // Assumindo que os círculos são perfeitos
-var tamanhoM = tamanhoPx * 0.0003461538 * 26.8333; // Converter de pixels para metros e ajustar a escala
-var tamanhoMKey = tamanhoM.toFixed(3);
+
+                // Coletar informações sobre tamanho
+                var tamanhoPx = Math.round(item.width); // Assumindo que os círculos são perfeitos
+                var tamanhoM = tamanhoPx * 0.0003461538 * 26.8333; // Converter de pixels para metros e ajustar a escala
+                var tamanhoMKey = tamanhoM.toFixed(3);
 
                 // Criar uma chave única para cada combinação de cor e tamanho
                 var combinacaoKey = corKey + "|" + tamanhoMKey;
@@ -215,31 +299,33 @@ var tamanhoMKey = tamanhoM.toFixed(3);
                 }
             }
         }
-
+    
         function cmykToString(cmykColor) {
             return Math.round(cmykColor.cyan) + "," + 
                    Math.round(cmykColor.magenta) + "," + 
                    Math.round(cmykColor.yellow) + "," + 
                    Math.round(cmykColor.black);
         }
-
+    
         // Preparar o resultado como uma string formatada
         var resultado = "contagem:" + contagem + "|";
         resultado += "combinacoes:";
         var combinacoesArray = [];
         for (var key in combinacoes) {
-            var comb = combinacoes[key];
-            combinacoesArray.push(encodeURIComponent(comb.cor) + "=" + comb.tamanho + "=" + comb.quantidade);
+            if (combinacoes.hasOwnProperty(key)) {
+                var comb = combinacoes[key];
+                combinacoesArray.push(encodeURIComponent(comb.cor) + "=" + comb.tamanho + "=" + comb.quantidade);
+            }
         }
         resultado += combinacoesArray.join(",");
 
-        alert("Resultado antes de retornar: " + resultado); // Log para depuração
+        alert("Resultado final antes de retornar: " + resultado); // Log para depuração
         return resultado;
     } catch (e) {
-        return "Erro ao contar bolas: " + e.message;
+        alert("Erro ao contar bolas: " + e.message + "\nTipo de erro: " + e.name);
+        return "Erro ao contar bolas: " + e.message + "\nTipo de erro: " + e.name;
     }
 }
-
     // Criar a janela principal
     var janela = new Window("palette", "Cartouche by Bids", undefined, {
         resizeable: true,

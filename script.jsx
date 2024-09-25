@@ -65,21 +65,30 @@ function criarInterfaceContadorBolas(grupoContar) {
     // Botão para adicionar ao preview
     var botaoAdicionarPreview = subgrupoContador.add("button", undefined, "Adicionar ao Preview");
 
-    // Atualizar os eventos conforme necessário
-    botaoAdicionarPreview.onClick = function() {
-        var resultado = textoResultado.text;
-        if (resultado && resultado !== "Resultado: ") {
-            itensLegenda.push({
-                tipo: "contagem",
-                nome: "Contagem de Elementos",
-                texto: resultado
-            });
-            atualizarListaItens();
-            alert("Contagem adicionada ao preview.");
-        } else {
-            alert("Por favor, realize uma contagem antes de adicionar ao preview.");
+// Atualizar os eventos conforme necessário
+botaoAdicionarPreview.onClick = function() {
+    var resultado = textoResultado.text;
+    if (resultado && resultado !== "Resultado: ") {
+        // Procurar por uma contagem existente e removê-la
+        for (var i = itensLegenda.length - 1; i >= 0; i--) {
+            if (itensLegenda[i].tipo === "contagem") {
+                itensLegenda.splice(i, 1);
+                break;
+            }
         }
-    };
+        
+        // Adicionar a nova contagem
+        itensLegenda.push({
+            tipo: "contagem",
+            nome: "Contagem de Elementos",
+            texto: resultado
+        });
+        atualizarListaItens();
+        alert("Contagem atualizada no preview.");
+    } else {
+        alert("Por favor, realize uma contagem antes de adicionar ao preview.");
+    }
+};
     // Atualizar os eventos conforme necessário
     botaoContar.onClick = function() {
         alert("Botão clicado");
@@ -1170,8 +1179,8 @@ function atualizarPreview() {
     previewText.push("\u200B"); // Outra linha em branco
 
     // Adicionar a contagem de elementos, se existir
-    if (contagemElementos) {
-        previewText.push(contagemElementos);
+    var contagemElementos = itensLegenda.find(function(item) { return item.tipo === "contagem"; });    if (contagemElementos) {
+        previewText.push(contagemElementos.texto);
     }
 
     // Adicionar observações

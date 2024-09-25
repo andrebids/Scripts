@@ -1179,7 +1179,14 @@ function atualizarPreview() {
     previewText.push("\u200B"); // Outra linha em branco
 
     // Adicionar a contagem de elementos, se existir
-    var contagemElementos = itensLegenda.find(function(item) { return item.tipo === "contagem"; });    if (contagemElementos) {
+    var contagemElementos = null;
+    for (var i = 0; i < itensLegenda.length; i++) {
+        if (itensLegenda[i].tipo === "contagem") {
+            contagemElementos = itensLegenda[i];
+            break;
+        }
+    }
+    if (contagemElementos) {
         previewText.push(contagemElementos.texto);
     }
 

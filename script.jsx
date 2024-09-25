@@ -105,7 +105,7 @@ botaoAdicionarPreview.onClick = function() {
             bt.onResult = function(resObj) {
                 var resultado = resObj.body.split("|");
                 var contagem, combinacoes;
-    
+            
                 for (var i = 0; i < resultado.length; i++) {
                     var parte = resultado[i].split(":");
                     if (parte[0] === "contagem") {
@@ -114,17 +114,18 @@ botaoAdicionarPreview.onClick = function() {
                         combinacoes = parte.slice(1).join(":"); // Para lidar com possíveis ":" nas mensagens de erro
                     }
                 }
-    
+            
                 var textoCompleto = "";
                 if (contagem !== undefined) {
                     if (contagem === 0) {
                         textoCompleto = "Resultado: " + (combinacoes || "Nenhum objeto selecionado") + "\n\n";
                     } else {
-                        textoCompleto = "Total de " + contagem + " balles :\n";
+                        var textoBoule = contagem === 1 ? "boule" : "boules";
+                        textoCompleto = "Total de " + contagem + " " + textoBoule + " :\n";
                         
                         if (combinacoes && combinacoes !== "Nenhum objeto selecionado") {
                             var combArray = combinacoes.split(",");
-                            for (var i = 0; i < combArray.length; i++) {
+                            for (var i = 1; i < combArray.length; i++) { // Começar do índice 1 para pular o total
                                 var combInfo = combArray[i].split("=");
                                 if (combInfo.length === 3) {
                                     var cor = decodeURIComponent(combInfo[0]);
@@ -358,6 +359,13 @@ function contarBolasNaArtboard() {
         var resultado = "contagem:" + contagem + "|";
         resultado += "combinacoes:";
         var combinacoesArray = [];
+        
+        // Determinar se deve usar singular ou plural
+        var textoBoule = contagem === 1 ? "boule" : "boules";
+        
+        // Adicionar o total de bolas no início do resultado
+        combinacoesArray.push("Total de " + contagem + " " + textoBoule + " :");
+
         for (var key in combinacoes) {
             if (combinacoes.hasOwnProperty(key)) {
                 var comb = combinacoes[key];

@@ -42,7 +42,14 @@ if (arquivoExiste(caminhoConfig)) {
     // Salvar o nome do designer no arquivo de configuração
     escreverArquivoJSON(caminhoConfig, {nomeDesigner: nomeDesigner});
 }
-
+function arrayContains(arr, obj) {
+    for (var i = 0; i < arr.length; i++) {
+        if (arr[i] === obj) {
+            return true;
+        }
+    }
+    return false;
+}
 function criarInterfaceContadorBolas(grupoContar) {
     var grupo = grupoContar.add("group");
     grupo.orientation = "column";
@@ -1030,86 +1037,73 @@ function atualizarPreview() {
     var componentesAgrupados = {};
     var bolasCores = [];
     var totalBolas = 0;
-    var contagemElementos = null;
-    
-    // Função auxiliar para verificar se um elemento está em um array
-    function arrayContains(arr, elem) {
-        for (var i = 0; i < arr.length; i++) {
-            if (arr[i] === elem) {
-                return true;
-            }
-        }
-        return false;
-    }
+    var contagemBolas = {};
+    var bolasCompostas = false;
     
     // Procurar pela palavra digitada no alfabeto, a cor do bioprint, componentes e bolas
     for (var i = 0; i < itensLegenda.length; i++) {
-        if (itensLegenda[i].tipo === "alfabeto" && itensLegenda[i].palavraDigitada) {
-            palavraDigitada = itensLegenda[i].palavraDigitada;
-            corBioprint = itensLegenda[i].corBioprint;
+        var item = itensLegenda[i];
+        if (item.tipo === "alfabeto" && item.palavraDigitada) {
+            palavraDigitada = item.palavraDigitada;
+            corBioprint = item.corBioprint;
             alfabetoUsado = true;
-        } else if (itensLegenda[i].tipo === "componente") {
-            var nomeComponente = itensLegenda[i].nome.split(' ')[0];
-            var corComponente = itensLegenda[i].nome.split(' ').slice(1).join(' ');
+        } else if (item.tipo === "componente") {
+            var nomeComponente = item.nome.split(' ')[0];
+            var corComponente = item.nome.split(' ').slice(1).join(' ');
             if (!componentesAgrupados[nomeComponente]) {
                 componentesAgrupados[nomeComponente] = [];
             }
             if (!arrayContains(componentesAgrupados[nomeComponente], corComponente)) {
                 componentesAgrupados[nomeComponente].push(corComponente);
             }
-        } else if (itensLegenda[i].tipo === "bola") {
-            var match = itensLegenda[i].texto.match(/boule (\S+)/);
-            if (match && match[1]) {
-                var corBola = match[1];
-                if (!arrayContains(bolasCores, corBola)) {
-                    bolasCores.push(corBola);
-                }
+        } else if (item.tipo === "bola") {
+            var corBola = item.nome.split(' ')[1];
+            if (!arrayContains(bolasCores, corBola)) {
+                bolasCores.push(corBola);
             }
-            totalBolas += itensLegenda[i].quantidade;
-        } else if (itensLegenda[i].tipo === "contagem") {
-            contagemElementos = itensLegenda[i];
-        }
-    }
+            totalBolas += item.quantidade;
+            
+            var chaveBola = item.referencia || item.nome;
+            if (!contagemBolas[chaveBola]) {
+                contagemBolas[chaveBola] = 0;
+            }
+            contagemBolas[chaveBola] += item.quantidade;
 
-    // Processar a contagem de elementos, se existir
-    if (contagemElementos) {
-        var linhas = contagemElementos.texto.split('\n');
-        var matchTotal = linhas[0].match(/Total de (\d+) boules?/);
-        if (matchTotal) {
-            totalBolas = parseInt(matchTotal[1]);
-        }
-        for (var j = 1; j < linhas.length; j++) {
-            var match = linhas[j].match(/boule (\S+)/);
-            if (match && match[1]) {
-                var corBola = match[1];
-                if (!arrayContains(bolasCores, corBola)) {
-                    bolasCores.push(corBola);
-                }
+            // Verificar se é uma bola composta
+            if (item.nome.toLowerCase().indexOf("composta") !== -1) {
+                bolasCompostas = true;
             }
         }
     }
-
-    // Construir a primeira parte da frase
-    var nomeTipo = palavraDigitada || campoNomeTipo.text;
-    var preposicao = alfabetoUsado ? "en" : "avec";
-    var frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + nomeTipo + "\" " + preposicao;
     
+    // Usar a palavra digitada ou o conteúdo do campoNomeTipo
+    var nomeTipo = palavraDigitada || campoNomeTipo.text;
+    
+    // Determinar se deve usar "avec" ou "en"
+    var preposicao = alfabetoUsado ? "en" : "avec";
+    
+    // Construir a primeira parte da frase
+    var frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + nomeTipo + "\" " + preposicao;
+
     if (alfabetoUsado) {
         frasePrincipal += " bioprint " + (corBioprint || "");
     }
-    
+
+    // Adicionar os componentes agrupados
     var componentesTexto = [];
     for (var componente in componentesAgrupados) {
         if (componentesAgrupados.hasOwnProperty(componente)) {
             componentesTexto.push(componente + " " + componentesAgrupados[componente].join(", "));
         }
     }
+    
     if (componentesTexto.length > 0) {
         frasePrincipal += " " + componentesTexto.join(", ");
     }
 
+    // Adicionar as bolas
     if (bolasCores.length > 0) {
-        var textoBoule = totalBolas > 1 ? "boules" : "boule";
+        var textoBoule = totalBolas === 1 ? "boule" : "boules";
         frasePrincipal += ", " + textoBoule + " " + bolasCores.join(", ");
     }
 
@@ -1127,6 +1121,9 @@ function atualizarPreview() {
         var valorDimensao = grupoDimensoes.children[i*2 + 1].text;
         if (valorDimensao !== "") {
             var dimensao = dimensoes[i];
+            if (dimensao === "⌀") {
+                dimensao = "\u00D8"; // Símbolo de diâmetro Unicode (Ø)
+            }
             dimensoesValidas.push(dimensao + ": " + regras.formatarDimensao(valorDimensao));
         }
     }
@@ -1139,17 +1136,26 @@ function atualizarPreview() {
 
     previewText.push("\u200B"); // Linha em branco após a fixação
 
+    // Adicionar contagem de bolas
+    if (totalBolas > 0) {
+        var textoBouleContagem = totalBolas === 1 ? "boule" : "boules";
+        previewText.push("Total de " + totalBolas + " " + textoBouleContagem + " :");
+        for (var chaveBola in contagemBolas) {
+            if (contagemBolas.hasOwnProperty(chaveBola)) {
+                previewText.push(chaveBola + ": " + contagemBolas[chaveBola]);
+            }
+        }
+    }
+
     // Adicionar referências e quantidades
     var referencias = [];
     var referenciasAlfabeto = [];
-    var referenciasBolas = [];
+    
     for (var i = 0; i < itensLegenda.length; i++) {
         var item = itensLegenda[i];
         if (item.tipo === "alfabeto") {
             referenciasAlfabeto.push(item);
-        } else if (item.tipo === "bola") {
-            referenciasBolas.push(criarLinhaReferencia(item));
-        } else if (item.tipo !== "contagem") {
+        } else if (item.tipo !== "bola" && item.tipo !== "contagem") {
             referencias.push(criarLinhaReferencia(item));
         }
     }
@@ -1159,21 +1165,24 @@ function atualizarPreview() {
         previewText = previewText.concat(referenciasAlfabeto[i].texto.split('\n'));
     }
 
-    // Adicionar referências de bolas
-    if (referenciasBolas.length > 0) {
-        previewText.push("Total de " + totalBolas + " " + (totalBolas > 1 ? "boules" : "boule") + " :");
-        previewText = previewText.concat(referenciasBolas);
-    }
-
     // Adicionar outras referências
     previewText = previewText.concat(referencias);
 
-    previewText.push("\u200B"); // Outra linha em branco
-
-    // Adicionar a contagem de elementos, se existir
-    if (contagemElementos) {
-        previewText.push(contagemElementos.texto);
+    // Adicionar contagem de elementos
+    var contagemElementosTexto = [];
+    for (var i = 0; i < itensLegenda.length; i++) {
+        if (itensLegenda[i].tipo === "contagem") {
+            contagemElementosTexto = itensLegenda[i].texto.split('\n');
+            break;
+        }
     }
+
+    if (contagemElementosTexto.length > 0) {
+        previewText.push("\nContagem de Elementos:");
+        previewText = previewText.concat(contagemElementosTexto);
+    }
+
+    previewText.push("\u200B"); // Outra linha em branco
 
     // Adicionar observações
     if (campoObs && campoObs.text && campoObs.text.toString().replace(/\s/g, '').length > 0) {
@@ -1568,22 +1577,22 @@ botaoAtualizarGit.onClick = function() {
                         return linha;
                     }
     
-                    // Definir o conteúdo da legenda com quebras de linha
-                    var linhas = textoCompleto.split('\n');
-                    textoLegenda.contents = linhas[0]; // Adiciona a primeira linha
-    
-                    // Adiciona as linhas restantes como novos parágrafos
-                    for (var i = 1; i < linhas.length; i++) {
-                        var linhaProcessada = processarLinha(linhas[i]);
-                        var novoParag = textoLegenda.paragraphs.add(linhaProcessada);
-                        novoParag.paragraphAttributes.spaceBefore = 0; // Garante que não haja espaço extra entre parágrafos
-                        novoParag.paragraphAttributes.spaceAfter = 0;
-                        
-                        // Adiciona espaço extra após a linha de fixação e antes das observações
-                        if (linhas[i] === "\u200B") {
-                            novoParag.paragraphAttributes.spaceAfter = 6; // Ajuste este valor conforme necessário
-                        }
-                    }
+    // Definir o conteúdo da legenda com quebras de linha
+    var linhas = textoCompleto.split('\n');
+    textoLegenda.contents = linhas[0]; // Adiciona a primeira linha
+
+    // Adiciona as linhas restantes como novos parágrafos
+    for (var i = 1; i < linhas.length; i++) {
+        var linhaProcessada = processarLinha(linhas[i]);
+        var novoParag = textoLegenda.paragraphs.add(linhaProcessada);
+        novoParag.paragraphAttributes.spaceBefore = 0;
+        novoParag.paragraphAttributes.spaceAfter = 0;
+        
+        // Adiciona espaço extra após a linha de fixação, antes das observações e antes da contagem de elementos
+        if (linhas[i] === "\u200B" || linhas[i] === "Contagem de Elementos:") {
+            novoParag.paragraphAttributes.spaceBefore = 6;
+        }
+    }
     
                     // Ajustar o tamanho inicial do quadro de texto
                     textoLegenda.geometricBounds = [

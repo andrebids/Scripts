@@ -1332,7 +1332,12 @@ function criarLinhaReferencia(item) {
         linha += " x" + item.multiplicador;
     }
     if (item.quantidade !== undefined) {
-        var quantidadeFormatada = regras.formatarQuantidade(item.quantidade, item.componenteId, item.unidade);
+        var quantidadeFormatada;
+        if (item.unidade === "units") {
+            quantidadeFormatada = Math.round(item.quantidade).toString();
+        } else {
+            quantidadeFormatada = item.quantidade.toFixed(2).replace('.', ',');
+        }
         linha += ": " + quantidadeFormatada;
     }
     if (item.composta) {

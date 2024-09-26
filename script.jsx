@@ -683,17 +683,17 @@ botaoAdicionarBola.onClick = function() {
         alert("Por favor, selecione uma cor, um acabamento e um tamanho para a bola.");
         return;
     }
-    
+
     var quantidade = parseFloat(campoQuantidadeBolas.text.replace(',', '.'));
     if (isNaN(quantidade) || quantidade <= 0) {
         alert("Por favor, insira uma quantidade válida de bolas.");
         return;
     }
-    
+
     var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
     var acabamentoSelecionado = dados.acabamentos[encontrarIndicePorNome(dados.acabamentos, listaAcabamentos.selection.text)];
     var tamanhoSelecionado = dados.tamanhos[encontrarIndicePorNome(dados.tamanhos, listaTamanhos.selection.text)];
-    
+
     var bolaSelecionada = null;
     for (var i = 0; i < dados.bolas.length; i++) {
         if (dados.bolas[i].corId === corSelecionada.id &&
@@ -705,26 +705,55 @@ botaoAdicionarBola.onClick = function() {
     }
     
     if (bolaSelecionada) {
-        var textoBoule = quantidade === 1 ? "boule" : "boules";
-        var texto = textoBoule + " " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome;
-        if (bolaSelecionada.referencia) {
-            texto += " (Ref: " + bolaSelecionada.referencia + ")";
+        try {
+            // Verificar se já existe uma bola com a mesma referência
+            var bolaExistente = null;
+            for (var i = 0; i < itensLegenda.length; i++) {
+                if (itensLegenda[i].tipo === "bola" && itensLegenda[i].referencia === bolaSelecionada.referencia) {
+                    bolaExistente = itensLegenda[i];
+                    break;
+                }
+            }
+
+            if (bolaExistente) {
+                bolaExistente.quantidade = quantidade; // Atualiza com a nova quantidade
+                bolaExistente.texto = atualizarTextoBola(bolaExistente);
+            } else {
+                var textoBoule = quantidade === 1 ? "boule" : "boules";
+                var texto = textoBoule + " " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome;
+                if (bolaSelecionada.referencia) {
+                    texto += " (Ref: " + bolaSelecionada.referencia + ")";
+                }
+                texto += " units: " + quantidade.toFixed(2).replace('.', ',');
+
+                itensLegenda.push({
+                    tipo: "bola",
+                    nome: textoBoule + " " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome,
+                    texto: texto,
+                    referencia: bolaSelecionada.referencia,
+                    quantidade: quantidade,
+                    unidade: "units",
+                    composta: bolaSelecionada.composta || false
+                });
+            }
+            
+            atualizarListaItens();
+        } catch (e) {
+            alert("Erro ao processar a bola: " + e.message);
         }
-        texto += " units: " + quantidade.toFixed(2).replace('.', ',');
-        
-        itensLegenda.push({
-            tipo: "bola",
-            nome: textoBoule + " " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome,
-            texto: texto,
-            referencia: bolaSelecionada.referencia,
-            quantidade: quantidade,
-            unidade: "units"
-        });
-        
-        atualizarListaItens();
     } else {
         alert("Erro: Combinação de bola não encontrada na base de dados.");
     }
+}
+
+function atualizarTextoBola(bola) {
+    var textoBoule = bola.quantidade === 1 ? "boule" : "boules";
+    var texto = textoBoule + " " + bola.nome;
+    if (bola.referencia) {
+        texto += " (Ref: " + bola.referencia + ")";
+    }
+    texto += " units: " + bola.quantidade.toFixed(2).replace('.', ',');
+    return texto;
 }
 
     // Quarto grupo (Componentes adicionados)
@@ -842,7 +871,7 @@ checkboxMostrarAlfabeto.onClick = function() {
         linhaSeparadora.graphics.backgroundColor = linhaSeparadora.graphics.newBrush(linhaSeparadora.graphics.BrushType.SOLID_COLOR, [0, 0, 0, 1]);
 
         // Adicionar texto de informação
-        grupoAlfabeto.add("statictext", undefined, "Escreve a tua frase GX, e adiciona á legenda, não precisas de preencher o Nome/tipo.");
+        grupoAlfabeto.add("statictext", undefined, "Escreve a tua frase GX, e adiciona á legenda, não precisas de preencher o Nome/tipo. Para fazer o coração é: <3");
 
         // Função para preencher o dropdown de cores do bioprint
         function preencherCoresBioprint() {
@@ -1146,8 +1175,9 @@ function atualizarPreview() {
         frasePrincipal += " " + componentesTexto.join(", ");
     }
 
-    // Adicionar as bolas (incluindo as contadas)
+    // Adicionar as bolas (incluindo as contadas e compostas)
     var todasBolas = [];
+    var bolasCompostas = [];
     if (isArray(bolasCores)) {
         for (var i = 0; i < bolasCores.length; i++) {
             todasBolas.push(bolasCores[i]);
@@ -1159,12 +1189,23 @@ function atualizarPreview() {
         }
     }
     
+    // Separar bolas compostas
+    for (var i = 0; i < itensLegenda.length; i++) {
+        if (itensLegenda[i].tipo === "bola" && itensLegenda[i].composta) {
+            bolasCompostas.push(itensLegenda[i].nome);
+        }
+    }
+    
     // Remover duplicatas
     todasBolas = removerDuplicatas(todasBolas);
+    bolasCompostas = removerDuplicatas(bolasCompostas);
 
-    if (todasBolas.length > 0) {
+    if (todasBolas.length > 0 || bolasCompostas.length > 0) {
         var textoBoule = totalBolas > 1 ? "boules" : "boule";
         frasePrincipal += ", " + textoBoule + " " + todasBolas.join(", ");
+        if (bolasCompostas.length > 0) {
+            frasePrincipal += ", boules composées " + bolasCompostas.join(", ");
+        }
     }
 
     frasePrincipal += ", sur structure aluminium";
@@ -1278,20 +1319,8 @@ function criarLinhaReferencia(item) {
         var quantidadeFormatada = regras.formatarQuantidade(item.quantidade, item.componenteId, item.unidade);
         linha += ": " + quantidadeFormatada;
     }
-    return linha;
-}
-
-function criarLinhaReferencia(item) {
-    var linha = item.referencia ? item.referencia : item.nome;
-    if (item.unidade) {
-        linha += " (" + item.unidade + ")";
-    }
-    if (item.multiplicador && item.multiplicador > 1) {
-        linha += " x" + item.multiplicador;
-    }
-    if (item.quantidade !== undefined) {
-        var quantidadeFormatada = regras.formatarQuantidade(item.quantidade, item.componenteId, item.unidade);
-        linha += ": " + quantidadeFormatada;
+    if (item.composta) {
+        linha += " (composta)";
     }
     return linha;
 }

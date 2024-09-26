@@ -844,12 +844,82 @@ function atualizarListaItens() {
   // Mover o checkbox para dentro do grupoExtra
   var checkboxMostrarObs = grupoExtra.add("checkbox", undefined, "Adicionar Observações");
   checkboxMostrarObs.value = false; // Inicialmente desmarcado
+
+  // Adicionar checkbox para ocultar/mostrar o campo "Componente Extra"
+var checkboxMostrarComponenteExtra = grupoExtra.add("checkbox", undefined, "Adicionar Componente Extra");
+checkboxMostrarComponenteExtra.value = false; // Inicialmente desmarcado
 // Adicionar checkbox para ocultar/mostrar o campo "Alfabeto"
 var checkboxMostrarAlfabeto = grupoExtra.add("checkbox", undefined, "Criar GX (Alfabeto)");
 checkboxMostrarAlfabeto.value = false; // Inicialmente desmarcado
 
 // Adicionar evento para o checkbox de alfabeto
 var grupoAlfabeto, campoPalavraChave, dropdownCorBioprint, tamanhoAlfabeto, botaoAdicionarPalavraChave;
+
+// Adicionar evento para o checkbox de componente extra
+var grupoComponenteExtra, campoNomeExtra, dropdownUnidadeExtra, campoQuantidadeExtra, botaoAdicionarExtra;
+checkboxMostrarComponenteExtra.onClick = function() {
+    if (this.value) {
+        // Adicionar o grupo de componente extra
+        grupoComponenteExtra = grupoExtra.add("panel", undefined, "Componente Extra");
+        grupoComponenteExtra.orientation = "row";
+        grupoComponenteExtra.alignChildren = ["left", "top"];
+        grupoComponenteExtra.spacing = 10;
+
+        // Campo de texto para o nome do componente
+        campoNomeExtra = grupoComponenteExtra.add("edittext", undefined, "");
+        campoNomeExtra.characters = 20;
+
+        // Dropdown para unidade
+        dropdownUnidadeExtra = grupoComponenteExtra.add("dropdownlist", undefined, ["m2", "ml", "unit"]);
+        dropdownUnidadeExtra.selection = 0;
+
+        // Campo para quantidade
+        campoQuantidadeExtra = grupoComponenteExtra.add("edittext", undefined, "");
+        campoQuantidadeExtra.characters = 5;
+        apenasNumerosEVirgula(campoQuantidadeExtra);
+
+        // Botão para adicionar à legenda
+        botaoAdicionarExtra = grupoComponenteExtra.add("button", undefined, "Adicionar à Legenda");
+
+        // Evento de clique para o botão adicionar extra
+        botaoAdicionarExtra.onClick = function() {
+            var nomeExtra = campoNomeExtra.text;
+            var unidadeExtra = dropdownUnidadeExtra.selection.text;
+            var quantidadeExtra = parseFloat(campoQuantidadeExtra.text.replace(',', '.'));
+
+            if (nomeExtra === "" || isNaN(quantidadeExtra) || quantidadeExtra <= 0) {
+                alert("Por favor, preencha todos os campos corretamente.");
+                return;
+            }
+
+            var textoExtra = nomeExtra + " (" + unidadeExtra + "): " + quantidadeExtra.toFixed(2).replace('.', ',');
+
+            itensLegenda.push({
+                tipo: "extra",
+                nome: nomeExtra,
+                texto: textoExtra,
+                unidade: unidadeExtra,
+                quantidade: quantidadeExtra
+            });
+
+            atualizarListaItens();
+            alert("Componente extra adicionado à legenda.");
+
+            // Limpar os campos após adicionar
+            campoNomeExtra.text = "";
+            campoQuantidadeExtra.text = "";
+        };
+
+        janela.layout.layout(true);
+        janela.preferredSize.height += 50;
+    } else {
+        // Remover o grupo de componente extra
+        grupoComponenteExtra.parent.remove(grupoComponenteExtra);
+        janela.layout.layout(true);
+        janela.preferredSize.height -= 50;
+    }
+    janela.layout.resize();
+};
 
 checkboxMostrarAlfabeto.onClick = function() {
     if (this.value) {
@@ -1080,8 +1150,26 @@ checkboxMostrarObs.onClick = function() {
     janela.layout.resize();
 };
 
+// Adicione esta função no início do seu arquivo ou antes de ser usada
+function removerDuplicatas(array) {
+    var resultado = [];
+    var jaVisto = {};
+    for (var i = 0; i < array.length; i++) {
+        var item = array[i];
+        if (!jaVisto[item]) {
+            resultado.push(item);
+            jaVisto[item] = true;
+        }
+    }
+    return resultado;
+}
+
+
 function atualizarPreview() {
     var previewText = [];
+    var frasePrincipal = "";
+    var componentesExtras = [];
+    var primeiroComponenteExtra = null;
     var palavraDigitada = "";
     var corBioprint = "";
     var alfabetoUsado = false;
@@ -1099,30 +1187,10 @@ function atualizarPreview() {
     var referenciasAlfabeto = [];
     var itensProcessados = {};
     
-    // Função auxiliar para verificar se é um array
-    function isArray(arr) {
-        return Object.prototype.toString.call(arr) === '[object Array]';
-    }
-
-    // Função auxiliar para remover duplicatas
-    function removerDuplicatas(arr) {
-        var resultado = [];
-        for (var i = 0; i < arr.length; i++) {
-            if (!arrayContains(resultado, arr[i])) {
-                resultado.push(arr[i]);
-            }
-        }
-        return resultado;
-    }
-
-    // Função auxiliar para verificar se um array contém um elemento
-    function arrayContains(arr, elem) {
-        for (var i = 0; i < arr.length; i++) {
-            if (arr[i] === elem) {
-                return true;
-            }
-        }
-        return false;
+    // Verificar se itensLegenda é um array válido
+    if (!itensLegenda || !isArray(itensLegenda)) {
+        alert("Erro: itensLegenda não é um array válido.");
+        return "Erro: Não foi possível gerar o conteúdo da legenda.";
     }
 
     // Procurar pela palavra digitada no alfabeto, a cor do bioprint, componentes e bolas
@@ -1178,6 +1246,12 @@ function atualizarPreview() {
                     }
                 }
             }
+        } else if (item.tipo === "extra") {
+            if (!primeiroComponenteExtra) {
+                primeiroComponenteExtra = item;
+            } else {
+                componentesExtras.push(item);
+            }
         }
     }
     
@@ -1188,14 +1262,13 @@ function atualizarPreview() {
     var preposicao = alfabetoUsado ? "en" : "avec";
     
     // Construir a primeira parte da frase
-    var frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + nomeTipo + "\" " + preposicao;
+    frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + nomeTipo + "\" " + preposicao;
 
     if (alfabetoUsado) {
         frasePrincipal += " bioprint " + (corBioprint || "");
     }
 
     // Adicionar os componentes agrupados
-    var componentesTexto = [];
     for (var componente in componentesAgrupados) {
         if (componentesAgrupados.hasOwnProperty(componente)) {
             componentesTexto.push(componente + " " + componentesAgrupados[componente].join(", "));
@@ -1206,18 +1279,19 @@ function atualizarPreview() {
         frasePrincipal += " " + componentesTexto.join(", ");
     }
 
+    // Adicionar o primeiro componente extra à frase principal, se existir
+    if (primeiroComponenteExtra) {
+        frasePrincipal += ", " + primeiroComponenteExtra.nome;
+    }
+
     // Adicionar as bolas (incluindo as contadas e compostas)
     var todasBolas = [];
     var bolasCompostas = [];
-    if (isArray(bolasCores)) {
-        for (var i = 0; i < bolasCores.length; i++) {
-            todasBolas.push(bolasCores[i]);
-        }
+    for (var i = 0; i < bolasCores.length; i++) {
+        todasBolas.push(bolasCores[i]);
     }
-    if (isArray(bolesContadas)) {
-        for (var i = 0; i < bolesContadas.length; i++) {
-            todasBolas.push(bolesContadas[i]);
-        }
+    for (var i = 0; i < bolesContadas.length; i++) {
+        todasBolas.push(bolesContadas[i]);
     }
     
     // Separar bolas compostas
@@ -1276,20 +1350,20 @@ function atualizarPreview() {
     // Adicionar referências de componentes
     previewText = previewText.concat(componentesReferencias);
     
-    // Adicionar uma linha em branco antes do Total de boules
+// Adicionar contagem de bolas
+if (totalBolas > 0) {
+    // Adicionar uma linha em branco antes do Total de boules apenas se houver boules
     previewText.push("\u200B");
 
-    // Adicionar contagem de bolas
-    if (totalBolas > 0) {
-        var textoBouleContagem = totalBolas === 1 ? "boule" : "boules";
-        previewText.push("Total de " + totalBolas + " " + textoBouleContagem + " :");
-        for (var chaveBola in bolasProcessadas) {
-            if (bolasProcessadas.hasOwnProperty(chaveBola)) {
-                var bolaItem = bolasProcessadas[chaveBola];
-                previewText.push(criarLinhaReferencia(bolaItem));
-            }
+    var textoBouleContagem = totalBolas === 1 ? "boule" : "boules";
+    previewText.push("Total de " + totalBolas + " " + textoBouleContagem + " :");
+    for (var chaveBola in bolasProcessadas) {
+        if (bolasProcessadas.hasOwnProperty(chaveBola)) {
+            var bolaItem = bolasProcessadas[chaveBola];
+            previewText.push(criarLinhaReferencia(bolaItem));
         }
     }
+}
 
     // Adicionar contagem de elementos
     var contagemElementosTexto = [];
@@ -1314,10 +1388,16 @@ function atualizarPreview() {
         previewText = previewText.concat(contagemElementosTexto);
     }
 
-    previewText.push("\u200B"); // Outra linha em branco
-
+ // Adicionar componentes extras, incluindo o primeiro
+ var todosComponentesExtras = primeiroComponenteExtra ? [primeiroComponenteExtra].concat(componentesExtras) : componentesExtras;
+ if (todosComponentesExtras.length > 0) {
+     for (var i = 0; i < todosComponentesExtras.length; i++) {
+         previewText.push(todosComponentesExtras[i].texto);
+     }
+ }
     // Adicionar observações
     if (campoObs && campoObs.text && campoObs.text.toString().replace(/\s/g, '').length > 0) {
+        previewText.push("\u200B"); // Adiciona uma linha de espaçamento antes das observações
         previewText.push("Obs: " + campoObs.text);
     }
 

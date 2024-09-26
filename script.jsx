@@ -1499,23 +1499,19 @@ function criarLinhaReferencia(item) {
             return;
         }
     
-        var quantidade = parseFloat(campoQuantidade.text.replace(',', '.'));
-        var multiplicador = parseFloat(campoMultiplicador.text.replace(',', '.'));
-        if (isNaN(quantidade) || quantidade <= 0 || isNaN(multiplicador) || multiplicador <= 0) {
-            alert("Por favor, insira uma quantidade e um multiplicador válidos para o componente.");
-            return;
-        }
-        
-        quantidade *= multiplicador;
-    
         var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
         var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
         var unidadeSelecionada = listaUnidades.selection.text;
+        var quantidade = parseFloat(campoQuantidade.text.replace(',', '.'));
+        var multiplicador = parseFloat(campoMultiplicador.text.replace(',', '.'));
     
-        // Aplicar arredondamento especial para fil lumiére e fil cométe
-        quantidade = regras.arredondamentoEspecial(quantidade, componenteSelecionado.id, unidadeSelecionada);
-        if (unidadeSelecionada !== "units" && componenteSelecionado.id !== 13 && componenteSelecionado.id !== 14) {
-            quantidade = arredondarParaDecima(quantidade);
+        if (isNaN(quantidade) || quantidade <= 0) {
+            alert("Por favor, insira uma quantidade válida.");
+            return;
+        }
+    
+        if (isNaN(multiplicador) || multiplicador <= 0) {
+            multiplicador = 1;
         }
     
         var combinacaoSelecionada = null;
@@ -1529,34 +1525,53 @@ function criarLinhaReferencia(item) {
         }
     
         if (combinacaoSelecionada) {
-            var texto = componenteSelecionado.nome + " " + corSelecionada.nome;
-            if (combinacaoSelecionada.referencia) {
-                texto += " (Ref: " + combinacaoSelecionada.referencia + ")";
+            var nomeComponente = componenteSelecionado.nome + " " + corSelecionada.nome;
+            var itemExistente = null;
+    
+            // Procurar por um item existente com a mesma referência
+            for (var i = 0; i < itensLegenda.length; i++) {
+                if (itensLegenda[i].tipo === "componente" && itensLegenda[i].referencia === combinacaoSelecionada.referencia) {
+                    itemExistente = itensLegenda[i];
+                    break;
+                }
             }
-            
-            texto += " (" + unidadeSelecionada + ")";
-        
-            if (multiplicador > 1) {
-                texto += " x" + multiplicador;
+    
+            if (itemExistente) {
+                // Atualizar o item existente
+                itemExistente.quantidade = quantidade;
+                itemExistente.multiplicador = multiplicador;
+                itemExistente.texto = criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidade, multiplicador);
+            } else {
+                // Adicionar novo item
+                itensLegenda.push({
+                    tipo: "componente",
+                    nome: nomeComponente,
+                    texto: criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidade, multiplicador),
+                    referencia: combinacaoSelecionada.referencia,
+                    quantidade: quantidade,
+                    multiplicador: multiplicador,
+                    unidade: unidadeSelecionada,
+                    componenteId: componenteSelecionado.id
+                });
             }
-        
-            texto += ": " + regras.formatarQuantidade(quantidade, componenteSelecionado.id, unidadeSelecionada);
-            
-            itensLegenda.push({
-                tipo: "componente",
-                nome: componenteSelecionado.nome + " " + corSelecionada.nome,
-                texto: texto,
-                referencia: combinacaoSelecionada.referencia,
-                quantidade: quantidade,
-                unidade: unidadeSelecionada,
-                componenteId: componenteSelecionado.id,
-                multiplicador: multiplicador
-            });
-            
+    
             atualizarListaItens();
         } else {
             alert("Erro: Combinação de componente não encontrada na base de dados.");
         }
+    };
+    
+    function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicador) {
+        var texto = nome;
+        if (referencia) {
+            texto += " (Ref: " + referencia + ")";
+        }
+        texto += " (" + unidade + ")";
+        if (multiplicador > 1) {
+            texto += " x" + multiplicador;
+        }
+        texto += ": " + (quantidade * multiplicador).toFixed(2).replace('.', ',');
+        return texto;
     }
 
 // Adicionar barra de status na parte inferior da janela

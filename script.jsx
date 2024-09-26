@@ -904,12 +904,12 @@ checkboxMostrarAlfabeto.onClick = function() {
             
             var referenciasMapeadas = {
                 'A': 'GX214LW', 'B': 'GX215LW', 'C': 'GX216LW', 'D': 'GX217LW',
-                'E': 'GX218LW', 'G': 'GX220LW', 'H': 'GX221LW', 'I': 'GX222LW',
-                'J': 'GX223LW', 'K': 'GX224LW', 'L': 'GX225LW', 'M': 'GX226LW',
-                'N': 'GX227LW', 'O': 'GX228LW', 'P': 'GX229LW', 'Q': 'GX230LW',
-                'R': 'GX231LW', 'S': 'GX232LW', 'T': 'GX233LW', 'U': 'GX234LW',
-                'V': 'GX235LW', 'W': 'GX236LW', 'X': 'GX237LW', 'Y': 'GX238LW',
-                '#': 'GX241LW'
+                'E': 'GX218LW', 'F': 'GX219LW', 'G': 'GX220LW', 'H': 'GX221LW',
+                'I': 'GX222LW', 'J': 'GX223LW', 'K': 'GX224LW', 'L': 'GX225LW',
+                'M': 'GX226LW', 'N': 'GX227LW', 'O': 'GX228LW', 'P': 'GX229LW',
+                'Q': 'GX230LW', 'R': 'GX231LW', 'S': 'GX232LW', 'T': 'GX233LW',
+                'U': 'GX234LW', 'V': 'GX235LW', 'W': 'GX236LW', 'X': 'GX237LW',
+                'Y': 'GX238LW', 'Z': 'GX239LW', '<3': 'GX240LW', '#': 'GX241LW'
             };
             
             for (var i = 0; i < alfabeto.length; i++) {
@@ -1163,7 +1163,7 @@ function atualizarPreview() {
     todasBolas = removerDuplicatas(todasBolas);
 
     if (todasBolas.length > 0) {
-        var textoBoule = todasBolas.length === 1 ? "boule" : "boules";
+        var textoBoule = totalBolas > 1 ? "boules" : "boule";
         frasePrincipal += ", " + textoBoule + " " + todasBolas.join(", ");
     }
 

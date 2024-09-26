@@ -959,20 +959,25 @@ checkboxMostrarAlfabeto.onClick = function() {
             };
             
             for (var i = 0; i < alfabeto.length; i++) {
-                var letra = alfabeto[i];
-                if (referenciasMapeadas.hasOwnProperty(letra)) {
-                    if (!referenciasUsadas[letra]) {
-                        referenciasUsadas[letra] = 1;
+                var caractere = alfabeto[i];
+                if (caractere === '<' && alfabeto[i+1] === '3') {
+                    caractere = '<3';
+                    i++; // Pula o próximo caractere, pois já foi processado
+                }
+                
+                if (referenciasMapeadas.hasOwnProperty(caractere)) {
+                    if (!referenciasUsadas[caractere]) {
+                        referenciasUsadas[caractere] = 1;
                     } else {
-                        referenciasUsadas[letra]++;
+                        referenciasUsadas[caractere]++;
                     }
                 }
             }
             
             var referenciasTexto = [];
-            for (var letra in referenciasUsadas) {
-                if (referenciasUsadas.hasOwnProperty(letra)) {
-                    referenciasTexto.push(referenciasMapeadas[letra] + " (" + letra + ") bioprint " + corBioprintSelecionada + " " + tamanhoSelecionado + ": " + referenciasUsadas[letra]);
+            for (var caractere in referenciasUsadas) {
+                if (referenciasUsadas.hasOwnProperty(caractere)) {
+                    referenciasTexto.push(referenciasMapeadas[caractere] + " (" + caractere + ") bioprint " + corBioprintSelecionada + " " + tamanhoSelecionado + ": " + referenciasUsadas[caractere]);
                 }
             }
             
@@ -988,7 +993,7 @@ checkboxMostrarAlfabeto.onClick = function() {
                     tamanho: tamanhoSelecionado,
                     bioprint: "bioprint",
                     corBioprint: corBioprintSelecionada,
-                    palavraDigitada: palavraDigitada // Removido "bioprint" e cor da palavra digitada
+                    palavraDigitada: palavraDigitada
                 });
                 
                 atualizarListaItens();

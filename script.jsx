@@ -50,6 +50,7 @@ function arrayContains(arr, obj) {
     }
     return false;
 }
+
 function criarInterfaceContadorBolas(grupoContar) {
     var grupo = grupoContar.add("group");
     grupo.orientation = "column";
@@ -1289,7 +1290,17 @@ function atualizarPreview() {
     var contagemElementosTexto = [];
     for (var i = 0; i < itensLegenda.length; i++) {
         if (itensLegenda[i].tipo === "contagem") {
-            contagemElementosTexto = itensLegenda[i].texto.split('\n');
+            var linhas = itensLegenda[i].texto.split('\n');
+            contagemElementosTexto.push(linhas[0]); // Adiciona a primeira linha (total)
+            for (var j = 1; j < linhas.length; j++) {
+                var linha = linhas[j];
+                // Verifica se a linha contém informações sobre uma bola
+                if (linha.indexOf("boule") !== -1) {
+                    // Adiciona "(units)" após a medida, mantendo o formato original
+                    linha = linha.replace(/(\d+(?:,\d+)?\s*m)/, "$1 (units)");
+                }
+                contagemElementosTexto.push(linha);
+            }
             break;
         }
     }

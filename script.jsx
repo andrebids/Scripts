@@ -1039,6 +1039,40 @@ function atualizarPreview() {
     var totalBolas = 0;
     var contagemBolas = {};
     var bolasCompostas = false;
+    var bolesContadas = []; // Inicializar como um array vazio
+    
+    // Função auxiliar para verificar se é um array
+    function isArray(arr) {
+        return Object.prototype.toString.call(arr) === '[object Array]';
+    }
+
+    // Função auxiliar para remover duplicatas
+    function removerDuplicatas(arr) {
+        var resultado = [];
+        for (var i = 0; i < arr.length; i++) {
+            var encontrado = false;
+            for (var j = 0; j < resultado.length; j++) {
+                if (resultado[j] === arr[i]) {
+                    encontrado = true;
+                    break;
+                }
+            }
+            if (!encontrado) {
+                resultado.push(arr[i]);
+            }
+        }
+        return resultado;
+    }
+
+    // Função auxiliar para verificar se um array contém um elemento
+    function arrayContains(arr, elem) {
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i] === elem) {
+                return true;
+            }
+        }
+        return false;
+    }
     
     // Procurar pela palavra digitada no alfabeto, a cor do bioprint, componentes e bolas
     for (var i = 0; i < itensLegenda.length; i++) {
@@ -1073,6 +1107,17 @@ function atualizarPreview() {
             if (item.nome.toLowerCase().indexOf("composta") !== -1) {
                 bolasCompostas = true;
             }
+        } else if (item.tipo === "contagem") {
+            // Extrair as cores das bolas contadas
+            var linhas = item.texto.split('\n');
+            for (var j = 1; j < linhas.length; j++) { // Começar do índice 1 para pular o total
+                var match = linhas[j].match(/boule\s+(\S+)/);
+                if (match && match[1]) {
+                    if (!arrayContains(bolesContadas, match[1])) {
+                        bolesContadas.push(match[1]);
+                    }
+                }
+            }
         }
     }
     
@@ -1101,10 +1146,25 @@ function atualizarPreview() {
         frasePrincipal += " " + componentesTexto.join(", ");
     }
 
-    // Adicionar as bolas
-    if (bolasCores.length > 0) {
-        var textoBoule = totalBolas === 1 ? "boule" : "boules";
-        frasePrincipal += ", " + textoBoule + " " + bolasCores.join(", ");
+    // Adicionar as bolas (incluindo as contadas)
+    var todasBolas = [];
+    if (isArray(bolasCores)) {
+        for (var i = 0; i < bolasCores.length; i++) {
+            todasBolas.push(bolasCores[i]);
+        }
+    }
+    if (isArray(bolesContadas)) {
+        for (var i = 0; i < bolesContadas.length; i++) {
+            todasBolas.push(bolesContadas[i]);
+        }
+    }
+    
+    // Remover duplicatas
+    todasBolas = removerDuplicatas(todasBolas);
+
+    if (todasBolas.length > 0) {
+        var textoBoule = todasBolas.length === 1 ? "boule" : "boules";
+        frasePrincipal += ", " + textoBoule + " " + todasBolas.join(", ");
     }
 
     frasePrincipal += ", sur structure aluminium";
@@ -1178,7 +1238,6 @@ function atualizarPreview() {
     }
 
     if (contagemElementosTexto.length > 0) {
-        // Removida a linha que adicionava "Contagem de Elementos:"
         previewText = previewText.concat(contagemElementosTexto);
     }
 
@@ -1190,6 +1249,21 @@ function atualizarPreview() {
     }
 
     return previewText.join("\n");
+}
+
+function criarLinhaReferencia(item) {
+    var linha = item.referencia ? item.referencia : item.nome;
+    if (item.unidade) {
+        linha += " (" + item.unidade + ")";
+    }
+    if (item.multiplicador && item.multiplicador > 1) {
+        linha += " x" + item.multiplicador;
+    }
+    if (item.quantidade !== undefined) {
+        var quantidadeFormatada = regras.formatarQuantidade(item.quantidade, item.componenteId, item.unidade);
+        linha += ": " + quantidadeFormatada;
+    }
+    return linha;
 }
 
 function criarLinhaReferencia(item) {

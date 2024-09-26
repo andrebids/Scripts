@@ -791,13 +791,29 @@ botaoRemoverTodos.preferredSize = [180, 30]; // Linha 279
 var botaoGerar = subgrupoBotaoRemover.add("button", undefined, "Adicionar Legenda");
 botaoGerar.preferredSize = [180, 30]; // Linha 281
   
-  // Função para atualizar a lista de itens
-  function atualizarListaItens() {
-      listaItens.removeAll();
-      for (var i = 0; i < itensLegenda.length; i++) {
-          listaItens.add("item", itensLegenda[i].texto);
-      }
-  }
+function atualizarListaItens() {
+    listaItens.removeAll();
+    var componentesNaoBolas = [];
+    var bolas = [];
+    
+    for (var i = 0; i < itensLegenda.length; i++) {
+        if (itensLegenda[i].tipo === "bola") {
+            bolas.push(itensLegenda[i]);
+        } else {
+            componentesNaoBolas.push(itensLegenda[i]);
+        }
+    }
+    
+    // Adicionar primeiro os componentes que não são bolas
+    for (var i = 0; i < componentesNaoBolas.length; i++) {
+        listaItens.add("item", componentesNaoBolas[i].texto);
+    }
+    
+    // Adicionar as bolas por último
+    for (var i = 0; i < bolas.length; i++) {
+        listaItens.add("item", bolas[i].texto);
+    }
+}
   
   // Evento de clique no botão remover
   botaoRemoverItem.onClick = function() {
@@ -1068,7 +1084,14 @@ function atualizarPreview() {
     var totalBolas = 0;
     var contagemBolas = {};
     var bolasCompostas = false;
-    var bolesContadas = []; // Inicializar como um array vazio
+    var bolesContadas = [];
+    var componentesTexto = [];
+    var bolasTexto = [];
+    
+    var componentesReferencias = [];
+    var bolasProcessadas = {};
+    var referenciasAlfabeto = [];
+    var itensProcessados = {};
     
     // Função auxiliar para verificar se é um array
     function isArray(arr) {
@@ -1079,14 +1102,7 @@ function atualizarPreview() {
     function removerDuplicatas(arr) {
         var resultado = [];
         for (var i = 0; i < arr.length; i++) {
-            var encontrado = false;
-            for (var j = 0; j < resultado.length; j++) {
-                if (resultado[j] === arr[i]) {
-                    encontrado = true;
-                    break;
-                }
-            }
-            if (!encontrado) {
+            if (!arrayContains(resultado, arr[i])) {
                 resultado.push(arr[i]);
             }
         }
@@ -1102,7 +1118,7 @@ function atualizarPreview() {
         }
         return false;
     }
-    
+
     // Procurar pela palavra digitada no alfabeto, a cor do bioprint, componentes e bolas
     for (var i = 0; i < itensLegenda.length; i++) {
         var item = itensLegenda[i];
@@ -1110,6 +1126,7 @@ function atualizarPreview() {
             palavraDigitada = item.palavraDigitada;
             corBioprint = item.corBioprint;
             alfabetoUsado = true;
+            referenciasAlfabeto.push(item);
         } else if (item.tipo === "componente") {
             var nomeComponente = item.nome.split(' ')[0];
             var corComponente = item.nome.split(' ').slice(1).join(' ');
@@ -1118,6 +1135,10 @@ function atualizarPreview() {
             }
             if (!arrayContains(componentesAgrupados[nomeComponente], corComponente)) {
                 componentesAgrupados[nomeComponente].push(corComponente);
+            }
+            if (!itensProcessados[item.referencia]) {
+                componentesReferencias.push(criarLinhaReferencia(item));
+                itensProcessados[item.referencia] = true;
             }
         } else if (item.tipo === "bola") {
             var corBola = item.nome.split(' ')[1];
@@ -1132,9 +1153,13 @@ function atualizarPreview() {
             }
             contagemBolas[chaveBola] += item.quantidade;
 
-            // Verificar se é uma bola composta
             if (item.nome.toLowerCase().indexOf("composta") !== -1) {
                 bolasCompostas = true;
+            }
+            
+            // Verificar se já processamos esta bola
+            if (!bolasProcessadas[chaveBola] || item.unidade === "units") {
+                bolasProcessadas[chaveBola] = item;
             }
         } else if (item.tipo === "contagem") {
             // Extrair as cores das bolas contadas
@@ -1237,37 +1262,28 @@ function atualizarPreview() {
 
     previewText.push("\u200B"); // Linha em branco após a fixação
 
-    // Adicionar contagem de bolas
-    if (totalBolas > 0) {
-        var textoBouleContagem = totalBolas === 1 ? "boule" : "boules";
-        previewText.push("Total de " + totalBolas + " " + textoBouleContagem + " :");
-        for (var chaveBola in contagemBolas) {
-            if (contagemBolas.hasOwnProperty(chaveBola)) {
-                previewText.push(chaveBola + ": " + contagemBolas[chaveBola]);
-            }
-        }
-    }
-
-    // Adicionar referências e quantidades
-    var referencias = [];
-    var referenciasAlfabeto = [];
-    
-    for (var i = 0; i < itensLegenda.length; i++) {
-        var item = itensLegenda[i];
-        if (item.tipo === "alfabeto") {
-            referenciasAlfabeto.push(item);
-        } else if (item.tipo !== "bola" && item.tipo !== "contagem") {
-            referencias.push(criarLinhaReferencia(item));
-        }
-    }
-
     // Adicionar referências do alfabeto
     for (var i = 0; i < referenciasAlfabeto.length; i++) {
         previewText = previewText.concat(referenciasAlfabeto[i].texto.split('\n'));
     }
 
-    // Adicionar outras referências
-    previewText = previewText.concat(referencias);
+    // Adicionar referências de componentes
+    previewText = previewText.concat(componentesReferencias);
+    
+    // Adicionar uma linha em branco antes do Total de boules
+    previewText.push("\u200B");
+
+    // Adicionar contagem de bolas
+    if (totalBolas > 0) {
+        var textoBouleContagem = totalBolas === 1 ? "boule" : "boules";
+        previewText.push("Total de " + totalBolas + " " + textoBouleContagem + " :");
+        for (var chaveBola in bolasProcessadas) {
+            if (bolasProcessadas.hasOwnProperty(chaveBola)) {
+                var bolaItem = bolasProcessadas[chaveBola];
+                previewText.push(criarLinhaReferencia(bolaItem));
+            }
+        }
+    }
 
     // Adicionar contagem de elementos
     var contagemElementosTexto = [];

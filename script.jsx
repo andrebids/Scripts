@@ -1178,7 +1178,7 @@ function atualizarPreview() {
     }
 
     if (contagemElementosTexto.length > 0) {
-        previewText.push("\nContagem de Elementos:");
+        // Removida a linha que adicionava "Contagem de Elementos:"
         previewText = previewText.concat(contagemElementosTexto);
     }
 
@@ -1589,8 +1589,8 @@ botaoAtualizarGit.onClick = function() {
         novoParag.paragraphAttributes.spaceAfter = 0;
         
         // Adiciona espaço extra após a linha de fixação, antes das observações e antes da contagem de elementos
-        if (linhas[i] === "\u200B" || linhas[i] === "Contagem de Elementos:") {
-            novoParag.paragraphAttributes.spaceBefore = 6;
+    if (linhas[i] === "\u200B") {
+        novoParag.paragraphAttributes.spaceBefore = 6;
         }
     }
     

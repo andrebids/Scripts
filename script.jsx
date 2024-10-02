@@ -846,7 +846,7 @@ function atualizarListaItens() {
   checkboxMostrarObs.value = false; // Inicialmente desmarcado
 
   // Adicionar checkbox para ocultar/mostrar o campo "Componente Extra"
-var checkboxMostrarComponenteExtra = grupoExtra.add("checkbox", undefined, "Adicionar Componente Extra");
+var checkboxMostrarComponenteExtra = grupoExtra.add("checkbox", undefined, "Adicionar Componente Extra, não existente na lista");
 checkboxMostrarComponenteExtra.value = false; // Inicialmente desmarcado
 // Adicionar checkbox para ocultar/mostrar o campo "Alfabeto"
 var checkboxMostrarAlfabeto = grupoExtra.add("checkbox", undefined, "Criar GX (Alfabeto)");

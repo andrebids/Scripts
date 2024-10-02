@@ -185,7 +185,7 @@ function executarScript() {
         grupoEditar.alignChildren = ["left", "center"];
         grupoEditar.add("statictext", undefined, "Editar Referência:");
         var campoEditarReferencia = grupoEditar.add("edittext", undefined, "");
-        campoEditarReferencia.preferredSize.width = 150;
+        campoEditarReferencia.preferredSize.width = 300;
         var botaoSalvarReferencia = grupoEditar.add("button", undefined, "Salvar");
 
         // Botão para remover item selecionado
@@ -684,7 +684,7 @@ function executarScript() {
     grupoEditarReferenciaCombinacao.spacing = 5;
     grupoEditarReferenciaCombinacao.add("statictext", undefined, "Editar Referência:");
     var campoEditarReferenciaCombinacao = grupoEditarReferenciaCombinacao.add("edittext", undefined, "");
-    campoEditarReferenciaCombinacao.preferredSize.width = 100;
+    campoEditarReferenciaCombinacao.preferredSize.width = 300;
     var botaoSalvarReferenciaCombinacao = grupoEditarReferenciaCombinacao.add("button", undefined, "Salvar Referência");
 
     // Botão para remover combinação selecionada

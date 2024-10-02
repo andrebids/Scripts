@@ -1435,19 +1435,28 @@ function criarLinhaReferencia(item) {
     if (item.unidade) {
         linha += " (" + item.unidade + ")";
     }
-    if (item.multiplicador && item.multiplicador > 1) {
-        linha += " x" + item.multiplicador;
+    
+    var quantidadeFormatada;
+    if (item.unidade === "units") {
+        quantidadeFormatada = Math.round(item.quantidade).toString();
+    } else {
+        quantidadeFormatada = item.quantidade.toFixed(2).replace('.', ',');
     }
-    if (item.quantidade !== undefined) {
-        var quantidadeTotal = item.quantidade * (item.multiplicador || 1);
-        var quantidadeFormatada;
+    
+    if (item.multiplicador && item.multiplicador > 1) {
+        linha += " " + quantidadeFormatada + "x" + item.multiplicador + ": ";
+        var quantidadeTotal = item.quantidade * item.multiplicador;
+        var quantidadeTotalFormatada;
         if (item.unidade === "units") {
-            quantidadeFormatada = Math.round(quantidadeTotal).toString();
+            quantidadeTotalFormatada = Math.round(quantidadeTotal).toString();
         } else {
-            quantidadeFormatada = quantidadeTotal.toFixed(2).replace('.', ',');
+            quantidadeTotalFormatada = quantidadeTotal.toFixed(2).replace('.', ',');
         }
+        linha += quantidadeTotalFormatada;
+    } else {
         linha += ": " + quantidadeFormatada;
     }
+    
     if (item.composta) {
         linha += " (composta)";
     }
@@ -1676,11 +1685,16 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
         texto += " (Ref: " + referencia + ")";
     }
     texto += " (" + unidade + ")";
+    
+    var quantidadeFormatada = quantidade.toFixed(2).replace('.', ',');
     if (multiplicador > 1) {
-        texto += " x" + multiplicador;
+        texto += " " + quantidadeFormatada + "x" + multiplicador + ": ";
+        var quantidadeTotal = quantidade * multiplicador;
+        texto += quantidadeTotal.toFixed(2).replace('.', ',');
+    } else {
+        texto += ": " + quantidadeFormatada;
     }
-    var quantidadeTotal = quantidade * multiplicador;
-    texto += ": " + quantidadeTotal.toFixed(2).replace('.', ',');
+    
     return texto;
 }
 

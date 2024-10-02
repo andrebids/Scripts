@@ -1429,6 +1429,7 @@ function criarLinhaReferencia(item) {
     return linha;
 }
 
+// Atualizar a função criarLinhaReferencia
 function criarLinhaReferencia(item) {
     var linha = item.referencia ? item.referencia : item.nome;
     if (item.unidade) {
@@ -1438,11 +1439,12 @@ function criarLinhaReferencia(item) {
         linha += " x" + item.multiplicador;
     }
     if (item.quantidade !== undefined) {
+        var quantidadeTotal = item.quantidade * (item.multiplicador || 1);
         var quantidadeFormatada;
         if (item.unidade === "units") {
-            quantidadeFormatada = Math.round(item.quantidade).toString();
+            quantidadeFormatada = Math.round(quantidadeTotal).toString();
         } else {
-            quantidadeFormatada = item.quantidade.toFixed(2).replace('.', ',');
+            quantidadeFormatada = quantidadeTotal.toFixed(2).replace('.', ',');
         }
         linha += ": " + quantidadeFormatada;
     }
@@ -1667,18 +1669,21 @@ function criarLinhaReferencia(item) {
         }
     };
     
-    function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicador) {
-        var texto = nome;
-        if (referencia) {
-            texto += " (Ref: " + referencia + ")";
-        }
-        texto += " (" + unidade + ")";
-        if (multiplicador > 1) {
-            texto += " x" + multiplicador;
-        }
-        texto += ": " + (quantidade * multiplicador).toFixed(2).replace('.', ',');
-        return texto;
+// Modificar a função criarTextoComponente
+function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicador) {
+    var texto = nome;
+    if (referencia) {
+        texto += " (Ref: " + referencia + ")";
     }
+    texto += " (" + unidade + ")";
+    if (multiplicador > 1) {
+        texto += " x" + multiplicador;
+    }
+    var quantidadeTotal = quantidade * multiplicador;
+    texto += ": " + quantidadeTotal.toFixed(2).replace('.', ',');
+    return texto;
+}
+
 
 // Adicionar barra de status na parte inferior da janela
 

@@ -1608,9 +1608,11 @@ function criarLinhaReferencia(item) {
             var nomeComponente = componenteSelecionado.nome + " " + corSelecionada.nome;
             var itemExistente = null;
     
-            // Procurar por um item existente com a mesma referência
+            // Procurar por um item existente com a mesma combinação de componente, cor e unidade métrica
             for (var i = 0; i < itensLegenda.length; i++) {
-                if (itensLegenda[i].tipo === "componente" && itensLegenda[i].referencia === combinacaoSelecionada.referencia) {
+                if (itensLegenda[i].tipo === "componente" && 
+                    itensLegenda[i].nome === nomeComponente &&
+                    itensLegenda[i].unidade === unidadeSelecionada) {
                     itemExistente = itensLegenda[i];
                     break;
                 }
@@ -1636,6 +1638,20 @@ function criarLinhaReferencia(item) {
             }
     
             atualizarListaItens();
+    
+            // Limpar os campos após adicionar
+            campoQuantidade.text = "1";
+            campoMultiplicador.text = "1";
+    
+            // Resetar as seleções
+            listaComponentes.selection = 0;
+            listaCores.removeAll();
+            listaCores.add("item", "Selecione uma cor");
+            listaCores.selection = 0;
+            listaUnidades.removeAll();
+            listaUnidades.add("item", "Selecione uma unidade");
+            listaUnidades.selection = 0;
+    
         } else {
             alert("Erro: Combinação de componente não encontrada na base de dados.");
         }

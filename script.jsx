@@ -404,7 +404,14 @@ listaL.selection = 0;
 
 // Campo do nome ou tipo
 var grupoNomeTipo = grupoPrincipal.add("group");
-grupoNomeTipo.add("statictext", undefined, "Nome/tipo:");
+grupoNomeTipo.orientation = "row";
+grupoNomeTipo.alignChildren = ["left", "center"];
+
+// Dropdown para escolher entre Nome e Tipo
+var escolhaNomeTipo = grupoNomeTipo.add("dropdownlist", undefined, ["Nome", "Tipo"]);
+escolhaNomeTipo.selection = 0; // Predefinido como "Nome"
+
+grupoNomeTipo.add("statictext", undefined, ":");
 var campoNomeTipo = grupoNomeTipo.add("edittext", undefined, "");
 campoNomeTipo.characters = 20;
 
@@ -1258,12 +1265,14 @@ function atualizarPreview() {
     
     // Usar a palavra digitada ou o conteúdo do campoNomeTipo
     var nomeTipo = palavraDigitada || campoNomeTipo.text;
+    var prefixoNomeTipo = escolhaNomeTipo.selection.text === "Tipo" ? "type " : "";
     
     // Determinar se deve usar "avec" ou "en"
     var preposicao = alfabetoUsado ? "en" : "avec";
     
-    // Construir a primeira parte da frase
-    frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor \"" + nomeTipo + "\" " + preposicao;
+        // Construir a primeira parte da frase
+        frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor " + prefixoNomeTipo + "\"" + nomeTipo + "\" " + preposicao;
+
 
     if (alfabetoUsado) {
         frasePrincipal += " bioprint " + (corBioprint || "");

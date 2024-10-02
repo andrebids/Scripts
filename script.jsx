@@ -1436,16 +1436,18 @@ function criarLinhaReferencia(item) {
         linha += " (" + item.unidade + ")";
     }
     
+    var quantidade = arredondarComponente(item.quantidade, item.unidade, item.nome);
+    
     var quantidadeFormatada;
     if (item.unidade === "units") {
-        quantidadeFormatada = Math.round(item.quantidade).toString();
+        quantidadeFormatada = Math.round(quantidade).toString();
     } else {
-        quantidadeFormatada = item.quantidade.toFixed(2).replace('.', ',');
+        quantidadeFormatada = quantidade.toFixed(2).replace('.', ',');
     }
     
     if (item.multiplicador && item.multiplicador > 1) {
         linha += " " + quantidadeFormatada + "x" + item.multiplicador + ": ";
-        var quantidadeTotal = item.quantidade * item.multiplicador;
+        var quantidadeTotal = quantidade * item.multiplicador;
         var quantidadeTotalFormatada;
         if (item.unidade === "units") {
             quantidadeTotalFormatada = Math.round(quantidadeTotal).toString();
@@ -1462,6 +1464,7 @@ function criarLinhaReferencia(item) {
     }
     return linha;
 }
+
     // Função para atualizar a lista de cores com base no componente selecionado
     function selecionarUnidadeMetrica(unidades) {
         var prioridade = ["m2", "ml", "unit"];
@@ -1627,9 +1630,11 @@ function criarLinhaReferencia(item) {
     
         if (combinacaoSelecionada) {
             var nomeComponente = componenteSelecionado.nome + " " + corSelecionada.nome;
-            var itemExistente = null;
+            
+            // Aplicar arredondamento
+            quantidade = arredondarComponente(quantidade, unidadeSelecionada, nomeComponente);
     
-            // Procurar por um item existente com a mesma combinação de componente, cor e unidade métrica
+            var itemExistente = null;
             for (var i = 0; i < itensLegenda.length; i++) {
                 if (itensLegenda[i].tipo === "componente" && 
                     itensLegenda[i].nome === nomeComponente &&
@@ -1677,7 +1682,24 @@ function criarLinhaReferencia(item) {
             alert("Erro: Combinação de componente não encontrada na base de dados.");
         }
     };
-    
+
+    // Função para arredondar para o próximo 0,05 ou 0,1
+    function arredondarComponente(valor, unidade, nome) {
+        var nomeLowerCase = nome.toLowerCase();
+        if (nomeLowerCase.indexOf("fil lumière") !== -1 || 
+            nomeLowerCase.indexOf("fil lumiére") !== -1 || 
+            nomeLowerCase.indexOf("fil comète") !== -1 || 
+            nomeLowerCase.indexOf("fil cométe") !== -1) {
+            // Arredondar para o próximo metro inteiro
+            return Math.ceil(valor);
+        } else if (unidade === "ml" || unidade === "m2") {
+            // Arredondar para o próximo 0,05
+            return Math.ceil(valor * 20) / 20;
+        }
+        // Para outras unidades, retornar o valor original
+        return valor;
+    }
+
 // Modificar a função criarTextoComponente
 function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicador) {
     var texto = nome;
@@ -1685,6 +1707,8 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
         texto += " (Ref: " + referencia + ")";
     }
     texto += " (" + unidade + ")";
+    
+    quantidade = arredondarComponente(quantidade, unidade, nome);
     
     var quantidadeFormatada = quantidade.toFixed(2).replace('.', ',');
     if (multiplicador > 1) {

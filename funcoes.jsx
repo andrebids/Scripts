@@ -22,7 +22,14 @@ function parseJSON(str) {
         throw new Error("Erro ao analisar o JSON: " + e.message);
     }
 }
-
+function apenasNumerosEVirgula(campo) {
+    campo.addEventListener('keydown', function(e) {
+        var charCode = e.keyCode;
+        if (charCode != 188 && charCode != 190 && charCode > 31 && (charCode < 48 || charCode > 57)) {
+            e.preventDefault();
+        }
+    });
+}
 // Função para serializar JSON
 function stringifyJSON(obj) {
     var t = typeof (obj);

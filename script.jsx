@@ -376,59 +376,62 @@ var conteudoLegenda = abaLegenda.add("group");
 conteudoLegenda.orientation = "column";
 conteudoLegenda.alignChildren = ["fill", "top"];
 
-// Adicionar elementos à aba Legenda
+// Grupo para informações principais
 var grupoPrincipal = conteudoLegenda.add("panel", undefined, "Informações Principais");
 grupoPrincipal.orientation = "column";
 grupoPrincipal.alignChildren = ["fill", "top"];
 
-var grupo1 = grupoPrincipal.add("group");
-grupo1.orientation = "column";
-
-var subgrupo1 = grupo1.add("group");
-subgrupo1.orientation = "row";
+// Primeira linha: Nome
+var linha1 = grupoPrincipal.add("group");
+linha1.orientation = "row";
+linha1.alignChildren = ["left", "center"];
+linha1.spacing = 10;
 
 // Campo do nome
-var grupoNome = subgrupo1.add("group");
-grupoNome.add("statictext", undefined, "Nome:");
-var campoNome = grupoNome.add("statictext", undefined, nomeDesigner);
+linha1.add("statictext", undefined, "Nome:");
+var campoNome = linha1.add("statictext", undefined, nomeDesigner);
 campoNome.characters = 20;
 
-// Dropdown L1-L20
-subgrupo1.add("statictext", undefined, "L:");
+// Segunda linha: Nome/Tipo dropdown, L e Tipo de fixação
+var linha2 = grupoPrincipal.add("group");
+linha2.orientation = "row";
+linha2.alignChildren = ["left", "center"];
+linha2.spacing = 10;
+
+var escolhaNomeTipo = linha2.add("dropdownlist", undefined, ["Nome", "Tipo"]);
+escolhaNomeTipo.selection = 0;
+linha2.add("statictext", undefined, ":");
+var campoNomeTipo = linha2.add("edittext", undefined, "");
+campoNomeTipo.characters = 20;
+
+// Espaço flexível
+var espacoFlexivel = linha2.add("group");
+espacoFlexivel.alignment = ["fill", "center"];
+
+// Dropdown L1-L20 (tamanho reduzido)
+linha2.add("statictext", undefined, "L:");
 var opcoesL = [];
 for (var i = 1; i <= 20; i++) {
     opcoesL.push("L" + i);
 }
-var listaL = subgrupo1.add("dropdownlist", undefined, opcoesL);
+var listaL = linha2.add("dropdownlist", undefined, opcoesL);
 listaL.selection = 0;
+listaL.preferredSize.width = 60; // Reduz o tamanho do dropdown
 
-// Campo do nome ou tipo
-var grupoNomeTipo = grupoPrincipal.add("group");
-grupoNomeTipo.orientation = "row";
-grupoNomeTipo.alignChildren = ["left", "center"];
+// Tipo de fixação
+linha2.add("statictext", undefined, "Tipo de fixação:");
+var tiposFixacao = ["poteau", "suspendue/transversée", "murale", "au sol", "spéciale"];
+var listaFixacao = linha2.add("dropdownlist", undefined, tiposFixacao);
+listaFixacao.selection = 0;
 
-// Dropdown para escolher entre Nome e Tipo
-var escolhaNomeTipo = grupoNomeTipo.add("dropdownlist", undefined, ["Nome", "Tipo"]);
-escolhaNomeTipo.selection = 0; // Predefinido como "Nome"
-
-grupoNomeTipo.add("statictext", undefined, ":");
-var campoNomeTipo = grupoNomeTipo.add("edittext", undefined, "");
-campoNomeTipo.characters = 20;
-
-// Structure laqueé
-var structureElements = regras.criarGrupoStructure(subgrupo1);
-var checkStructure = structureElements.checkbox;
-var corStructure = structureElements.corDropdown;
-
-// Importar a função do arquivo regras.jsx
-var apenasNumerosEVirgula = regras.apenasNumerosEVirgula;
-
-// Grupo para dimensões e tipo de fixação
-var grupoDimensoesFixacao = grupoPrincipal.add("group");
-grupoDimensoesFixacao.orientation = "row";
+// Terceira linha: Dimensões e Structure laqueé
+var linha3 = grupoPrincipal.add("group");
+linha3.orientation = "row";
+linha3.alignChildren = ["left", "center"];
+linha3.spacing = 10;
 
 // Campos H, L, P, ⌀
-var grupoDimensoes = grupoDimensoesFixacao.add("group");
+var grupoDimensoes = linha3.add("group");
 var dimensoes = ["H", "L", "P", "⌀"];
 for (var i = 0; i < dimensoes.length; i++) {
     grupoDimensoes.add("statictext", undefined, dimensoes[i] + ":");
@@ -437,12 +440,42 @@ for (var i = 0; i < dimensoes.length; i++) {
     apenasNumerosEVirgula(campoDimensao);
 }
 
-// Tipo de fixação
-var grupoFixacao = grupoDimensoesFixacao.add("group");
-grupoFixacao.add("statictext", undefined, "Tipo de fixação:");
-var tiposFixacao = ["poteau", "suspendue/transversée", "murale", "au sol", "spéciale"];
-var listaFixacao = grupoFixacao.add("dropdownlist", undefined, tiposFixacao);
-listaFixacao.selection = 0;
+// Espaço flexível
+var espacoFlexivel = linha3.add("group");
+espacoFlexivel.alignment = ["fill", "center"];
+
+var coresStructure = [
+    "Blanc RAL 9010",
+    "Or PANTONE 131C",
+    "Rouge RAL 3000",
+    "Bleu RAL 5005",
+    "Vert RAL 6029",
+    "Rose RAL 3015",
+    "Noir RAL 9011"
+];
+
+// Atualizar a criação do dropdown para a estrutura lacada
+var grupoStructure = linha3.add("group");
+var checkStructure = grupoStructure.add("checkbox", undefined, "Structure laquée");
+var corStructure = grupoStructure.add("dropdownlist", undefined, coresStructure);
+corStructure.selection = 0;
+
+// Tornar o dropdown de cores visível apenas quando o checkbox estiver marcado
+corStructure.visible = false;
+checkStructure.onClick = function() {
+    corStructure.visible = this.value;
+};
+
+// Função apenasNumerosEVirgula (se não estiver definida em outro lugar)
+function apenasNumerosEVirgula(campo) {
+    campo.addEventListener('keydown', function(e) {
+        var charCode = e.keyCode;
+        if (charCode != 188 && charCode != 190 && charCode > 31 && (charCode < 48 || charCode > 57)) {
+            e.preventDefault();
+        }
+    });
+}
+
 
 // Segundo grupo (Componentes)
 var grupoComponentes = conteudoLegenda.add("panel", undefined, "Componentes");

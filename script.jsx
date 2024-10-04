@@ -1845,12 +1845,14 @@ botaoAtualizarGit.onClick = function() {
                     textoLegenda.position = [artboardBounds[0], artboardBounds[3] - 40]; // Posiciona no canto inferior esquerdo
                 
                     // Configurar as propriedades do texto
-                    textoLegenda.textRange.characterAttributes.size = 40; // Tamanho da fonte
+                    var tamanhoFontePrincipal = 40;
+                    var tamanhoFonteBids = 30;
+                    textoLegenda.textRange.characterAttributes.size = tamanhoFontePrincipal;
                     textoLegenda.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
                     try {
                         textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
                     } catch (e) {
-                        // Fallback para Arial se Helvetica não estiver disponível
+                        // Fallback para Arial se Apercu-Regular não estiver disponível
                         textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
                     }
                 
@@ -1884,11 +1886,13 @@ botaoAtualizarGit.onClick = function() {
                     // Definir o conteúdo da legenda com quebras de linha
                     var linhas = textoCompleto.split('\n');
                     textoLegenda.contents = linhas[0]; // Adiciona a primeira linha
+                    textoLegenda.paragraphs[0].characterAttributes.size = tamanhoFonteBids; // Aplica o tamanho de fonte menor à primeira linha
                 
                     // Adiciona as linhas restantes como novos parágrafos
                     for (var i = 1; i < linhas.length; i++) {
                         var linhaProcessada = processarLinha(linhas[i]);
                         var novoParag = textoLegenda.paragraphs.add(linhaProcessada);
+                        novoParag.characterAttributes.size = tamanhoFontePrincipal; // Aplica o tamanho de fonte principal
                         novoParag.paragraphAttributes.spaceBefore = 0;
                         novoParag.paragraphAttributes.spaceAfter = 0;
                         
@@ -1908,7 +1912,8 @@ botaoAtualizarGit.onClick = function() {
                 
                     return "success";
                 };
-    
+
+
                 var scriptString = "(" + scriptIllustrator.toString() + ")";
                 scriptString += "('" + escapeString(nomeDesigner) + "', '" + escapeString(legendaConteudo) + "');";
     

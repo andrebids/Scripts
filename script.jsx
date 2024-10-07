@@ -1447,6 +1447,15 @@ function atualizarPreview() {
 
     return previewText.join("\n");
 }
+
+// Função para formatar unidades
+function formatarUnidade(unidade) {
+    if (unidade === "m2") {
+        return "m²";
+    }
+    return unidade;
+}
+
 function criarLinhaReferencia(item) {
     var linha = item.referencia ? item.referencia : item.nome;
     if (item.unidade) {
@@ -1462,11 +1471,11 @@ function criarLinhaReferencia(item) {
     return linha;
 }
 
-// Atualizar a função criarLinhaReferencia
+
 function criarLinhaReferencia(item) {
     var linha = item.referencia ? item.referencia : item.nome;
     if (item.unidade) {
-        linha += " (" + item.unidade + ")";
+        linha += " (" + formatarUnidade(item.unidade) + ")";
     }
     
     var quantidade = arredondarComponente(item.quantidade, item.unidade, item.nome);
@@ -1739,7 +1748,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
     if (referencia) {
         texto += " (Ref: " + referencia + ")";
     }
-    texto += " (" + unidade + ")";
+    texto += " (" + formatarUnidade(unidade) + ")";
     
     quantidade = arredondarComponente(quantidade, unidade, nome);
     

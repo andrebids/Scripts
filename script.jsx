@@ -1835,6 +1835,11 @@ function verificarAtualizacoes() {
         if (parseInt(conteudo) > 0) {
             labelStatus.text = "Atualização disponível!";
             log("Atualização disponível");
+            
+            // Perguntar ao usuário se deseja atualizar
+            if (confirm("Uma atualização está disponível. Deseja atualizar agora?")) {
+                atualizarScript();
+            }
         } else {
             labelStatus.text = "Script atualizado";
             log("Script está atualizado");
@@ -1848,6 +1853,43 @@ function verificarAtualizacoes() {
     if (updatesFile.exists) updatesFile.remove();
     
     log("Verificação de atualizações concluída");
+}
+
+function atualizarScript() {
+    var scriptFile = new File($.fileName);
+    var currentDir = scriptFile.parent.fsName;
+    var updateScript = new File(currentDir + "/update_script.bat");
+    var logFile = new File(currentDir + "/update_log.txt");
+    
+    function log(message) {
+        logFile.open('a');
+        logFile.writeln(new Date().toLocaleString() + ": " + message);
+        logFile.close();
+    }
+    
+    log("Iniciando atualização do script");
+    
+    updateScript.open('w');
+    updateScript.write("@echo off\n");
+    updateScript.write("cd /d \"" + currentDir + "\"\n");
+    updateScript.write("git pull origin main\n");
+    updateScript.write("exit /b %errorlevel%\n");
+    updateScript.close();
+    
+    log("Arquivo de atualização criado");
+    
+    if (updateScript.execute({minimized: true})) {
+        $.sleep(5000); // Espera 5 segundos para a atualização ser concluída
+        log("Atualização concluída");
+        alert("O script foi atualizado com sucesso. Por favor, reinicie o Illustrator para aplicar as alterações.");
+        // Fechar o script atual
+        app.quit();
+    } else {
+        log("Falha na atualização");
+        alert("Ocorreu um erro durante a atualização. Por favor, tente novamente mais tarde.");
+    }
+    
+    updateScript.remove();
 }
 
 verificarAtualizacoes();

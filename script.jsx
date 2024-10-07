@@ -377,7 +377,7 @@ conteudoLegenda.orientation = "column";
 conteudoLegenda.alignChildren = ["fill", "top"];
 
 // Grupo para informações principais
-var grupoPrincipal = conteudoLegenda.add("panel", undefined, "Informações Principais2");
+var grupoPrincipal = conteudoLegenda.add("panel", undefined, "Informações Principais3");
 grupoPrincipal.orientation = "column";
 grupoPrincipal.alignChildren = ["fill", "top"];
 

@@ -420,7 +420,7 @@ listaL.preferredSize.width = 60; // Reduz o tamanho do dropdown
 
 // Tipo de fixação
 linha2.add("statictext", undefined, "Tipo de fixação:");
-var tiposFixacao = ["poteau", "suspendue/transversée", "murale", "au sol", "spéciale"];
+var tiposFixacao = ["poteau", "suspendue/transversée", "murale","sans fixation", "au sol", "spéciale"];
 var listaFixacao = linha2.add("dropdownlist", undefined, tiposFixacao);
 listaFixacao.selection = 0;
 

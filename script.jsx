@@ -377,7 +377,7 @@ conteudoLegenda.orientation = "column";
 conteudoLegenda.alignChildren = ["fill", "top"];
 
 // Grupo para informações principais
-var grupoPrincipal = conteudoLegenda.add("panel", undefined, "Informações Principais4");
+var grupoPrincipal = conteudoLegenda.add("panel", undefined, "Informações Principais");
 grupoPrincipal.orientation = "column";
 grupoPrincipal.alignChildren = ["fill", "top"];
 
@@ -1778,84 +1778,9 @@ barraStatus.margins = [5, 10, 5, 5];
 var botaoAtualizarGit = barraStatus.add("button", undefined, "Update");
 botaoAtualizarGit.size = [100, 25];
 
-// Label para mostrar o status da atualização (agora ao lado do botão)
-var labelStatus = barraStatus.add("statictext", undefined, "Verificando atualizações...");
-labelStatus.characters = 30;
-
-// Espaço flexível (movido para depois do labelStatus)
-var espacoFlexivel = barraStatus.add("group");
-espacoFlexivel.alignment = ["fill", "center"];
-
-function iniciarVerificacaoAtualizacoes() {
-    setTimeout(verificarAtualizacoes, 100);
-}
-
-function verificarAtualizacoes() {
-    var scriptFile = new File($.fileName);
-    var currentDir = scriptFile.parent.fsName;
-    var checkUpdateScript = new File(currentDir + "/check_update.bat");
-    var logFile = new File(currentDir + "/update_log.txt");
-    
-    function log(message) {
-        logFile.open('a');
-        logFile.writeln(new Date().toLocaleString() + ": " + message);
-        logFile.close();
-    }
-    
-    log("Iniciando verificação de atualizações");
-    
-    checkUpdateScript.open('w');
-    checkUpdateScript.write("@echo off\n");
-    checkUpdateScript.write("cd /d \"" + currentDir + "\"\n");
-    checkUpdateScript.write("git fetch origin main --quiet\n");
-    checkUpdateScript.write("git rev-list --count HEAD..origin/main > git_updates.txt\n");
-    checkUpdateScript.write("exit /b %errorlevel%\n");
-    checkUpdateScript.close();
-    
-    log("Arquivo batch criado");
-    
-    // Executar o script de forma assíncrona
-    checkUpdateScript.execute({minimized: true});
-    
-    // Configurar um temporizador para verificar o resultado após 2 segundos
-    $.sleep(2000);
-    
-    var updatesFile = new File(currentDir + "/git_updates.txt");
-    
-    if (updatesFile.exists) {
-        updatesFile.open('r');
-        var conteudo = updatesFile.read();
-        updatesFile.close();
-        
-        // Remover espaços em branco manualmente
-        conteudo = conteudo.replace(/^\s+|\s+$/g, '');
-        
-        log("Conteúdo do git_updates.txt: " + conteudo);
-        
-        if (parseInt(conteudo) > 0) {
-            labelStatus.text = "Atualização disponível!";
-            log("Atualização disponível");
-        } else {
-            labelStatus.text = "Script atualizado";
-            log("Script está atualizado");
-        }
-    } else {
-        labelStatus.text = "Erro ao verificar atualizações";
-        log("Arquivo git_updates.txt não encontrado");
-    }
-    
-    checkUpdateScript.remove();
-    if (updatesFile.exists) updatesFile.remove();
-    
-    log("Verificação de atualizações concluída");
-}
-
-verificarAtualizacoes();
 // Espaço flexível
 var espacoFlexivel = barraStatus.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
-
-
 
 // Evento de clique para o botão Atualizar via Git
 botaoAtualizarGit.onClick = function() {

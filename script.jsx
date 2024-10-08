@@ -1525,33 +1525,34 @@ function criarLinhaReferencia(item) {
         return null;
     }
 
-    function atualizarCores() {
-        listaCores.removeAll();
-        listaUnidades.removeAll();
-        
-        if (listaComponentes.selection && listaComponentes.selection.index > 0) {
-            var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
-            var coresDisponiveis = ["Selecione uma cor"];
-            var coresIds = [];
-            var unidadesDisponiveis = ["Selecione uma unidade"];
+// Modificar a função atualizarCores para incluir a verificação de CMYK
+function atualizarCores() {
+    listaCores.removeAll();
+    listaUnidades.removeAll();
     
-            for (var i = 0; i < dados.combinacoes.length; i++) {
-                if (dados.combinacoes[i].componenteId === componenteSelecionado.id) {
-                    var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
-                    if (cor && !arrayContains(coresIds, cor.id)) {
-                        coresDisponiveis.push(cor.nome);
-                        coresIds.push(cor.id);
-                    }
-                    if (!arrayContains(unidadesDisponiveis, dados.combinacoes[i].unidade)) {
-                        unidadesDisponiveis.push(dados.combinacoes[i].unidade);
-                    }
+    if (listaComponentes.selection && listaComponentes.selection.index > 0) {
+        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
+        var coresDisponiveis = ["Selecione uma cor"];
+        var coresIds = [];
+        var unidadesDisponiveis = ["Selecione uma unidade"];
+
+        for (var i = 0; i < dados.combinacoes.length; i++) {
+            if (dados.combinacoes[i].componenteId === componenteSelecionado.id) {
+                var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
+                if (cor && !arrayContains(coresIds, cor.id)) {
+                    coresDisponiveis.push(cor.nome);
+                    coresIds.push(cor.id);
+                }
+                if (!arrayContains(unidadesDisponiveis, dados.combinacoes[i].unidade)) {
+                    unidadesDisponiveis.push(dados.combinacoes[i].unidade);
                 }
             }
-    
-            for (var i = 0; i < coresDisponiveis.length; i++) {
-                listaCores.add("item", coresDisponiveis[i]);
-            }
-            listaCores.selection = 0;
+        }
+
+        for (var i = 0; i < coresDisponiveis.length; i++) {
+            listaCores.add("item", coresDisponiveis[i]);
+        }
+        listaCores.selection = 0;
 
         // Pré-selecionar a cor se houver apenas uma opção
         if (coresDisponiveis.length === 2) {
@@ -1563,7 +1564,7 @@ function criarLinhaReferencia(item) {
         for (var i = 0; i < unidadesDisponiveis.length; i++) {
             listaUnidades.add("item", unidadesDisponiveis[i]);
         }
-    
+
         // Selecionar unidade métrica automaticamente
         var unidadeParaSelecionar = selecionarUnidadeMetrica(unidadesDisponiveis);
         if (unidadeParaSelecionar) {
@@ -1573,20 +1574,53 @@ function criarLinhaReferencia(item) {
                     break;
                 }
             }
-            } else {
-                listaUnidades.selection = 0;
-            }
-
         } else {
-            listaCores.add("item", "Selecione uma cor");
-            listaUnidades.add("item", "Selecione uma unidade");
-            listaCores.selection = 0;
             listaUnidades.selection = 0;
         }
+
+    } else {
+        listaCores.add("item", "Selecione uma cor");
+        listaUnidades.add("item", "Selecione uma unidade");
+        listaCores.selection = 0;
+        listaUnidades.selection = 0;
+    }
+    
     // Chamar atualizarUnidades() para atualizar as unidades com base na cor selecionada
     atualizarUnidades();
-}
     
+    // Verificar o CMYK da combinação selecionada (sem exibir alerta)
+    verificarCMYK();
+}
+
+// Modificar a função para apenas verificar o CMYK, sem exibir alertas
+
+    function verificarCMYK() {
+        if (listaComponentes.selection && listaComponentes.selection.index > 0 &&
+            listaCores.selection && listaCores.selection.index > 0 &&
+            listaUnidades.selection && listaUnidades.selection.index > 0) {
+            
+            var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
+            var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
+            var unidadeSelecionada = listaUnidades.selection.text;
+    
+            for (var i = 0; i < dados.combinacoes.length; i++) {
+                if (dados.combinacoes[i].componenteId === componenteSelecionado.id &&
+                    dados.combinacoes[i].corId === corSelecionada.id &&
+                    dados.combinacoes[i].unidade === unidadeSelecionada) {
+                    
+                    // Aqui você pode adicionar qualquer lógica adicional que queira executar
+                    // quando um CMYK é encontrado, sem exibir alertas
+                    if (dados.combinacoes[i].cmyk) {
+                        // Por exemplo, você poderia armazenar o CMYK em uma variável global
+                        // ou atualizar algum elemento da interface
+                        // cmykAtual = dados.combinacoes[i].cmyk;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
     function atualizarUnidades() {
         if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0) {
             return;
@@ -1631,7 +1665,13 @@ function criarLinhaReferencia(item) {
         atualizarCores();
     };
     
+    listaCores.onChange = function() {
+        atualizarUnidades();
+        verificarCMYK();
+    };
+    
     listaCores.onChange = atualizarUnidades;
+    listaUnidades.onChange = verificarCMYK;
 
     // Função para arredondar para a próxima décima
     function arredondarParaDecima(valor) {

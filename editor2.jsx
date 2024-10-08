@@ -658,34 +658,48 @@ function executarScript() {
     var listaCombinacoes = painelCombinacoes.add("listbox", undefined, [], {multiselect: false});
     listaCombinacoes.preferredSize.width = 500;
 
-    // Grupo para adicionar nova combinação
-    var grupoAdicionarCombinacao = abaCombinacoes.add("group");
-    grupoAdicionarCombinacao.orientation = "row";
-    grupoAdicionarCombinacao.alignChildren = ["left", "center"];
-    grupoAdicionarCombinacao.spacing = 5;
-    grupoAdicionarCombinacao.add("statictext", undefined, "Componente:");
-    var dropdownComponentes = grupoAdicionarCombinacao.add("dropdownlist");
-    dropdownComponentes.preferredSize.width = 150;
-    grupoAdicionarCombinacao.add("statictext", undefined, "Cor:");
-    var dropdownCores = grupoAdicionarCombinacao.add("dropdownlist");
-    dropdownCores.preferredSize.width = 100;
-    grupoAdicionarCombinacao.add("statictext", undefined, "Unidade:");
-    var dropdownUnidades = grupoAdicionarCombinacao.add("dropdownlist");
-    dropdownUnidades.preferredSize.width = 80;
-    grupoAdicionarCombinacao.add("statictext", undefined, "Referência:");
-    var campoReferenciaCombinacao = grupoAdicionarCombinacao.add("edittext", undefined, "");
-    campoReferenciaCombinacao.preferredSize.width = 100;
-    var botaoAdicionarCombinacao = grupoAdicionarCombinacao.add("button", undefined, "Adicionar");
 
-    // Grupo para editar referência da combinação
-    var grupoEditarReferenciaCombinacao = abaCombinacoes.add("group");
-    grupoEditarReferenciaCombinacao.orientation = "row";
-    grupoEditarReferenciaCombinacao.alignChildren = ["left", "center"];
-    grupoEditarReferenciaCombinacao.spacing = 5;
-    grupoEditarReferenciaCombinacao.add("statictext", undefined, "Editar Referência:");
-    var campoEditarReferenciaCombinacao = grupoEditarReferenciaCombinacao.add("edittext", undefined, "");
-    campoEditarReferenciaCombinacao.preferredSize.width = 300;
-    var botaoSalvarReferenciaCombinacao = grupoEditarReferenciaCombinacao.add("button", undefined, "Salvar Referência");
+// Grupo para adicionar nova combinação
+var grupoAdicionarCombinacao = abaCombinacoes.add("group");
+grupoAdicionarCombinacao.orientation = "column";
+grupoAdicionarCombinacao.alignChildren = ["left", "top"];
+grupoAdicionarCombinacao.spacing = 5;
+
+// Primeira linha
+var primeiraLinha = grupoAdicionarCombinacao.add("group");
+primeiraLinha.orientation = "row";
+primeiraLinha.alignChildren = ["left", "center"];
+primeiraLinha.spacing = 5;
+primeiraLinha.add("statictext", undefined, "Componente:");
+var dropdownComponentes = primeiraLinha.add("dropdownlist");
+dropdownComponentes.preferredSize.width = 200;
+primeiraLinha.add("statictext", undefined, "Cor:");
+var dropdownCores = primeiraLinha.add("dropdownlist");
+dropdownCores.preferredSize.width = 150;
+primeiraLinha.add("statictext", undefined, "Unidade:");
+var dropdownUnidades = primeiraLinha.add("dropdownlist");
+dropdownUnidades.preferredSize.width = 100;
+
+// Segunda linha
+var segundaLinha = grupoAdicionarCombinacao.add("group");
+segundaLinha.orientation = "row";
+segundaLinha.alignChildren = ["left", "center"];
+segundaLinha.spacing = 5;
+segundaLinha.add("statictext", undefined, "Referência:");
+var campoReferenciaCombinacao = segundaLinha.add("edittext", undefined, "");
+campoReferenciaCombinacao.preferredSize.width = 400; // Aumentado significativamente
+var botaoAdicionarCombinacao = segundaLinha.add("button", undefined, "Adicionar");
+
+// Grupo para editar referência da combinação
+var grupoEditarReferenciaCombinacao = abaCombinacoes.add("group");
+grupoEditarReferenciaCombinacao.orientation = "row";
+grupoEditarReferenciaCombinacao.alignChildren = ["left", "center"];
+grupoEditarReferenciaCombinacao.spacing = 5;
+grupoEditarReferenciaCombinacao.add("statictext", undefined, "Editar Referência:");
+var campoEditarReferenciaCombinacao = grupoEditarReferenciaCombinacao.add("edittext", undefined, "");
+campoEditarReferenciaCombinacao.preferredSize.width = 400;
+var botaoSalvarReferenciaCombinacao = grupoEditarReferenciaCombinacao.add("button", undefined, "Salvar Referência");
+
 
     // Botão para remover combinação selecionada
     var botaoRemoverCombinacao = abaCombinacoes.add("button", undefined, "Remover Selecionado");

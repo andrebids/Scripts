@@ -645,19 +645,18 @@ function executarScript() {
         atualizarDropdownsBolas();
     });
 
-    // Interface para Combinações
-    abaCombinacoes.orientation = "column";
-    abaCombinacoes.alignChildren = ["fill", "top"];
-    abaCombinacoes.spacing = 10;
+    // Modifique a interface para Combinações
+abaCombinacoes.orientation = "column";
+abaCombinacoes.alignChildren = ["fill", "top"];
+abaCombinacoes.spacing = 10;
 
-    // Painel para a lista de combinações com barra de rolagem
-    var painelCombinacoes = abaCombinacoes.add("panel");
-    painelCombinacoes.orientation = "row";
-    painelCombinacoes.alignChildren = ["fill", "fill"];
-    painelCombinacoes.preferredSize.height = 300;
-    var listaCombinacoes = painelCombinacoes.add("listbox", undefined, [], {multiselect: false});
-    listaCombinacoes.preferredSize.width = 500;
-
+// Painel para a lista de combinações com barra de rolagem
+var painelCombinacoes = abaCombinacoes.add("panel");
+painelCombinacoes.orientation = "row";
+painelCombinacoes.alignChildren = ["fill", "fill"];
+painelCombinacoes.preferredSize.height = 300;
+var listaCombinacoes = painelCombinacoes.add("listbox", undefined, [], {multiselect: false});
+listaCombinacoes.preferredSize.width = 500;
 
 // Grupo para adicionar nova combinação
 var grupoAdicionarCombinacao = abaCombinacoes.add("group");
@@ -680,147 +679,198 @@ primeiraLinha.add("statictext", undefined, "Unidade:");
 var dropdownUnidades = primeiraLinha.add("dropdownlist");
 dropdownUnidades.preferredSize.width = 100;
 
-// Segunda linha
+// Segunda linha (CMYK)
 var segundaLinha = grupoAdicionarCombinacao.add("group");
 segundaLinha.orientation = "row";
 segundaLinha.alignChildren = ["left", "center"];
 segundaLinha.spacing = 5;
-segundaLinha.add("statictext", undefined, "Referência:");
-var campoReferenciaCombinacao = segundaLinha.add("edittext", undefined, "");
-campoReferenciaCombinacao.preferredSize.width = 400; // Aumentado significativamente
-var botaoAdicionarCombinacao = segundaLinha.add("button", undefined, "Adicionar");
+segundaLinha.add("statictext", undefined, "C:");
+var campoCyan = segundaLinha.add("edittext", undefined, "");
+campoCyan.preferredSize.width = 40;
+segundaLinha.add("statictext", undefined, "M:");
+var campoMagenta = segundaLinha.add("edittext", undefined, "");
+campoMagenta.preferredSize.width = 40;
+segundaLinha.add("statictext", undefined, "Y:");
+var campoYellow = segundaLinha.add("edittext", undefined, "");
+campoYellow.preferredSize.width = 40;
+segundaLinha.add("statictext", undefined, "K:");
+var campoBlack = segundaLinha.add("edittext", undefined, "");
+campoBlack.preferredSize.width = 40;
 
-// Grupo para editar referência da combinação
-var grupoEditarReferenciaCombinacao = abaCombinacoes.add("group");
-grupoEditarReferenciaCombinacao.orientation = "row";
-grupoEditarReferenciaCombinacao.alignChildren = ["left", "center"];
-grupoEditarReferenciaCombinacao.spacing = 5;
-grupoEditarReferenciaCombinacao.add("statictext", undefined, "Editar Referência:");
-var campoEditarReferenciaCombinacao = grupoEditarReferenciaCombinacao.add("edittext", undefined, "");
+// Terceira linha
+var terceiraLinha = grupoAdicionarCombinacao.add("group");
+terceiraLinha.orientation = "row";
+terceiraLinha.alignChildren = ["left", "center"];
+terceiraLinha.spacing = 5;
+terceiraLinha.add("statictext", undefined, "Referência:");
+var campoReferenciaCombinacao = terceiraLinha.add("edittext", undefined, "");
+campoReferenciaCombinacao.preferredSize.width = 400;
+var botaoAdicionarCombinacao = terceiraLinha.add("button", undefined, "Adicionar");
+
+// Grupo para editar referência e CMYK da combinação
+var grupoEditarCombinacao = abaCombinacoes.add("group");
+grupoEditarCombinacao.orientation = "column";
+grupoEditarCombinacao.alignChildren = ["left", "center"];
+grupoEditarCombinacao.spacing = 5;
+
+var linhaEditarReferencia = grupoEditarCombinacao.add("group");
+linhaEditarReferencia.orientation = "row";
+linhaEditarReferencia.alignChildren = ["left", "center"];
+linhaEditarReferencia.spacing = 5;
+linhaEditarReferencia.add("statictext", undefined, "Editar Referência:");
+var campoEditarReferenciaCombinacao = linhaEditarReferencia.add("edittext", undefined, "");
 campoEditarReferenciaCombinacao.preferredSize.width = 400;
-var botaoSalvarReferenciaCombinacao = grupoEditarReferenciaCombinacao.add("button", undefined, "Salvar Referência");
 
+var linhaEditarCMYK = grupoEditarCombinacao.add("group");
+linhaEditarCMYK.orientation = "row";
+linhaEditarCMYK.alignChildren = ["left", "center"];
+linhaEditarCMYK.spacing = 5;
+linhaEditarCMYK.add("statictext", undefined, "Editar CMYK:");
+linhaEditarCMYK.add("statictext", undefined, "C:");
+var campoEditarCyan = linhaEditarCMYK.add("edittext", undefined, "");
+campoEditarCyan.preferredSize.width = 40;
+linhaEditarCMYK.add("statictext", undefined, "M:");
+var campoEditarMagenta = linhaEditarCMYK.add("edittext", undefined, "");
+campoEditarMagenta.preferredSize.width = 40;
+linhaEditarCMYK.add("statictext", undefined, "Y:");
+var campoEditarYellow = linhaEditarCMYK.add("edittext", undefined, "");
+campoEditarYellow.preferredSize.width = 40;
+linhaEditarCMYK.add("statictext", undefined, "K:");
+var campoEditarBlack = linhaEditarCMYK.add("edittext", undefined, "");
+campoEditarBlack.preferredSize.width = 40;
 
-    // Botão para remover combinação selecionada
-    var botaoRemoverCombinacao = abaCombinacoes.add("button", undefined, "Remover Selecionado");
+var botaoSalvarCombinacao = grupoEditarCombinacao.add("button", undefined, "Salvar Alterações");
 
-    // Função para atualizar a lista de combinações
-    function atualizarListaCombinacoes() {
-        listaCombinacoes.removeAll();
-        var combinacoes = database.combinacoes.sort(function(a, b) {
-            var compA = findById(database.componentes, a.componenteId).nome;
-            var compB = findById(database.componentes, b.componenteId).nome;
-            var corA = findById(database.cores, a.corId).nome;
-            var corB = findById(database.cores, b.corId).nome;
-            return (compA + corA).localeCompare(compB + corB);
-        });
-        for (var i = 0; i < combinacoes.length; i++) {
-            var combinacao = combinacoes[i];
-            var componente = findById(database.componentes, combinacao.componenteId).nome;
-            var cor = findById(database.cores, combinacao.corId).nome;
-            var referencia = combinacao.referencia ? " (Ref: " + combinacao.referencia + ")" : "";
-            listaCombinacoes.add("item", componente + " - " + cor + " - " + combinacao.unidade + referencia);
-        }
-        $.writeln("Lista de combinações atualizada. Total de combinações: " + combinacoes.length);
+// Botão para remover combinação selecionada
+var botaoRemoverCombinacao = abaCombinacoes.add("button", undefined, "Remover Selecionado");
+
+// Função para atualizar a lista de combinações
+function atualizarListaCombinacoes() {
+    listaCombinacoes.removeAll();
+    var combinacoes = database.combinacoes.sort(function(a, b) {
+        var compA = findById(database.componentes, a.componenteId).nome;
+        var compB = findById(database.componentes, b.componenteId).nome;
+        var corA = findById(database.cores, a.corId).nome;
+        var corB = findById(database.cores, b.corId).nome;
+        return (compA + corA).localeCompare(compB + corB);
+    });
+    for (var i = 0; i < combinacoes.length; i++) {
+        var combinacao = combinacoes[i];
+        var componente = findById(database.componentes, combinacao.componenteId).nome;
+        var cor = findById(database.cores, combinacao.corId).nome;
+        var referencia = combinacao.referencia ? " (Ref: " + combinacao.referencia + ")" : "";
+        var cmyk = combinacao.cmyk ? " [CMYK: " + combinacao.cmyk.join(",") + "]" : "";
+        listaCombinacoes.add("item", componente + " - " + cor + " - " + combinacao.unidade + referencia + cmyk);
     }
+    $.writeln("Lista de combinações atualizada. Total de combinações: " + combinacoes.length);
+}
 
-    // Função para atualizar os dropdowns
-    function atualizarDropdowns() {
-        dropdownComponentes.removeAll();
-        dropdownCores.removeAll();
-        dropdownUnidades.removeAll();
-        
-        for (var i = 0; i < database.componentes.length; i++) {
-            dropdownComponentes.add("item", database.componentes[i].nome);
+// Função para adicionar nova combinação
+botaoAdicionarCombinacao.onClick = function() {
+    try {
+        if (!dropdownComponentes.selection) {
+            alert("Por favor, selecione um componente.");
+            return;
         }
-        
-        for (var i = 0; i < database.cores.length; i++) {
-            dropdownCores.add("item", database.cores[i].nome);
+        if (!dropdownCores.selection) {
+            alert("Por favor, selecione uma cor.");
+            return;
+        }
+        if (!dropdownUnidades.selection) {
+            alert("Por favor, selecione uma unidade.");
+            return;
         }
 
-        for (var i = 0; i < unidadesMedida.length; i++) {
-            dropdownUnidades.add("item", unidadesMedida[i]);
+        var componenteId = database.componentes[dropdownComponentes.selection.index].id;
+        var corId = database.cores[dropdownCores.selection.index].id;
+        var unidade = dropdownUnidades.selection.text;
+        var referencia = campoReferenciaCombinacao.text;
+        var cmyk = [
+            parseInt(campoCyan.text) || 0,
+            parseInt(campoMagenta.text) || 0,
+            parseInt(campoYellow.text) || 0,
+            parseInt(campoBlack.text) || 0
+        ];
+
+        $.writeln("Adicionando combinação: Componente ID: " + componenteId + ", Cor ID: " + corId + ", Unidade: " + unidade + ", Referência: " + referencia + ", CMYK: " + cmyk.join(","));
+
+        var existe = false;
+        for (var i = 0; i < database.combinacoes.length; i++) {
+            var c = database.combinacoes[i];
+            if (c.componenteId === componenteId && c.corId === corId && c.unidade === unidade) {
+                existe = true;
+                break;
+            }
         }
-    }
 
-    // Função para adicionar nova combinação
-    botaoAdicionarCombinacao.onClick = function() {
-        try {
-            if (!dropdownComponentes.selection) {
-                alert("Por favor, selecione um componente.");
-                return;
-            }
-            if (!dropdownCores.selection) {
-                alert("Por favor, selecione uma cor.");
-                return;
-            }
-            if (!dropdownUnidades.selection) {
-                alert("Por favor, selecione uma unidade.");
-                return;
-            }
+        if (!existe) {
+            var novaCombinacao = {
+                "id": getNextId(database.combinacoes),
+                "componenteId": componenteId,
+                "corId": corId,
+                "unidade": unidade,
+                "referencia": referencia,
+                "cmyk": cmyk
+            };
+            $.writeln("Nova combinação: " + stringifyJSON(novaCombinacao));
 
-            var componenteId = database.componentes[dropdownComponentes.selection.index].id;
-            var corId = database.cores[dropdownCores.selection.index].id;
-            var unidade = dropdownUnidades.selection.text;
-            var referencia = campoReferenciaCombinacao.text;
-
-            $.writeln("Adicionando combinação: Componente ID: " + componenteId + ", Cor ID: " + corId + ", Unidade: " + unidade + ", Referência: " + referencia);
-
-            var existe = false;
-            for (var i = 0; i < database.combinacoes.length; i++) {
-                var c = database.combinacoes[i];
-                if (c.componenteId === componenteId && c.corId === corId && c.unidade === unidade) {
-                    existe = true;
-                    break;
-                }
-            }
-
-            if (!existe) {
-                var novaCombinacao = {
-                    "id": getNextId(database.combinacoes),
-                    "componenteId": componenteId,
-                    "corId": corId,
-                    "unidade": unidade,
-                    "referencia": referencia
-                };
-                $.writeln("Nova combinação: " + stringifyJSON(novaCombinacao));
-
-                database.combinacoes.push(novaCombinacao);
-                salvarJSON(caminhoDatabase, database);
-                atualizarListaCombinacoes();
-                campoReferenciaCombinacao.text = "";
-                alert("Combinação adicionada com sucesso!");
-            } else {
-                alert("Esta combinação já existe.");
-            }
-        } catch (e) {
-            alert("Erro ao adicionar combinação: " + e.toString());
-            $.writeln("Erro ao adicionar combinação: " + e.toString());
-        }
-    }
-
-    // Função para atualizar a referência da combinação selecionada
-    botaoSalvarReferenciaCombinacao.onClick = function() {
-        var selectedIndex = listaCombinacoes.selection.index;
-        if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < database.combinacoes.length) {
-            var combinacaoSelecionada = database.combinacoes[selectedIndex];
-            combinacaoSelecionada.referencia = campoEditarReferenciaCombinacao.text;
+            database.combinacoes.push(novaCombinacao);
             salvarJSON(caminhoDatabase, database);
             atualizarListaCombinacoes();
-            alert("Referência da combinação atualizada com sucesso!");
+            campoReferenciaCombinacao.text = "";
+            campoCyan.text = "";
+            campoMagenta.text = "";
+            campoYellow.text = "";
+            campoBlack.text = "";
+            alert("Combinação adicionada com sucesso!");
         } else {
-            alert("Por favor, selecione uma combinação para editar a referência.");
+            alert("Esta combinação já existe.");
         }
+    } catch (e) {
+        alert("Erro ao adicionar combinação: " + e.toString());
+        $.writeln("Erro ao adicionar combinação: " + e.toString());
     }
+}
 
-    // Atualizar o campo de edição quando uma combinação é selecionada
-    listaCombinacoes.onChange = function() {
-        var selectedIndex = listaCombinacoes.selection.index;
-        if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < database.combinacoes.length) {
-            var combinacaoSelecionada = database.combinacoes[selectedIndex];
-            campoEditarReferenciaCombinacao.text = combinacaoSelecionada.referencia || "";
+// Função para atualizar a referência e CMYK da combinação selecionada
+botaoSalvarCombinacao.onClick = function() {
+    var selectedIndex = listaCombinacoes.selection.index;
+    if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < database.combinacoes.length) {
+        var combinacaoSelecionada = database.combinacoes[selectedIndex];
+        combinacaoSelecionada.referencia = campoEditarReferenciaCombinacao.text;
+        combinacaoSelecionada.cmyk = [
+            parseInt(campoEditarCyan.text) || 0,
+            parseInt(campoEditarMagenta.text) || 0,
+            parseInt(campoEditarYellow.text) || 0,
+            parseInt(campoEditarBlack.text) || 0
+        ];
+        salvarJSON(caminhoDatabase, database);
+        atualizarListaCombinacoes();
+        alert("Combinação atualizada com sucesso!");
+    } else {
+        alert("Por favor, selecione uma combinação para editar.");
+    }
+}
+
+// Atualizar os campos de edição quando uma combinação é selecionada
+listaCombinacoes.onChange = function() {
+    var selectedIndex = listaCombinacoes.selection.index;
+    if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < database.combinacoes.length) {
+        var combinacaoSelecionada = database.combinacoes[selectedIndex];
+        campoEditarReferenciaCombinacao.text = combinacaoSelecionada.referencia || "";
+        if (combinacaoSelecionada.cmyk) {
+            campoEditarCyan.text = combinacaoSelecionada.cmyk[0] || "";
+            campoEditarMagenta.text = combinacaoSelecionada.cmyk[1] || "";
+            campoEditarYellow.text = combinacaoSelecionada.cmyk[2] || "";
+            campoEditarBlack.text = combinacaoSelecionada.cmyk[3] || "";
+        } else {
+            campoEditarCyan.text = "";
+            campoEditarMagenta.text = "";
+            campoEditarYellow.text = "";
+            campoEditarBlack.text = "";
         }
     }
+}
 
     // Função para remover combinação selecionada
     botaoRemoverCombinacao.onClick = function() {
@@ -835,7 +885,27 @@ var botaoSalvarReferenciaCombinacao = grupoEditarReferenciaCombinacao.add("butto
         }
     }
 
-    // Atualizar listas e dropdowns iniciais
+    // Adicione esta função ao seu código
+        function atualizarDropdowns() {
+            // Atualizar dropdown de componentes
+            dropdownComponentes.removeAll();
+            for (var i = 0; i < database.componentes.length; i++) {
+                dropdownComponentes.add("item", database.componentes[i].nome);
+            }
+
+            // Atualizar dropdown de cores
+            dropdownCores.removeAll();
+            for (var i = 0; i < database.cores.length; i++) {
+                dropdownCores.add("item", database.cores[i].nome);
+            }
+
+            // Atualizar dropdown de unidades
+            dropdownUnidades.removeAll();
+            for (var i = 0; i < unidadesMedida.length; i++) {
+                dropdownUnidades.add("item", unidadesMedida[i]);
+            }
+        }
+        // Atualizar listas e dropdowns iniciais
     atualizarListaCombinacoes();
     atualizarDropdowns();
 

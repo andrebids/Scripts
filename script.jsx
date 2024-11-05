@@ -15,7 +15,7 @@ $.evalFile(File($.fileName).path + "/ui.jsx");
 var caminhoConfig = getPastaDocumentos() + "/cartouche_config.json";
 
 // Caminho hardcoded para a base de dados
-var caminhoBaseDadosHardcoded = "\\\\192.168.1.104\\Olimpo\\DS\\_BASE DE DADOS\\07. TOOLS\\ILLUSTRATOR\\basededados\\database2.json";
+var caminhoBaseDadosHardcoded = "\\\\192.168.2.22\\Olimpo\\DS\\_BASE DE DADOS\\07. TOOLS\\ILLUSTRATOR\\basededados\\database2.json";
 var itensLegenda = [];
 var itensNomes = [];
 // Verificar se o arquivo de configuração existe
@@ -50,6 +50,13 @@ function arrayContains(arr, obj) {
     }
     return false;
 }
+
+//function criarQuadradoPreto(layer, posX, posY, tamanho) {
+  //  var quadrado = layer.pathItems.rectangle(posY, posX, tamanho, tamanho);
+    //quadrado.fillColor = new RGBColor(0, 0, 0); // Preto
+    //quadrado.stroked = false; // Sem contorno
+    //return quadrado;
+//}
 
 function criarInterfaceContadorBolas(grupoContar) {
     var grupo = grupoContar.add("group");
@@ -191,7 +198,7 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
 function contarBolasNaArtboard() {
     try {
         // Caminho hardcoded para a base de dados
-        var caminhoBaseDadosHardcoded = "//192.168.1.104/Olimpo/DS/_BASE DE DADOS/07. TOOLS/ILLUSTRATOR/basededados/database2.json";
+        var caminhoBaseDadosHardcoded = "//192.168.2.22/Olimpo/DS/_BASE DE DADOS/07. TOOLS/ILLUSTRATOR/basededados/database2.json";
         
         // Função para verificar se um objeto é um array
         function isArray(obj) {
@@ -1473,7 +1480,7 @@ function criarLinhaReferencia(item) {
 
 
 function criarLinhaReferencia(item) {
-    var linha = item.referencia ? item.referencia : item.nome;
+    var linha = "##COMPONENTE##" + (item.referencia ? item.referencia : item.nome);
     if (item.unidade) {
         linha += " (" + formatarUnidade(item.unidade) + ")";
     }
@@ -1892,7 +1899,7 @@ botaoAtualizarGit.onClick = function() {
     botaoGerar.onClick = function() {
         if (confirm("Tens certeza que adicionaste todos os componentes que precisavas?")) {
             try {
-                var legendaConteudo = atualizarPreview(); // Agora chamamos atualizarPreview() aqui 
+                var legendaConteudo = atualizarPreview();
                 
                 if (legendaConteudo === undefined) {
                     alert("Erro: Não foi possível gerar o conteúdo da legenda.");
@@ -1909,82 +1916,99 @@ botaoAtualizarGit.onClick = function() {
                         return "Nenhum documento ativo. Por favor, abra um documento no Illustrator.";
                     }
                 
-                    // Verificar se há uma artboard ativa
                     if (doc.artboards.length === 0) {
                         return "Erro: O documento não tem artboards. Por favor, crie uma artboard antes de adicionar a legenda.";
                     }
                 
-                    // Criar uma nova camada para a legenda
+                    function criarQuadradoPreto(layer, left, top, tamanho) {
+                        if (isNaN(left) || isNaN(top) || isNaN(tamanho)) {
+                            alert("Erro: Valores inválidos para criarQuadradoPreto - left: " + left + ", top: " + top + ", tamanho: " + tamanho);
+                            return null;
+                        }
+                        var quadrado = layer.pathItems.rectangle(top, left, tamanho, tamanho);
+                        quadrado.fillColor = new RGBColor(0, 0, 0);
+                        quadrado.stroked = false;
+                        return quadrado;
+                    }
+                
                     var novaLayer = doc.layers.add();
                     novaLayer.name = "Legenda";
                 
-                    // Obter as dimensões da artboard ativa
                     var artboard = doc.artboards[doc.artboards.getActiveArtboardIndex()];
                     var artboardBounds = artboard.artboardRect;
                 
-                    // Criar o quadro de texto para a legenda
                     var textoLegenda = novaLayer.textFrames.add();
-                    textoLegenda.position = [artboardBounds[0], artboardBounds[3] - 40]; // Posiciona no canto inferior esquerdo
+                    textoLegenda.position = [artboardBounds[0], artboardBounds[3] - 40];
                 
-                    // Configurar as propriedades do texto
                     var tamanhoFontePrincipal = 40;
                     var tamanhoFonteBids = 30;
+                    var tamanhoQuadrado = 20;
+                    var espacoEntreLinhas = tamanhoFontePrincipal * 1.20;
+                    var ajusteVerticalQuadrado = tamanhoFontePrincipal * 0.5;
+                    var espacoExtraPrimeiroComponente = 3;
+                
                     textoLegenda.textRange.characterAttributes.size = tamanhoFontePrincipal;
                     textoLegenda.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
                     try {
                         textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
                     } catch (e) {
-                        // Fallback para Arial se Apercu-Regular não estiver disponível
                         textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
                     }
                 
-                    // Adicionar o nome do designer com "Bids -" na frente
                     var textoCompleto = "Bids - " + nomeDesigner + "\n" + conteudoLegenda;
                 
-                    // Função para processar cada linha da legenda
                     function processarLinha(linha) {
-                        // Substitui o símbolo de diâmetro por Ø
+                        linha = linha.replace(/^##COMPONENTE##/, '');
                         linha = linha.replace(/⌀/g, "Ø");
-                        
-                        // Procura por padrões de unidade seguidos por dois pontos e possivelmente um multiplicador
                         linha = linha.replace(/(\(ml|m2|unit\))(\s*x\d+)?:/g, "$1$2:");
                         
-                        // Função para formatar números com duas casas decimais, exceto para fil lumiére
                         function formatarNumero(match, inteiro, decimal, offset, string) {
-                            // Verifica se é o componente fil lumiére
                             if (string.indexOf("fil lumiére") !== -1) {
-                                return inteiro; // Retorna apenas a parte inteira
+                                return inteiro;
                             }
                             var numero = parseFloat(inteiro + "." + decimal);
                             return numero.toFixed(2).replace(".", ",");
                         }
                         
-                        // Substitui pontos por vírgulas e garante duas casas decimais (exceto para fil lumiére)
                         linha = linha.replace(/(\d+)\.(\d+)/g, formatarNumero);
                         
                         return linha;
                     }
                 
-                    // Definir o conteúdo da legenda com quebras de linha
                     var linhas = textoCompleto.split('\n');
-                    textoLegenda.contents = linhas[0]; // Adiciona a primeira linha
-                    textoLegenda.paragraphs[0].characterAttributes.size = tamanhoFonteBids; // Aplica o tamanho de fonte menor à primeira linha
+                    textoLegenda.contents = linhas[0];
+                    textoLegenda.paragraphs[0].characterAttributes.size = tamanhoFonteBids;
                 
-                    // Adiciona as linhas restantes como novos parágrafos
+                    var posicaoYAtual = textoLegenda.position[1] - tamanhoFonteBids - espacoEntreLinhas;
+                    var primeiroComponenteEncontrado = false;
+                
                     for (var i = 1; i < linhas.length; i++) {
+                        var linhaOriginal = linhas[i];
                         var linhaProcessada = processarLinha(linhas[i]);
                         var novoParag = textoLegenda.paragraphs.add(linhaProcessada);
-                        novoParag.characterAttributes.size = tamanhoFontePrincipal; // Aplica o tamanho de fonte principal
+                        novoParag.characterAttributes.size = tamanhoFontePrincipal;
                         novoParag.paragraphAttributes.spaceBefore = 0;
                         novoParag.paragraphAttributes.spaceAfter = 0;
                         
-                        // Adiciona espaço extra após a linha de fixação, antes das observações e antes da contagem de elementos
-                        if (linhas[i] === "\u200B") {
-                            novoParag.paragraphAttributes.spaceBefore = 6;
+                        if (linhaOriginal.indexOf("##COMPONENTE##") === 0) {
+                            var quadradoPosX = textoLegenda.position[0] - tamanhoQuadrado - 15;
+                            var quadradoPosY = posicaoYAtual + ajusteVerticalQuadrado;
+                            criarQuadradoPreto(novaLayer, quadradoPosX, quadradoPosY, tamanhoQuadrado);
+    
+                            if (!primeiroComponenteEncontrado) {
+                                primeiroComponenteEncontrado = true;
+                                posicaoYAtual -= espacoExtraPrimeiroComponente;
+                            }
                         }
+                        
+                        if (linhas[i] === "\u200B") {
+                            novoParag.paragraphAttributes.spaceBefore = 10;
+                            posicaoYAtual -= 10;
+                        }
+                        
+                        posicaoYAtual -= espacoEntreLinhas;
                     }
                 
-                    // Ajustar o tamanho inicial do quadro de texto
                     textoLegenda.geometricBounds = [
                         textoLegenda.geometricBounds[0],
                         textoLegenda.geometricBounds[1],
@@ -1994,8 +2018,7 @@ botaoAtualizarGit.onClick = function() {
                 
                     return "success";
                 };
-
-
+    
                 var scriptString = "(" + scriptIllustrator.toString() + ")";
                 scriptString += "('" + escapeString(nomeDesigner) + "', '" + escapeString(legendaConteudo) + "');";
     
@@ -2005,8 +2028,8 @@ botaoAtualizarGit.onClick = function() {
                 bt.onResult = function(resObj) {
                     if (resObj.body === "success") {
                         alert("Legenda adicionada com sucesso!");
-                        janela.close(); // Fecha a janela após adicionar a legenda com sucesso
-                        janela = null; // Ajuda a liberar a memória
+                        janela.close();
+                        janela = null;
                     } else {
                         alert("Ocorreu um problema ao adicionar a legenda: " + resObj.body);
                     }

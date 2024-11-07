@@ -902,9 +902,7 @@ checkboxMostrarAlfabeto.value = false; // Inicialmente desmarcado
 // Adicionar evento para o checkbox de alfabeto
 var grupoAlfabeto, campoPalavraChave, dropdownCorBioprint, tamanhoAlfabeto, botaoAdicionarPalavraChave;
 
-// ADICIONAR AQUI O CHECKBOX DAS TEXTURAS
-var checkboxMostrarTexturas = grupoExtra.add("checkbox", undefined, "Adicionar Texturas");
-checkboxMostrarTexturas.value = false; // Inicialmente desmarcado
+
 
 // Adicionar evento para o checkbox de componente extra
 var grupoComponenteExtra, campoNomeExtra, dropdownUnidadeExtra, campoQuantidadeExtra, botaoAdicionarExtra;
@@ -1147,6 +1145,7 @@ checkboxMostrarAlfabeto.onClick = function() {
   // Adicionar checkbox para ocultar/mostrar o campo "Contar elementos"
   var checkboxMostrarContar = grupoExtra.add("checkbox", undefined, "Mostrar Contar Elementos");
   checkboxMostrarContar.value = false; // Inicialmente desmarcado
+  
 // Adicionar checkbox para ocultar/mostrar o campo "Texturas"
 var checkboxMostrarTexturas = grupoExtra.add("checkbox", undefined, "Adicionar Texturas");
 checkboxMostrarTexturas.value = false; // Inicialmente desmarcado
@@ -1181,18 +1180,6 @@ checkboxMostrarTexturas.onClick = function() {
         listaTexturas.selection = 0;
         listaTexturas.preferredSize.width = 200;
 
-        // Campo para posição X
-        subgrupoTexturas.add("statictext", undefined, "X:");
-        var campoPosX = subgrupoTexturas.add("edittext", undefined, "0");
-        campoPosX.characters = 5;
-        apenasNumerosEVirgula(campoPosX);
-
-        // Campo para posição Y
-        subgrupoTexturas.add("statictext", undefined, "Y:");
-        var campoPosY = subgrupoTexturas.add("edittext", undefined, "0");
-        campoPosY.characters = 5;
-        apenasNumerosEVirgula(campoPosY);
-
         // Botão para inserir textura
         var botaoInserirTextura = subgrupoTexturas.add("button", undefined, "Inserir Textura");
 
@@ -1204,27 +1191,17 @@ checkboxMostrarTexturas.onClick = function() {
             }
 
             var texturaEscolhida = listaTexturas.selection.text;
-            var posX = parseFloat(campoPosX.text.replace(',', '.'));
-            var posY = parseFloat(campoPosY.text.replace(',', '.'));
 
-            if (isNaN(posX) || isNaN(posY)) {
-                alert("Por favor, insira coordenadas válidas.");
-                return;
-            }
-
-            // TODO: Implementar a lógica para inserir a textura na artboard
-            alert("Em breve: A textura '" + texturaEscolhida + "' será inserida na posição X:" + posX + ", Y:" + posY);
+            // TODO: Implementar a lógica para inserir a textura ao lado da legenda
+            alert("Em breve: A textura '" + texturaEscolhida + "' será inserida ao lado da legenda");
 
             // Adicionar à legenda
-            var textoTextura = texturaEscolhida + " (X:" + posX.toFixed(2).replace('.', ',') + 
-                              ", Y:" + posY.toFixed(2).replace('.', ',') + ")";
+            var textoTextura = texturaEscolhida;
 
             itensLegenda.push({
                 tipo: "textura",
                 nome: texturaEscolhida,
-                texto: textoTextura,
-                posX: posX,
-                posY: posY
+                texto: textoTextura
             });
 
             atualizarListaItens();
@@ -1232,7 +1209,7 @@ checkboxMostrarTexturas.onClick = function() {
 
         // Adicionar texto de informação
         var infoTexto = grupoTexturas.add("statictext", undefined, 
-            "Selecione uma textura e defina a posição onde ela será inserida na artboard.", 
+            "Selecione uma textura para inserir ao lado da legenda.", 
             {multiline: true});
         infoTexto.preferredSize.width = 400;
 
@@ -1335,18 +1312,23 @@ function atualizarPreview() {
     var bolasProcessadas = {};
     var referenciasAlfabeto = [];
     var itensProcessados = {};
+    
+    
     // Adicionar texturas
-var texturas = itensLegenda.filter(function(item) {
-    return item.tipo === "textura";
-});
-
-if (texturas.length > 0) {
-    previewText.push("\u200B"); // Linha em branco antes das texturas
-    previewText.push("Textures appliquées:");
-    for (var i = 0; i < texturas.length; i++) {
-        previewText.push("- " + texturas[i].texto);
+    var texturas = [];
+    for (var i = 0; i < itensLegenda.length; i++) {
+        if (itensLegenda[i].tipo === "textura") {
+            texturas.push(itensLegenda[i]);
+        }
     }
-}
+    
+    if (texturas.length > 0) {
+        previewText.push("\u200B"); // Linha em branco antes das texturas
+        previewText.push("Textures appliquées:");
+        for (var i = 0; i < texturas.length; i++) {
+            previewText.push("- " + texturas[i].texto);
+        }
+    }
     // Verificar se itensLegenda é um array válido
     if (!itensLegenda || !isArray(itensLegenda)) {
         alert("Erro: itensLegenda não é um array válido.");
@@ -2033,7 +2015,7 @@ botaoAtualizarGit.onClick = function() {
                         return "Erro: O documento não tem artboards. Por favor, crie uma artboard antes de adicionar a legenda.";
                     }
                 
-                    function criarQuadradoPreto(layer, left, top, tamanho) {
+                    /*function criarQuadradoPreto(layer, left, top, tamanho) {
                         if (isNaN(left) || isNaN(top) || isNaN(tamanho)) {
                             alert("Erro: Valores inválidos para criarQuadradoPreto - left: " + left + ", top: " + top + ", tamanho: " + tamanho);
                             return null;
@@ -2042,7 +2024,7 @@ botaoAtualizarGit.onClick = function() {
                         quadrado.fillColor = new RGBColor(0, 0, 0);
                         quadrado.stroked = false;
                         return quadrado;
-                    }
+                    }*/
                 
                     var novaLayer = doc.layers.add();
                     novaLayer.name = "Legenda";
@@ -2103,7 +2085,7 @@ botaoAtualizarGit.onClick = function() {
                         novoParag.paragraphAttributes.spaceBefore = 0;
                         novoParag.paragraphAttributes.spaceAfter = 0;
                         
-                        if (linhaOriginal.indexOf("##COMPONENTE##") === 0) {
+                        /*if (linhaOriginal.indexOf("##COMPONENTE##") === 0) {
                             var quadradoPosX = textoLegenda.position[0] - tamanhoQuadrado - 15;
                             var quadradoPosY = posicaoYAtual + ajusteVerticalQuadrado;
                             criarQuadradoPreto(novaLayer, quadradoPosX, quadradoPosY, tamanhoQuadrado);
@@ -2112,7 +2094,7 @@ botaoAtualizarGit.onClick = function() {
                                 primeiroComponenteEncontrado = true;
                                 posicaoYAtual -= espacoExtraPrimeiroComponente;
                             }
-                        }
+                        }*/
                         
                         if (linhas[i] === "\u200B") {
                             novoParag.paragraphAttributes.spaceBefore = 10;

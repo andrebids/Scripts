@@ -438,7 +438,7 @@ botaoUpdate.onClick = function() {
 // Criar abas para Legenda e Contador de Bolas
 var abas = janela.add("tabbedpanel");
 abas.alignChildren = ["fill", "fill"];
-var abaLegenda = abas.add("tab", undefined, "Legenda1");
+var abaLegenda = abas.add("tab", undefined, "Legenda");
 
 // Criar conteúdo para a aba Legenda
 var conteudoLegenda = abaLegenda.add("group");
@@ -882,16 +882,16 @@ function atualizarTextoBola(bola) {
  var listaItens = subgrupoListaItens.add("listbox", undefined, [], {multiselect: false});
  listaItens.preferredSize = [380, 180]; // Ajuste o tamanho conforme necessário
  
-// Subgrupo para o botão remover item e adicionar legenda - linha 270
+// Subgrupo para o botão remover item e adicionar legenda 
 var subgrupoBotaoRemover = grupoComponentesAdicionados.add("group");
 subgrupoBotaoRemover.orientation = "column";
 subgrupoBotaoRemover.alignChildren = ["fill", "top"];
 subgrupoBotaoRemover.spacing = 10;
-subgrupoBotaoRemover.preferredSize = [200, 100]; // Linha 275 - Definir tamanho adequado
+subgrupoBotaoRemover.preferredSize = [200, 100]; 
 
 // Botão para remover item selecionado - Linha 276
 var botaoRemoverItem = subgrupoBotaoRemover.add("button", undefined, "Remover Selecionado");
-botaoRemoverItem.preferredSize = [180, 30]; // Linha 277
+botaoRemoverItem.preferredSize = [180, 30]; 
 
 // Botão para remover todos os itens - Linha 278
 var botaoRemoverTodos = subgrupoBotaoRemover.add("button", undefined, "Remover Todos");
@@ -899,7 +899,9 @@ botaoRemoverTodos.preferredSize = [180, 30]; // Linha 279
 
 // Botão para adicionar legenda - Linha 280
 var botaoGerar = subgrupoBotaoRemover.add("button", undefined, "Adicionar Legenda");
-botaoGerar.preferredSize = [180, 30]; // Linha 281
+botaoGerar.preferredSize = [180, 30]; 
+botaoGerar.graphics.font = ScriptUI.newFont("Arial", "BOLD", 12);
+
   
 function atualizarListaItens() {
     listaItens.removeAll();
@@ -1214,66 +1216,70 @@ checkboxMostrarTexturas.value = false; // Inicialmente desmarcado
 
 // Adicionar evento para o checkbox de texturas
 var grupoTexturas;
+// ... existing code ...
+
+// Modificar a parte onde o checkbox de texturas é criado
 checkboxMostrarTexturas.onClick = function() {
     if (this.value) {
-        // Adicionar o grupo de texturas
+        // Criar o grupo de texturas
         grupoTexturas = grupoExtra.add("panel", undefined, "Texturas");
-        grupoTexturas.orientation = "column";
-        grupoTexturas.alignChildren = ["fill", "top"];
+        grupoTexturas.orientation = "row"; // Mudado para row para elementos lado a lado
+        grupoTexturas.alignChildren = ["left", "top"];
         grupoTexturas.spacing = 10;
+        grupoTexturas.margins = 10;
 
-        // Subgrupo para os controles principais
-        var subgrupoTexturas = grupoTexturas.add("group");
-        subgrupoTexturas.orientation = "row";
-        subgrupoTexturas.alignChildren = ["left", "center"];
-        subgrupoTexturas.spacing = 10;
+        // Subgrupo para lista e botão
+        var grupoLista = grupoTexturas.add("group");
+        grupoLista.orientation = "column";
+        grupoLista.alignChildren = ["left", "top"];
+        grupoLista.spacing = 5;
 
-        // Lista dropdown com as texturas disponíveis
-        var texturasDisponiveis = [
-            "Selecione uma textura",
-            "Texture 01 - Bois",
-            "Texture 02 - Pierre",
-            "Texture 03 - Marbre",
-            "Texture 04 - Métal",
-            "Texture 05 - Béton"
-        ];
-        
-        var listaTexturas = subgrupoTexturas.add("dropdownlist", undefined, texturasDisponiveis);
+        // Lista de texturas no subgrupo
+        listaTexturas = grupoLista.add("dropdownlist", undefined, ["Selecione uma textura", "Texture 01 - Bois", "Texture 02", "Texture 03"]);
         listaTexturas.selection = 0;
         listaTexturas.preferredSize.width = 200;
 
-        // Botão para inserir textura
-        var botaoInserirTextura = subgrupoTexturas.add("button", undefined, "Inserir Textura");
+        // Botão no subgrupo
+        botaoInserirTextura = grupoLista.add("button", undefined, "Inserir Textura");
 
-        // Evento de clique para o botão inserir textura
-        botaoInserirTextura.onClick = function() {
-            if (listaTexturas.selection.index === 0) {
-                alert("Por favor, selecione uma textura.");
-                return;
+        // Grupo para preview da imagem
+        var grupoPreview = grupoTexturas.add("group");
+        grupoPreview.orientation = "column";
+        grupoPreview.alignChildren = ["left", "top"];
+        grupoPreview.spacing = 5;
+
+        // Evento de mudança na lista
+        listaTexturas.onChange = function() {
+            // Limpar preview anterior
+            while(grupoPreview.children.length > 0) {
+                grupoPreview.remove(grupoPreview.children[0]);
             }
-
-            var texturaEscolhida = listaTexturas.selection.text;
-
-            // TODO: Implementar a lógica para inserir a textura ao lado da legenda
-            alert("Em breve: A textura '" + texturaEscolhida + "' será inserida ao lado da legenda");
-
-            // Adicionar à legenda
-            var textoTextura = texturaEscolhida;
-
-            itensLegenda.push({
-                tipo: "textura",
-                nome: texturaEscolhida,
-                texto: textoTextura
-            });
-
-            atualizarListaItens();
+            
+            if (this.selection.text === "Texture 01 - Bois") {
+                try {
+                    var caminhoImagem = File($.fileName).parent + "/png/texture1.png";
+                    var arquivoImagem = new File(caminhoImagem);
+                    
+                    if (arquivoImagem.exists) {
+                        var imagem = grupoPreview.add("image", undefined, arquivoImagem);
+                        imagem.preferredSize = [100, 100]; // Ajuste o tamanho conforme necessário
+                    } else {
+                        var textoErro = grupoPreview.add("statictext", undefined, "Imagem não encontrada");
+                    }
+                } catch (e) {
+                    alert("Erro ao carregar a imagem: " + e.message);
+                }
+            }
+            
+            janela.layout.layout(true);
+            janela.layout.resize();
         };
 
-        // Adicionar texto de informação
-        var infoTexto = grupoTexturas.add("statictext", undefined, 
+        // Texto de informação
+        var infoTexto = grupoLista.add("statictext", undefined, 
             "Selecione uma textura para inserir ao lado da legenda.", 
             {multiline: true});
-        infoTexto.preferredSize.width = 400;
+        infoTexto.preferredSize.width = 200;
 
         janela.layout.layout(true);
         janela.preferredSize.height += 100;
@@ -1285,6 +1291,8 @@ checkboxMostrarTexturas.onClick = function() {
     }
     janela.layout.resize();
 };
+
+
   // Adicionar evento para o checkbox de contar elementos
   checkboxMostrarContar.onClick = function() {
     if (this.value) {

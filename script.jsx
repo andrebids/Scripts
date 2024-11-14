@@ -438,7 +438,7 @@ botaoUpdate.onClick = function() {
 // Criar abas para Legenda e Contador de Bolas
 var abas = janela.add("tabbedpanel");
 abas.alignChildren = ["fill", "fill"];
-var abaLegenda = abas.add("tab", undefined, "Legenda");
+var abaLegenda = abas.add("tab", undefined, "Legenda1");
 
 // Criar conteúdo para a aba Legenda
 var conteudoLegenda = abaLegenda.add("group");

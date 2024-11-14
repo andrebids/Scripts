@@ -41,7 +41,7 @@ REM If we reach here, Git is installed
 echo O Git está instalado. Prosseguindo com a clonagem do repositório...
 
 REM Definir o diretório alvo e criar a pasta Legenda
-set "TARGET_DIR=C:\Program Files\Adobe\Adobe Illustrator 2024\Presets\en_GB\Scripts"
+set "TARGET_DIR=C:\Program Files\Adobe\Adobe Illustrator 2025\Presets\en_GB\Scripts"
 set "LEGENDA_DIR=%TARGET_DIR%\Legenda"
 
 REM Verificar se a pasta Legenda já existe e não está vazia
@@ -65,7 +65,7 @@ if %ERRORLEVEL% neq 0 (
     
     REM Adicionar a configuração safe.directory
     echo Adicionando a configuração safe.directory...
-    git config --global --add safe.directory "C:/Program Files/Adobe/Adobe Illustrator 2024/Presets/en_GB/Scripts/Legenda"
+    git config --global --add safe.directory "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda"
     
     REM Alterar as permissões da pasta .git usando PowerShell
     echo Alterando as permissões da pasta .git...

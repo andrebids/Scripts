@@ -1246,7 +1246,14 @@ checkboxMostrarTexturas.onClick = function() {
             "Texture 07",
             "Texture 08",
             "Texture 09",
-            "Texture 10"
+            "Texture 10",
+            "Texture 11",
+            "Texture 12",
+            "Texture 13",
+            "Texture 14",
+            "Texture 15",
+            "Texture 16",
+            "Texture 17"
         ]);
         listaTexturas.selection = 0;
         listaTexturas.preferredSize.width = 200;

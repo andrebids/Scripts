@@ -657,6 +657,40 @@ var botaoAdicionarComponente = grupo2.add("button", undefined, "Adicionar Compon
 var grupoBolas = conteudoLegenda.add("panel", undefined, "Bolas");
 grupoBolas.orientation = "column";
 grupoBolas.alignChildren = "left";
+// ADICIONAR ESTE NOVO CÓDIGO
+
+// Modificar as propriedades de altura do grupo Extra e do painel de abas
+// Modificar a criação do grupo Extra
+var grupoExtra = conteudoLegenda.add("panel", undefined, "Extra");
+grupoExtra.orientation = "column";
+grupoExtra.alignChildren = ["fill", "top"];
+grupoExtra.spacing = 5;
+
+// Adicionar as abas diretamente ao grupo Extra
+var abasExtra = grupoExtra.add("tabbedpanel");
+abasExtra.alignChildren = ["fill", "fill"];
+
+
+// Aba 1: Observações e Componente Extra
+var abaGeral = abasExtra.add("tab", undefined, "Geral");
+abaGeral.alignChildren = ["fill", "top"];
+var checkboxMostrarObs = abaGeral.add("checkbox", undefined, "Adicionar Observações");
+var checkboxMostrarComponenteExtra = abaGeral.add("checkbox", undefined, "Adicionar Componente Extra");
+
+// Aba 2: Alfabeto e Contagem
+var abaAlfabeto = abasExtra.add("tab", undefined, "Alfabeto/Contagem");
+abaAlfabeto.alignChildren = ["fill", "top"];
+var checkboxMostrarAlfabeto = abaAlfabeto.add("checkbox", undefined, "Criar GX (Alfabeto)");
+var checkboxMostrarContar = abaAlfabeto.add("checkbox", undefined, "Mostrar Contar Elementos");
+
+// Aba 3: Texturas
+var abaTexturas = abasExtra.add("tab", undefined, "Texturas");
+abaTexturas.alignChildren = ["fill", "top"];
+var checkboxMostrarTexturas = abaTexturas.add("checkbox", undefined, "Adicionar Texturas");
+
+// Selecionar a primeira aba por padrão
+abasExtra.selection = abaGeral;
+
 
 var grupoBolasSelecao = grupoBolas.add("group");
 grupoBolasSelecao.orientation = "row";
@@ -866,46 +900,21 @@ function atualizarTextoBola(bola) {
     texto += " units: " + bola.quantidade.toFixed(2).replace('.', ',');
     return texto;
 }
-var grupoExtra = conteudoLegenda.add("panel", undefined, "Extra"); // Mover para conteudoLegenda
-grupoExtra.orientation = "column"; 
-grupoExtra.alignChildren = ["fill", "top"]; 
-grupoExtra.spacing = 10;
-grupoExtra.preferredSize.width = undefined; // Remover largura fixa
 
-// Criar um novo grupo para o preview e botões
-var grupoPreviewBotoes = conteudoLegenda.add("group");
-grupoPreviewBotoes.orientation = "row";
-grupoPreviewBotoes.alignChildren = ["fill", "top"];
-grupoPreviewBotoes.spacing = 10;
-
-// Mover a lista de itens e botões para o novo grupo
-var subgrupoListaItens = grupoPreviewBotoes.add("group");
-
-// Mover o checkbox para dentro do grupoExtra
-var checkboxMostrarObs = grupoExtra.add("checkbox", undefined, "Adicionar Observações");
-checkboxMostrarObs.value = false; // Inicialmente desmarcado
-
-// Adicionar checkbox para ocultar/mostrar o campo "Componente Extra"
-var checkboxMostrarComponenteExtra = grupoExtra.add("checkbox", undefined, "Adicionar Componente Extra, não existente na lista");
-checkboxMostrarComponenteExtra.value = false; // Inicialmente desmarcado
-// Adicionar checkbox para ocultar/mostrar o campo "Alfabeto"
-var checkboxMostrarAlfabeto = grupoExtra.add("checkbox", undefined, "Criar GX (Alfabeto)");
-checkboxMostrarAlfabeto.value = false; // Inicialmente desmarcado
 
 // Adicionar evento para o checkbox de alfabeto
 var grupoAlfabeto, campoPalavraChave, dropdownCorBioprint, tamanhoAlfabeto, botaoAdicionarPalavraChave;
 
 
-
 // Adicionar evento para o checkbox de componente extra
 var grupoComponenteExtra, campoNomeExtra, dropdownUnidadeExtra, campoQuantidadeExtra, botaoAdicionarExtra;
 checkboxMostrarComponenteExtra.onClick = function() {
-  if (this.value) {
-      // Adicionar o grupo de componente extra
-      grupoComponenteExtra = grupoExtra.add("panel", undefined, "Componente Extra");
-      grupoComponenteExtra.orientation = "row";
-      grupoComponenteExtra.alignChildren = ["left", "top"];
-      grupoComponenteExtra.spacing = 10;
+    if (this.value) {
+        // Adicionar o grupo de componente extra
+        grupoComponenteExtra = grupoExtra.add("panel", undefined, "Componente Extra");
+        grupoComponenteExtra.orientation = "row";
+        grupoComponenteExtra.alignChildren = ["left", "top"];
+        grupoComponenteExtra.spacing = 10;
 
       // Campo de texto para o nome do componente
       campoNomeExtra = grupoComponenteExtra.add("edittext", undefined, "");
@@ -953,14 +962,11 @@ checkboxMostrarComponenteExtra.onClick = function() {
       };
 
       janela.layout.layout(true);
-      janela.preferredSize.height += 50;
-  } else {
-      // Remover o grupo de componente extra
-      grupoComponenteExtra.parent.remove(grupoComponenteExtra);
-      janela.layout.layout(true);
-      janela.preferredSize.height -= 50;
-  }
-  janela.layout.resize();
+    } else {
+        grupoComponenteExtra.parent.remove(grupoComponenteExtra);
+        janela.layout.layout(true);
+    }
+    janela.layout.resize();
 };
 
 checkboxMostrarAlfabeto.onClick = function() {
@@ -1135,13 +1141,6 @@ checkboxMostrarAlfabeto.onClick = function() {
   janela.layout.resize();
 };
 
-// Adicionar checkbox para ocultar/mostrar o campo "Contar elementos"
-var checkboxMostrarContar = grupoExtra.add("checkbox", undefined, "Mostrar Contar Elementos");
-checkboxMostrarContar.value = false; // Inicialmente desmarcado
-
-// Adicionar checkbox para ocultar/mostrar o campo "Texturas"
-var checkboxMostrarTexturas = grupoExtra.add("checkbox", undefined, "Adicionar Texturas");
-checkboxMostrarTexturas.value = false; // Inicialmente desmarcado
 
 // Adicionar evento para o checkbox de texturas
 var grupoTexturas;
@@ -1333,41 +1332,33 @@ function removerDuplicatas(array) {
   }
   return resultado;
 }
-    // Quarto grupo (Componentes adicionados)
- var grupoComponentesAdicionados = abaLegenda.add("group");
- grupoComponentesAdicionados.orientation = "row";
- grupoComponentesAdicionados.alignChildren = ["fill", "top"];
- grupoComponentesAdicionados.spacing = 10;
- 
- // Subgrupo para a lista de itens adicionados
- var subgrupoListaItens = grupoComponentesAdicionados.add("group");
- subgrupoListaItens.orientation = "column";
- subgrupoListaItens.alignChildren = ["fill", "top"];
- subgrupoListaItens.maximumSize = [400, 200]; // Ajuste a largura conforme necessário
- 
- // Lista de itens adicionados com barra de rolagem
- var listaItens = subgrupoListaItens.add("listbox", undefined, [], {multiselect: false});
- listaItens.preferredSize = [380, 180]; // Ajuste o tamanho conforme necessário
- 
-// Subgrupo para o botão remover item e adicionar legenda 
-var subgrupoBotaoRemover = grupoComponentesAdicionados.add("group");
-subgrupoBotaoRemover.orientation = "column";
-subgrupoBotaoRemover.alignChildren = ["fill", "top"];
-subgrupoBotaoRemover.spacing = 10;
-subgrupoBotaoRemover.preferredSize = [200, 100]; 
 
-// Botão para remover item selecionado - Linha 276
-var botaoRemoverItem = subgrupoBotaoRemover.add("button", undefined, "Remover Selecionado");
-botaoRemoverItem.preferredSize = [180, 30]; 
 
-// Botão para remover todos os itens - Linha 278
-var botaoRemoverTodos = subgrupoBotaoRemover.add("button", undefined, "Remover Todos");
-botaoRemoverTodos.preferredSize = [180, 30]; // Linha 279
+// Manter apenas este código para a lista única
+var grupoPreviewBotoes = conteudoLegenda.add("group");
+grupoPreviewBotoes.orientation = "column";
+grupoPreviewBotoes.alignChildren = ["fill", "top"];
+grupoPreviewBotoes.spacing = 10;
 
-// Botão para adicionar legenda - Linha 280
-var botaoGerar = subgrupoBotaoRemover.add("button", undefined, "Adicionar Legenda");
-botaoGerar.preferredSize = [180, 30]; 
-botaoGerar.graphics.font = ScriptUI.newFont("Arial", "BOLD", 12);
+// Lista de itens
+var subgrupoListaItens = grupoPreviewBotoes.add("group");
+subgrupoListaItens.orientation = "column";
+subgrupoListaItens.alignChildren = ["fill", "top"];
+
+var listaItens = subgrupoListaItens.add("listbox", undefined, [], {multiselect: false});
+listaItens.alignment = ["fill", "fill"];
+listaItens.preferredSize.height = 180;
+
+// Grupo para os botões principais
+var grupoBotoesPrincipais = grupoPreviewBotoes.add("group");
+grupoBotoesPrincipais.orientation = "row";
+grupoBotoesPrincipais.alignment = ["fill", "bottom"];
+grupoBotoesPrincipais.spacing = 10;
+
+// Botões
+var botaoRemoverItem = grupoBotoesPrincipais.add("button", undefined, "Remover Selecionado");
+var botaoRemoverTodos = grupoBotoesPrincipais.add("button", undefined, "Remover Todos");
+var botaoGerar = grupoBotoesPrincipais.add("button", undefined, "Adicionar Legenda");
 
   
 function atualizarListaItens() {

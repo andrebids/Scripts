@@ -1190,6 +1190,30 @@ checkboxMostrarTexturas.onClick = function() {
       // Botão no subgrupo
       botaoInserirTextura = grupoLista.add("button", undefined, "Inserir Textura");
 
+        // Adicionar o evento onClick para o botão
+        botaoInserirTextura.onClick = function() {
+            if (listaTexturas.selection && listaTexturas.selection.index > 0) {
+                var texturaNumero = listaTexturas.selection.index;
+                var texturaNome = listaTexturas.selection.text;
+                
+                // Adicionar a textura à lista de itens
+                itensLegenda.push({
+                    tipo: "textura",
+                    nome: texturaNome,
+                    texto: texturaNome,
+                    referencia: "texture" + texturaNumero
+                });
+                
+                // Atualizar a lista de itens
+                atualizarListaItens();
+                
+                // Resetar a seleção
+                listaTexturas.selection = 0;
+            } else {
+                alert("Por favor, selecione uma textura primeiro.");
+            }
+        };
+
       // Grupo para preview da imagem
       var grupoPreview = grupoTexturas.add("group");
       grupoPreview.orientation = "column";

@@ -1235,7 +1235,19 @@ checkboxMostrarTexturas.onClick = function() {
         grupoLista.spacing = 5;
 
         // Lista de texturas no subgrupo
-        listaTexturas = grupoLista.add("dropdownlist", undefined, ["Selecione uma textura", "Texture 01 - Bois", "Texture 02", "Texture 03"]);
+        listaTexturas = grupoLista.add("dropdownlist", undefined, [
+            "Selecione uma textura",
+            "Texture 01",
+            "Texture 02",
+            "Texture 03",
+            "Texture 04",
+            "Texture 05",
+            "Texture 06",
+            "Texture 07",
+            "Texture 08",
+            "Texture 09",
+            "Texture 10"
+        ]);
         listaTexturas.selection = 0;
         listaTexturas.preferredSize.width = 200;
 
@@ -1255,14 +1267,16 @@ checkboxMostrarTexturas.onClick = function() {
                 grupoPreview.remove(grupoPreview.children[0]);
             }
             
-            if (this.selection.text === "Texture 01 - Bois") {
+            if (this.selection.index > 0) {
                 try {
-                    var caminhoImagem = File($.fileName).parent + "/png/texture1.png";
+                    var numeroTextura = this.selection.index;
+                    var nomeArquivo = "texture" + numeroTextura + ".png";
+                    var caminhoImagem = File($.fileName).parent + "/png/" + nomeArquivo;
                     var arquivoImagem = new File(caminhoImagem);
                     
                     if (arquivoImagem.exists) {
                         var imagem = grupoPreview.add("image", undefined, arquivoImagem);
-                        imagem.preferredSize = [100, 100]; // Ajuste o tamanho conforme necessário
+                        imagem.preferredSize = [100, 100];
                     } else {
                         var textoErro = grupoPreview.add("statictext", undefined, "Imagem não encontrada");
                     }

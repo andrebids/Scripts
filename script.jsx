@@ -546,6 +546,7 @@ function apenasNumerosEVirgula(campo) {
 }
 
 
+
 // Segundo grupo (Componentes)
 var grupoComponentes = conteudoLegenda.add("panel", undefined, "Componentes");
 grupoComponentes.orientation = "column";
@@ -865,7 +866,449 @@ function atualizarTextoBola(bola) {
     texto += " units: " + bola.quantidade.toFixed(2).replace('.', ',');
     return texto;
 }
+var grupoExtra = conteudoLegenda.add("panel", undefined, "Extra"); // Mover para conteudoLegenda
+grupoExtra.orientation = "column"; 
+grupoExtra.alignChildren = ["fill", "top"]; 
+grupoExtra.spacing = 10;
+grupoExtra.preferredSize.width = undefined; // Remover largura fixa
 
+// Criar um novo grupo para o preview e botões
+var grupoPreviewBotoes = conteudoLegenda.add("group");
+grupoPreviewBotoes.orientation = "row";
+grupoPreviewBotoes.alignChildren = ["fill", "top"];
+grupoPreviewBotoes.spacing = 10;
+
+// Mover a lista de itens e botões para o novo grupo
+var subgrupoListaItens = grupoPreviewBotoes.add("group");
+
+// Mover o checkbox para dentro do grupoExtra
+var checkboxMostrarObs = grupoExtra.add("checkbox", undefined, "Adicionar Observações");
+checkboxMostrarObs.value = false; // Inicialmente desmarcado
+
+// Adicionar checkbox para ocultar/mostrar o campo "Componente Extra"
+var checkboxMostrarComponenteExtra = grupoExtra.add("checkbox", undefined, "Adicionar Componente Extra, não existente na lista");
+checkboxMostrarComponenteExtra.value = false; // Inicialmente desmarcado
+// Adicionar checkbox para ocultar/mostrar o campo "Alfabeto"
+var checkboxMostrarAlfabeto = grupoExtra.add("checkbox", undefined, "Criar GX (Alfabeto)");
+checkboxMostrarAlfabeto.value = false; // Inicialmente desmarcado
+
+// Adicionar evento para o checkbox de alfabeto
+var grupoAlfabeto, campoPalavraChave, dropdownCorBioprint, tamanhoAlfabeto, botaoAdicionarPalavraChave;
+
+
+
+// Adicionar evento para o checkbox de componente extra
+var grupoComponenteExtra, campoNomeExtra, dropdownUnidadeExtra, campoQuantidadeExtra, botaoAdicionarExtra;
+checkboxMostrarComponenteExtra.onClick = function() {
+  if (this.value) {
+      // Adicionar o grupo de componente extra
+      grupoComponenteExtra = grupoExtra.add("panel", undefined, "Componente Extra");
+      grupoComponenteExtra.orientation = "row";
+      grupoComponenteExtra.alignChildren = ["left", "top"];
+      grupoComponenteExtra.spacing = 10;
+
+      // Campo de texto para o nome do componente
+      campoNomeExtra = grupoComponenteExtra.add("edittext", undefined, "");
+      campoNomeExtra.characters = 20;
+
+      // Dropdown para unidade
+      dropdownUnidadeExtra = grupoComponenteExtra.add("dropdownlist", undefined, ["m2", "ml", "unit"]);
+      dropdownUnidadeExtra.selection = 0;
+
+      // Campo para quantidade
+      campoQuantidadeExtra = grupoComponenteExtra.add("edittext", undefined, "");
+      campoQuantidadeExtra.characters = 5;
+      apenasNumerosEVirgula(campoQuantidadeExtra);
+
+      // Botão para adicionar à legenda
+      botaoAdicionarExtra = grupoComponenteExtra.add("button", undefined, "Adicionar à Legenda");
+
+      // Evento de clique para o botão adicionar extra
+      botaoAdicionarExtra.onClick = function() {
+          var nomeExtra = campoNomeExtra.text;
+          var unidadeExtra = dropdownUnidadeExtra.selection.text;
+          var quantidadeExtra = parseFloat(campoQuantidadeExtra.text.replace(',', '.'));
+
+          if (nomeExtra === "" || isNaN(quantidadeExtra) || quantidadeExtra <= 0) {
+              alert("Por favor, preencha todos os campos corretamente.");
+              return;
+          }
+
+          var textoExtra = nomeExtra + " (" + unidadeExtra + "): " + quantidadeExtra.toFixed(2).replace('.', ',');
+
+          itensLegenda.push({
+              tipo: "extra",
+              nome: nomeExtra,
+              texto: textoExtra,
+              unidade: unidadeExtra,
+              quantidade: quantidadeExtra
+          });
+
+          atualizarListaItens();
+          alert("Componente extra adicionado à legenda.");
+
+          // Limpar os campos após adicionar
+          campoNomeExtra.text = "";
+          campoQuantidadeExtra.text = "";
+      };
+
+      janela.layout.layout(true);
+      janela.preferredSize.height += 50;
+  } else {
+      // Remover o grupo de componente extra
+      grupoComponenteExtra.parent.remove(grupoComponenteExtra);
+      janela.layout.layout(true);
+      janela.preferredSize.height -= 50;
+  }
+  janela.layout.resize();
+};
+
+checkboxMostrarAlfabeto.onClick = function() {
+  if (this.value) {
+      // Adicionar o grupo de alfabeto
+      grupoAlfabeto = grupoExtra.add("panel", undefined, "Alfabeto");
+      grupoAlfabeto.orientation = "column"; // Alterar para "column" para alinhar verticalmente
+      grupoAlfabeto.alignChildren = ["fill", "top"]; // Preencher a largura
+      grupoAlfabeto.spacing = 10; // Adicionar espaçamento entre os elementos
+
+      var subGrupoAlfabeto = grupoAlfabeto.add("group");
+      subGrupoAlfabeto.orientation = "row";
+      subGrupoAlfabeto.alignChildren = ["fill", "top"];
+      subGrupoAlfabeto.spacing = 10;
+
+      subGrupoAlfabeto.add("statictext", undefined, "Alfabeto:");
+      campoPalavraChave = subGrupoAlfabeto.add("edittext", undefined, "");
+      campoPalavraChave.characters = 20;
+
+      // Adicionar texto estático para bioprint
+      subGrupoAlfabeto.add("statictext", undefined, "Bioprint");
+
+      // Adicionar dropdown para cor do bioprint
+      subGrupoAlfabeto.add("statictext", undefined, "Cor:");
+      dropdownCorBioprint = subGrupoAlfabeto.add("dropdownlist", undefined, ["Selecione a cor"]);
+
+      // Manter o dropdown de tamanho existente
+      subGrupoAlfabeto.add("statictext", undefined, "Tamanho:");
+      tamanhoAlfabeto = subGrupoAlfabeto.add("dropdownlist", undefined, ["1,40 m", "2,00 m"]);
+      tamanhoAlfabeto.selection = 0;
+
+      botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, "Adicionar");
+
+      // Adicionar linha separadora
+      var linhaSeparadora = grupoAlfabeto.add("panel");
+      linhaSeparadora.preferredSize = [-1, 2]; // Ajustar a largura para preencher e altura para 2px
+      linhaSeparadora.graphics.backgroundColor = linhaSeparadora.graphics.newBrush(linhaSeparadora.graphics.BrushType.SOLID_COLOR, [0, 0, 0, 1]);
+
+      // Adicionar texto de informação
+      grupoAlfabeto.add("statictext", undefined, "Escreve a tua frase GX, e adiciona á legenda, não precisas de preencher o Nome/tipo. Para fazer o coração é: <3");
+
+      // Função para preencher o dropdown de cores do bioprint
+      function preencherCoresBioprint() {
+          dropdownCorBioprint.removeAll();
+          
+          var componenteBioprint = null;
+          for (var i = 0; i < dados.componentes.length; i++) {
+              if (dados.componentes[i].nome.toLowerCase() === "bioprint") {
+                  componenteBioprint = dados.componentes[i];
+                  break;
+              }
+          }
+          
+          if (componenteBioprint) {
+              var coresBioprint = [];
+              var indexOr = -1;
+              for (var i = 0; i < dados.combinacoes.length; i++) {
+                  if (dados.combinacoes[i].componenteId === componenteBioprint.id) {
+                      var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
+                      if (cor && !arrayContains(coresBioprint, cor)) {
+                          coresBioprint.push(cor);
+                          if (cor.nome.toLowerCase() === "or") {
+                              indexOr = coresBioprint.length - 1;
+                          }
+                      }
+                  }
+              }
+          
+              for (var i = 0; i < coresBioprint.length; i++) {
+                  dropdownCorBioprint.add("item", coresBioprint[i].nome);
+              }
+          
+              // Pré-selecionar "or" se existir, caso contrário, selecionar o primeiro item
+              if (indexOr !== -1) {
+                  dropdownCorBioprint.selection = indexOr;
+              } else if (coresBioprint.length > 0) {
+                  dropdownCorBioprint.selection = 0;
+              }
+          }
+          
+          // Se não houver cores disponíveis, adicionar um item padrão
+          if (dropdownCorBioprint.items.length === 0) {
+              dropdownCorBioprint.add("item", "Sem cores disponíveis");
+              dropdownCorBioprint.selection = 0;
+          }
+      }
+
+      // Chamar a função para preencher as cores do bioprint
+      preencherCoresBioprint();
+
+      function processarAlfabeto() {
+          var alfabeto = campoPalavraChave.text.toUpperCase();
+          var corBioprintSelecionada = dropdownCorBioprint.selection ? dropdownCorBioprint.selection.text : "";
+          var tamanhoSelecionado = tamanhoAlfabeto.selection.text;
+          var referenciasUsadas = {};
+          
+          // Armazenar a palavra digitada
+          var palavraDigitada = campoPalavraChave.text;
+          
+          var referenciasMapeadas = {
+              'A': 'GX214LW', 'B': 'GX215LW', 'C': 'GX216LW', 'D': 'GX217LW',
+              'E': 'GX218LW', 'F': 'GX219LW', 'G': 'GX220LW', 'H': 'GX221LW',
+              'I': 'GX222LW', 'J': 'GX223LW', 'K': 'GX224LW', 'L': 'GX225LW',
+              'M': 'GX226LW', 'N': 'GX227LW', 'O': 'GX228LW', 'P': 'GX229LW',
+              'Q': 'GX230LW', 'R': 'GX231LW', 'S': 'GX232LW', 'T': 'GX233LW',
+              'U': 'GX234LW', 'V': 'GX235LW', 'W': 'GX236LW', 'X': 'GX237LW',
+              'Y': 'GX238LW', 'Z': 'GX239LW', '<3': 'GX240LW', '#': 'GX241LW'
+          };
+          
+          for (var i = 0; i < alfabeto.length; i++) {
+              var caractere = alfabeto[i];
+              if (caractere === '<' && alfabeto[i+1] === '3') {
+                  caractere = '<3';
+                  i++; // Pula o próximo caractere, pois já foi processado
+              }
+              
+              if (referenciasMapeadas.hasOwnProperty(caractere)) {
+                  if (!referenciasUsadas[caractere]) {
+                      referenciasUsadas[caractere] = 1;
+                  } else {
+                      referenciasUsadas[caractere]++;
+                  }
+              }
+          }
+          
+          var referenciasTexto = [];
+          for (var caractere in referenciasUsadas) {
+              if (referenciasUsadas.hasOwnProperty(caractere)) {
+                  referenciasTexto.push(referenciasMapeadas[caractere] + " (" + caractere + ") bioprint " + corBioprintSelecionada + " " + tamanhoSelecionado + ": " + referenciasUsadas[caractere]);
+              }
+          }
+          
+          // Adicionar as referências usadas à legenda
+          if (referenciasTexto.length > 0) {
+              itensLegenda.push({
+                  tipo: "alfabeto",
+                  nome: "Referências do Alfabeto",
+                  texto: referenciasTexto.join("\n"),
+                  referencia: "",
+                  quantidade: 1,
+                  unidade: "",
+                  tamanho: tamanhoSelecionado,
+                  bioprint: "bioprint",
+                  corBioprint: corBioprintSelecionada,
+                  palavraDigitada: palavraDigitada
+              });
+              
+              atualizarListaItens();
+              campoPalavraChave.text = "";
+              
+              // Atualizar o campo nome/tipo apenas com a palavra digitada
+              campoNomeTipo.text = palavraDigitada;
+          } else {
+              alert("Nenhuma letra válida foi inserida.");
+          }
+      }
+
+      botaoAdicionarPalavraChave.onClick = processarAlfabeto;
+
+      janela.layout.layout(true); // Forçar atualização do layout
+      janela.preferredSize.height += 100; // Aumentar a altura da janela
+  } else {
+      // Remover o grupo de alfabeto
+      grupoAlfabeto.parent.remove(grupoAlfabeto);
+      campoPalavraChave = null; // Definir campoPalavraChave como null quando o grupo é removido
+      dropdownCorBioprint = null; // Definir dropdownCorBioprint como null quando o grupo é removido
+      tamanhoAlfabeto = null; // Definir tamanhoAlfabeto como null quando o grupo é removido
+      botaoAdicionarPalavraChave = null; // Definir botaoAdicionarPalavraChave como null quando o grupo é removido
+      janela.layout.layout(true); // Forçar atualização do layout
+      janela.preferredSize.height -= 100; // Diminuir a altura da janela
+  }
+  janela.layout.resize();
+};
+
+// Adicionar checkbox para ocultar/mostrar o campo "Contar elementos"
+var checkboxMostrarContar = grupoExtra.add("checkbox", undefined, "Mostrar Contar Elementos");
+checkboxMostrarContar.value = false; // Inicialmente desmarcado
+
+// Adicionar checkbox para ocultar/mostrar o campo "Texturas"
+var checkboxMostrarTexturas = grupoExtra.add("checkbox", undefined, "Adicionar Texturas");
+checkboxMostrarTexturas.value = false; // Inicialmente desmarcado
+
+// Adicionar evento para o checkbox de texturas
+var grupoTexturas;
+// ... existing code ...
+
+// Modificar a parte onde o checkbox de texturas é criado
+checkboxMostrarTexturas.onClick = function() {
+  if (this.value) {
+      // Criar o grupo de texturas
+      grupoTexturas = grupoExtra.add("panel", undefined, "Texturas");
+      grupoTexturas.orientation = "row"; // Mudado para row para elementos lado a lado
+      grupoTexturas.alignChildren = ["left", "top"];
+      grupoTexturas.spacing = 10;
+      grupoTexturas.margins = 10;
+
+      // Subgrupo para lista e botão
+      var grupoLista = grupoTexturas.add("group");
+      grupoLista.orientation = "column";
+      grupoLista.alignChildren = ["left", "top"];
+      grupoLista.spacing = 5;
+
+      // Lista de texturas no subgrupo
+      listaTexturas = grupoLista.add("dropdownlist", undefined, [
+          "Selecione uma textura",
+          "Texture 01",
+          "Texture 02",
+          "Texture 03",
+          "Texture 04",
+          "Texture 05",
+          "Texture 06",
+          "Texture 07",
+          "Texture 08",
+          "Texture 09",
+          "Texture 10",
+          "Texture 11",
+          "Texture 12",
+          "Texture 13",
+          "Texture 14",
+          "Texture 15",
+          "Texture 16",
+          "Texture 17"
+      ]);
+      listaTexturas.selection = 0;
+      listaTexturas.preferredSize.width = 200;
+
+      // Botão no subgrupo
+      botaoInserirTextura = grupoLista.add("button", undefined, "Inserir Textura");
+
+      // Grupo para preview da imagem
+      var grupoPreview = grupoTexturas.add("group");
+      grupoPreview.orientation = "column";
+      grupoPreview.alignChildren = ["left", "top"];
+      grupoPreview.spacing = 5;
+
+      // Evento de mudança na lista
+      listaTexturas.onChange = function() {
+          // Limpar preview anterior
+          while(grupoPreview.children.length > 0) {
+              grupoPreview.remove(grupoPreview.children[0]);
+          }
+          
+          if (this.selection.index > 0) {
+              try {
+                  var numeroTextura = this.selection.index;
+                  var nomeArquivo = "texture" + numeroTextura + ".png";
+                  var caminhoImagem = File($.fileName).parent + "/png/" + nomeArquivo;
+                  var arquivoImagem = new File(caminhoImagem);
+                  
+                  if (arquivoImagem.exists) {
+                      var imagem = grupoPreview.add("image", undefined, arquivoImagem);
+                      imagem.preferredSize = [100, 100];
+                  } else {
+                      var textoErro = grupoPreview.add("statictext", undefined, "Imagem não encontrada");
+                  }
+              } catch (e) {
+                  alert("Erro ao carregar a imagem: " + e.message);
+              }
+          }
+          
+          janela.layout.layout(true);
+          janela.layout.resize();
+      };
+
+      // Texto de informação
+      var infoTexto = grupoLista.add("statictext", undefined, 
+          "Selecione uma textura para inserir ao lado da legenda.", 
+          {multiline: true});
+      infoTexto.preferredSize.width = 200;
+
+      janela.layout.layout(true);
+      janela.preferredSize.height += 100;
+  } else {
+      // Remover o grupo de texturas
+      grupoTexturas.parent.remove(grupoTexturas);
+      janela.layout.layout(true);
+      janela.preferredSize.height -= 100;
+  }
+  janela.layout.resize();
+};
+
+
+// Adicionar evento para o checkbox de contar elementos
+checkboxMostrarContar.onClick = function() {
+  if (this.value) {
+      // Adicionar o grupo de contar elementos
+      grupoContar = grupoExtra.add("panel", undefined, "Contar Elementos (bolas para já)");
+      grupoContar.orientation = "column";
+      grupoContar.alignChildren = ["fill", "top"];
+      grupoContar.spacing = 10;
+
+      // Criar a interface do contador de bolas
+      var interfaceContador = criarInterfaceContadorBolas(grupoContar);
+
+      janela.layout.layout(true);
+      janela.preferredSize.height += 200; // Aumentar a altura da janela
+  } else {
+      // Remover o grupo de contar elementos
+      grupoContar.parent.remove(grupoContar);
+      janela.layout.layout(true);
+      janela.preferredSize.height -= 200; // Diminuir a altura da janela
+  }
+  janela.layout.resize();
+};
+
+// Adicionar evento para o checkbox de observações
+var grupoObs, campoObs; // Declarar as variáveis no escopo adequado
+checkboxMostrarObs.onClick = function() {
+  if (this.value) {
+      // Adicionar o grupo de observações
+      grupoObs = grupoExtra.add("panel", undefined, "Observações");
+      grupoObs.orientation = "row";
+      grupoObs.alignChildren = ["fill", "top"]; // Preencher a largura
+      grupoObs.spacing = 0;
+
+      grupoObs.add("statictext", undefined, "Obs:");
+
+      // Adicionar uma caixa de texto para observações
+      campoObs = grupoObs.add("edittext", undefined, "", {multiline: true, scrollable: true});
+      campoObs.characters = 60;
+      campoObs.preferredSize.height = 100; // Aumentar a altura da caixa de texto
+      campoObs.alignment = ["fill", "fill"]; // Preencher a largura
+
+      janela.layout.layout(true); // Forçar atualização do layout
+      janela.preferredSize.height += 100; // Aumentar a altura da janela
+  } else {
+      // Remover o grupo de observações
+      grupoObs.parent.remove(grupoObs);
+      campoObs = null; // Definir campoObs como null quando o grupo é removido
+      janela.layout.layout(true); // Forçar atualização do layout
+      janela.preferredSize.height -= 100; // Diminuir a altura da janela
+  }
+  janela.layout.resize();
+};
+
+// Adicione esta função no início do seu arquivo ou antes de ser usada
+function removerDuplicatas(array) {
+  var resultado = [];
+  var jaVisto = {};
+  for (var i = 0; i < array.length; i++) {
+      var item = array[i];
+      if (!jaVisto[item]) {
+          resultado.push(item);
+          jaVisto[item] = true;
+      }
+  }
+  return resultado;
+}
     // Quarto grupo (Componentes adicionados)
  var grupoComponentesAdicionados = abaLegenda.add("group");
  grupoComponentesAdicionados.orientation = "row";
@@ -946,440 +1389,7 @@ function atualizarListaItens() {
       }
   };
 
-  var grupoExtra = abaLegenda.add("panel", undefined, "Extra"); 
-  grupoExtra.orientation = "column"; 
-  grupoExtra.alignChildren = ["fill", "top"]; 
-  grupoExtra.spacing = 10;
-  grupoExtra.preferredSize.width = 700; 
 
-  // Mover o checkbox para dentro do grupoExtra
-  var checkboxMostrarObs = grupoExtra.add("checkbox", undefined, "Adicionar Observações");
-  checkboxMostrarObs.value = false; // Inicialmente desmarcado
-
-  // Adicionar checkbox para ocultar/mostrar o campo "Componente Extra"
-var checkboxMostrarComponenteExtra = grupoExtra.add("checkbox", undefined, "Adicionar Componente Extra, não existente na lista");
-checkboxMostrarComponenteExtra.value = false; // Inicialmente desmarcado
-// Adicionar checkbox para ocultar/mostrar o campo "Alfabeto"
-var checkboxMostrarAlfabeto = grupoExtra.add("checkbox", undefined, "Criar GX (Alfabeto)");
-checkboxMostrarAlfabeto.value = false; // Inicialmente desmarcado
-
-// Adicionar evento para o checkbox de alfabeto
-var grupoAlfabeto, campoPalavraChave, dropdownCorBioprint, tamanhoAlfabeto, botaoAdicionarPalavraChave;
-
-
-
-// Adicionar evento para o checkbox de componente extra
-var grupoComponenteExtra, campoNomeExtra, dropdownUnidadeExtra, campoQuantidadeExtra, botaoAdicionarExtra;
-checkboxMostrarComponenteExtra.onClick = function() {
-    if (this.value) {
-        // Adicionar o grupo de componente extra
-        grupoComponenteExtra = grupoExtra.add("panel", undefined, "Componente Extra");
-        grupoComponenteExtra.orientation = "row";
-        grupoComponenteExtra.alignChildren = ["left", "top"];
-        grupoComponenteExtra.spacing = 10;
-
-        // Campo de texto para o nome do componente
-        campoNomeExtra = grupoComponenteExtra.add("edittext", undefined, "");
-        campoNomeExtra.characters = 20;
-
-        // Dropdown para unidade
-        dropdownUnidadeExtra = grupoComponenteExtra.add("dropdownlist", undefined, ["m2", "ml", "unit"]);
-        dropdownUnidadeExtra.selection = 0;
-
-        // Campo para quantidade
-        campoQuantidadeExtra = grupoComponenteExtra.add("edittext", undefined, "");
-        campoQuantidadeExtra.characters = 5;
-        apenasNumerosEVirgula(campoQuantidadeExtra);
-
-        // Botão para adicionar à legenda
-        botaoAdicionarExtra = grupoComponenteExtra.add("button", undefined, "Adicionar à Legenda");
-
-        // Evento de clique para o botão adicionar extra
-        botaoAdicionarExtra.onClick = function() {
-            var nomeExtra = campoNomeExtra.text;
-            var unidadeExtra = dropdownUnidadeExtra.selection.text;
-            var quantidadeExtra = parseFloat(campoQuantidadeExtra.text.replace(',', '.'));
-
-            if (nomeExtra === "" || isNaN(quantidadeExtra) || quantidadeExtra <= 0) {
-                alert("Por favor, preencha todos os campos corretamente.");
-                return;
-            }
-
-            var textoExtra = nomeExtra + " (" + unidadeExtra + "): " + quantidadeExtra.toFixed(2).replace('.', ',');
-
-            itensLegenda.push({
-                tipo: "extra",
-                nome: nomeExtra,
-                texto: textoExtra,
-                unidade: unidadeExtra,
-                quantidade: quantidadeExtra
-            });
-
-            atualizarListaItens();
-            alert("Componente extra adicionado à legenda.");
-
-            // Limpar os campos após adicionar
-            campoNomeExtra.text = "";
-            campoQuantidadeExtra.text = "";
-        };
-
-        janela.layout.layout(true);
-        janela.preferredSize.height += 50;
-    } else {
-        // Remover o grupo de componente extra
-        grupoComponenteExtra.parent.remove(grupoComponenteExtra);
-        janela.layout.layout(true);
-        janela.preferredSize.height -= 50;
-    }
-    janela.layout.resize();
-};
-
-checkboxMostrarAlfabeto.onClick = function() {
-    if (this.value) {
-        // Adicionar o grupo de alfabeto
-        grupoAlfabeto = grupoExtra.add("panel", undefined, "Alfabeto");
-        grupoAlfabeto.orientation = "column"; // Alterar para "column" para alinhar verticalmente
-        grupoAlfabeto.alignChildren = ["fill", "top"]; // Preencher a largura
-        grupoAlfabeto.spacing = 10; // Adicionar espaçamento entre os elementos
-
-        var subGrupoAlfabeto = grupoAlfabeto.add("group");
-        subGrupoAlfabeto.orientation = "row";
-        subGrupoAlfabeto.alignChildren = ["fill", "top"];
-        subGrupoAlfabeto.spacing = 10;
-
-        subGrupoAlfabeto.add("statictext", undefined, "Alfabeto:");
-        campoPalavraChave = subGrupoAlfabeto.add("edittext", undefined, "");
-        campoPalavraChave.characters = 20;
-
-        // Adicionar texto estático para bioprint
-        subGrupoAlfabeto.add("statictext", undefined, "Bioprint");
-
-        // Adicionar dropdown para cor do bioprint
-        subGrupoAlfabeto.add("statictext", undefined, "Cor:");
-        dropdownCorBioprint = subGrupoAlfabeto.add("dropdownlist", undefined, ["Selecione a cor"]);
-
-        // Manter o dropdown de tamanho existente
-        subGrupoAlfabeto.add("statictext", undefined, "Tamanho:");
-        tamanhoAlfabeto = subGrupoAlfabeto.add("dropdownlist", undefined, ["1,40 m", "2,00 m"]);
-        tamanhoAlfabeto.selection = 0;
-
-        botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, "Adicionar");
-
-        // Adicionar linha separadora
-        var linhaSeparadora = grupoAlfabeto.add("panel");
-        linhaSeparadora.preferredSize = [-1, 2]; // Ajustar a largura para preencher e altura para 2px
-        linhaSeparadora.graphics.backgroundColor = linhaSeparadora.graphics.newBrush(linhaSeparadora.graphics.BrushType.SOLID_COLOR, [0, 0, 0, 1]);
-
-        // Adicionar texto de informação
-        grupoAlfabeto.add("statictext", undefined, "Escreve a tua frase GX, e adiciona á legenda, não precisas de preencher o Nome/tipo. Para fazer o coração é: <3");
-
-        // Função para preencher o dropdown de cores do bioprint
-        function preencherCoresBioprint() {
-            dropdownCorBioprint.removeAll();
-            
-            var componenteBioprint = null;
-            for (var i = 0; i < dados.componentes.length; i++) {
-                if (dados.componentes[i].nome.toLowerCase() === "bioprint") {
-                    componenteBioprint = dados.componentes[i];
-                    break;
-                }
-            }
-            
-            if (componenteBioprint) {
-                var coresBioprint = [];
-                var indexOr = -1;
-                for (var i = 0; i < dados.combinacoes.length; i++) {
-                    if (dados.combinacoes[i].componenteId === componenteBioprint.id) {
-                        var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
-                        if (cor && !arrayContains(coresBioprint, cor)) {
-                            coresBioprint.push(cor);
-                            if (cor.nome.toLowerCase() === "or") {
-                                indexOr = coresBioprint.length - 1;
-                            }
-                        }
-                    }
-                }
-            
-                for (var i = 0; i < coresBioprint.length; i++) {
-                    dropdownCorBioprint.add("item", coresBioprint[i].nome);
-                }
-            
-                // Pré-selecionar "or" se existir, caso contrário, selecionar o primeiro item
-                if (indexOr !== -1) {
-                    dropdownCorBioprint.selection = indexOr;
-                } else if (coresBioprint.length > 0) {
-                    dropdownCorBioprint.selection = 0;
-                }
-            }
-            
-            // Se não houver cores disponíveis, adicionar um item padrão
-            if (dropdownCorBioprint.items.length === 0) {
-                dropdownCorBioprint.add("item", "Sem cores disponíveis");
-                dropdownCorBioprint.selection = 0;
-            }
-        }
-
-        // Chamar a função para preencher as cores do bioprint
-        preencherCoresBioprint();
-
-        function processarAlfabeto() {
-            var alfabeto = campoPalavraChave.text.toUpperCase();
-            var corBioprintSelecionada = dropdownCorBioprint.selection ? dropdownCorBioprint.selection.text : "";
-            var tamanhoSelecionado = tamanhoAlfabeto.selection.text;
-            var referenciasUsadas = {};
-            
-            // Armazenar a palavra digitada
-            var palavraDigitada = campoPalavraChave.text;
-            
-            var referenciasMapeadas = {
-                'A': 'GX214LW', 'B': 'GX215LW', 'C': 'GX216LW', 'D': 'GX217LW',
-                'E': 'GX218LW', 'F': 'GX219LW', 'G': 'GX220LW', 'H': 'GX221LW',
-                'I': 'GX222LW', 'J': 'GX223LW', 'K': 'GX224LW', 'L': 'GX225LW',
-                'M': 'GX226LW', 'N': 'GX227LW', 'O': 'GX228LW', 'P': 'GX229LW',
-                'Q': 'GX230LW', 'R': 'GX231LW', 'S': 'GX232LW', 'T': 'GX233LW',
-                'U': 'GX234LW', 'V': 'GX235LW', 'W': 'GX236LW', 'X': 'GX237LW',
-                'Y': 'GX238LW', 'Z': 'GX239LW', '<3': 'GX240LW', '#': 'GX241LW'
-            };
-            
-            for (var i = 0; i < alfabeto.length; i++) {
-                var caractere = alfabeto[i];
-                if (caractere === '<' && alfabeto[i+1] === '3') {
-                    caractere = '<3';
-                    i++; // Pula o próximo caractere, pois já foi processado
-                }
-                
-                if (referenciasMapeadas.hasOwnProperty(caractere)) {
-                    if (!referenciasUsadas[caractere]) {
-                        referenciasUsadas[caractere] = 1;
-                    } else {
-                        referenciasUsadas[caractere]++;
-                    }
-                }
-            }
-            
-            var referenciasTexto = [];
-            for (var caractere in referenciasUsadas) {
-                if (referenciasUsadas.hasOwnProperty(caractere)) {
-                    referenciasTexto.push(referenciasMapeadas[caractere] + " (" + caractere + ") bioprint " + corBioprintSelecionada + " " + tamanhoSelecionado + ": " + referenciasUsadas[caractere]);
-                }
-            }
-            
-            // Adicionar as referências usadas à legenda
-            if (referenciasTexto.length > 0) {
-                itensLegenda.push({
-                    tipo: "alfabeto",
-                    nome: "Referências do Alfabeto",
-                    texto: referenciasTexto.join("\n"),
-                    referencia: "",
-                    quantidade: 1,
-                    unidade: "",
-                    tamanho: tamanhoSelecionado,
-                    bioprint: "bioprint",
-                    corBioprint: corBioprintSelecionada,
-                    palavraDigitada: palavraDigitada
-                });
-                
-                atualizarListaItens();
-                campoPalavraChave.text = "";
-                
-                // Atualizar o campo nome/tipo apenas com a palavra digitada
-                campoNomeTipo.text = palavraDigitada;
-            } else {
-                alert("Nenhuma letra válida foi inserida.");
-            }
-        }
-
-        botaoAdicionarPalavraChave.onClick = processarAlfabeto;
-
-        janela.layout.layout(true); // Forçar atualização do layout
-        janela.preferredSize.height += 100; // Aumentar a altura da janela
-    } else {
-        // Remover o grupo de alfabeto
-        grupoAlfabeto.parent.remove(grupoAlfabeto);
-        campoPalavraChave = null; // Definir campoPalavraChave como null quando o grupo é removido
-        dropdownCorBioprint = null; // Definir dropdownCorBioprint como null quando o grupo é removido
-        tamanhoAlfabeto = null; // Definir tamanhoAlfabeto como null quando o grupo é removido
-        botaoAdicionarPalavraChave = null; // Definir botaoAdicionarPalavraChave como null quando o grupo é removido
-        janela.layout.layout(true); // Forçar atualização do layout
-        janela.preferredSize.height -= 100; // Diminuir a altura da janela
-    }
-    janela.layout.resize();
-};
-
-  // Adicionar checkbox para ocultar/mostrar o campo "Contar elementos"
-  var checkboxMostrarContar = grupoExtra.add("checkbox", undefined, "Mostrar Contar Elementos");
-  checkboxMostrarContar.value = false; // Inicialmente desmarcado
-  
-// Adicionar checkbox para ocultar/mostrar o campo "Texturas"
-var checkboxMostrarTexturas = grupoExtra.add("checkbox", undefined, "Adicionar Texturas");
-checkboxMostrarTexturas.value = false; // Inicialmente desmarcado
-
-// Adicionar evento para o checkbox de texturas
-var grupoTexturas;
-// ... existing code ...
-
-// Modificar a parte onde o checkbox de texturas é criado
-checkboxMostrarTexturas.onClick = function() {
-    if (this.value) {
-        // Criar o grupo de texturas
-        grupoTexturas = grupoExtra.add("panel", undefined, "Texturas");
-        grupoTexturas.orientation = "row"; // Mudado para row para elementos lado a lado
-        grupoTexturas.alignChildren = ["left", "top"];
-        grupoTexturas.spacing = 10;
-        grupoTexturas.margins = 10;
-
-        // Subgrupo para lista e botão
-        var grupoLista = grupoTexturas.add("group");
-        grupoLista.orientation = "column";
-        grupoLista.alignChildren = ["left", "top"];
-        grupoLista.spacing = 5;
-
-        // Lista de texturas no subgrupo
-        listaTexturas = grupoLista.add("dropdownlist", undefined, [
-            "Selecione uma textura",
-            "Texture 01",
-            "Texture 02",
-            "Texture 03",
-            "Texture 04",
-            "Texture 05",
-            "Texture 06",
-            "Texture 07",
-            "Texture 08",
-            "Texture 09",
-            "Texture 10",
-            "Texture 11",
-            "Texture 12",
-            "Texture 13",
-            "Texture 14",
-            "Texture 15",
-            "Texture 16",
-            "Texture 17"
-        ]);
-        listaTexturas.selection = 0;
-        listaTexturas.preferredSize.width = 200;
-
-        // Botão no subgrupo
-        botaoInserirTextura = grupoLista.add("button", undefined, "Inserir Textura");
-
-        // Grupo para preview da imagem
-        var grupoPreview = grupoTexturas.add("group");
-        grupoPreview.orientation = "column";
-        grupoPreview.alignChildren = ["left", "top"];
-        grupoPreview.spacing = 5;
-
-        // Evento de mudança na lista
-        listaTexturas.onChange = function() {
-            // Limpar preview anterior
-            while(grupoPreview.children.length > 0) {
-                grupoPreview.remove(grupoPreview.children[0]);
-            }
-            
-            if (this.selection.index > 0) {
-                try {
-                    var numeroTextura = this.selection.index;
-                    var nomeArquivo = "texture" + numeroTextura + ".png";
-                    var caminhoImagem = File($.fileName).parent + "/png/" + nomeArquivo;
-                    var arquivoImagem = new File(caminhoImagem);
-                    
-                    if (arquivoImagem.exists) {
-                        var imagem = grupoPreview.add("image", undefined, arquivoImagem);
-                        imagem.preferredSize = [100, 100];
-                    } else {
-                        var textoErro = grupoPreview.add("statictext", undefined, "Imagem não encontrada");
-                    }
-                } catch (e) {
-                    alert("Erro ao carregar a imagem: " + e.message);
-                }
-            }
-            
-            janela.layout.layout(true);
-            janela.layout.resize();
-        };
-
-        // Texto de informação
-        var infoTexto = grupoLista.add("statictext", undefined, 
-            "Selecione uma textura para inserir ao lado da legenda.", 
-            {multiline: true});
-        infoTexto.preferredSize.width = 200;
-
-        janela.layout.layout(true);
-        janela.preferredSize.height += 100;
-    } else {
-        // Remover o grupo de texturas
-        grupoTexturas.parent.remove(grupoTexturas);
-        janela.layout.layout(true);
-        janela.preferredSize.height -= 100;
-    }
-    janela.layout.resize();
-};
-
-
-  // Adicionar evento para o checkbox de contar elementos
-  checkboxMostrarContar.onClick = function() {
-    if (this.value) {
-        // Adicionar o grupo de contar elementos
-        grupoContar = grupoExtra.add("panel", undefined, "Contar Elementos (bolas para já)");
-        grupoContar.orientation = "column";
-        grupoContar.alignChildren = ["fill", "top"];
-        grupoContar.spacing = 10;
-
-        // Criar a interface do contador de bolas
-        var interfaceContador = criarInterfaceContadorBolas(grupoContar);
-
-        janela.layout.layout(true);
-        janela.preferredSize.height += 200; // Aumentar a altura da janela
-    } else {
-        // Remover o grupo de contar elementos
-        grupoContar.parent.remove(grupoContar);
-        janela.layout.layout(true);
-        janela.preferredSize.height -= 200; // Diminuir a altura da janela
-    }
-    janela.layout.resize();
-};
-
-// Adicionar evento para o checkbox de observações
-var grupoObs, campoObs; // Declarar as variáveis no escopo adequado
-checkboxMostrarObs.onClick = function() {
-    if (this.value) {
-        // Adicionar o grupo de observações
-        grupoObs = grupoExtra.add("panel", undefined, "Observações");
-        grupoObs.orientation = "row";
-        grupoObs.alignChildren = ["fill", "top"]; // Preencher a largura
-        grupoObs.spacing = 0;
-
-        grupoObs.add("statictext", undefined, "Obs:");
-
-        // Adicionar uma caixa de texto para observações
-        campoObs = grupoObs.add("edittext", undefined, "", {multiline: true, scrollable: true});
-        campoObs.characters = 60;
-        campoObs.preferredSize.height = 100; // Aumentar a altura da caixa de texto
-        campoObs.alignment = ["fill", "fill"]; // Preencher a largura
-
-        janela.layout.layout(true); // Forçar atualização do layout
-        janela.preferredSize.height += 100; // Aumentar a altura da janela
-    } else {
-        // Remover o grupo de observações
-        grupoObs.parent.remove(grupoObs);
-        campoObs = null; // Definir campoObs como null quando o grupo é removido
-        janela.layout.layout(true); // Forçar atualização do layout
-        janela.preferredSize.height -= 100; // Diminuir a altura da janela
-    }
-    janela.layout.resize();
-};
-
-// Adicione esta função no início do seu arquivo ou antes de ser usada
-function removerDuplicatas(array) {
-    var resultado = [];
-    var jaVisto = {};
-    for (var i = 0; i < array.length; i++) {
-        var item = array[i];
-        if (!jaVisto[item]) {
-            resultado.push(item);
-            jaVisto[item] = true;
-        }
-    }
-    return resultado;
-}
 
 
 function atualizarPreview() {

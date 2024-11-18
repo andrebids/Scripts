@@ -1431,6 +1431,9 @@ function atualizarPreview() {
     
     
     // Adicionar texturas
+    var previewText = [];
+    
+    // Adicionar texturas primeiro (se houver)
     var texturas = [];
     for (var i = 0; i < itensLegenda.length; i++) {
         if (itensLegenda[i].tipo === "textura") {
@@ -1439,13 +1442,19 @@ function atualizarPreview() {
     }
     
     if (texturas.length > 0) {
-        previewText.push("\u200B"); // Linha em branco antes das texturas
         previewText.push("Textures appliquées:");
         for (var i = 0; i < texturas.length; i++) {
             previewText.push("- " + texturas[i].texto);
         }
+        previewText.push("\u200B"); // Linha em branco após texturas
     }
-    // Verificar se itensLegenda é um array válido
+
+    // Construir a frase principal
+    var nomeTipo = palavraDigitada || campoNomeTipo.text;
+    var prefixoNomeTipo = escolhaNomeTipo.selection.text === "Tipo" ? "type " : "";
+    var preposicao = alfabetoUsado ? "en" : "avec";
+    
+    frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor " + prefixoNomeTipo + "\"" + nomeTipo + "\" " + preposicao;
     if (!itensLegenda || !isArray(itensLegenda)) {
         alert("Erro: itensLegenda não é um array válido.");
         return "Erro: Não foi possível gerar o conteúdo da legenda.";
@@ -1674,24 +1683,9 @@ function formatarUnidade(unidade) {
     return unidade;
 }
 
+// Modificar a função criarLinhaReferencia
 function criarLinhaReferencia(item) {
     var linha = item.referencia ? item.referencia : item.nome;
-    if (item.unidade) {
-        linha += " (" + item.unidade + ")";
-    }
-    if (item.multiplicador && item.multiplicador > 1) {
-        linha += " x" + item.multiplicador;
-    }
-    if (item.quantidade !== undefined) {
-        var quantidadeFormatada = regras.formatarQuantidade(item.quantidade, item.componenteId, item.unidade);
-        linha += ": " + quantidadeFormatada;
-    }
-    return linha;
-}
-
-
-function criarLinhaReferencia(item) {
-    var linha = "##COMPONENTE##" + (item.referencia ? item.referencia : item.nome);
     if (item.unidade) {
         linha += " (" + formatarUnidade(item.unidade) + ")";
     }
@@ -2044,114 +2038,117 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
     
                 var scriptIllustrator = function(nomeDesigner, conteudoLegenda) {
                     var doc = app.activeDocument;
-                
+
                     if (!doc) {
                         return "Nenhum documento ativo. Por favor, abra um documento no Illustrator.";
                     }
-                
+
                     if (doc.artboards.length === 0) {
                         return "Erro: O documento não tem artboards. Por favor, crie uma artboard antes de adicionar a legenda.";
                     }
-                
-                    /*function criarQuadradoPreto(layer, left, top, tamanho) {
-                        if (isNaN(left) || isNaN(top) || isNaN(tamanho)) {
-                            alert("Erro: Valores inválidos para criarQuadradoPreto - left: " + left + ", top: " + top + ", tamanho: " + tamanho);
-                            return null;
-                        }
-                        var quadrado = layer.pathItems.rectangle(top, left, tamanho, tamanho);
-                        quadrado.fillColor = new RGBColor(0, 0, 0);
-                        quadrado.stroked = false;
-                        return quadrado;
-                    }*/
-                
+
                     var novaLayer = doc.layers.add();
                     novaLayer.name = "Legenda";
-                
+
                     var artboard = doc.artboards[doc.artboards.getActiveArtboardIndex()];
                     var artboardBounds = artboard.artboardRect;
-                
-                    var textoLegenda = novaLayer.textFrames.add();
-                    textoLegenda.position = [artboardBounds[0], artboardBounds[3] - 40];
-                
+
+                    // Criar o primeiro grupo de texto (apenas para texturas)
+                    var textoLegenda1 = novaLayer.textFrames.add();
+                    textoLegenda1.position = [artboardBounds[0], artboardBounds[1] - 40];
+
+                    // Criar o segundo grupo de texto (para o conteúdo principal)
+                    var textoLegenda2 = novaLayer.textFrames.add();
+                    textoLegenda2.position = [artboardBounds[0], artboardBounds[1] - 200];
+
                     var tamanhoFontePrincipal = 40;
-                    var tamanhoFonteBids = 30;
-                    var tamanhoQuadrado = 20;
+                    var tamanhoFonteBids = 30; // Tamanho menor para o texto Bids
                     var espacoEntreLinhas = tamanhoFontePrincipal * 1.20;
-                    var ajusteVerticalQuadrado = tamanhoFontePrincipal * 0.5;
-                    var espacoExtraPrimeiroComponente = 3;
-                
-                    textoLegenda.textRange.characterAttributes.size = tamanhoFontePrincipal;
-                    textoLegenda.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
-                    try {
-                        textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
-                    } catch (e) {
-                        textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
-                    }
-                
-                    var textoCompleto = "Bids - " + nomeDesigner + "\n" + conteudoLegenda;
-                
-                    function processarLinha(linha) {
-                        linha = linha.replace(/^##COMPONENTE##/, '');
-                        linha = linha.replace(/⌀/g, "Ø");
-                        linha = linha.replace(/(\(ml|m2|unit\))(\s*x\d+)?:/g, "$1$2:");
+
+                    // Configurar fonte e cor para os grupos de texto
+                    var textosLegenda = [textoLegenda1, textoLegenda2];
+                    for (var i = 0; i < textosLegenda.length; i++) {
+                        var texto = textosLegenda[i];
+                        texto.textRange.characterAttributes.size = tamanhoFontePrincipal;
+                        texto.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
                         
-                        function formatarNumero(match, inteiro, decimal, offset, string) {
-                            if (string.indexOf("fil lumiére") !== -1) {
-                                return inteiro;
-                            }
-                            var numero = parseFloat(inteiro + "." + decimal);
-                            return numero.toFixed(2).replace(".", ",");
+                        try {
+                            texto.textRange.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
+                        } catch (e) {
+                            texto.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
+                        }
+                    }
+
+                    var textoBids = "Bids - " + nomeDesigner;
+                    var linhas = conteudoLegenda.split('\n');
+                    var texturaEncontrada = false;
+
+                    // Processar linhas para o primeiro grupo (apenas texturas)
+                    for (var i = 0; i < linhas.length; i++) {
+                        var linha = linhas[i];
+                        
+                        if (linha === "Textures appliquées:") {
+                            texturaEncontrada = true;
+                            var novoParag = textoLegenda1.paragraphs.add(linha);
+                            novoParag.characterAttributes.size = tamanhoFontePrincipal;
+                            novoParag.paragraphAttributes.spaceBefore = 0;
+                            novoParag.paragraphAttributes.spaceAfter = 0;
+                            continue;
                         }
                         
-                        linha = linha.replace(/(\d+)\.(\d+)/g, formatarNumero);
+                        if (texturaEncontrada && linha.indexOf("- Texture") === 0) {
+                            var novoParag = textoLegenda1.paragraphs.add(linha);
+                            novoParag.characterAttributes.size = tamanhoFontePrincipal;
+                            novoParag.paragraphAttributes.spaceBefore = 0;
+                            novoParag.paragraphAttributes.spaceAfter = 0;
+                            continue;
+                        }
                         
-                        return linha;
+                        if (texturaEncontrada && linha === "\u200B") {
+                            texturaEncontrada = false;
+                            continue;
+                        }
                     }
-                
-                    var linhas = textoCompleto.split('\n');
-                    textoLegenda.contents = linhas[0];
-                    textoLegenda.paragraphs[0].characterAttributes.size = tamanhoFonteBids;
-                
-                    var posicaoYAtual = textoLegenda.position[1] - tamanhoFonteBids - espacoEntreLinhas;
-                    var primeiroComponenteEncontrado = false;
-                
-                    for (var i = 1; i < linhas.length; i++) {
-                        var linhaOriginal = linhas[i];
-                        var linhaProcessada = processarLinha(linhas[i]);
-                        var novoParag = textoLegenda.paragraphs.add(linhaProcessada);
+
+                    // Processar linhas para o segundo grupo (conteúdo principal)
+                    for (var i = 0; i < linhas.length; i++) {
+                        var linha = linhas[i];
+                        
+                        // Pular as linhas de textura
+                        if (linha === "Textures appliquées:" || 
+                            linha.indexOf("- Texture") === 0 || 
+                            (linha === "\u200B" && texturaEncontrada)) {
+                            continue;
+                        }
+                        
+                        // Adicionar Bids - Nome apenas antes do Logo
+                        if (linha.indexOf("Logo") === 0) {
+                            var paragBids = textoLegenda2.paragraphs.add(textoBids);
+                            paragBids.characterAttributes.size = tamanhoFonteBids; // Usar o tamanho menor
+                            paragBids.paragraphAttributes.spaceBefore = 0;
+                            paragBids.paragraphAttributes.spaceAfter = 0;
+                        }
+                        
+                        var novoParag = textoLegenda2.paragraphs.add(linha);
                         novoParag.characterAttributes.size = tamanhoFontePrincipal;
                         novoParag.paragraphAttributes.spaceBefore = 0;
                         novoParag.paragraphAttributes.spaceAfter = 0;
-                        
-                        /*if (linhaOriginal.indexOf("##COMPONENTE##") === 0) {
-                            var quadradoPosX = textoLegenda.position[0] - tamanhoQuadrado - 15;
-                            var quadradoPosY = posicaoYAtual + ajusteVerticalQuadrado;
-                            criarQuadradoPreto(novaLayer, quadradoPosX, quadradoPosY, tamanhoQuadrado);
-    
-                            if (!primeiroComponenteEncontrado) {
-                                primeiroComponenteEncontrado = true;
-                                posicaoYAtual -= espacoExtraPrimeiroComponente;
-                            }
-                        }*/
-                        
-                        if (linhas[i] === "\u200B") {
-                            novoParag.paragraphAttributes.spaceBefore = 10;
-                            posicaoYAtual -= 10;
-                        }
-                        
-                        posicaoYAtual -= espacoEntreLinhas;
                     }
-                
-                    textoLegenda.geometricBounds = [
-                        textoLegenda.geometricBounds[0],
-                        textoLegenda.geometricBounds[1],
-                        textoLegenda.geometricBounds[2],
-                        textoLegenda.geometricBounds[1] + 400
-                    ];
-                
+
+                    // Ajustar limites geométricos
+                    for (var i = 0; i < textosLegenda.length; i++) {
+                        var texto = textosLegenda[i];
+                        texto.geometricBounds = [
+                            texto.geometricBounds[0],
+                            texto.geometricBounds[1],
+                            texto.geometricBounds[2],
+                            texto.geometricBounds[1] + 400
+                        ];
+                    }
+
                     return "success";
-                };
-    
+                }
+
                 var scriptString = "(" + scriptIllustrator.toString() + ")";
                 scriptString += "('" + escapeString(nomeDesigner) + "', '" + escapeString(legendaConteudo) + "');";
     

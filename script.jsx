@@ -1433,21 +1433,7 @@ function atualizarPreview() {
     // Adicionar texturas
     var previewText = [];
     
-    // Adicionar texturas primeiro (se houver)
-    var texturas = [];
-    for (var i = 0; i < itensLegenda.length; i++) {
-        if (itensLegenda[i].tipo === "textura") {
-            texturas.push(itensLegenda[i]);
-        }
-    }
-    
-    if (texturas.length > 0) {
-        previewText.push("Textures appliquées:");
-        for (var i = 0; i < texturas.length; i++) {
-            previewText.push("- " + texturas[i].texto);
-        }
-        previewText.push("\u200B"); // Linha em branco após texturas
-    }
+
 
     // Construir a frase principal
     var nomeTipo = palavraDigitada || campoNomeTipo.text;
@@ -2049,6 +2035,37 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
 
                     var novaLayer = doc.layers.add();
                     novaLayer.name = "Legenda";
+                    // Importar e posicionar o SVG
+                    try {
+                        alert("4. Tentando importar arquivo AI");
+                        
+                        // Construir caminho absoluto para a pasta Scripts/Legenda
+                        var caminhoBase = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda";
+                        var caminhoAI = caminhoBase + "/svg/texture1.ai";
+                        var arquivoAI = new File(caminhoAI);
+                        
+                        alert("Caminho do AI: " + caminhoAI);
+                        alert("Arquivo AI existe? " + arquivoAI.exists);
+                    
+                        if (arquivoAI.exists) {
+                            alert("5. Arquivo AI encontrado");
+                            var placedItem = novaLayer.placedItems.add();
+                            placedItem.file = arquivoAI;
+                            
+                            var artboard = doc.artboards[doc.artboards.getActiveArtboardIndex()];
+                            var artboardBounds = artboard.artboardRect;
+                            
+                            placedItem.position = [artboardBounds[2] - 200, artboardBounds[1]];
+                            placedItem.width = 200;
+                            placedItem.height = 200;
+                            alert("6. AI posicionado com sucesso");
+                        } else {
+                            alert("Erro: Arquivo AI não encontrado em: " + caminhoAI);
+                        }
+                    } catch (aiError) {
+                        alert("Erro ao processar AI: " + aiError + "\nLinha: " + aiError.line);
+                    }
+            
 
                     var artboard = doc.artboards[doc.artboards.getActiveArtboardIndex()];
                     var artboardBounds = artboard.artboardRect;

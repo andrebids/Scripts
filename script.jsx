@@ -1180,7 +1180,11 @@ checkboxMostrarTexturas.onClick = function() {
           "Texture 13",
           "Texture 14",
           "Texture 15",
-          "Texture 16"
+          "Texture 16",
+          "Flexi Triangle",
+          "Flexi Boucle",
+          "Flexi Losange",
+          "Flexi Meli Melo"
       ]);
       listaTexturas.selection = 0;
       listaTexturas.preferredSize.width = 200;

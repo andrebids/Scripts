@@ -1955,7 +1955,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                 
                 // Substituir pontos por vírgulas
                 var legendaConteudo = legendaInfo.texto.replace(/(\d+)\.(\d+)/g, formatarNumero);
-    
+
                 var scriptIllustrator = function(nomeDesigner, conteudoLegenda, texturas) {
                     var doc = app.activeDocument;
     
@@ -1976,36 +1976,33 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                     // Primeiro, importar e posicionar as texturas
                     var alturaTexturas = 0;
                     try {
-                        var caminhoBase = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/svg/";
-                        var texturasArray = texturas.split(',');
-                        var larguraTextura = 300;
-                        var espacamentoVertical = 50; // espaço entre texturas
-                        
-                        for (var i = 0; i < texturasArray.length; i++) {
-                            var numeroTextura = texturasArray[i];
-                            var caminhoAI = caminhoBase + "texture" + numeroTextura + ".ai";
-                            var arquivoAI = new File(caminhoAI);
+                        // Verificar se há texturas para processar
+                        if (texturas && texturas !== "") {
+                            var caminhoBase = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/svg/";
+                            var texturasArray = texturas.split(',');
+                            var larguraTextura = 300;
+                            var espacamentoVertical = 50;
                             
-                            
-                            
-                            if (arquivoAI.exists) {
-                                var placedItem = novaLayer.placedItems.add();
-                                placedItem.file = arquivoAI;
+                            for (var i = 0; i < texturasArray.length; i++) {
+                                var numeroTextura = texturasArray[i];
+                                var caminhoAI = caminhoBase + "texture" + numeroTextura + ".ai";
+                                var arquivoAI = new File(caminhoAI);
                                 
-                                // Posicionar texturas no topo, uma ao lado da outra
-                                placedItem.position = [
-                                    artboardBounds[0] + (i * (larguraTextura + 20)), // 20px de espaço entre texturas
-                                    artboardBounds[1] - 40  // começar 40px abaixo do topo
-                                ];
-                                placedItem.width = larguraTextura;
-                                placedItem.height = larguraTextura;
-                                
-                                // Atualizar a altura total ocupada pelas texturas
-                                alturaTexturas = larguraTextura + espacamentoVertical;
-                                
-                                
-                            } else {
-                                alert("Arquivo não encontrado: texture" + numeroTextura + ".ai");
+                                if (arquivoAI.exists) {
+                                    var placedItem = novaLayer.placedItems.add();
+                                    placedItem.file = arquivoAI;
+                                    
+                                    placedItem.position = [
+                                        artboardBounds[0] + (i * (larguraTextura + 20)),
+                                        artboardBounds[1] - 40
+                                    ];
+                                    placedItem.width = larguraTextura;
+                                    placedItem.height = larguraTextura;
+                                    
+                                    alturaTexturas = larguraTextura + espacamentoVertical;
+                                } else {
+                                    alert("Arquivo não encontrado: texture" + numeroTextura + ".ai");
+                                }
                             }
                         }
                     } catch (aiError) {

@@ -1180,8 +1180,7 @@ checkboxMostrarTexturas.onClick = function() {
           "Texture 13",
           "Texture 14",
           "Texture 15",
-          "Texture 16",
-          "Texture 17"
+          "Texture 16"
       ]);
       listaTexturas.selection = 0;
       listaTexturas.preferredSize.width = 200;

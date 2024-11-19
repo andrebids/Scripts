@@ -1981,6 +1981,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                             var caminhoBase = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/svg/";
                             var texturasArray = texturas.split(',');
                             var larguraTextura = 300;
+                            var alturaTextura = 400; // Definir altura específica aqui
                             var espacamentoVertical = 50;
                             
                             for (var i = 0; i < texturasArray.length; i++) {
@@ -1999,12 +2000,12 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                                         artboardBounds[1] - 40
                                     ];
                                     placedItem.width = larguraTextura;
-                                    placedItem.height = larguraTextura;
+                                    placedItem.height = alturaTextura; // Usar a nova altura aqui
                                     
                                     // Incorporar a textura no documento
                                     placedItem.embed();
                                     
-                                    alturaTexturas = larguraTextura + espacamentoVertical;
+                                    alturaTexturas = alturaTextura + espacamentoVertical;
                                 } else {
                                     alert("Arquivo não encontrado: texture" + numeroTextura + ".ai");
                                 }

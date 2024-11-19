@@ -1989,15 +1989,20 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                                 var arquivoAI = new File(caminhoAI);
                                 
                                 if (arquivoAI.exists) {
+                                    // Criar o item posicionado
                                     var placedItem = novaLayer.placedItems.add();
                                     placedItem.file = arquivoAI;
                                     
+                                    // Posicionar e dimensionar
                                     placedItem.position = [
                                         artboardBounds[0] + (i * (larguraTextura + 20)),
                                         artboardBounds[1] - 40
                                     ];
                                     placedItem.width = larguraTextura;
                                     placedItem.height = larguraTextura;
+                                    
+                                    // Incorporar a textura no documento
+                                    placedItem.embed();
                                     
                                     alturaTexturas = larguraTextura + espacamentoVertical;
                                 } else {

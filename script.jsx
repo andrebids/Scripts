@@ -1592,14 +1592,14 @@ function atualizarListaItens() {
     // Adicionar "Composants:" apenas se houver componentes
     var temComponentes = false;
     for (var i = 0; i < itensLegenda.length; i++) {
-        if (itensLegenda[i].tipo === "componente") {
+        if (itensLegenda[i].tipo === "componente" || itensLegenda[i].tipo === "alfabeto") {
             temComponentes = true;
             break;
         }
     }
     
     if (temComponentes) {
-        previewText.push("\u200B"); // Linha em branco
+        previewText.push("\u200B"); // Linha em branco antes de "Composants:"
         previewText.push("Composants:");
     }
 
@@ -1657,7 +1657,9 @@ function atualizarListaItens() {
     todosComponentesExtras = todosComponentesExtras.concat(componentesExtras);
 
     if (todosComponentesExtras.length > 0) {
-        previewText.push("\u200B"); // Linha em branco antes dos extras
+        // Remover esta linha que adiciona o espaço em branco
+        // previewText.push("\u200B"); // Removemos a linha em branco antes dos extras
+        
         for (var i = 0; i < todosComponentesExtras.length; i++) {
             previewText.push(todosComponentesExtras[i].texto);
         }
@@ -2094,8 +2096,6 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
     
                     // Dentro da função scriptIllustrator, após o processamento das texturas:
                     try {
-                        // Verificar se há palavra digitada
-                        alert("Verificando palavra digitada: '" + palavraDigitada + "'");
                         
                         if (palavraDigitada && palavraDigitada !== "") {
                             var caminhoAlfabeto = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/alfabeto/";

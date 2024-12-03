@@ -965,7 +965,7 @@ checkboxMostrarComponenteExtra.onClick = function() {
 
           atualizarListaItens();
 
-          // Limpar os campos ap��s adicionar
+          // Limpar os campos ap����s adicionar
           campoNomeExtra.text = "";
           campoQuantidadeExtra.text = "";
       };
@@ -1506,12 +1506,51 @@ function atualizarListaItens() {
         }
     }
 
-    // Construir a frase principal
+    // Verificar dimensões e determinar se é 2D ou 3D
+    function determinarTipoDimensao(dimensoesValidas) {
+        var temH = false;
+        var temL = false;
+        var temP = false;
+        var temDiametro = false;
+        
+        for (var i = 0; i < dimensoes.length; i++) {
+            var valorDimensao = grupoDimensoes.children[i*2 + 1].text;
+            if (valorDimensao !== "") {
+                var dimensao = dimensoes[i];
+                if (dimensao === "H") temH = true;
+                if (dimensao === "L") temL = true;
+                if (dimensao === "P") temP = true;
+                if (dimensao === "⌀") temDiametro = true;
+            }
+        }
+        
+        // Se não houver dimensões, retorna string vazia
+        if (!temH && !temL && !temP && !temDiametro) {
+            return "";
+        }
+        
+        // Se tiver profundidade ou diâmetro, é 3D
+        if (temP || temDiametro) {
+            return "3D";
+        }
+        
+        // Se tiver altura ou largura, é 2D
+        if (temH || temL) {
+            return "2D";
+        }
+        
+        return "";
+    }
+
+    // Na parte onde monta a frase principal
     var nomeTipo = palavraDigitada || campoNomeTipo.text;
     var prefixoNomeTipo = escolhaNomeTipo.selection.text === "Tipo" ? "type " : "";
     var preposicao = alfabetoUsado ? "en" : "avec";
-    
-    frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": décor " + prefixoNomeTipo + "\"" + nomeTipo + "\" " + preposicao;
+    var tipoDimensao = determinarTipoDimensao(dimensoesValidas);
+    var decorTexto = tipoDimensao ? "décor " + tipoDimensao : "décor";
+
+    frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": " + 
+                     decorTexto + " " + prefixoNomeTipo + "\"" + nomeTipo + "\" " + preposicao;
 
     if (alfabetoUsado) {
         frasePrincipal += " bioprint " + (corBioprint || "");

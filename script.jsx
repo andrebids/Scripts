@@ -1480,6 +1480,12 @@ function atualizarListaItens() {
             if (!bolasProcessadas[chaveBola] || item.unidade === "units") {
                 bolasProcessadas[chaveBola] = item;
             }
+        } else if (item.tipo === "extra") {
+            if (!primeiroComponenteExtra) {
+                primeiroComponenteExtra = item;
+            } else {
+                componentesExtras.push(item);
+            }
         }
     }
 
@@ -1505,7 +1511,7 @@ function atualizarListaItens() {
         frasePrincipal += " " + componentesTexto.join(", ");
     }
 
-    // Adicionar o primeiro componente extra à frase principal
+    // Adicionar o primeiro componente extra à frase principal, se existir
     if (primeiroComponenteExtra) {
         frasePrincipal += ", " + primeiroComponenteExtra.nome;
     }
@@ -1588,7 +1594,69 @@ function atualizarListaItens() {
             }
         }
     }
+ // Adicionar contagem de elementos
+    var contagemElementosTexto = [];
+    for (var i = 0; i < itensLegenda.length; i++) {
+        if (itensLegenda[i].tipo === "contagem") {
+            var linhas = itensLegenda[i].texto.split('\n');
+            contagemElementosTexto.push(linhas[0]); // Adiciona a primeira linha (total)
+            for (var j = 1; j < linhas.length; j++) {
+                var linha = linhas[j];
+                // Verifica se a linha contém informações sobre uma bola
+                if (linha.indexOf("boule") !== -1) {
+                    // Adiciona "(units)" após a medida, mantendo o formato original
+                    linha = linha.replace(/(\d+(?:,\d+)?\s*m)/, "$1 (units)");
+                }
+                contagemElementosTexto.push(linha);
+            }
+            break;
+        }
+    }
 
+    if (contagemElementosTexto.length > 0) {
+        previewText = previewText.concat(contagemElementosTexto);
+    }
+
+    // Adicionar componentes extras, incluindo o primeiro
+    var todosComponentesExtras = primeiroComponenteExtra ? [primeiroComponenteExtra].concat(componentesExtras) : componentesExtras;
+    if (todosComponentesExtras.length > 0) {
+        previewText.push("\u200B"); // Linha em branco antes dos extras
+        for (var i = 0; i < todosComponentesExtras.length; i++) {
+            previewText.push(todosComponentesExtras[i].texto);
+        }
+    }
+
+     // Adicionar contagem de elementos
+     var contagemElementosTexto = [];
+     for (var i = 0; i < itensLegenda.length; i++) {
+         if (itensLegenda[i].tipo === "contagem") {
+             var linhas = itensLegenda[i].texto.split('\n');
+             contagemElementosTexto.push(linhas[0]); // Adiciona a primeira linha (total)
+             for (var j = 1; j < linhas.length; j++) {
+                 var linha = linhas[j];
+                 // Verifica se a linha contém informações sobre uma bola
+                 if (linha.indexOf("boule") !== -1) {
+                     // Adiciona "(units)" após a medida, mantendo o formato original
+                     linha = linha.replace(/(\d+(?:,\d+)?\s*m)/, "$1 (units)");
+                 }
+                 contagemElementosTexto.push(linha);
+             }
+             break;
+         }
+     }
+ 
+     if (contagemElementosTexto.length > 0) {
+         previewText = previewText.concat(contagemElementosTexto);
+     }
+ 
+     // Adicionar componentes extras, incluindo o primeiro
+     var todosComponentesExtras = primeiroComponenteExtra ? [primeiroComponenteExtra].concat(componentesExtras) : componentesExtras;
+     if (todosComponentesExtras.length > 0) {
+         previewText.push("\u200B"); // Linha em branco antes dos extras
+         for (var i = 0; i < todosComponentesExtras.length; i++) {
+             previewText.push(todosComponentesExtras[i].texto);
+         }
+     }
     // Adicionar observações
     if (campoObs && campoObs.text && campoObs.text.toString().replace(/\s/g, '').length > 0) {
         previewText.push("\u200B");

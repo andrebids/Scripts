@@ -2048,7 +2048,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                 var legendaInfo = atualizarPreview();
                 
                 if (legendaInfo === undefined) {
-                    alert("Erro: Não foi possível gerar o conteúdo da legenda.");
+                    alert("Erro: Não foi possível gerar o conteúdo da legenda. ");
                     return;
                 }
                 

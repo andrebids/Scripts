@@ -380,7 +380,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.1");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.2");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -1582,12 +1582,27 @@ function atualizarListaItens() {
         }
     }
     if (dimensoesValidas.length > 0) {
+        previewText.push("\u200B"); // Adiciona uma linha em branco extra
         previewText.push(dimensoesValidas.join(" - "));
     }
 
     // Adicionar tipo de fixação
     previewText.push("Fixation: " + (listaFixacao.selection ? listaFixacao.selection.text : ""));
-    previewText.push("\u200B");
+
+    // Adicionar "Composants:" apenas se houver componentes
+    var temComponentes = false;
+    for (var i = 0; i < itensLegenda.length; i++) {
+        if (itensLegenda[i].tipo === "componente") {
+            temComponentes = true;
+            break;
+        }
+    }
+    
+    if (temComponentes) {
+        previewText.push("\u200B"); // Linha em branco
+        previewText.push("Composants:");
+    }
+
 
 
 

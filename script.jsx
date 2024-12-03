@@ -1506,48 +1506,11 @@ function atualizarListaItens() {
         }
     }
 
-    // Verificar dimensões e determinar se é 2D ou 3D
-    function determinarTipoDimensao(dimensoesValidas) {
-        var temH = false;
-        var temL = false;
-        var temP = false;
-        var temDiametro = false;
-        
-        for (var i = 0; i < dimensoes.length; i++) {
-            var valorDimensao = grupoDimensoes.children[i*2 + 1].text;
-            if (valorDimensao !== "") {
-                var dimensao = dimensoes[i];
-                if (dimensao === "H") temH = true;
-                if (dimensao === "L") temL = true;
-                if (dimensao === "P") temP = true;
-                if (dimensao === "⌀") temDiametro = true;
-            }
-        }
-        
-        // Se não houver dimensões, retorna string vazia
-        if (!temH && !temL && !temP && !temDiametro) {
-            return "";
-        }
-        
-        // Se tiver profundidade ou diâmetro, é 3D
-        if (temP || temDiametro) {
-            return "3D";
-        }
-        
-        // Se tiver altura ou largura, é 2D
-        if (temH || temL) {
-            return "2D";
-        }
-        
-        return "";
-    }
-
-    // Na parte onde monta a frase principal
+    // Construir a frase principal
     var nomeTipo = palavraDigitada || campoNomeTipo.text;
     var prefixoNomeTipo = escolhaNomeTipo.selection.text === "Tipo" ? "type " : "";
     var preposicao = alfabetoUsado ? "en" : "avec";
-    var tipoDimensao = determinarTipoDimensao(dimensoesValidas);
-    var decorTexto = tipoDimensao ? "décor " + tipoDimensao : "décor";
+    var decorTexto = "décor";
 
     frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": " + 
                      decorTexto + " " + prefixoNomeTipo + "\"" + nomeTipo + "\" " + preposicao;
@@ -2062,6 +2025,24 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
 
     // Modificar o botão para gerar legenda
     botaoGerar.onClick = function() {
+        // Verificar se há dimensões preenchidas
+        var temDimensoes = false;
+        for (var i = 0; i < dimensoes.length; i++) {
+            var valorDimensao = grupoDimensoes.children[i*2 + 1].text;
+            if (valorDimensao !== "") {
+                temDimensoes = true;
+                break;
+            }
+        }
+
+        // Se não houver dimensões, mostrar alerta
+        if (!temDimensoes) {
+            if (!confirm("Não foi inserido nenhum tamanho. Pretende continuar mesmo assim?")) {
+                return; // Se o usuário clicar em "Cancelar", interrompe a execução
+            }
+        }
+
+        // Continua com a verificação original
         if (confirm("Tens certeza que adicionaste todos os componentes que precisavas?")) {
             try {
                 var legendaInfo = atualizarPreview();

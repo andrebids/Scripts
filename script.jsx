@@ -380,7 +380,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.0");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.1");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -682,13 +682,18 @@ abaGeral.alignChildren = ["fill", "top"];
 var checkboxMostrarObs = abaGeral.add("checkbox", undefined, "Adicionar Observações");
 var checkboxMostrarComponenteExtra = abaGeral.add("checkbox", undefined, "Adicionar Componente Extra");
 
-// Aba 2: Alfabeto e Contagem
-var abaAlfabeto = abasExtra.add("tab", undefined, "Alfabeto/Contagem");
-abaAlfabeto.alignChildren = ["fill", "top"];
-var checkboxMostrarAlfabeto = abaAlfabeto.add("checkbox", undefined, "Criar GX (Alfabeto)");
-var checkboxMostrarContar = abaAlfabeto.add("checkbox", undefined, "Mostrar Contar Elementos");
+// Aba 2: Criar
+var abaCriar = abasExtra.add("tab", undefined, "Criar");
+abaCriar.alignChildren = ["fill", "top"];
+var checkboxMostrarAlfabeto = abaCriar.add("checkbox", undefined, "Criar GX (Alfabeto)");
+var checkboxCriarPalavraAluminio = abaCriar.add("checkbox", undefined, "Criar palavra de alumínio (em desenvolvimento)");
 
-// Aba 3: Texturas
+// Aba 3: Contagem
+var abaContagem = abasExtra.add("tab", undefined, "Contagem");
+abaContagem.alignChildren = ["fill", "top"];
+var checkboxMostrarContar = abaContagem.add("checkbox", undefined, "Mostrar Contar Elementos (em desenvolvimento)");
+
+// Aba 4: Texturas
 var abaTexturas = abasExtra.add("tab", undefined, "Texturas");
 abaTexturas.alignChildren = ["fill", "top"];
 var checkboxMostrarTexturas = abaTexturas.add("checkbox", undefined, "Adicionar Texturas");
@@ -974,175 +979,175 @@ checkboxMostrarComponenteExtra.onClick = function() {
 };
 
 checkboxMostrarAlfabeto.onClick = function() {
-  if (this.value) {
-      // Adicionar o grupo de alfabeto
-      grupoAlfabeto = grupoExtra.add("panel", undefined, "Alfabeto");
-      grupoAlfabeto.orientation = "column"; // Alterar para "column" para alinhar verticalmente
-      grupoAlfabeto.alignChildren = ["fill", "top"]; // Preencher a largura
-      grupoAlfabeto.spacing = 10; // Adicionar espaçamento entre os elementos
+    if (this.value) {
+        // Adicionar o grupo de alfabeto
+        grupoAlfabeto = grupoExtra.add("panel", undefined, "Alfabeto");
+        grupoAlfabeto.orientation = "column"; // Alterar para "column" para alinhar verticalmente
+        grupoAlfabeto.alignChildren = ["fill", "top"]; // Preencher a largura
+        grupoAlfabeto.spacing = 10; // Adicionar espaçamento entre os elementos
 
-      var subGrupoAlfabeto = grupoAlfabeto.add("group");
-      subGrupoAlfabeto.orientation = "row";
-      subGrupoAlfabeto.alignChildren = ["fill", "top"];
-      subGrupoAlfabeto.spacing = 10;
+        var subGrupoAlfabeto = grupoAlfabeto.add("group");
+        subGrupoAlfabeto.orientation = "row";
+        subGrupoAlfabeto.alignChildren = ["fill", "top"];
+        subGrupoAlfabeto.spacing = 10;
 
-      subGrupoAlfabeto.add("statictext", undefined, "Alfabeto:");
-      campoPalavraChave = subGrupoAlfabeto.add("edittext", undefined, "");
-      campoPalavraChave.characters = 20;
+        subGrupoAlfabeto.add("statictext", undefined, "Alfabeto:");
+        campoPalavraChave = subGrupoAlfabeto.add("edittext", undefined, "");
+        campoPalavraChave.characters = 20;
 
-      // Adicionar texto estático para bioprint
-      subGrupoAlfabeto.add("statictext", undefined, "Bioprint");
+        // Adicionar texto estático para bioprint
+        subGrupoAlfabeto.add("statictext", undefined, "Bioprint");
 
-      // Adicionar dropdown para cor do bioprint
-      subGrupoAlfabeto.add("statictext", undefined, "Cor:");
-      dropdownCorBioprint = subGrupoAlfabeto.add("dropdownlist", undefined, ["Selecione a cor"]);
+        // Adicionar dropdown para cor do bioprint
+        subGrupoAlfabeto.add("statictext", undefined, "Cor:");
+        dropdownCorBioprint = subGrupoAlfabeto.add("dropdownlist", undefined, ["Selecione a cor"]);
 
-      // Manter o dropdown de tamanho existente
-      subGrupoAlfabeto.add("statictext", undefined, "Tamanho:");
-      tamanhoAlfabeto = subGrupoAlfabeto.add("dropdownlist", undefined, ["1,40 m", "2,00 m"]);
-      tamanhoAlfabeto.selection = 0;
+        // Manter o dropdown de tamanho existente
+        subGrupoAlfabeto.add("statictext", undefined, "Tamanho:");
+        tamanhoAlfabeto = subGrupoAlfabeto.add("dropdownlist", undefined, ["1,40 m", "2,00 m"]);
+        tamanhoAlfabeto.selection = 0;
 
-      botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, "Adicionar");
+        botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, "Adicionar");
 
-      // Adicionar linha separadora
-      var linhaSeparadora = grupoAlfabeto.add("panel");
-      linhaSeparadora.preferredSize = [-1, 2]; // Ajustar a largura para preencher e altura para 2px
-      linhaSeparadora.graphics.backgroundColor = linhaSeparadora.graphics.newBrush(linhaSeparadora.graphics.BrushType.SOLID_COLOR, [0, 0, 0, 1]);
+        // Adicionar linha separadora
+        var linhaSeparadora = grupoAlfabeto.add("panel");
+        linhaSeparadora.preferredSize = [-1, 2]; // Ajustar a largura para preencher e altura para 2px
+        linhaSeparadora.graphics.backgroundColor = linhaSeparadora.graphics.newBrush(linhaSeparadora.graphics.BrushType.SOLID_COLOR, [0, 0, 0, 1]);
 
-      // Adicionar texto de informação
-      grupoAlfabeto.add("statictext", undefined, "Escreve a tua frase GX, e adiciona á legenda, não precisas de preencher o Nome/tipo. Para fazer o coração é: <3");
+        // Adicionar texto de informação
+        grupoAlfabeto.add("statictext", undefined, "Escreve a tua frase GX, e adiciona á legenda, não precisas de preencher o Nome/tipo. Para fazer o coração é: <3");
 
-      // Função para preencher o dropdown de cores do bioprint
-      function preencherCoresBioprint() {
-          dropdownCorBioprint.removeAll();
-          
-          var componenteBioprint = null;
-          for (var i = 0; i < dados.componentes.length; i++) {
-              if (dados.componentes[i].nome.toLowerCase() === "bioprint") {
-                  componenteBioprint = dados.componentes[i];
-                  break;
-              }
-          }
-          
-          if (componenteBioprint) {
-              var coresBioprint = [];
-              var indexOr = -1;
-              for (var i = 0; i < dados.combinacoes.length; i++) {
-                  if (dados.combinacoes[i].componenteId === componenteBioprint.id) {
-                      var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
-                      if (cor && !arrayContains(coresBioprint, cor)) {
-                          coresBioprint.push(cor);
-                          if (cor.nome.toLowerCase() === "or") {
-                              indexOr = coresBioprint.length - 1;
-                          }
-                      }
-                  }
-              }
-          
-              for (var i = 0; i < coresBioprint.length; i++) {
-                  dropdownCorBioprint.add("item", coresBioprint[i].nome);
-              }
-          
-              // Pré-selecionar "or" se existir, caso contrário, selecionar o primeiro item
-              if (indexOr !== -1) {
-                  dropdownCorBioprint.selection = indexOr;
-              } else if (coresBioprint.length > 0) {
-                  dropdownCorBioprint.selection = 0;
-              }
-          }
-          
-          // Se não houver cores disponíveis, adicionar um item padrão
-          if (dropdownCorBioprint.items.length === 0) {
-              dropdownCorBioprint.add("item", "Sem cores disponíveis");
-              dropdownCorBioprint.selection = 0;
-          }
-      }
+        // Função para preencher o dropdown de cores do bioprint
+        function preencherCoresBioprint() {
+            dropdownCorBioprint.removeAll();
+            
+            var componenteBioprint = null;
+            for (var i = 0; i < dados.componentes.length; i++) {
+                if (dados.componentes[i].nome.toLowerCase() === "bioprint") {
+                    componenteBioprint = dados.componentes[i];
+                    break;
+                }
+            }
+            
+            if (componenteBioprint) {
+                var coresBioprint = [];
+                var indexOr = -1;
+                for (var i = 0; i < dados.combinacoes.length; i++) {
+                    if (dados.combinacoes[i].componenteId === componenteBioprint.id) {
+                        var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
+                        if (cor && !arrayContains(coresBioprint, cor)) {
+                            coresBioprint.push(cor);
+                            if (cor.nome.toLowerCase() === "or") {
+                                indexOr = coresBioprint.length - 1;
+                            }
+                        }
+                    }
+                }
+            
+                for (var i = 0; i < coresBioprint.length; i++) {
+                    dropdownCorBioprint.add("item", coresBioprint[i].nome);
+                }
+            
+                // Pré-selecionar "or" se existir, caso contrário, selecionar o primeiro item
+                if (indexOr !== -1) {
+                    dropdownCorBioprint.selection = indexOr;
+                } else if (coresBioprint.length > 0) {
+                    dropdownCorBioprint.selection = 0;
+                }
+            }
+            
+            // Se não houver cores disponíveis, adicionar um item padrão
+            if (dropdownCorBioprint.items.length === 0) {
+                dropdownCorBioprint.add("item", "Sem cores disponíveis");
+                dropdownCorBioprint.selection = 0;
+            }
+        }
 
-      // Chamar a função para preencher as cores do bioprint
-      preencherCoresBioprint();
+        // Chamar a função para preencher as cores do bioprint
+        preencherCoresBioprint();
 
-      function processarAlfabeto() {
-          var alfabeto = campoPalavraChave.text.toUpperCase();
-          var corBioprintSelecionada = dropdownCorBioprint.selection ? dropdownCorBioprint.selection.text : "";
-          var tamanhoSelecionado = tamanhoAlfabeto.selection.text;
-          var referenciasUsadas = {};
-          
-          // Armazenar a palavra digitada
-          var palavraDigitada = campoPalavraChave.text;
-          
-          var referenciasMapeadas = {
-              'A': 'GX214LW', 'B': 'GX215LW', 'C': 'GX216LW', 'D': 'GX217LW',
-              'E': 'GX218LW', 'F': 'GX219LW', 'G': 'GX220LW', 'H': 'GX221LW',
-              'I': 'GX222LW', 'J': 'GX223LW', 'K': 'GX224LW', 'L': 'GX225LW',
-              'M': 'GX226LW', 'N': 'GX227LW', 'O': 'GX228LW', 'P': 'GX229LW',
-              'Q': 'GX230LW', 'R': 'GX231LW', 'S': 'GX232LW', 'T': 'GX233LW',
-              'U': 'GX234LW', 'V': 'GX235LW', 'W': 'GX236LW', 'X': 'GX237LW',
-              'Y': 'GX238LW', 'Z': 'GX239LW', '<3': 'GX240LW', '#': 'GX241LW'
-          };
-          
-          for (var i = 0; i < alfabeto.length; i++) {
-              var caractere = alfabeto[i];
-              if (caractere === '<' && alfabeto[i+1] === '3') {
-                  caractere = '<3';
-                  i++; // Pula o próximo caractere, pois já foi processado
-              }
-              
-              if (referenciasMapeadas.hasOwnProperty(caractere)) {
-                  if (!referenciasUsadas[caractere]) {
-                      referenciasUsadas[caractere] = 1;
-                  } else {
-                      referenciasUsadas[caractere]++;
-                  }
-              }
-          }
-          
-          var referenciasTexto = [];
-          for (var caractere in referenciasUsadas) {
-              if (referenciasUsadas.hasOwnProperty(caractere)) {
-                  referenciasTexto.push(referenciasMapeadas[caractere] + " (" + caractere + ") bioprint " + corBioprintSelecionada + " " + tamanhoSelecionado + ": " + referenciasUsadas[caractere]);
-              }
-          }
-          
-          // Adicionar as referências usadas à legenda
-          if (referenciasTexto.length > 0) {
-              itensLegenda.push({
-                  tipo: "alfabeto",
-                  nome: "Referências do Alfabeto",
-                  texto: referenciasTexto.join("\n"),
-                  referencia: "",
-                  quantidade: 1,
-                  unidade: "",
-                  tamanho: tamanhoSelecionado,
-                  bioprint: "bioprint",
-                  corBioprint: corBioprintSelecionada,
-                  palavraDigitada: palavraDigitada
-              });
-              
-              atualizarListaItens();
-              campoPalavraChave.text = "";
-              
-              // Atualizar o campo nome/tipo apenas com a palavra digitada
-              campoNomeTipo.text = palavraDigitada;
-          } else {
-              alert("Nenhuma letra válida foi inserida.");
-          }
-      }
+        function processarAlfabeto() {
+            var alfabeto = campoPalavraChave.text.toUpperCase();
+            var corBioprintSelecionada = dropdownCorBioprint.selection ? dropdownCorBioprint.selection.text : "";
+            var tamanhoSelecionado = tamanhoAlfabeto.selection.text;
+            var referenciasUsadas = {};
+            
+            // Armazenar a palavra digitada
+            var palavraDigitada = campoPalavraChave.text;
+            
+            var referenciasMapeadas = {
+                'A': 'GX214LW', 'B': 'GX215LW', 'C': 'GX216LW', 'D': 'GX217LW',
+                'E': 'GX218LW', 'F': 'GX219LW', 'G': 'GX220LW', 'H': 'GX221LW',
+                'I': 'GX222LW', 'J': 'GX223LW', 'K': 'GX224LW', 'L': 'GX225LW',
+                'M': 'GX226LW', 'N': 'GX227LW', 'O': 'GX228LW', 'P': 'GX229LW',
+                'Q': 'GX230LW', 'R': 'GX231LW', 'S': 'GX232LW', 'T': 'GX233LW',
+                'U': 'GX234LW', 'V': 'GX235LW', 'W': 'GX236LW', 'X': 'GX237LW',
+                'Y': 'GX238LW', 'Z': 'GX239LW', '<3': 'GX240LW', '#': 'GX241LW'
+            };
+            
+            for (var i = 0; i < alfabeto.length; i++) {
+                var caractere = alfabeto[i];
+                if (caractere === '<' && alfabeto[i+1] === '3') {
+                    caractere = '<3';
+                    i++; // Pula o próximo caractere, pois já foi processado
+                }
+                
+                if (referenciasMapeadas.hasOwnProperty(caractere)) {
+                    if (!referenciasUsadas[caractere]) {
+                        referenciasUsadas[caractere] = 1;
+                    } else {
+                        referenciasUsadas[caractere]++;
+                    }
+                }
+            }
 
-      botaoAdicionarPalavraChave.onClick = processarAlfabeto;
+            var referenciasTexto = [];
+            for (var caractere in referenciasUsadas) {
+                if (referenciasUsadas.hasOwnProperty(caractere)) {
+                    referenciasTexto.push(referenciasMapeadas[caractere] + " (" + caractere + ") bioprint " + corBioprintSelecionada + " " + tamanhoSelecionado + ": " + referenciasUsadas[caractere]);
+                }
+            }
+            
+            // Adicionar as referências usadas à legenda
+            if (referenciasTexto.length > 0) {
+                itensLegenda.push({
+                    tipo: "alfabeto",
+                    nome: "Referências do Alfabeto",
+                    texto: referenciasTexto.join("\n"),
+                    referencia: "",
+                    quantidade: 1,
+                    unidade: "",
+                    tamanho: tamanhoSelecionado,
+                    bioprint: "bioprint",
+                    corBioprint: corBioprintSelecionada,
+                    palavraDigitada: palavraDigitada
+                });
+                
+                atualizarListaItens();
+                campoPalavraChave.text = "";
+                
+                // Atualizar o campo nome/tipo apenas com a palavra digitada
+                campoNomeTipo.text = palavraDigitada;
+            } else {
+                alert("Nenhuma letra válida foi inserida.");
+            }
+        }
 
-      janela.layout.layout(true); // Forçar atualização do layout
-      janela.preferredSize.height += 100; // Aumentar a altura da janela
-  } else {
-      // Remover o grupo de alfabeto
-      grupoAlfabeto.parent.remove(grupoAlfabeto);
-      campoPalavraChave = null; // Definir campoPalavraChave como null quando o grupo é removido
-      dropdownCorBioprint = null; // Definir dropdownCorBioprint como null quando o grupo é removido
-      tamanhoAlfabeto = null; // Definir tamanhoAlfabeto como null quando o grupo é removido
-      botaoAdicionarPalavraChave = null; // Definir botaoAdicionarPalavraChave como null quando o grupo é removido
-      janela.layout.layout(true); // Forçar atualização do layout
-      janela.preferredSize.height -= 100; // Diminuir a altura da janela
-  }
-  janela.layout.resize();
+        botaoAdicionarPalavraChave.onClick = processarAlfabeto;
+
+        janela.layout.layout(true); // Forçar atualização do layout
+        janela.preferredSize.height += 100; // Aumentar a altura da janela
+    } else {
+        // Remover o grupo de alfabeto
+        grupoAlfabeto.parent.remove(grupoAlfabeto);
+        campoPalavraChave = null; // Definir campoPalavraChave como null quando o grupo é removido
+        dropdownCorBioprint = null; // Definir dropdownCorBioprint como null quando o grupo é removido
+        tamanhoAlfabeto = null; // Definir tamanhoAlfabeto como null quando o grupo é removido
+        botaoAdicionarPalavraChave = null; // Definir botaoAdicionarPalavraChave como null quando o grupo é removido
+        janela.layout.layout(true); // Forçar atualização do layout
+        janela.preferredSize.height -= 100; // Diminuir a altura da janela
+    }
+    janela.layout.resize();
 };
 
 
@@ -1366,6 +1371,9 @@ grupoBotoesPrincipais.spacing = 10;
 var botaoRemoverItem = grupoBotoesPrincipais.add("button", undefined, "Remover Selecionado");
 var botaoRemoverTodos = grupoBotoesPrincipais.add("button", undefined, "Remover Todos");
 var botaoGerar = grupoBotoesPrincipais.add("button", undefined, "Adicionar Legenda");
+
+// Adicionar estilo personalizado ao botão Adicionar Legenda
+botaoGerar.graphics.foregroundColor = botaoGerar.graphics.newPen(botaoGerar.graphics.PenType.SOLID_COLOR, [0, 0, 0], 2);
 
   
 function atualizarListaItens() {

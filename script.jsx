@@ -965,7 +965,7 @@ checkboxMostrarComponenteExtra.onClick = function() {
 
           atualizarListaItens();
 
-          // Limpar os campos após adicionar
+          // Limpar os campos ap��s adicionar
           campoNomeExtra.text = "";
           campoQuantidadeExtra.text = "";
       };
@@ -2017,8 +2017,8 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                 
                 // Substituir pontos por vírgulas
                 var legendaConteudo = legendaInfo.texto.replace(/(\d+)\.(\d+)/g, formatarNumero);
-
-                var scriptIllustrator = function(nomeDesigner, conteudoLegenda, texturas) {
+    
+                var scriptIllustrator = function(nomeDesigner, conteudoLegenda, texturas, palavraDigitada) {
                     var doc = app.activeDocument;
     
                     if (!doc) {
@@ -2077,16 +2077,63 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                         alert("Erro ao processar texturas: " + aiError + "\nLinha: " + aiError.line);
                     }
     
-                    // Criar o texto da legenda abaixo das texturas
+                    // Dentro da função scriptIllustrator, após o processamento das texturas:
+                    try {
+                        // Verificar se há palavra digitada
+                        alert("Verificando palavra digitada: '" + palavraDigitada + "'");
+                        
+                        if (palavraDigitada && palavraDigitada !== "") {
+                            var caminhoAlfabeto = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/alfabeto/";
+                            
+                            var posicaoX = 0;
+                            var posicaoY = 300; // Mantendo a mesma altura
+                            var espacamentoHorizontal = 220; // Aumentado significativamente o espaçamento entre letras
+                            var alturaMaximaLetras = 0;
+
+                            for (var i = 0; i < palavraDigitada.length; i++) {
+                                var caractere = palavraDigitada[i].toUpperCase();
+                                
+                                if (caractere === '<' && palavraDigitada[i+1] === '3') {
+                                    caractere = '<3';
+                                    i++;
+                                }
+
+                                var nomeArquivoAI = "";
+                                if (caractere >= 'A' && caractere <= 'Z') {
+                                    var numeroLetra = 214 + (caractere.charCodeAt(0) - 'A'.charCodeAt(0));
+                                    nomeArquivoAI = "GX" + numeroLetra + "LW.ai";
+                                } else if (caractere === '<3') {
+                                    nomeArquivoAI = "GX240LW.ai";
+                                } else if (caractere === '#') {
+                                    nomeArquivoAI = "GX241LW.ai";
+                                }
+
+                                if (nomeArquivoAI !== "") {
+                                    var caminhoAI = caminhoAlfabeto + nomeArquivoAI;
+                                    var arquivoAI = new File(caminhoAI);
+
+                                    if (arquivoAI.exists) {
+                                        var placedItem = novaLayer.placedItems.add();
+                                        placedItem.file = arquivoAI;
+                                        placedItem.position = [posicaoX, posicaoY];
+                                        placedItem.embed();
+                                        
+                                        // Mover para a próxima posição
+                                        posicaoX += espacamentoHorizontal;
+                                    }
+                                }
+                            }
+                        }
+                    } catch (alfabetoError) {
+                        alert("Erro ao processar alfabeto: " + alfabetoError);
+                    }
+                    
+                    // Posicionar o texto da legenda abaixo das letras
                     var textoLegenda = novaLayer.textFrames.add();
-                    textoLegenda.position = [
-                        artboardBounds[0], 
-                        artboardBounds[1] - alturaTexturas - 40 // posicionar abaixo das texturas
-                    ];
+                    textoLegenda.position = [0, 0];
     
                     var tamanhoFontePrincipal = 40;
                     var tamanhoFonteBids = 30;
-                    var espacoEntreLinhas = tamanhoFontePrincipal * 1.20;
     
                     // Configurar fonte e cor
                     textoLegenda.textRange.characterAttributes.size = tamanhoFontePrincipal;
@@ -2105,7 +2152,6 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                     for (var i = 0; i < linhas.length; i++) {
                         var linha = linhas[i];
                         
-                        // Adicionar Bids - Nome apenas antes do Logo
                         if (linha.indexOf("Logo") === 0) {
                             var paragBids = textoLegenda.paragraphs.add(textoBids);
                             paragBids.characterAttributes.size = tamanhoFonteBids;
@@ -2130,10 +2176,20 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                     return "success";
                 };
     
+                // Capturar a palavra digitada do campo alfabeto
+                var palavraDigitada = "";
+                for (var i = 0; i < itensLegenda.length; i++) {
+                    if (itensLegenda[i].tipo === "alfabeto") {
+                        palavraDigitada = itensLegenda[i].palavraDigitada;
+                        break;
+                    }
+                }
+    
                 var scriptString = "(" + scriptIllustrator.toString() + ")";
                 scriptString += "('" + escapeString(nomeDesigner) + "', '" + 
                                escapeString(legendaConteudo) + "', '" + 
-                               legendaInfo.texturas.join(',') + "');";
+                               legendaInfo.texturas.join(',') + "', '" + 
+                               escapeString(palavraDigitada) + "');";
                 
                 var bt = new BridgeTalk();
                 bt.target = "illustrator";

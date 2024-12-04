@@ -380,7 +380,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.3");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.2");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -1015,8 +1015,7 @@ checkboxMostrarAlfabeto.onClick = function() {
         linhaSeparadora.graphics.backgroundColor = linhaSeparadora.graphics.newBrush(linhaSeparadora.graphics.BrushType.SOLID_COLOR, [0, 0, 0, 1]);
 
         // Adicionar texto de informação
-        grupoAlfabeto.add("statictext", undefined, 
-            "Escreve a tua frase GX, e adiciona á legenda, não precisas de preencher o Nome/tipo. Para fazer o coração é: <3. O tamanho respeita a escala de 38mm=1m.",{multiline: true});
+        grupoAlfabeto.add("statictext", undefined, "Escreve a tua frase GX, e adiciona á legenda, não precisas de preencher o Nome/tipo. Para fazer o coração é: <3");
 
         // Função para preencher o dropdown de cores do bioprint
         function preencherCoresBioprint() {
@@ -1118,7 +1117,7 @@ checkboxMostrarAlfabeto.onClick = function() {
                     referencia: "",
                     quantidade: 1,
                     unidade: "",
-                    tamanho: tamanhoSelecionado, // Garantir que o tamanho está sendo salvo aqui
+                    tamanho: tamanhoSelecionado,
                     bioprint: "bioprint",
                     corBioprint: corBioprintSelecionada,
                     palavraDigitada: palavraDigitada
@@ -2056,40 +2055,32 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                 // Substituir pontos por vírgulas
                 var legendaConteudo = legendaInfo.texto.replace(/(\d+)\.(\d+)/g, formatarNumero);
     
-                // Encontrar o tamanho selecionado nos itens da legenda
-                var tamanhoGXSelecionado = "";
-                for (var i = 0; i < itensLegenda.length; i++) {
-                    if (itensLegenda[i].tipo === "alfabeto") {
-                        tamanhoGXSelecionado = itensLegenda[i].tamanho;
-                        break;
-                    }
-                }
-
-                var scriptIllustrator = function(nomeDesigner, conteudoLegenda, texturas, palavraDigitada, tamanhoGX) {
+                var scriptIllustrator = function(nomeDesigner, conteudoLegenda, texturas, palavraDigitada) {
                     var doc = app.activeDocument;
-                
+    
                     if (!doc) {
                         return "Nenhum documento ativo. Por favor, abra um documento no Illustrator.";
                     }
-                
+    
                     if (doc.artboards.length === 0) {
                         return "Erro: O documento não tem artboards. Por favor, crie uma artboard antes de adicionar a legenda.";
                     }
-                
+    
                     var novaLayer = doc.layers.add();
                     novaLayer.name = "Legenda";
-                
+    
                     var artboard = doc.artboards[doc.artboards.getActiveArtboardIndex()];
                     var artboardBounds = artboard.artboardRect;
                     
                     // Primeiro, importar e posicionar as texturas
                     var alturaTexturas = 0;
                     try {
+                        // Verificar se há texturas para processar
                         if (texturas && texturas !== "") {
                             var caminhoBase = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/svg/";
                             var texturasArray = texturas.split(',');
                             var larguraTextura = 300;
-                            var alturaTextura = 400;
+                            var alturaTextura = 400; // Definir altura específica aqui
                             var espacamentoVertical = 50;
                             
                             for (var i = 0; i < texturasArray.length; i++) {
@@ -2098,16 +2089,19 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                                 var arquivoAI = new File(caminhoAI);
                                 
                                 if (arquivoAI.exists) {
+                                    // Criar o item posicionado
                                     var placedItem = novaLayer.placedItems.add();
                                     placedItem.file = arquivoAI;
                                     
+                                    // Posicionar e dimensionar
                                     placedItem.position = [
                                         artboardBounds[0] + (i * (larguraTextura + 20)),
                                         artboardBounds[1] - 40
                                     ];
                                     placedItem.width = larguraTextura;
-                                    placedItem.height = alturaTextura;
+                                    placedItem.height = alturaTextura; // Usar a nova altura aqui
                                     
+                                    // Incorporar a textura no documento
                                     placedItem.embed();
                                     
                                     alturaTexturas = alturaTextura + espacamentoVertical;
@@ -2119,18 +2113,18 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                     } catch (aiError) {
                         alert("Erro ao processar texturas: " + aiError + "\nLinha: " + aiError.line);
                     }
-                
-                    // Processar e posicionar o alfabeto GX
+    
+                    // Dentro da função scriptIllustrator, após o processamento das texturas:
                     try {
+                        
                         if (palavraDigitada && palavraDigitada !== "") {
                             var caminhoAlfabeto = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/alfabeto/";
                             
-                            var sufixoTamanho = (tamanhoGX === "1,40 m" || tamanhoGX === "1.40 m") ? "140" : "200";
-                            
                             var posicaoX = 0;
-                            var posicaoY = 300;
-                            var espacamentoHorizontal = (tamanhoGX === "1,40 m" || tamanhoGX === "1.40 m") ? 150 : 300;
-                    
+                            var posicaoY = 300; // Mantendo a mesma altura
+                            var espacamentoHorizontal = 220; // Aumentado significativamente o espaçamento entre letras
+                            var alturaMaximaLetras = 0;
+
                             for (var i = 0; i < palavraDigitada.length; i++) {
                                 var caractere = palavraDigitada[i].toUpperCase();
                                 
@@ -2138,27 +2132,28 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                                     caractere = '<3';
                                     i++;
                                 }
-                    
+
                                 var nomeArquivoAI = "";
                                 if (caractere >= 'A' && caractere <= 'Z') {
                                     var numeroLetra = 214 + (caractere.charCodeAt(0) - 'A'.charCodeAt(0));
-                                    nomeArquivoAI = "GX" + numeroLetra + "LW_" + sufixoTamanho + ".ai";
+                                    nomeArquivoAI = "GX" + numeroLetra + "LW.ai";
                                 } else if (caractere === '<3') {
-                                    nomeArquivoAI = "GX240LW_" + sufixoTamanho + ".ai";
+                                    nomeArquivoAI = "GX240LW.ai";
                                 } else if (caractere === '#') {
-                                    nomeArquivoAI = "GX241LW_" + sufixoTamanho + ".ai";
+                                    nomeArquivoAI = "GX241LW.ai";
                                 }
-                    
+
                                 if (nomeArquivoAI !== "") {
                                     var caminhoAI = caminhoAlfabeto + nomeArquivoAI;
                                     var arquivoAI = new File(caminhoAI);
-                    
+
                                     if (arquivoAI.exists) {
                                         var placedItem = novaLayer.placedItems.add();
                                         placedItem.file = arquivoAI;
                                         placedItem.position = [posicaoX, posicaoY];
                                         placedItem.embed();
                                         
+                                        // Mover para a próxima posição
                                         posicaoX += espacamentoHorizontal;
                                     }
                                 }
@@ -2171,10 +2166,10 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                     // Posicionar o texto da legenda abaixo das letras
                     var textoLegenda = novaLayer.textFrames.add();
                     textoLegenda.position = [0, 0];
-                
+                    
                     var tamanhoFontePrincipal = 40;
                     var tamanhoFonteBids = 30;
-                
+                    
                     // Configurar fonte e cor
                     textoLegenda.textRange.characterAttributes.size = tamanhoFontePrincipal;
                     textoLegenda.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
@@ -2184,32 +2179,61 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                     } catch (e) {
                         textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
                     }
-                
+                    
                     var textoBids = "Bids - " + nomeDesigner;
                     var linhas = conteudoLegenda.split('\n');
-                
-                    // Processar todas as linhas
+                    
+                    // Dentro da função scriptIllustrator, modifique a parte onde as linhas são processadas:
+                    var textoBids = "Bids - " + nomeDesigner;
+                    var paragBids = textoLegenda.paragraphs.add(textoBids);
+                    paragBids.characterAttributes.size = tamanhoFonteBids;
+                    try {
+                        paragBids.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
+                    } catch (e) {
+                        paragBids.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
+                    }
+                    paragBids.paragraphAttributes.spaceBefore = 0;
+                    paragBids.paragraphAttributes.spaceAfter = 0;
+
                     for (var i = 0; i < linhas.length; i++) {
                         var linha = linhas[i];
                         
                         if (linha.indexOf("Logo") === 0) {
-                            var paragBids = textoLegenda.paragraphs.add(textoBids);
-                            paragBids.characterAttributes.size = tamanhoFonteBids;
-                            paragBids.paragraphAttributes.spaceBefore = 0;
-                            paragBids.paragraphAttributes.spaceAfter = 0;
-                        } else if (linha === "Composants:") {
-                            // Apenas a palavra "Composants:" em negrito
-                            var paragComposants = textoLegenda.paragraphs.add(linha);
-                            paragComposants.characterAttributes.size = tamanhoFontePrincipal;
+                            var novoParag = textoLegenda.paragraphs.add(linha);
+                            novoParag.characterAttributes.size = tamanhoFontePrincipal;
                             try {
-                                paragComposants.characterAttributes.textFont = app.textFonts.getByName("Apercu-Bold");
+                                novoParag.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
                             } catch (e) {
-                                paragComposants.characterAttributes.textFont = app.textFonts.getByName("Arial-BoldMT");
+                                novoParag.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
                             }
-                            paragComposants.paragraphAttributes.spaceBefore = 0;
-                            paragComposants.paragraphAttributes.spaceAfter = 0;
+                            novoParag.paragraphAttributes.spaceBefore = 0;
+                            novoParag.paragraphAttributes.spaceAfter = 0;
+                        } else if (linha.indexOf("Composants:") === 0) {
+                            var novoParag = textoLegenda.paragraphs.add(linha);
+                            novoParag.characterAttributes.size = tamanhoFontePrincipal;
+                            
+                            var textoComposants = novoParag.characters[0];
+                            textoComposants.length = "Composants:".length;
+                            
+                            try {
+                                textoComposants.characterAttributes.textFont = app.textFonts.getByName("Apercu-Bold");
+                            } catch (e) {
+                                textoComposants.characterAttributes.textFont = app.textFonts.getByName("Arial-BoldMT");
+                            }
+                            
+                            if (novoParag.characters.length > "Composants:".length) {
+                                var textoRestante = novoParag.characters["Composants:".length];
+                                textoRestante.length = novoParag.characters.length - "Composants:".length;
+                                try {
+                                    textoRestante.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
+                                } catch (e) {
+                                    textoRestante.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
+                                }
+                            }
+                            
+                            novoParag.paragraphAttributes.spaceBefore = 0;
+                            novoParag.paragraphAttributes.spaceAfter = 0;
                         } else {
-                            // Todo o restante do texto com a fonte normal
                             var novoParag = textoLegenda.paragraphs.add(linha);
                             novoParag.characterAttributes.size = tamanhoFontePrincipal;
                             try {
@@ -2221,7 +2245,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                             novoParag.paragraphAttributes.spaceAfter = 0;
                         }
                     }
-                
+    
                     // Ajustar limites geométricos
                     textoLegenda.geometricBounds = [
                         textoLegenda.geometricBounds[0],
@@ -2229,7 +2253,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                         textoLegenda.geometricBounds[2],
                         textoLegenda.geometricBounds[1] + 400
                     ];
-                
+    
                     return "success";
                 };
     
@@ -2246,8 +2270,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                 scriptString += "('" + escapeString(nomeDesigner) + "', '" + 
                                escapeString(legendaConteudo) + "', '" + 
                                legendaInfo.texturas.join(',') + "', '" + 
-                               escapeString(palavraDigitada) + "', '" +
-                               escapeString(tamanhoGXSelecionado) + "');"; // Garantir que estamos passando o tamanho correto
+                               escapeString(palavraDigitada) + "');";
                 
                 var bt = new BridgeTalk();
                 bt.target = "illustrator";

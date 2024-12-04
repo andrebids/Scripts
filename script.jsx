@@ -1015,7 +1015,8 @@ checkboxMostrarAlfabeto.onClick = function() {
         linhaSeparadora.graphics.backgroundColor = linhaSeparadora.graphics.newBrush(linhaSeparadora.graphics.BrushType.SOLID_COLOR, [0, 0, 0, 1]);
 
         // Adicionar texto de informação
-        grupoAlfabeto.add("statictext", undefined, "Escreve a tua frase GX, e adiciona á legenda, não precisas de preencher o Nome/tipo. Para fazer o coração é: <3");
+        grupoAlfabeto.add("statictext", undefined, 
+            "Escreve a tua frase GX, e adiciona á legenda, não precisas de preencher o Nome/tipo. Para fazer o coração é: <3. O tamanho respeita a escala de 38mm=1m.",{multiline: true});
 
         // Função para preencher o dropdown de cores do bioprint
         function preencherCoresBioprint() {
@@ -2124,22 +2125,12 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                         if (palavraDigitada && palavraDigitada !== "") {
                             var caminhoAlfabeto = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/alfabeto/";
                             
-                            // Adicionar log para debug
-                            alert("Tamanho GX selecionado: " + tamanhoGX);
-                            
-                            // Garantir que a comparação está correta
                             var sufixoTamanho = (tamanhoGX === "1,40 m" || tamanhoGX === "1.40 m") ? "140" : "200";
-                            
-                            // Adicionar log para debug
-                            alert("Sufixo do arquivo: " + sufixoTamanho);
                             
                             var posicaoX = 0;
                             var posicaoY = 300;
-                            // Ajustar o espaçamento horizontal baseado no tamanho
-                            // Reduzir o espaçamento para 1,40m de 220 para 150
-                            var espacamentoHorizontal = (tamanhoGX === "1,40 m" || tamanhoGX === "1.40 m") ? 150 : 220;
-                            var alturaMaximaLetras = 0;
-                
+                            var espacamentoHorizontal = (tamanhoGX === "1,40 m" || tamanhoGX === "1.40 m") ? 150 : 300;
+                    
                             for (var i = 0; i < palavraDigitada.length; i++) {
                                 var caractere = palavraDigitada[i].toUpperCase();
                                 
@@ -2147,7 +2138,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                                     caractere = '<3';
                                     i++;
                                 }
-                
+                    
                                 var nomeArquivoAI = "";
                                 if (caractere >= 'A' && caractere <= 'Z') {
                                     var numeroLetra = 214 + (caractere.charCodeAt(0) - 'A'.charCodeAt(0));
@@ -2157,11 +2148,11 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                                 } else if (caractere === '#') {
                                     nomeArquivoAI = "GX241LW_" + sufixoTamanho + ".ai";
                                 }
-                
+                    
                                 if (nomeArquivoAI !== "") {
                                     var caminhoAI = caminhoAlfabeto + nomeArquivoAI;
                                     var arquivoAI = new File(caminhoAI);
-                
+                    
                                     if (arquivoAI.exists) {
                                         var placedItem = novaLayer.placedItems.add();
                                         placedItem.file = arquivoAI;
@@ -2169,8 +2160,6 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                                         placedItem.embed();
                                         
                                         posicaoX += espacamentoHorizontal;
-                                    } else {
-                                        alert("Arquivo não encontrado: " + nomeArquivoAI);
                                     }
                                 }
                             }
@@ -2208,12 +2197,29 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                             paragBids.characterAttributes.size = tamanhoFonteBids;
                             paragBids.paragraphAttributes.spaceBefore = 0;
                             paragBids.paragraphAttributes.spaceAfter = 0;
+                        } else if (linha === "Composants:") {
+                            // Apenas a palavra "Composants:" em negrito
+                            var paragComposants = textoLegenda.paragraphs.add(linha);
+                            paragComposants.characterAttributes.size = tamanhoFontePrincipal;
+                            try {
+                                paragComposants.characterAttributes.textFont = app.textFonts.getByName("Apercu-Bold");
+                            } catch (e) {
+                                paragComposants.characterAttributes.textFont = app.textFonts.getByName("Arial-BoldMT");
+                            }
+                            paragComposants.paragraphAttributes.spaceBefore = 0;
+                            paragComposants.paragraphAttributes.spaceAfter = 0;
+                        } else {
+                            // Todo o restante do texto com a fonte normal
+                            var novoParag = textoLegenda.paragraphs.add(linha);
+                            novoParag.characterAttributes.size = tamanhoFontePrincipal;
+                            try {
+                                novoParag.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
+                            } catch (e) {
+                                novoParag.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
+                            }
+                            novoParag.paragraphAttributes.spaceBefore = 0;
+                            novoParag.paragraphAttributes.spaceAfter = 0;
                         }
-                        
-                        var novoParag = textoLegenda.paragraphs.add(linha);
-                        novoParag.characterAttributes.size = tamanhoFontePrincipal;
-                        novoParag.paragraphAttributes.spaceBefore = 0;
-                        novoParag.paragraphAttributes.spaceAfter = 0;
                     }
                 
                     // Ajustar limites geométricos

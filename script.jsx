@@ -472,7 +472,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.9");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -542,9 +542,13 @@ botaoUpdate.onClick = function() {
             // Escrever o conteúdo do arquivo
             scriptFile.write("@echo off\n");
             scriptFile.write("cd /d \"" + currentDir + "\"\n");
-            // Adicionar o comando para configurar o diretório como seguro
+            
+            // Configurar diretório como seguro e forçar atualização
             scriptFile.write("git config --global --add safe.directory \"%CD%\" > update_log.txt 2>&1\n");
-            scriptFile.write("git pull >> update_log.txt 2>&1\n");
+            scriptFile.write("git fetch origin main >> update_log.txt 2>&1\n");
+            scriptFile.write("git reset --hard origin/main >> update_log.txt 2>&1\n");
+            scriptFile.write("git clean -fd >> update_log.txt 2>&1\n");
+            
             scriptFile.write("set /p GIT_OUTPUT=<update_log.txt\n");
             scriptFile.write("if \"%GIT_OUTPUT%\"==\"Already up to date.\" (\n");
             scriptFile.write("    echo Script já está atualizado.\n");
@@ -556,17 +560,13 @@ botaoUpdate.onClick = function() {
             scriptFile.write("pause\n");
             
             scriptFile.close();
-            alert("Arquivo .bat criado com sucesso");
             
             if (scriptFile.exists) {
-                alert("Tentando executar o script");
                 if (scriptFile.execute()) {
-                    alert("Script executado. Aguardando resultado...");
                     $.sleep(2000);
                     
                     var logFile = new File(currentDir + "/update_log.txt");
                     if (logFile.exists) {
-                        alert("Arquivo de log encontrado");
                         logFile.open('r');
                         var logContent = logFile.read();
                         logFile.close();
@@ -574,25 +574,17 @@ botaoUpdate.onClick = function() {
                         
                         if (logContent.indexOf("Already up to date") !== -1) {
                             alert(t("scriptAtualizado"));
-                        } else if (logContent.indexOf("Updating") !== -1) {
+                        } else if (logContent.indexOf("Updating") !== -1 || logContent.indexOf("HEAD is now at") !== -1) {
                             alert(t("atualizacaoSucesso"));
                         } else {
                             alert(t("erroAtualizacao"));
                         }
-                    } else {
-                        alert("Arquivo de log não foi criado");
                     }
-                } else {
-                    alert("Falha ao executar o script .bat");
                 }
-            } else {
-                alert("Arquivo .bat não foi criado corretamente");
             }
-        } else {
-            alert("Não foi possível criar o arquivo .bat");
         }
     } catch (e) {
-        alert("Erro geral: " + e + "\nTipo: " + typeof e);
+        alert("Erro geral: " + e);
     }
 };
 

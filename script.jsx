@@ -472,7 +472,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.7");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -542,7 +542,9 @@ botaoUpdate.onClick = function() {
             // Escrever o conteúdo do arquivo
             scriptFile.write("@echo off\n");
             scriptFile.write("cd /d \"" + currentDir + "\"\n");
-            scriptFile.write("git pull > update_log.txt 2>&1\n");
+            // Adicionar o comando para configurar o diretório como seguro
+            scriptFile.write("git config --global --add safe.directory \"%CD%\" > update_log.txt 2>&1\n");
+            scriptFile.write("git pull >> update_log.txt 2>&1\n");
             scriptFile.write("set /p GIT_OUTPUT=<update_log.txt\n");
             scriptFile.write("if \"%GIT_OUTPUT%\"==\"Already up to date.\" (\n");
             scriptFile.write("    echo Script já está atualizado.\n");
@@ -551,7 +553,7 @@ botaoUpdate.onClick = function() {
             scriptFile.write(") else (\n");
             scriptFile.write("    echo Atualização concluída com sucesso!\n");
             scriptFile.write(")\n");
-            scriptFile.write("pause\n"); // Adiciona pausa para ver o resultado
+            scriptFile.write("pause\n");
             
             scriptFile.close();
             alert("Arquivo .bat criado com sucesso");
@@ -560,9 +562,8 @@ botaoUpdate.onClick = function() {
                 alert("Tentando executar o script");
                 if (scriptFile.execute()) {
                     alert("Script executado. Aguardando resultado...");
-                    $.sleep(2000); // Aguardar a execução
+                    $.sleep(2000);
                     
-                    // Verificar o log de atualização
                     var logFile = new File(currentDir + "/update_log.txt");
                     if (logFile.exists) {
                         alert("Arquivo de log encontrado");
@@ -578,8 +579,6 @@ botaoUpdate.onClick = function() {
                         } else {
                             alert(t("erroAtualizacao"));
                         }
-                        
-                        // Não remover o arquivo de log para permitir verificação posterior
                     } else {
                         alert("Arquivo de log não foi criado");
                     }

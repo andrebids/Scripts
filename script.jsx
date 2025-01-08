@@ -536,7 +536,7 @@ botaoUpdate.onClick = function() {
         var scriptFile = new File(currentDir + "/update_script.bat");
         
         if (scriptFile.open('w')) {
-            // Escrever o conteúdo do arquivo
+            // Escrever o conteúdo do arquivo usando apenas caracteres ASCII
             scriptFile.write("@echo off\n");
             scriptFile.write("cd /d \"" + currentDir + "\"\n");
             
@@ -551,12 +551,9 @@ botaoUpdate.onClick = function() {
             scriptFile.write("git reset --hard origin/main >> temp_log.txt 2>&1\n");
             scriptFile.write("git clean -fd >> temp_log.txt 2>&1\n");
             
-            // Mover o log temporário para o arquivo final
+            // Mover o log temporário para o arquivo final e fechar a janela
             scriptFile.write("move /y temp_log.txt update_log.txt >nul 2>&1\n");
-            
-            // Remover o próprio arquivo .bat ao finalizar
-            scriptFile.write("del \"%~f0\"\n");
-            scriptFile.write("exit\n");
+            scriptFile.write("del \"%~f0\" & exit\n");
             
             scriptFile.close();
             

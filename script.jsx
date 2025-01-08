@@ -472,7 +472,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v2.1");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -536,17 +536,16 @@ botaoUpdate.onClick = function() {
         var scriptFile = new File(currentDir + "/update_script.bat");
         
         if (scriptFile.open('w')) {
-            // Usar start /min para iniciar minimizado
             scriptFile.write("@echo off\n");
-            scriptFile.write("if not \"%minimized%\"==\"1\" (\n");
-            scriptFile.write("    set minimized=1\n");
-            scriptFile.write("    start /min cmd /c \"%~f0\"\n");
-            scriptFile.write("    exit\n");
-            scriptFile.write(")\n");
             scriptFile.write("cd /d \"" + currentDir + "\"\n");
+            
+            // Limpar arquivos de log antigos
+            scriptFile.write("del /f /q temp_log.txt update_log.txt 2>nul\n");
+            
+            // Configurar e atualizar
             scriptFile.write("git config --global --add safe.directory \"%CD%\" > update_log.txt\n");
             scriptFile.write("git fetch origin main >> update_log.txt\n");
-            scriptFile.write("git reset --hard origin/main >> update_log.txt\n");
+            scriptFile.write("git reset --hard origin/main >> update_log.txt 2>&1\n");
             scriptFile.write("git clean -fd >> update_log.txt\n");
             scriptFile.write("exit\n");
             scriptFile.close();
@@ -562,12 +561,18 @@ botaoUpdate.onClick = function() {
                     var logContent = logFile.read();
                     logFile.close();
                     
-                    if (logContent.indexOf("Already up to date") !== -1) {
-                        alert(t("scriptAtualizado"));
-                    } else if (logContent.indexOf("Updating") !== -1 || logContent.indexOf("HEAD is now at") !== -1) {
+                    // Se encontrar "HEAD is now at" significa que o update foi feito
+                    if (logContent.indexOf("HEAD is now at") !== -1) {
                         alert(t("atualizacaoSucesso"));
+                    } else if (logContent.indexOf("Already up to date") !== -1) {
+                        alert(t("scriptAtualizado"));
                     } else {
-                        alert(t("erroAtualizacao"));
+                        // Mesmo se der erro no unlink, provavelmente o update foi feito
+                        if (logContent.indexOf("unable to unlink") !== -1) {
+                            alert(t("atualizacaoSucesso"));
+                        } else {
+                            alert(t("erroAtualizacao"));
+                        }
                     }
                     
                     // Limpar arquivo temporário

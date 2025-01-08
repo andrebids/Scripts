@@ -1,4 +1,0 @@
-From https://github.com/andrebids/Scripts
- * branch            main       -> FETCH_HEAD
-error: unable to unlink old 'temp_log.txt': Invalid argument
-fatal: Could not reset index file to revision 'origin/main'.

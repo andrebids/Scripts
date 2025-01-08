@@ -534,47 +534,50 @@ botaoUpdate.onClick = function() {
         
         // Criar arquivo .bat para Windows
         var scriptFile = new File(currentDir + "/update_script.bat");
+        var vbsFile = new File(currentDir + "/run_update.vbs");
         
         if (scriptFile.open('w')) {
-            // Escrever o conteúdo do arquivo usando apenas caracteres ASCII
+            // Escrever o conteúdo do arquivo .bat
             scriptFile.write("@echo off\n");
             scriptFile.write("cd /d \"" + currentDir + "\"\n");
-            
-            // Configurar diretório como seguro
             scriptFile.write("git config --global --add safe.directory \"%CD%\" > temp_log.txt 2>&1\n");
-            
-            // Remover arquivo de log antigo se existir
             scriptFile.write("del /f /q update_log.txt 2>nul\n");
-            
-            // Fazer fetch e reset
             scriptFile.write("git fetch origin main >> temp_log.txt 2>&1\n");
             scriptFile.write("git reset --hard origin/main >> temp_log.txt 2>&1\n");
             scriptFile.write("git clean -fd >> temp_log.txt 2>&1\n");
-            
-            // Mover o log temporário para o arquivo final e fechar a janela
             scriptFile.write("move /y temp_log.txt update_log.txt >nul 2>&1\n");
-            scriptFile.write("del \"%~f0\" & exit\n");
-            
             scriptFile.close();
-            
-            if (scriptFile.exists) {
-                if (scriptFile.execute()) {
-                    $.sleep(2000);
+        }
+        
+        if (vbsFile.open('w')) {
+            // Escrever o conteúdo do arquivo .vbs
+            vbsFile.write('Set WShell = CreateObject("WScript.Shell")\n');
+            vbsFile.write('WShell.Run "cmd /c \"' + currentDir + '\\update_script.bat\"", 0, True\n');
+            vbsFile.write('Set WShell = Nothing\n');
+            vbsFile.close();
+        }
+        
+        if (vbsFile.exists) {
+            if (vbsFile.execute()) {
+                $.sleep(2000);
+                
+                var logFile = new File(currentDir + "/update_log.txt");
+                if (logFile.exists) {
+                    logFile.open('r');
+                    var logContent = logFile.read();
+                    logFile.close();
                     
-                    var logFile = new File(currentDir + "/update_log.txt");
-                    if (logFile.exists) {
-                        logFile.open('r');
-                        var logContent = logFile.read();
-                        logFile.close();
-                        
-                        if (logContent.indexOf("Already up to date") !== -1) {
-                            alert(t("scriptAtualizado"));
-                        } else if (logContent.indexOf("Updating") !== -1 || logContent.indexOf("HEAD is now at") !== -1) {
-                            alert(t("atualizacaoSucesso"));
-                        } else {
-                            alert(t("erroAtualizacao"));
-                        }
+                    if (logContent.indexOf("Already up to date") !== -1) {
+                        alert(t("scriptAtualizado"));
+                    } else if (logContent.indexOf("Updating") !== -1 || logContent.indexOf("HEAD is now at") !== -1) {
+                        alert(t("atualizacaoSucesso"));
+                    } else {
+                        alert(t("erroAtualizacao"));
                     }
+                    
+                    // Limpar arquivos temporários
+                    scriptFile.remove();
+                    vbsFile.remove();
                 }
             }
         }

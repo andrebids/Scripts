@@ -185,10 +185,3 @@ var TRANSLATIONS = {
     }
 };
 
-
-
-// Garantir que a janela pode ser fechada em qualquer idioma
-janela.addEventListener('close', function() {
-    janela.close();
-    return true;
-});

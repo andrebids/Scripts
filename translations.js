@@ -108,7 +108,10 @@ var TRANSLATIONS = {
         "selecioneUnidade": "Selecione uma unidade",
         "confirmacaoSemTamanho": "Não foi inserido nenhum tamanho. Pretende continuar mesmo assim?",
         "confirmarRemoverTodos": "Tem certeza que deseja remover todos os itens?",
-        "selecionarComponenteCompleto": "Por favor, selecione um componente, uma cor e uma unidade."
+        "selecionarComponenteCompleto": "Por favor, selecione um componente, uma cor e uma unidade.",
+        "scriptAtualizado": "O script já está atualizado.",
+        "atualizacaoSucesso": "Atualização concluída com sucesso! Por favor, reinicie o script.",
+        "erroAtualizacao": "Erro ao atualizar. Por favor, tente novamente."
     },
     "Français": {
         "nomeDesigner": "Nom du Designer",
@@ -208,7 +211,10 @@ var TRANSLATIONS = {
         "selecioneUnidade": "Sélectionnez une unité",
         "confirmacaoSemTamanho": "Aucune dimension n'a été saisie. Voulez-vous continuer quand même ?",
         "confirmarRemoverTodos": "Êtes-vous sûr de vouloir supprimer tous les éléments ?",
-        "selecionarComponenteCompleto": "Veuillez sélectionner un composant, une couleur et une unité."
+        "selecionarComponenteCompleto": "Veuillez sélectionner un composant, une couleur et une unité.",
+        "scriptAtualizado": "Le script est déjà à jour.",
+        "atualizacaoSucesso": "Mise à jour réussie ! Veuillez redémarrer le script.",
+        "erroAtualizacao": "Erreur lors de la mise à jour. Veuillez réessayer."
     }
 };
 

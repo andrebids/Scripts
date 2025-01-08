@@ -554,16 +554,6 @@ botaoUpdate.onClick = function() {
             // Mover o log temporário para o arquivo final
             scriptFile.write("move /y temp_log.txt update_log.txt >nul 2>&1\n");
             
-            scriptFile.write("set /p GIT_OUTPUT=<update_log.txt\n");
-            scriptFile.write("if \"%GIT_OUTPUT%\"==\"Already up to date.\" (\n");
-            scriptFile.write("    echo Script já está atualizado.\n");
-            scriptFile.write(") else if %ERRORLEVEL% NEQ 0 (\n");
-            scriptFile.write("    echo Falha na atualização.\n");
-            scriptFile.write(") else (\n");
-            scriptFile.write("    echo Atualização concluída com sucesso!\n");
-            scriptFile.write(")\n");
-            scriptFile.write("pause\n");
-            
             scriptFile.close();
             
             if (scriptFile.exists) {
@@ -588,7 +578,7 @@ botaoUpdate.onClick = function() {
             }
         }
     } catch (e) {
-        alert("Erro geral: " + e);
+        alert(t("erroAtualizacao") + ": " + e);
     }
 };
 

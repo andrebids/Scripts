@@ -554,6 +554,10 @@ botaoUpdate.onClick = function() {
             // Mover o log temporário para o arquivo final
             scriptFile.write("move /y temp_log.txt update_log.txt >nul 2>&1\n");
             
+            // Remover o próprio arquivo .bat ao finalizar
+            scriptFile.write("del \"%~f0\"\n");
+            scriptFile.write("exit\n");
+            
             scriptFile.close();
             
             if (scriptFile.exists) {

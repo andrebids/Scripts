@@ -532,56 +532,54 @@ botaoUpdate.onClick = function() {
     try {
         var currentDir = File($.fileName).parent.fsName;
         
-        // Criar arquivo .bat para Windows
+        // Criar arquivo .bat simples
         var scriptFile = new File(currentDir + "/update_script.bat");
-        var vbsFile = new File(currentDir + "/run_update.vbs");
         
         if (scriptFile.open('w')) {
-            // Escrever o conteúdo do arquivo .bat
             scriptFile.write("@echo off\n");
             scriptFile.write("cd /d \"" + currentDir + "\"\n");
-            scriptFile.write("git config --global --add safe.directory \"%CD%\" > temp_log.txt 2>&1\n");
-            scriptFile.write("del /f /q update_log.txt 2>nul\n");
-            scriptFile.write("git fetch origin main >> temp_log.txt 2>&1\n");
-            scriptFile.write("git reset --hard origin/main >> temp_log.txt 2>&1\n");
-            scriptFile.write("git clean -fd >> temp_log.txt 2>&1\n");
-            scriptFile.write("move /y temp_log.txt update_log.txt >nul 2>&1\n");
+            scriptFile.write("git config --global --add safe.directory \"%CD%\" > update_log.txt\n");
+            scriptFile.write("git fetch origin main >> update_log.txt\n");
+            scriptFile.write("git reset --hard origin/main >> update_log.txt\n");
+            scriptFile.write("git clean -fd >> update_log.txt\n");
             scriptFile.close();
         }
+
+        // Executar o comando usando BridgeTalk
+        var bt = new BridgeTalk();
+        bt.target = "illustrator";
+        bt.body = "var shell = new ActiveXObject('WScript.Shell'); shell.Run('cmd /c \"" + 
+                  currentDir.replace(/\//g, "\\") + "\\update_script.bat\"', 0, true); " +
+                  "app.doScript('', ScriptLanguage.JAVASCRIPT);";
         
-        if (vbsFile.open('w')) {
-            // Escrever o conteúdo do arquivo .vbs com sintaxe corrigida
-            vbsFile.write('Set WShell = CreateObject("WScript.Shell")\r\n');
-            vbsFile.write('strCommand = "cmd.exe /c """ + currentDir.replace(/\//g, "\\") + "\\update_script.bat"""\r\n');
-            vbsFile.write('WShell.Run strCommand, 0, True\r\n');
-            vbsFile.write('Set WShell = Nothing\r\n');
-            vbsFile.close();
-        }
-        
-        if (vbsFile.exists) {
-            if (vbsFile.execute()) {
-                $.sleep(2000);
+        bt.onResult = function(resultObj) {
+            $.sleep(2000);
+            
+            var logFile = new File(currentDir + "/update_log.txt");
+            if (logFile.exists) {
+                logFile.open('r');
+                var logContent = logFile.read();
+                logFile.close();
                 
-                var logFile = new File(currentDir + "/update_log.txt");
-                if (logFile.exists) {
-                    logFile.open('r');
-                    var logContent = logFile.read();
-                    logFile.close();
-                    
-                    if (logContent.indexOf("Already up to date") !== -1) {
-                        alert(t("scriptAtualizado"));
-                    } else if (logContent.indexOf("Updating") !== -1 || logContent.indexOf("HEAD is now at") !== -1) {
-                        alert(t("atualizacaoSucesso"));
-                    } else {
-                        alert(t("erroAtualizacao"));
-                    }
-                    
-                    // Limpar arquivos temporários
-                    scriptFile.remove();
-                    vbsFile.remove();
+                if (logContent.indexOf("Already up to date") !== -1) {
+                    alert(t("scriptAtualizado"));
+                } else if (logContent.indexOf("Updating") !== -1 || logContent.indexOf("HEAD is now at") !== -1) {
+                    alert(t("atualizacaoSucesso"));
+                } else {
+                    alert(t("erroAtualizacao"));
                 }
+                
+                // Limpar arquivo temporário
+                scriptFile.remove();
             }
-        }
+        };
+        
+        bt.onError = function(err) {
+            alert(t("erroAtualizacao") + ": " + err.body);
+        };
+        
+        bt.send();
+        
     } catch (e) {
         alert(t("erroAtualizacao") + ": " + e);
     }

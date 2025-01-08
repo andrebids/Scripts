@@ -550,10 +550,11 @@ botaoUpdate.onClick = function() {
         }
         
         if (vbsFile.open('w')) {
-            // Escrever o conteúdo do arquivo .vbs
-            vbsFile.write('Set WShell = CreateObject("WScript.Shell")\n');
-            vbsFile.write('WShell.Run "cmd /c \"' + currentDir + '\\update_script.bat\"", 0, True\n');
-            vbsFile.write('Set WShell = Nothing\n');
+            // Escrever o conteúdo do arquivo .vbs com sintaxe corrigida
+            vbsFile.write('Set WShell = CreateObject("WScript.Shell")\r\n');
+            vbsFile.write('strCommand = "cmd.exe /c """ + currentDir.replace(/\//g, "\\") + "\\update_script.bat"""\r\n');
+            vbsFile.write('WShell.Run strCommand, 0, True\r\n');
+            vbsFile.write('Set WShell = Nothing\r\n');
             vbsFile.close();
         }
         

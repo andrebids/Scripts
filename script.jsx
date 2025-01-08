@@ -472,7 +472,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v2");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.3");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -531,6 +531,32 @@ botaoUpdate.size = [60, 25];
 botaoUpdate.onClick = function() {
     try {
         var currentDir = File($.fileName).parent.fsName;
+        
+        // Verificar se o Git está instalado
+        var checkGitFile = new File(currentDir + "/check_git.bat");
+        if (checkGitFile.open('w')) {
+            checkGitFile.write("@echo off\n");
+            checkGitFile.write("git --version > git_check.txt 2>&1\n");
+            checkGitFile.write("exit\n");
+            checkGitFile.close();
+            
+            checkGitFile.execute();
+            $.sleep(1000);
+            
+            var gitCheckFile = new File(currentDir + "/git_check.txt");
+            if (gitCheckFile.exists) {
+                gitCheckFile.open('r');
+                var gitCheck = gitCheckFile.read();
+                gitCheckFile.close();
+                gitCheckFile.remove();
+                checkGitFile.remove();
+                
+                if (gitCheck.indexOf("git version") === -1) {
+                    alert(t("gitNaoInstalado"));
+                    return;
+                }
+            }
+        }
         
         // Criar arquivo .bat para Windows
         var scriptFile = new File(currentDir + "/update_script.bat");

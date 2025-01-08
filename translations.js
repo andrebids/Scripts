@@ -111,7 +111,8 @@ var TRANSLATIONS = {
         "selecionarComponenteCompleto": "Por favor, selecione um componente, uma cor e uma unidade.",
         "scriptAtualizado": "O script já está na versão mais recente.",
         "atualizacaoSucesso": "Atualização concluída! Por favor, reinicie o script para usar a nova versão.",
-        "erroAtualizacao": "Erro ao atualizar. Por favor, tente novamente."
+        "erroAtualizacao": "Erro ao atualizar. Por favor, tente novamente.",
+        "gitNaoInstalado": "O Git não está instalado neste computador.\n\nPor favor:\n1. Baixe o Git em https://git-scm.com/downloads\n2. Execute o instalador\n3. Reinicie o computador\n4. Tente atualizar novamente"
     },
     "Français": {
         "nomeDesigner": "Nom du Designer",
@@ -214,7 +215,8 @@ var TRANSLATIONS = {
         "selecionarComponenteCompleto": "Veuillez sélectionner un composant, une couleur et une unité.",
         "scriptAtualizado": "Le script est déjà à jour.",
         "atualizacaoSucesso": "Mise à jour terminée ! Veuillez redémarrer le script pour utiliser la nouvelle version.",
-        "erroAtualizacao": "Erreur lors de la mise à jour. Veuillez réessayer."
+        "erroAtualizacao": "Erreur lors de la mise à jour. Veuillez réessayer.",
+        "gitNaoInstalado": "Git n'est pas installé sur cet ordinateur.\n\nVeuillez :\n1. Télécharger Git sur https://git-scm.com/downloads\n2. Exécuter l'installateur\n3. Redémarrer l'ordinateur\n4. Réessayer la mise à jour"
     }
 };
 

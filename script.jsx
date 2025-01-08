@@ -532,54 +532,49 @@ botaoUpdate.onClick = function() {
     try {
         var currentDir = File($.fileName).parent.fsName;
         
-        // Criar arquivo .bat simples
+        // Criar arquivo .bat para Windows
         var scriptFile = new File(currentDir + "/update_script.bat");
         
         if (scriptFile.open('w')) {
+            // Usar start /min para iniciar minimizado
             scriptFile.write("@echo off\n");
+            scriptFile.write("if not \"%minimized%\"==\"1\" (\n");
+            scriptFile.write("    set minimized=1\n");
+            scriptFile.write("    start /min cmd /c \"%~f0\"\n");
+            scriptFile.write("    exit\n");
+            scriptFile.write(")\n");
             scriptFile.write("cd /d \"" + currentDir + "\"\n");
             scriptFile.write("git config --global --add safe.directory \"%CD%\" > update_log.txt\n");
             scriptFile.write("git fetch origin main >> update_log.txt\n");
             scriptFile.write("git reset --hard origin/main >> update_log.txt\n");
             scriptFile.write("git clean -fd >> update_log.txt\n");
+            scriptFile.write("exit\n");
             scriptFile.close();
         }
 
-        // Executar o comando usando BridgeTalk
-        var bt = new BridgeTalk();
-        bt.target = "illustrator";
-        bt.body = "var shell = new ActiveXObject('WScript.Shell'); shell.Run('cmd /c \"" + 
-                  currentDir.replace(/\//g, "\\") + "\\update_script.bat\"', 0, true); " +
-                  "app.doScript('', ScriptLanguage.JAVASCRIPT);";
-        
-        bt.onResult = function(resultObj) {
-            $.sleep(2000);
-            
-            var logFile = new File(currentDir + "/update_log.txt");
-            if (logFile.exists) {
-                logFile.open('r');
-                var logContent = logFile.read();
-                logFile.close();
+        if (scriptFile.exists) {
+            if (scriptFile.execute()) {
+                $.sleep(2000);
                 
-                if (logContent.indexOf("Already up to date") !== -1) {
-                    alert(t("scriptAtualizado"));
-                } else if (logContent.indexOf("Updating") !== -1 || logContent.indexOf("HEAD is now at") !== -1) {
-                    alert(t("atualizacaoSucesso"));
-                } else {
-                    alert(t("erroAtualizacao"));
+                var logFile = new File(currentDir + "/update_log.txt");
+                if (logFile.exists) {
+                    logFile.open('r');
+                    var logContent = logFile.read();
+                    logFile.close();
+                    
+                    if (logContent.indexOf("Already up to date") !== -1) {
+                        alert(t("scriptAtualizado"));
+                    } else if (logContent.indexOf("Updating") !== -1 || logContent.indexOf("HEAD is now at") !== -1) {
+                        alert(t("atualizacaoSucesso"));
+                    } else {
+                        alert(t("erroAtualizacao"));
+                    }
+                    
+                    // Limpar arquivo temporário
+                    scriptFile.remove();
                 }
-                
-                // Limpar arquivo temporário
-                scriptFile.remove();
             }
-        };
-        
-        bt.onError = function(err) {
-            alert(t("erroAtualizacao") + ": " + err.body);
-        };
-        
-        bt.send();
-        
+        }
     } catch (e) {
         alert(t("erroAtualizacao") + ": " + e);
     }

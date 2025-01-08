@@ -472,7 +472,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.3");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.4");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -537,7 +537,9 @@ botaoUpdate.onClick = function() {
         scriptFile.open('w');
         scriptFile.write("@echo off\n");
         scriptFile.write("cd /d \"" + currentDir + "\"\n");
-        scriptFile.write("git pull > git_output.tmp 2>&1\n");
+        scriptFile.write("echo Iniciando atualização... > update_log.txt\n");
+        scriptFile.write("echo Diretório atual: %CD% >> update_log.txt\n");
+        scriptFile.write("git pull >> update_log.txt 2>&1\n");
         scriptFile.write("set /p GIT_OUTPUT=<git_output.tmp\n");
         scriptFile.write("del git_output.tmp\n");
         scriptFile.write("if \"%GIT_OUTPUT%\"==\"Already up to date.\" (\n");
@@ -572,6 +574,12 @@ botaoUpdate.onClick = function() {
                     alert("Erro ao atualizar. Por favor, tente novamente.");
                 }
             }
+        }
+
+        if (scriptFile.exists) {
+            alert("Arquivo .bat criado com sucesso");
+        } else {
+            alert("Falha ao criar arquivo .bat");
         }
     } catch (e) {
         alert("Erro ao atualizar: " + e);
@@ -639,7 +647,17 @@ listaL.preferredSize.width = 60; // Reduz o tamanho do dropdown
 
 // Tipo de fixação
 linha2.add("statictext", undefined, t("tipoFixacao"));
-var tiposFixacao = [t("poteau"), t("suspendue"), t("murale"), t("sansFixation"), t("auSol"), t("speciale")];
+
+// Criar array com os tipos de fixação
+var tiposFixacao = [];
+var tiposFixacaoKeys = ["poteau", "suspendue", "murale", "sansFixation", "auSol", "speciale"];
+
+// Preencher o array com as traduções
+for (var i = 0; i < tiposFixacaoKeys.length; i++) {
+    tiposFixacao.push(t("tiposFixacao")[tiposFixacaoKeys[i]]);
+}
+
+// Criar o dropdown com os tipos traduzidos
 var listaFixacao = linha2.add("dropdownlist", undefined, tiposFixacao);
 listaFixacao.selection = 0;
 
@@ -1545,11 +1563,11 @@ function atualizarListaItens() {
   
   // Evento de clique no botão remover todos
   botaoRemoverTodos.onClick = function() {
-      if (confirm("Tem certeza de que deseja remover todos os itens?")) {
-          itensLegenda = [];
-          atualizarListaItens();
-      }
-  };
+    if (confirm(t("confirmarRemoverTodos"))) {
+        itensLegenda = [];
+        atualizarListaItens();
+    }
+};
 
 
 
@@ -1881,9 +1899,9 @@ function atualizarCores() {
     
     if (listaComponentes.selection && listaComponentes.selection.index > 0) {
         var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
-        var coresDisponiveis = ["Selecione uma cor"];
+        var coresDisponiveis = [t("selecioneCor")];
         var coresIds = [];
-        var unidadesDisponiveis = ["Selecione uma unidade"];
+        var unidadesDisponiveis = [t("selecioneUnidade")];
 
         for (var i = 0; i < dados.combinacoes.length; i++) {
             if (dados.combinacoes[i].componenteId === componenteSelecionado.id) {
@@ -2030,7 +2048,7 @@ function atualizarCores() {
     // Botão para adicionar componente à legenda
     botaoAdicionarComponente.onClick = function() {
         if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0 || listaUnidades.selection.index === 0) {
-            alert("Por favor, selecione um componente, uma cor e uma unidade.");
+            alert(t("selecionarComponenteCompleto"));
             return;
         }
     
@@ -2169,7 +2187,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
 
         // Se não houver dimensões, mostrar alerta
         if (!temDimensoes) {
-            if (!confirm("Não foi inserido nenhum tamanho. Pretende continuar mesmo assim?")) {
+            if (!confirm(t("confirmacaoSemTamanho"))) {
                 return; // Se o usuário clicar em "Cancelar", interrompe a execução
             }
         }

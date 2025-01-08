@@ -95,7 +95,20 @@ var TRANSLATIONS = {
         "realizarContagemPrimeiro": "Por favor, realize uma contagem antes de adicionar ao preview.",
         "idiomaAlterado": "O idioma foi alterado para ",
         "reiniciarScript": ".\nPor favor, reinicie o script para aplicar as alterações.",
-        "tituloJanela": "Cartouche by Bids"
+        "tituloJanela": "Cartouche by Bids",
+        "tiposFixacao": {
+            "poteau": "poteau",
+            "suspendue": "suspendue",
+            "murale": "murale",
+            "sansFixation": "sans fixation",
+            "auSol": "au sol",
+            "speciale": "spéciale"
+        },
+        "Tipo": "Tipo",
+        "selecioneUnidade": "Selecione uma unidade",
+        "confirmacaoSemTamanho": "Não foi inserido nenhum tamanho. Pretende continuar mesmo assim?",
+        "confirmarRemoverTodos": "Tem certeza que deseja remover todos os itens?",
+        "selecionarComponenteCompleto": "Por favor, selecione um componente, uma cor e uma unidade."
     },
     "Français": {
         "nomeDesigner": "Nom du Designer",
@@ -181,7 +194,21 @@ var TRANSLATIONS = {
         "realizarContagemPrimeiro": "Veuillez effectuer un comptage avant d'ajouter à l'aperçu.",
         "idiomaAlterado": "La langue a été changée pour ",
         "reiniciarScript": ".\nVeuillez redémarrer le script pour appliquer les changements.",
-        "tituloJanela": "Cartouche"
+        "tituloJanela": "Cartouche",
+        "tiposFixacao": {
+            "poteau": "poteau",
+            "suspendue": "suspendue",
+            "murale": "murale",
+            "sansFixation": "sans fixation",
+            "auSol": "au sol",
+            "speciale": "spéciale"
+        },
+        "Nome": "Nom",
+        "Tipo": "Type",
+        "selecioneUnidade": "Sélectionnez une unité",
+        "confirmacaoSemTamanho": "Aucune dimension n'a été saisie. Voulez-vous continuer quand même ?",
+        "confirmarRemoverTodos": "Êtes-vous sûr de vouloir supprimer tous les éléments ?",
+        "selecionarComponenteCompleto": "Veuillez sélectionner un composant, une couleur et une unité."
     }
 };
 

@@ -7,7 +7,34 @@ $.evalFile(File($.fileName).path + "/regras.jsx");
 $.evalFile(File($.fileName).path + "/funcoes.jsx");
 $.evalFile(File($.fileName).path + "/database.jsx");
 $.evalFile(File($.fileName).path + "/ui.jsx");
+$.evalFile(File($.fileName).path + "/translations.js");
 
+// Definir o caminho do arquivo de configuração primeiro
+var caminhoConfig = getPastaDocumentos() + "/cartouche_config.json";
+
+// Variável global para o idioma - começar em francês
+var IDIOMA_ATUAL = "Français";
+
+// Quando verificar o arquivo de configuração, definir francês como padrão
+if (arquivoExiste(caminhoConfig)) {
+    var config = lerArquivoJSON(caminhoConfig);
+    nomeDesigner = config.nomeDesigner;
+    // Se não houver idioma configurado, usar francês
+    idiomaUsuario = config.idioma || "Français";
+    IDIOMA_ATUAL = idiomaUsuario;
+} else {
+    // Se não existir arquivo de configuração, criar com francês como padrão
+    var config = {
+        nomeDesigner: "",
+        idioma: "Français"
+    };
+    escreverArquivoJSON(caminhoConfig, config);
+}
+
+// Função para atualizar o idioma
+function atualizarIdioma(novoIdioma) {
+    IDIOMA_ATUAL = novoIdioma;
+}
 
 (function() {
     
@@ -20,36 +47,92 @@ var itensLegenda = [];
 var itensNomes = [];
 // Verificar se o arquivo de configuração existe
 var nomeDesigner;
+var idiomaUsuario;
 if (arquivoExiste(caminhoConfig)) {
     var config = lerArquivoJSON(caminhoConfig);
     nomeDesigner = config.nomeDesigner;
-} else {
-    // Criar janela para pedir o nome do designer
-    var janelaDesigner = new Window("dialog", "Configuração Inicial");
-    janelaDesigner.add("statictext", undefined, "Por favor, insira o nome do designer:");
-    var campoNome = janelaDesigner.add("edittext", undefined, "");
-    campoNome.characters = 30;
-
-    var botaoOK = janelaDesigner.add("button", undefined, "OK");
-
-    botaoOK.onClick = function() {
-        nomeDesigner = campoNome.text;
-        janelaDesigner.close();
-    };
-
-    janelaDesigner.show();
-
-    // Salvar o nome do designer no arquivo de configuração
-    escreverArquivoJSON(caminhoConfig, {nomeDesigner: nomeDesigner});
-}
-function arrayContains(arr, obj) {
-    for (var i = 0; i < arr.length; i++) {
-        if (arr[i] === obj) {
-            return true;
-        }
+    idiomaUsuario = config.idioma;
+    
+    // Se o nome for undefined ou vazio, pedir ao usuário
+    if (!nomeDesigner || nomeDesigner === "undefined" || nomeDesigner === "") {
+        var janelaNome = new Window("dialog", t("nomeDesigner"));
+        janelaNome.add("statictext", undefined, t("inserirNome"));
+        var campoNome = janelaNome.add("edittext", undefined, "");
+        campoNome.characters = 30;
+        
+        var botaoOKNome = janelaNome.add("button", undefined, t("botaoOk"));
+        
+        botaoOKNome.onClick = function() {
+            if (campoNome.text && campoNome.text !== "") {
+                nomeDesigner = campoNome.text;
+                config.nomeDesigner = nomeDesigner;
+                escreverArquivoJSON(caminhoConfig, config);
+                janelaNome.close();
+            } else {
+                alert(t("erroNomeVazio"));
+            }
+        };
+        
+        janelaNome.show();
     }
-    return false;
+    
+    // Se não tiver idioma configurado, pedir ao usuário
+    if (!idiomaUsuario || idiomaUsuario === "undefined") {
+        var janelaIdioma = new Window("dialog", t("configuracaoIdioma"));
+        janelaIdioma.add("statictext", undefined, t("selecioneIdioma"));
+        var listaIdiomas = janelaIdioma.add("dropdownlist", undefined, [
+            "Português",
+            "Français"
+        ]);
+        listaIdiomas.selection = 0;
+        
+        var botaoOK = janelaIdioma.add("button", undefined, t("botaoOk"));
+        
+        botaoOK.onClick = function() {
+            idiomaUsuario = listaIdiomas.selection.text;
+            $.global.idiomaUsuario = idiomaUsuario;
+            config.idioma = idiomaUsuario;
+            escreverArquivoJSON(caminhoConfig, config);
+            janelaIdioma.close();
+        };
+        
+        janelaIdioma.show();
+    }
+} else {
+    // Criar janela para pedir o nome do designer e idioma
+    var janelaConfig = new Window("dialog", t("configuracaoInicial"));
+    janelaConfig.add("statictext", undefined, t("inserirNome"));
+    var campoNome = janelaConfig.add("edittext", undefined, "");
+    campoNome.characters = 30;
+    
+    janelaConfig.add("statictext", undefined, t("selecioneIdioma"));
+    var listaIdiomas = janelaConfig.add("dropdownlist", undefined, [
+        "Português",
+        "Français"
+    ]);
+    listaIdiomas.selection = 0;
+    
+    var botaoOK = janelaConfig.add("button", undefined, t("botaoOk"));
+    
+    botaoOK.onClick = function() {
+        if (campoNome.text && campoNome.text !== "") {
+            nomeDesigner = campoNome.text;
+            idiomaUsuario = listaIdiomas.selection.text;
+            janelaConfig.close();
+            
+            // Salvar as configurações no arquivo
+            escreverArquivoJSON(caminhoConfig, {
+                nomeDesigner: nomeDesigner,
+                idioma: idiomaUsuario
+            });
+        } else {
+            alert(t("erroNomeVazio"));
+        }
+    };
+    
+    janelaConfig.show();
 }
+
 
 //function criarQuadradoPreto(layer, posX, posY, tamanho) {
   //  var quadrado = layer.pathItems.rectangle(posY, posX, tamanho, tamanho);
@@ -71,14 +154,14 @@ function criarInterfaceContadorBolas(grupoContar) {
     subgrupoContador.spacing = 10;
 
     // Campo de resultado
-    var textoResultado = subgrupoContador.add("edittext", undefined, "Resultado: ", {multiline: true, scrollable: true});
+    var textoResultado = subgrupoContador.add("edittext", undefined, t("resultado"), {multiline: true, scrollable: true});
     textoResultado.preferredSize.width = 400;
     textoResultado.preferredSize.height = 150; // Linha 56
 
     // Botão para contar
-    var botaoContar = subgrupoContador.add("button", undefined, "Contar elementos");
+    var botaoContar = subgrupoContador.add("button", undefined, t("contarElementos"));
     // Botão para adicionar ao preview
-    var botaoAdicionarPreview = subgrupoContador.add("button", undefined, "Adicionar ao Preview");
+    var botaoAdicionarPreview = subgrupoContador.add("button", undefined, t("adicionarAoPreview"));
 
 // Atualizar os eventos conforme necessário
 botaoAdicionarPreview.onClick = function() {
@@ -99,9 +182,9 @@ botaoAdicionarPreview.onClick = function() {
             texto: resultado
         });
         atualizarListaItens();
-        alert("Contagem atualizada no preview.");
+        alert(t("contagemAtualizada"));
     } else {
-        alert("Por favor, realize uma contagem antes de adicionar ao preview.");
+        alert(t("realizarContagemPrimeiro"));
     }
 };
     // Atualizar os eventos conforme necessário
@@ -361,14 +444,23 @@ function contarBolasNaArtboard() {
     }
 }
 // Criar a janela principal
-var janela = new Window("palette", "Cartouche by Bids", undefined, {
-    resizeable: true,
-    closeButton: true
-});
+var janela = new Window("palette", t("tituloJanela"), undefined);
 janela.orientation = "column";
 janela.alignChildren = ["fill", "top"];
 janela.spacing = 10;
 janela.margins = 16;
+
+// Garantir que a janela pode ser fechada
+janela.addEventListener('close', function() {
+    return true;
+});
+
+// Garantir que o evento de fechamento é processado corretamente
+if (janela.closeButton) {
+    janela.closeButton.onClick = function() {
+        janela.close();
+    };
+}
 
 // Grupo para o botão Update (acima das abas)
 var grupoUpdate = janela.add("group");
@@ -380,12 +472,58 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.2");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.3");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
+// Dropdown de idiomas
+var dropdownIdiomas = grupoUpdate.add("dropdownlist", undefined, [
+    "Português",
+    "Français"
+]);
+
+// Selecionar o idioma do arquivo de configuração silenciosamente
+if (idiomaUsuario) {
+    dropdownIdiomas.selection = dropdownIdiomas.find(idiomaUsuario);
+} else {
+    dropdownIdiomas.selection = 0;
+}
+
+// Evento de mudança do idioma - só dispara quando o usuário muda manualmente
+dropdownIdiomas.onChange = function() {
+    var novoIdioma = dropdownIdiomas.selection.text;
+    
+    // Só mostrar alerta e salvar se o idioma realmente mudou
+    if (novoIdioma !== idiomaUsuario) {
+        // Salvar o novo idioma no arquivo de configuração
+        var config = lerArquivoJSON(caminhoConfig);
+        config.idioma = novoIdioma;
+        escreverArquivoJSON(caminhoConfig, config);
+        
+        // Mostrar mensagem para o usuário
+        alert(t("idiomaAlterado") + novoIdioma + t("reiniciarScript"));
+        
+        // Fechar a janela atual
+        janela.close();
+    }
+};
+
+// Garantir que a janela pode ser fechada
+janela.addEventListener('close', function() {
+    return true;
+});
+
+// Garantir que o evento de fechamento é processado corretamente
+if (janela.closeButton) {
+    janela.closeButton.onClick = function() {
+        janela.close();
+    };
+}
+// Na criação do dropdown, selecionar o idioma atual
+dropdownIdiomas.selection = dropdownIdiomas.find(IDIOMA_ATUAL);
+
 // Botão Update
-var botaoUpdate = grupoUpdate.add("button", undefined, "Update");
+var botaoUpdate = grupoUpdate.add("button", undefined, t("botaoUpdate"));
 botaoUpdate.alignment = ["right", "center"];
 botaoUpdate.size = [60, 25];
 
@@ -443,7 +581,7 @@ botaoUpdate.onClick = function() {
 // Criar abas para Legenda e Contador de Bolas
 var abas = janela.add("tabbedpanel");
 abas.alignChildren = ["fill", "fill"];
-var abaLegenda = abas.add("tab", undefined, "Legenda");
+var abaLegenda = abas.add("tab", undefined, t("legenda"));
 
 // Criar conteúdo para a aba Legenda
 var conteudoLegenda = abaLegenda.add("group");
@@ -451,7 +589,7 @@ conteudoLegenda.orientation = "column";
 conteudoLegenda.alignChildren = ["fill", "top"];
 
 // Grupo para informações principais
-var grupoPrincipal = conteudoLegenda.add("panel", undefined, "Informações Principais");
+var grupoPrincipal = conteudoLegenda.add("panel", undefined, t("informacoesPrincipais"));
 grupoPrincipal.orientation = "column";
 grupoPrincipal.alignChildren = ["fill", "top"];
 
@@ -462,7 +600,9 @@ linha1.alignChildren = ["left", "center"];
 linha1.spacing = 10;
 
 // Campo do nome
-linha1.add("statictext", undefined, "Nome:");
+var textoNome = t("nome");  // minúsculo para o label
+var textoNomeMaiusculo = t("Nome");  // maiúsculo para o dropdown/título
+linha1.add("statictext", undefined, textoNome);
 var campoNome = linha1.add("statictext", undefined, nomeDesigner);
 campoNome.characters = 20;
 
@@ -472,7 +612,12 @@ linha2.orientation = "row";
 linha2.alignChildren = ["left", "center"];
 linha2.spacing = 10;
 
-var escolhaNomeTipo = linha2.add("dropdownlist", undefined, ["Nome", "Tipo"]);
+// Modificar a criação do dropdown para usar as strings traduzidas
+var escolhaNomeTipo = linha2.add("dropdownlist", undefined, [
+    t("Nome"),
+    t("Tipo")
+]);
+escolhaNomeTipo.selection = 0;  // Seleciona a primeira opção por padrão
 escolhaNomeTipo.selection = 0;
 linha2.add("statictext", undefined, ":");
 var campoNomeTipo = linha2.add("edittext", undefined, "");
@@ -493,8 +638,8 @@ listaL.selection = 0;
 listaL.preferredSize.width = 60; // Reduz o tamanho do dropdown
 
 // Tipo de fixação
-linha2.add("statictext", undefined, "Tipo de fixação:");
-var tiposFixacao = ["poteau", "suspendue/transversée", "murale","sans fixation", "au sol", "spéciale"];
+linha2.add("statictext", undefined, t("tipoFixacao"));
+var tiposFixacao = [t("poteau"), t("suspendue"), t("murale"), t("sansFixation"), t("auSol"), t("speciale")];
 var listaFixacao = linha2.add("dropdownlist", undefined, tiposFixacao);
 listaFixacao.selection = 0;
 
@@ -530,7 +675,7 @@ var coresStructure = [
 
 // Atualizar a criação do dropdown para a estrutura lacada
 var grupoStructure = linha3.add("group");
-var checkStructure = grupoStructure.add("checkbox", undefined, "Structure laquée");
+var checkStructure = grupoStructure.add("checkbox", undefined, t("structureLaqueada"));
 var corStructure = grupoStructure.add("dropdownlist", undefined, coresStructure);
 corStructure.selection = 0;
 
@@ -553,7 +698,7 @@ function apenasNumerosEVirgula(campo) {
 
 
 // Segundo grupo (Componentes)
-var grupoComponentes = conteudoLegenda.add("panel", undefined, "Componentes");
+var grupoComponentes = conteudoLegenda.add("panel", undefined, t("painelComponentes"));
 grupoComponentes.orientation = "column";
 grupoComponentes.alignChildren = "left";
 
@@ -563,7 +708,7 @@ grupoPesquisa.orientation = "row";
 grupoPesquisa.alignChildren = "center";
 
 // Label para o campo de pesquisa
-var labelPesquisa = grupoPesquisa.add("statictext", undefined, "Procurar:");
+var labelPesquisa = grupoPesquisa.add("statictext", undefined, t("procurar") + ":");
     
 // Campo de pesquisa
 var campoPesquisa = grupoPesquisa.add("edittext", undefined, "");
@@ -574,7 +719,7 @@ campoPesquisa.onChanging = function() {
 
 // Função para filtrar componentes
 function filtrarComponentes(termo) {
-    var componentesFiltrados = ["Selecione um componente"];
+    var componentesFiltrados = [t("selecioneComponente")];
     
     if (termo.length > 0) {
         for (var i = 1; i < componentesNomes.length; i++) {
@@ -583,7 +728,7 @@ function filtrarComponentes(termo) {
             }
         }
     } else {
-        componentesFiltrados = componentesNomes;
+        componentesFiltrados = [t("selecioneComponente")].concat(componentesNomes.slice(1));
     }
 
     // Salvar a seleção atual
@@ -615,7 +760,7 @@ grupo2.orientation = "row";
 
 // Função para obter componentes com combinações
 function getComponentesComCombinacoes() {
-    var componentesDisponiveis = ["Selecione um componente"];
+    var componentesDisponiveis = [t("selecioneComponente")]; // Usar t() aqui
     var componentesIds = [];
     for (var i = 0; i < dados.combinacoes.length; i++) {
         var componenteId = dados.combinacoes[i].componenteId;
@@ -656,17 +801,17 @@ campoMultiplicador.characters = 3;
 apenasNumerosEVirgula(campoMultiplicador);
 
 // Botão adicionar componente
-var botaoAdicionarComponente = grupo2.add("button", undefined, "Adicionar Componente");
+var botaoAdicionarComponente = grupo2.add("button", undefined, t("botaoAdicionar"));
 
 // Grupo para bolas
-var grupoBolas = conteudoLegenda.add("panel", undefined, "Bolas");
+var grupoBolas = conteudoLegenda.add("panel", undefined, t("painelBolas"));
 grupoBolas.orientation = "column";
 grupoBolas.alignChildren = "left";
 // ADICIONAR ESTE NOVO CÓDIGO
 
 // Modificar as propriedades de altura do grupo Extra e do painel de abas
 // Modificar a criação do grupo Extra
-var grupoExtra = conteudoLegenda.add("panel", undefined, "Extra");
+var grupoExtra = conteudoLegenda.add("panel", undefined, t("painelExtra"));
 grupoExtra.orientation = "column";
 grupoExtra.alignChildren = ["fill", "top"];
 grupoExtra.spacing = 5;
@@ -677,26 +822,26 @@ abasExtra.alignChildren = ["fill", "fill"];
 
 
 // Aba 1: Observações e Componente Extra
-var abaGeral = abasExtra.add("tab", undefined, "Geral");
+var abaGeral = abasExtra.add("tab", undefined, t("geral"));
 abaGeral.alignChildren = ["fill", "top"];
-var checkboxMostrarObs = abaGeral.add("checkbox", undefined, "Adicionar Observações");
-var checkboxMostrarComponenteExtra = abaGeral.add("checkbox", undefined, "Adicionar Componente Extra");
+var checkboxMostrarObs = abaGeral.add("checkbox", undefined, t("adicionarObservacoes"));
+var checkboxMostrarComponenteExtra = abaGeral.add("checkbox", undefined, t("adicionarComponenteExtra"));
 
 // Aba 2: Criar
-var abaCriar = abasExtra.add("tab", undefined, "Criar");
+var abaCriar = abasExtra.add("tab", undefined, t("criar"));
 abaCriar.alignChildren = ["fill", "top"];
-var checkboxMostrarAlfabeto = abaCriar.add("checkbox", undefined, "Criar GX (Alfabeto)");
-var checkboxCriarPalavraAluminio = abaCriar.add("checkbox", undefined, "Criar palavra de alumínio (em desenvolvimento)");
+var checkboxMostrarAlfabeto = abaCriar.add("checkbox", undefined, t("criarGX"));
+var checkboxCriarPalavraAluminio = abaCriar.add("checkbox", undefined, t("criarPalavraAluminio"));
 
 // Aba 3: Contagem
-var abaContagem = abasExtra.add("tab", undefined, "Contagem");
+var abaContagem = abasExtra.add("tab", undefined, t("contador"));
 abaContagem.alignChildren = ["fill", "top"];
-var checkboxMostrarContar = abaContagem.add("checkbox", undefined, "Mostrar Contar Elementos (em desenvolvimento)");
+var checkboxMostrarContar = abaContagem.add("checkbox", undefined, t("mostrarContarElementos"));
 
 // Aba 4: Texturas
-var abaTexturas = abasExtra.add("tab", undefined, "Texturas");
+var abaTexturas = abasExtra.add("tab", undefined, t("texturas"));
 abaTexturas.alignChildren = ["fill", "top"];
-var checkboxMostrarTexturas = abaTexturas.add("checkbox", undefined, "Adicionar Texturas");
+var checkboxMostrarTexturas = abaTexturas.add("checkbox", undefined, t("adicionarTexturas"));
 
 // Selecionar a primeira aba por padrão
 abasExtra.selection = abaGeral;
@@ -707,7 +852,7 @@ grupoBolasSelecao.orientation = "row";
 
 // Função para obter cores disponíveis para bolas
 function getCoresDisponiveisBolas() {
-    var coresDisponiveis = ["Selecione uma cor"];
+    var coresDisponiveis = [t("selecioneCor")];  // Já inclui o item inicial aqui
     var coresIds = [];
     for (var i = 0; i < dados.bolas.length; i++) {
         var corId = dados.bolas[i].corId;
@@ -723,16 +868,16 @@ function getCoresDisponiveisBolas() {
 }
 
 // Lista de cores para bolas
-var coresBolasDisponiveis = getCoresDisponiveisBolas();
+var coresBolasDisponiveis = getCoresDisponiveisBolas(); // Remover a concatenação extra
 var listaCoresBolas = grupoBolasSelecao.add("dropdownlist", undefined, coresBolasDisponiveis);
 listaCoresBolas.selection = 0;
 
 // Lista de acabamentos (inicialmente vazia)
-var listaAcabamentos = grupoBolasSelecao.add("dropdownlist", undefined, ["Selecione um acabamento"]);
+var listaAcabamentos = grupoBolasSelecao.add("dropdownlist", undefined, [t("selecioneAcabamento")]);
 listaAcabamentos.selection = 0;
 
 // Lista de tamanhos (inicialmente vazia)
-var listaTamanhos = grupoBolasSelecao.add("dropdownlist", undefined, ["Selecione um tamanho"]);
+var listaTamanhos = grupoBolasSelecao.add("dropdownlist", undefined, [t("selecioneTamanho")]);
 listaTamanhos.selection = 0;
 
 // Campo para quantidade de bolas
@@ -741,19 +886,19 @@ campoQuantidadeBolas.characters = 5;
 apenasNumerosEVirgula(campoQuantidadeBolas);
 
 // Botão adicionar bola
-var botaoAdicionarBola = grupoBolasSelecao.add("button", undefined, "Adicionar Bola");
+var botaoAdicionarBola = grupoBolasSelecao.add("button", undefined, t("adicionarBola"));
 
 // Função para atualizar a lista de acabamentos com base na cor selecionada
 function atualizarAcabamentos() {
     if (listaCoresBolas.selection.index === 0) {
         listaAcabamentos.removeAll();
-        listaAcabamentos.add("item", "Selecione um acabamento");
+        listaAcabamentos.add("item", t("selecioneAcabamento"));
         listaAcabamentos.selection = 0;
         return;
     }
 
     var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
-    var acabamentosDisponiveis = ["Selecione um acabamento"];
+    var acabamentosDisponiveis = [t("selecioneAcabamento")];
     var acabamentosIds = [];
 
     for (var i = 0; i < dados.bolas.length; i++) {
@@ -777,18 +922,6 @@ function atualizarAcabamentos() {
     } else {
         listaAcabamentos.selection = 0;
     }
-
-    listaAcabamentos.removeAll();
-    for (var i = 0; i < acabamentosDisponiveis.length; i++) {
-        listaAcabamentos.add("item", acabamentosDisponiveis[i]);
-    }
-    
-    // Pré-selecionar o acabamento se houver apenas uma opção
-    if (acabamentosDisponiveis.length === 2) {
-        listaAcabamentos.selection = 1;
-    } else {
-        listaAcabamentos.selection = 0;
-    }
     
     // Atualizar tamanhos após selecionar o acabamento
     atualizarTamanhos();
@@ -798,14 +931,14 @@ function atualizarAcabamentos() {
 function atualizarTamanhos() {
     if (listaCoresBolas.selection.index === 0 || listaAcabamentos.selection.index === 0) {
         listaTamanhos.removeAll();
-        listaTamanhos.add("item", "Selecione um tamanho");
+        listaTamanhos.add("item", t("selecioneTamanho"));
         listaTamanhos.selection = 0;
         return;
     }
 
     var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
     var acabamentoSelecionado = dados.acabamentos[encontrarIndicePorNome(dados.acabamentos, listaAcabamentos.selection.text)];
-    var tamanhosDisponiveis = ["Selecione um tamanho"];
+    var tamanhosDisponiveis = [t("selecioneTamanho")];
 
     for (var i = 0; i < dados.bolas.length; i++) {
         if (dados.bolas[i].corId === corSelecionada.id && dados.bolas[i].acabamentoId === acabamentoSelecionado.id) {
@@ -835,13 +968,13 @@ listaAcabamentos.onChange = atualizarTamanhos;
 
 botaoAdicionarBola.onClick = function() {
     if (listaCoresBolas.selection.index === 0 || listaAcabamentos.selection.index === 0 || listaTamanhos.selection.index === 0) {
-        alert("Por favor, selecione uma cor, um acabamento e um tamanho para a bola.");
+        alert(t("selecionarCor"));
         return;
     }
 
     var quantidade = parseFloat(campoQuantidadeBolas.text.replace(',', '.'));
     if (isNaN(quantidade) || quantidade <= 0) {
-        alert("Por favor, insira uma quantidade válida de bolas.");
+        alert(t("quantidadeInvalida"));
         return;
     }
 
@@ -894,10 +1027,10 @@ botaoAdicionarBola.onClick = function() {
             
             atualizarListaItens();
         } catch (e) {
-            alert("Erro ao processar a bola: " + e.message);
+            alert(t("erroProcessarBola") + e.message);
         }
     } else {
-        alert("Erro: Combinação de bola não encontrada na base de dados.");
+        alert(t("erroCombinacaoBola"));
     }
 }
 
@@ -921,7 +1054,7 @@ var grupoComponenteExtra, campoNomeExtra, dropdownUnidadeExtra, campoQuantidadeE
 checkboxMostrarComponenteExtra.onClick = function() {
     if (this.value) {
         // Adicionar o grupo de componente extra
-        grupoComponenteExtra = grupoExtra.add("panel", undefined, "Componente Extra");
+        grupoComponenteExtra = grupoExtra.add("panel", undefined, t("componenteExtra"));
         grupoComponenteExtra.orientation = "row";
         grupoComponenteExtra.alignChildren = ["left", "top"];
         grupoComponenteExtra.spacing = 10;
@@ -940,7 +1073,7 @@ checkboxMostrarComponenteExtra.onClick = function() {
       apenasNumerosEVirgula(campoQuantidadeExtra);
 
       // Botão para adicionar à legenda
-      botaoAdicionarExtra = grupoComponenteExtra.add("button", undefined, "Adicionar à Legenda");
+      botaoAdicionarExtra = grupoComponenteExtra.add("button", undefined, t("adicionarALegenda"));
 
       // Evento de clique para o botão adicionar extra
       botaoAdicionarExtra.onClick = function() {
@@ -949,7 +1082,7 @@ checkboxMostrarComponenteExtra.onClick = function() {
           var quantidadeExtra = parseFloat(campoQuantidadeExtra.text.replace(',', '.'));
 
           if (nomeExtra === "" || isNaN(quantidadeExtra) || quantidadeExtra <= 0) {
-              alert("Por favor, preencha todos os campos corretamente.");
+            alert(t("preencherCampos"));
               return;
           }
 
@@ -991,23 +1124,23 @@ checkboxMostrarAlfabeto.onClick = function() {
         subGrupoAlfabeto.alignChildren = ["fill", "top"];
         subGrupoAlfabeto.spacing = 10;
 
-        subGrupoAlfabeto.add("statictext", undefined, "Alfabeto:");
+        subGrupoAlfabeto.add("statictext", undefined, t("alfabetoLabel"));
         campoPalavraChave = subGrupoAlfabeto.add("edittext", undefined, "");
         campoPalavraChave.characters = 20;
 
         // Adicionar texto estático para bioprint
-        subGrupoAlfabeto.add("statictext", undefined, "Bioprint");
+        subGrupoAlfabeto.add("statictext", undefined, t("bioprint"));
 
         // Adicionar dropdown para cor do bioprint
-        subGrupoAlfabeto.add("statictext", undefined, "Cor:");
+        subGrupoAlfabeto.add("statictext", undefined, t("cor"));
         dropdownCorBioprint = subGrupoAlfabeto.add("dropdownlist", undefined, ["Selecione a cor"]);
 
         // Manter o dropdown de tamanho existente
-        subGrupoAlfabeto.add("statictext", undefined, "Tamanho:");
+        subGrupoAlfabeto.add("statictext", undefined, t("tamanho"));
         tamanhoAlfabeto = subGrupoAlfabeto.add("dropdownlist", undefined, ["1,40 m", "2,00 m"]);
         tamanhoAlfabeto.selection = 0;
 
-        botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, "Adicionar");
+        botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, t("adicionar"));
 
         // Adicionar linha separadora
         var linhaSeparadora = grupoAlfabeto.add("panel");
@@ -1015,7 +1148,7 @@ checkboxMostrarAlfabeto.onClick = function() {
         linhaSeparadora.graphics.backgroundColor = linhaSeparadora.graphics.newBrush(linhaSeparadora.graphics.BrushType.SOLID_COLOR, [0, 0, 0, 1]);
 
         // Adicionar texto de informação
-        grupoAlfabeto.add("statictext", undefined, "Escreve a tua frase GX, e adiciona á legenda, não precisas de preencher o Nome/tipo. Para fazer o coração é: <3");
+        grupoAlfabeto.add("statictext", undefined, t("instrucaoAlfabeto"));
 
         // Função para preencher o dropdown de cores do bioprint
         function preencherCoresBioprint() {
@@ -1129,7 +1262,7 @@ checkboxMostrarAlfabeto.onClick = function() {
                 // Atualizar o campo nome/tipo apenas com a palavra digitada
                 campoNomeTipo.text = palavraDigitada;
             } else {
-                alert("Nenhuma letra válida foi inserida.");
+                alert(t("nenhumaLetraValida"));
             }
         }
 
@@ -1153,13 +1286,12 @@ checkboxMostrarAlfabeto.onClick = function() {
 
 // Adicionar evento para o checkbox de texturas
 var grupoTexturas;
-// ... existing code ...
 
 // Modificar a parte onde o checkbox de texturas é criado
 checkboxMostrarTexturas.onClick = function() {
   if (this.value) {
       // Criar o grupo de texturas
-      grupoTexturas = grupoExtra.add("panel", undefined, "Texturas");
+      grupoTexturas = grupoExtra.add("panel", undefined,  t("texturas"));
       grupoTexturas.orientation = "row"; // Mudado para row para elementos lado a lado
       grupoTexturas.alignChildren = ["left", "top"];
       grupoTexturas.spacing = 10;
@@ -1173,7 +1305,7 @@ checkboxMostrarTexturas.onClick = function() {
 
       // Lista de texturas no subgrupo
       listaTexturas = grupoLista.add("dropdownlist", undefined, [
-          "Selecione uma textura",
+         t("selecioneTextura"),
           "Texture 01",
           "Texture 02",
           "Texture 03",
@@ -1199,7 +1331,7 @@ checkboxMostrarTexturas.onClick = function() {
       listaTexturas.preferredSize.width = 200;
 
       // Botão no subgrupo
-      botaoInserirTextura = grupoLista.add("button", undefined, "Inserir Textura");
+      botaoInserirTextura = grupoLista.add("button", undefined, t("inserirTextura"));
 
         // Adicionar o evento onClick para o botão
         botaoInserirTextura.onClick = function() {
@@ -1221,7 +1353,7 @@ checkboxMostrarTexturas.onClick = function() {
                 // Resetar a seleção
                 listaTexturas.selection = 0;
             } else {
-                alert("Por favor, selecione uma textura primeiro.");
+                alert(t("selecioneTexturaAlerta"));
             }
         };
 
@@ -1252,7 +1384,7 @@ checkboxMostrarTexturas.onClick = function() {
                       var textoErro = grupoPreview.add("statictext", undefined, "Imagem não encontrada");
                   }
               } catch (e) {
-                  alert("Erro ao carregar a imagem: " + e.message);
+                alert(t("erroCarregarImagem") + e.message);
               }
           }
           
@@ -1262,7 +1394,7 @@ checkboxMostrarTexturas.onClick = function() {
 
       // Texto de informação
       var infoTexto = grupoLista.add("statictext", undefined, 
-          "Selecione uma textura para inserir ao lado da legenda.", 
+        t("instrucaoTextura"), 
           {multiline: true});
       infoTexto.preferredSize.width = 200;
 
@@ -1282,7 +1414,7 @@ checkboxMostrarTexturas.onClick = function() {
 checkboxMostrarContar.onClick = function() {
   if (this.value) {
       // Adicionar o grupo de contar elementos
-      grupoContar = grupoExtra.add("panel", undefined, "Contar Elementos (bolas para já)");
+      grupoContar = grupoExtra.add("panel", undefined, t("contarElementos"));
       grupoContar.orientation = "column";
       grupoContar.alignChildren = ["fill", "top"];
       grupoContar.spacing = 10;
@@ -1306,12 +1438,12 @@ var grupoObs, campoObs; // Declarar as variáveis no escopo adequado
 checkboxMostrarObs.onClick = function() {
   if (this.value) {
       // Adicionar o grupo de observações
-      grupoObs = grupoExtra.add("panel", undefined, "Observações");
+      grupoObs = grupoExtra.add("panel", undefined, t("observacoes"));
       grupoObs.orientation = "row";
       grupoObs.alignChildren = ["fill", "top"]; // Preencher a largura
       grupoObs.spacing = 0;
 
-      grupoObs.add("statictext", undefined, "Obs:");
+      grupoObs.add("statictext", undefined, t("obs"));
 
       // Adicionar uma caixa de texto para observações
       campoObs = grupoObs.add("edittext", undefined, "", {multiline: true, scrollable: true});
@@ -1368,9 +1500,9 @@ grupoBotoesPrincipais.alignment = ["fill", "bottom"];
 grupoBotoesPrincipais.spacing = 10;
 
 // Botões
-var botaoRemoverItem = grupoBotoesPrincipais.add("button", undefined, "Remover Selecionado");
-var botaoRemoverTodos = grupoBotoesPrincipais.add("button", undefined, "Remover Todos");
-var botaoGerar = grupoBotoesPrincipais.add("button", undefined, "Adicionar Legenda");
+var botaoRemoverItem = grupoBotoesPrincipais.add("button", undefined, t("removerSelecionado"));
+var botaoRemoverTodos = grupoBotoesPrincipais.add("button", undefined, t("removerTodos"));
+var botaoGerar = grupoBotoesPrincipais.add("button", undefined, t("adicionarLegenda"));
 
 // Adicionar estilo personalizado ao botão Adicionar Legenda
 botaoGerar.graphics.foregroundColor = botaoGerar.graphics.newPen(botaoGerar.graphics.PenType.SOLID_COLOR, [0, 0, 0], 2);
@@ -1909,7 +2041,7 @@ function atualizarCores() {
         var multiplicador = parseFloat(campoMultiplicador.text.replace(',', '.'));
     
         if (isNaN(quantidade) || quantidade <= 0) {
-            alert("Por favor, insira uma quantidade válida.");
+            alert(t("quantidadeInvalida"));
             return;
         }
     
@@ -1978,7 +2110,7 @@ function atualizarCores() {
             listaUnidades.selection = 0;
     
         } else {
-            alert("Erro: Combinação de componente não encontrada na base de dados.");
+            alert(t("erroCombinacaoComponente"));
         }
     };
 
@@ -2048,7 +2180,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                 var legendaInfo = atualizarPreview();
                 
                 if (legendaInfo === undefined) {
-                    alert("Erro: Não foi possível gerar o conteúdo da legenda. ");
+                    alert(t("erroGerarLegenda"));
                     return;
                 }
                 
@@ -2111,7 +2243,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                             }
                         }
                     } catch (aiError) {
-                        alert("Erro ao processar texturas: " + aiError + "\nLinha: " + aiError.line);
+                        alert(t("erroProcessarTexturas") + aiError + "\n" + t("linha") + aiError.line);
                     }
     
                     // Dentro da função scriptIllustrator, após o processamento das texturas:
@@ -2160,7 +2292,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                             }
                         }
                     } catch (alfabetoError) {
-                        alert("Erro ao processar alfabeto: " + alfabetoError);
+                        alert(t("erroProcessarAlfabeto") + alfabetoError);
                     }
                     
                     // Posicionar o texto da legenda abaixo das letras

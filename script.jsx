@@ -472,7 +472,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v2");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v2.1");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -531,23 +531,28 @@ botaoUpdate.size = [60, 25];
 botaoUpdate.onClick = function() {
     try {
         var currentDir = File($.fileName).parent.fsName;
-        alert("Diretório atual: " + currentDir);
         
         // Criar arquivo .bat para Windows
         var scriptFile = new File(currentDir + "/update_script.bat");
         
         if (scriptFile.open('w')) {
-            alert("Arquivo .bat aberto para escrita");
-            
             // Escrever o conteúdo do arquivo
             scriptFile.write("@echo off\n");
             scriptFile.write("cd /d \"" + currentDir + "\"\n");
             
-            // Configurar diretório como seguro e forçar atualização
-            scriptFile.write("git config --global --add safe.directory \"%CD%\" > update_log.txt 2>&1\n");
-            scriptFile.write("git fetch origin main >> update_log.txt 2>&1\n");
-            scriptFile.write("git reset --hard origin/main >> update_log.txt 2>&1\n");
-            scriptFile.write("git clean -fd >> update_log.txt 2>&1\n");
+            // Configurar diretório como seguro
+            scriptFile.write("git config --global --add safe.directory \"%CD%\" > temp_log.txt 2>&1\n");
+            
+            // Remover arquivo de log antigo se existir
+            scriptFile.write("del /f /q update_log.txt 2>nul\n");
+            
+            // Fazer fetch e reset
+            scriptFile.write("git fetch origin main >> temp_log.txt 2>&1\n");
+            scriptFile.write("git reset --hard origin/main >> temp_log.txt 2>&1\n");
+            scriptFile.write("git clean -fd >> temp_log.txt 2>&1\n");
+            
+            // Mover o log temporário para o arquivo final
+            scriptFile.write("move /y temp_log.txt update_log.txt >nul 2>&1\n");
             
             scriptFile.write("set /p GIT_OUTPUT=<update_log.txt\n");
             scriptFile.write("if \"%GIT_OUTPUT%\"==\"Already up to date.\" (\n");
@@ -570,7 +575,6 @@ botaoUpdate.onClick = function() {
                         logFile.open('r');
                         var logContent = logFile.read();
                         logFile.close();
-                        alert("Conteúdo do log:\n" + logContent);
                         
                         if (logContent.indexOf("Already up to date") !== -1) {
                             alert(t("scriptAtualizado"));

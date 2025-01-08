@@ -467,20 +467,21 @@ var grupoUpdate = janela.add("group");
 grupoUpdate.orientation = "row";
 grupoUpdate.alignment = ["fill", "top"];
 
-// Espaço flexível para empurrar o botão para a direita
-var espacoFlexivel = grupoUpdate.add("group");
-espacoFlexivel.alignment = ["fill", "center"];
-
-// Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.3");
-textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
-textoVersao.alignment = ["right", "center"];
-
-// Dropdown de idiomas
+// Dropdown de idiomas (agora à esquerda)
 var dropdownIdiomas = grupoUpdate.add("dropdownlist", undefined, [
     "Português",
     "Français"
 ]);
+dropdownIdiomas.alignment = ["left", "center"];
+
+// Espaço flexível para empurrar o texto da versão e botão para a direita
+var espacoFlexivel = grupoUpdate.add("group");
+espacoFlexivel.alignment = ["fill", "center"];
+
+// Texto da versão (antes do botão Update)
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.5");
+textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
+textoVersao.alignment = ["right", "center"];
 
 // Selecionar o idioma do arquivo de configuração silenciosamente
 if (idiomaUsuario) {
@@ -508,20 +509,8 @@ dropdownIdiomas.onChange = function() {
     }
 };
 
-// Garantir que a janela pode ser fechada
-janela.addEventListener('close', function() {
-    return true;
-});
-
-// Garantir que o evento de fechamento é processado corretamente
-if (janela.closeButton) {
-    janela.closeButton.onClick = function() {
-        janela.close();
-    };
-}
 // Na criação do dropdown, selecionar o idioma atual
 dropdownIdiomas.selection = dropdownIdiomas.find(IDIOMA_ATUAL);
-
 // Botão Update
 var botaoUpdate = grupoUpdate.add("button", undefined, t("botaoUpdate"));
 botaoUpdate.alignment = ["right", "center"];
@@ -599,7 +588,6 @@ botaoUpdate.onClick = function() {
         alert(t("erroAtualizacao") + ": " + e);
     }
 };
-
 // Criar abas para Legenda e Contador de Bolas
 var abas = janela.add("tabbedpanel");
 abas.alignChildren = ["fill", "fill"];
@@ -1130,7 +1118,7 @@ checkboxMostrarComponenteExtra.onClick = function() {
 
           atualizarListaItens();
 
-          // Limpar os campos ap����s adicionar
+          // Limpar os campos após adicionar
           campoNomeExtra.text = "";
           campoQuantidadeExtra.text = "";
       };

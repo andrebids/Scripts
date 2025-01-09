@@ -104,16 +104,19 @@ if (arquivoExiste(caminhoConfig)) {
     nomeDesigner = config.nomeDesigner;
     idiomaUsuario = config.idioma;
     
-    // Se o nome for undefined ou vazio, pedir ao usuário
-    if (!nomeDesigner || nomeDesigner === "undefined" || nomeDesigner === "") {
+    // Verificar se tem nome válido
+    if (!config.nomeDesigner || config.nomeDesigner === "" || config.nomeDesigner === "undefined") {
         var janelaNome = new Window("dialog", t("nomeDesigner"));
+        janelaNome.orientation = "column";
+        janelaNome.alignChildren = "center";
+        
         janelaNome.add("statictext", undefined, t("inserirNome"));
         var campoNome = janelaNome.add("edittext", undefined, "");
         campoNome.characters = 30;
         
-        var botaoOKNome = janelaNome.add("button", undefined, t("botaoOk"));
+        var botaoOK = janelaNome.add("button", undefined, t("botaoOk"));
         
-        botaoOKNome.onClick = function() {
+        botaoOK.onClick = function() {
             if (campoNome.text && campoNome.text !== "") {
                 nomeDesigner = campoNome.text;
                 config.nomeDesigner = nomeDesigner;
@@ -127,21 +130,27 @@ if (arquivoExiste(caminhoConfig)) {
         janelaNome.show();
     }
     
-    // Se não tiver idioma configurado, pedir ao usuário
-    if (!idiomaUsuario || idiomaUsuario === "undefined") {
-        var janelaIdioma = new Window("dialog", t("configuracaoIdioma"));
-        janelaIdioma.add("statictext", undefined, t("selecioneIdioma"));
+    // Verificar se tem idioma válido
+    if (!config.idioma || config.idioma === "undefined" || 
+        (config.idioma !== "Português" && config.idioma !== "Français")) {
+        var janelaIdioma = new Window("dialog", "Seleção de Idioma / Sélection de la Langue");
+        janelaIdioma.orientation = "column";
+        janelaIdioma.alignChildren = "center";
+        
+        janelaIdioma.add("statictext", undefined, "Por favor, selecione seu idioma:");
+        janelaIdioma.add("statictext", undefined, "S'il vous plaît, sélectionnez votre langue:");
+        
         var listaIdiomas = janelaIdioma.add("dropdownlist", undefined, [
             "Português",
             "Français"
         ]);
         listaIdiomas.selection = 0;
         
-        var botaoOK = janelaIdioma.add("button", undefined, t("botaoOk"));
+        var botaoOK = janelaIdioma.add("button", undefined, "OK");
         
         botaoOK.onClick = function() {
             idiomaUsuario = listaIdiomas.selection.text;
-            $.global.idiomaUsuario = idiomaUsuario;
+            IDIOMA_ATUAL = idiomaUsuario;
             config.idioma = idiomaUsuario;
             escreverArquivoJSON(caminhoConfig, config);
             janelaIdioma.close();

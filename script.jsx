@@ -539,7 +539,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.5");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.6");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -1777,7 +1777,7 @@ function atualizarListaItens() {
 
     frasePrincipal += ", sur structure aluminium";
     if (checkStructure.value) {
-        frasePrincipal += " laqué " + (corStructure.selection ? corStructure.selection.text : "");
+        frasePrincipal += " laquée " + (corStructure.selection ? corStructure.selection.text : "");
     }
     frasePrincipal += ".";
 
@@ -2516,5 +2516,78 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
             janela.close();
             janela = null;
         }
+    }
+
+    function criarInterfaceExtra(janela) {
+        var painelExtra = janela.add("panel", undefined, t("extra"));
+        painelExtra.alignChildren = ["fill", "top"];
+        
+        // Criar TabbedPanel principal
+        var tabsExtra = painelExtra.add("tabbedpanel");
+        tabsExtra.alignChildren = ["fill", "fill"];
+        
+        // Tab Geral
+        var tabGeral = tabsExtra.add("tab", undefined, t("geral"));
+        tabGeral.alignChildren = ["fill", "top"];
+        
+        // Conteúdo da tab Geral
+        var checkObservacoes = tabGeral.add("checkbox", undefined, t("observacoes"));
+        var grupoObservacoes = tabGeral.add("group");
+        grupoObservacoes.orientation = "column";
+        grupoObservacoes.alignChildren = ["fill", "top"];
+        // Adicionar conteúdo das observações aqui
+        
+        // Tab Criar
+        var tabCriar = tabsExtra.add("tab", undefined, t("criar"));
+        tabCriar.alignChildren = ["fill", "top"];
+        // Conteúdo da tab Criar aqui
+        
+        // Tab Contador
+        var tabContador = tabsExtra.add("tab", undefined, t("contador"));
+        tabContador.alignChildren = ["fill", "top"];
+        var checkContador = tabContador.add("checkbox", undefined, t("mostrarContador"));
+        var grupoContador = tabContador.add("group");
+        grupoContador.orientation = "column";
+        grupoContador.alignChildren = ["fill", "top"];
+        // Adicionar conteúdo do contador aqui
+        
+        // Tab Texturas
+        var tabTexturas = tabsExtra.add("tab", undefined, t("texturas"));
+        tabTexturas.alignChildren = ["fill", "top"];
+        var checkTexturas = tabTexturas.add("checkbox", undefined, t("texturas"));
+        var grupoTexturas = tabTexturas.add("group");
+        grupoTexturas.orientation = "column";
+        grupoTexturas.alignChildren = ["fill", "top"];
+        // Adicionar conteúdo das texturas aqui
+        
+        // Eventos dos checkboxes
+        checkObservacoes.onClick = function() {
+            grupoObservacoes.visible = this.value;
+        };
+        
+        checkContador.onClick = function() {
+            grupoContador.visible = this.value;
+        };
+        
+        checkTexturas.onClick = function() {
+            grupoTexturas.visible = this.value;
+        };
+        
+        // Configuração inicial
+        grupoObservacoes.visible = false;
+        grupoContador.visible = false;
+        grupoTexturas.visible = false;
+        
+        tabsExtra.selection = 0;
+        
+        return {
+            painelExtra: painelExtra,
+            checkObservacoes: checkObservacoes,
+            checkContador: checkContador,
+            checkTexturas: checkTexturas,
+            grupoObservacoes: grupoObservacoes,
+            grupoContador: grupoContador,
+            grupoTexturas: grupoTexturas
+        };
     }
 })();

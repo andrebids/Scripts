@@ -1282,7 +1282,7 @@ checkboxMostrarAlfabeto.onClick = function() {
         function processarAlfabeto() {
             var alfabeto = campoPalavraChave.text.toUpperCase();
             var corBioprintSelecionada = dropdownCorBioprint.selection ? dropdownCorBioprint.selection.text : "";
-            var tamanhoSelecionado = tamanhoAlfabeto.selection.text;
+            var tamanhoSelecionado = tamanhoAlfabeto.selection.text; // Garantir que pegamos o texto selecionado
             var referenciasUsadas = {};
             
             // Armazenar a palavra digitada
@@ -1330,7 +1330,7 @@ checkboxMostrarAlfabeto.onClick = function() {
                     referencia: "",
                     quantidade: 1,
                     unidade: "",
-                    tamanho: tamanhoSelecionado,
+                    tamanhoAlfabeto: tamanhoSelecionado, // Usar nome mais específico
                     bioprint: "bioprint",
                     corBioprint: corBioprintSelecionada,
                     palavraDigitada: palavraDigitada
@@ -2287,7 +2287,16 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                 // Substituir pontos por vírgulas
                 var legendaConteudo = legendaInfo.texto.replace(/(\d+)\.(\d+)/g, formatarNumero);
     
-                var scriptIllustrator = function(nomeDesigner, conteudoLegenda, texturas, palavraDigitada) {
+                // Encontrar o tamanho do alfabeto nos itens da legenda
+                var tamanhoGXSelecionado = "";
+                for (var i = 0; i < itensLegenda.length; i++) {
+                    if (itensLegenda[i].tipo === "alfabeto") {
+                        tamanhoGXSelecionado = itensLegenda[i].tamanhoAlfabeto; // Usar o mesmo nome específico
+                        break;
+                    }
+                }
+
+                var scriptIllustrator = function(nomeDesigner, conteudoLegenda, texturas, palavraDigitada, tamanhoGX) {
                     var doc = app.activeDocument;
     
                     if (!doc) {
@@ -2352,11 +2361,18 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                         if (palavraDigitada && palavraDigitada !== "") {
                             var caminhoAlfabeto = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/alfabeto/";
                             
-                            var posicaoX = 0;
-                            var posicaoY = 300; // Mantendo a mesma altura
-                            var espacamentoHorizontal = 220; // Aumentado significativamente o espaçamento entre letras
-                            var alturaMaximaLetras = 0;
-
+                            // Usar o tamanhoGX passado como parâmetro
+                            var espacamentoHorizontal = (tamanhoGX === "1,40 m") ? 150 : 220;
+                            var sufixoTamanho = (tamanhoGX === "1,40 m") ? "140" : "200";
+                            
+                            // Ajustar posição inicial das letras
+                            var posicaoX = artboardBounds[0] + 50;
+                            var posicaoY = artboardBounds[1] - 100; // Mover para mais próximo do topo
+                            var alturaLetras = (tamanhoGX === "1,40 m") ? 200 : 300; // Altura aproximada das letras
+                            
+                            // Log para debug
+                            alert("Tamanho GX: " + tamanhoGX + "\nSufixo: " + sufixoTamanho);
+                            
                             for (var i = 0; i < palavraDigitada.length; i++) {
                                 var caractere = palavraDigitada[i].toUpperCase();
                                 
@@ -2364,40 +2380,41 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                                     caractere = '<3';
                                     i++;
                                 }
-
+                                
                                 var nomeArquivoAI = "";
                                 if (caractere >= 'A' && caractere <= 'Z') {
                                     var numeroLetra = 214 + (caractere.charCodeAt(0) - 'A'.charCodeAt(0));
-                                    nomeArquivoAI = "GX" + numeroLetra + "LW.ai";
+                                    nomeArquivoAI = "GX" + numeroLetra + "LW_" + sufixoTamanho + ".ai";
                                 } else if (caractere === '<3') {
-                                    nomeArquivoAI = "GX240LW.ai";
+                                    nomeArquivoAI = "GX240LW_" + sufixoTamanho + ".ai";
                                 } else if (caractere === '#') {
-                                    nomeArquivoAI = "GX241LW.ai";
+                                    nomeArquivoAI = "GX241LW_" + sufixoTamanho + ".ai";
                                 }
-
+                                
                                 if (nomeArquivoAI !== "") {
                                     var caminhoAI = caminhoAlfabeto + nomeArquivoAI;
                                     var arquivoAI = new File(caminhoAI);
-
+                                    
                                     if (arquivoAI.exists) {
                                         var placedItem = novaLayer.placedItems.add();
                                         placedItem.file = arquivoAI;
                                         placedItem.position = [posicaoX, posicaoY];
                                         placedItem.embed();
                                         
-                                        // Mover para a próxima posição
                                         posicaoX += espacamentoHorizontal;
+                                    } else {
+                                        alert("Arquivo não encontrado: " + nomeArquivoAI);
                                     }
                                 }
                             }
                         }
                     } catch (alfabetoError) {
-                        alert(t("erroProcessarAlfabeto") + alfabetoError);
+                        alert("Erro ao processar alfabeto: " + alfabetoError + "\nTamanho: " + tamanhoGX);
                     }
                     
                     // Posicionar o texto da legenda abaixo das letras
                     var textoLegenda = novaLayer.textFrames.add();
-                    textoLegenda.position = [0, 0];
+                    textoLegenda.position = [artboardBounds[0] + 50, posicaoY - alturaLetras - 50]; // Usar a nova posição Y calculada
                     
                     var tamanhoFontePrincipal = 40;
                     var tamanhoFonteBids = 30;
@@ -2502,7 +2519,8 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                 scriptString += "('" + escapeString(nomeDesigner) + "', '" + 
                                escapeString(legendaConteudo) + "', '" + 
                                legendaInfo.texturas.join(',') + "', '" + 
-                               escapeString(palavraDigitada) + "');";
+                               escapeString(palavraDigitada) + "', '" +
+                               escapeString(tamanhoGXSelecionado) + "');";
                 
                 var bt = new BridgeTalk();
                 bt.target = "illustrator";

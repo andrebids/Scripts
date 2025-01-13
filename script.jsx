@@ -539,7 +539,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.6");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.7");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -2371,7 +2371,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                             var alturaLetras = (tamanhoGX === "1,40 m") ? 200 : 300; // Altura aproximada das letras
                             
                             // Log para debug
-                            alert("Tamanho GX: " + tamanhoGX + "\nSufixo: " + sufixoTamanho);
+                            // alert("Tamanho GX: " + tamanhoGX + "\nSufixo: " + sufixoTamanho);
                             
                             for (var i = 0; i < palavraDigitada.length; i++) {
                                 var caractere = palavraDigitada[i].toUpperCase();

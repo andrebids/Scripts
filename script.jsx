@@ -2313,46 +2313,41 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                     var artboard = doc.artboards[doc.artboards.getActiveArtboardIndex()];
                     var artboardBounds = artboard.artboardRect;
                     
-                    // Primeiro, importar e posicionar as texturas
-                    var alturaTexturas = 0;
-                    try {
-                        // Verificar se há texturas para processar
-                        if (texturas && texturas !== "") {
-                            var caminhoBase = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/svg/";
-                            var texturasArray = texturas.split(',');
-                            var larguraTextura = 300;
-                            var alturaTextura = 400; // Definir altura específica aqui
-                            var espacamentoVertical = 50;
+                    // Dentro da função scriptIllustrator, na parte que processa as texturas
+                    if (texturas && texturas !== "") {
+                        var caminhoBase = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/svg/";
+                        var texturasArray = texturas.split(',');
+                        var larguraTextura = 300;
+                        var alturaTextura = 400;
+                        var espacamentoVertical = 50;
+                        var espacamentoHorizontal = 20;
+                        
+                        // Calcular posição Y inicial para as texturas
+                        // Se houver alfabeto, posicionar abaixo dele, senão, usar posição padrão
+                        var posicaoYTexturas = artboardBounds[1] - (palavraDigitada ? alturaLetras + 600 : 500);
+                        
+                        for (var i = 0; i < texturasArray.length; i++) {
+                            var numeroTextura = texturasArray[i];
+                            var caminhoAI = caminhoBase + "texture" + numeroTextura + ".ai";
+                            var arquivoAI = new File(caminhoAI);
                             
-                            for (var i = 0; i < texturasArray.length; i++) {
-                                var numeroTextura = texturasArray[i];
-                                var caminhoAI = caminhoBase + "texture" + numeroTextura + ".ai";
-                                var arquivoAI = new File(caminhoAI);
+                            if (arquivoAI.exists) {
+                                var placedItem = novaLayer.placedItems.add();
+                                placedItem.file = arquivoAI;
                                 
-                                if (arquivoAI.exists) {
-                                    // Criar o item posicionado
-                                    var placedItem = novaLayer.placedItems.add();
-                                    placedItem.file = arquivoAI;
-                                    
-                                    // Posicionar e dimensionar
-                                    placedItem.position = [
-                                        artboardBounds[0] + (i * (larguraTextura + 20)),
-                                        artboardBounds[1] - 40
-                                    ];
-                                    placedItem.width = larguraTextura;
-                                    placedItem.height = alturaTextura; // Usar a nova altura aqui
-                                    
-                                    // Incorporar a textura no documento
-                                    placedItem.embed();
-                                    
-                                    alturaTexturas = alturaTextura + espacamentoVertical;
-                                } else {
-                                    alert("Arquivo não encontrado: texture" + numeroTextura + ".ai");
-                                }
+                                // Posicionar as texturas lado a lado
+                                placedItem.position = [
+                                    artboardBounds[0] + (i * (larguraTextura + espacamentoHorizontal)),
+                                    posicaoYTexturas
+                                ];
+                                
+                                placedItem.width = larguraTextura;
+                                placedItem.height = alturaTextura;
+                                placedItem.embed();
+                            } else {
+                                alert("Arquivo não encontrado: texture" + numeroTextura + ".ai");
                             }
                         }
-                    } catch (aiError) {
-                        alert(t("erroProcessarTexturas") + aiError + "\n" + t("linha") + aiError.line);
                     }
     
                     // Dentro da função scriptIllustrator, após o processamento das texturas:

@@ -1346,7 +1346,27 @@ checkboxMostrarAlfabeto.onClick = function() {
             }
         }
 
-        botaoAdicionarPalavraChave.onClick = processarAlfabeto;
+        botaoAdicionarPalavraChave.onClick = function() {
+            // Extrair o valor numérico do tamanho selecionado
+            var tamanhoSelecionado = tamanhoAlfabeto.selection.text;
+            var valorNumerico = tamanhoSelecionado.replace(/[^\d,]/g, '').replace(',', '.');
+            
+            // Procurar o campo H nos campos dimensões
+            for (var i = 0; i < grupoDimensoes.children.length; i++) {
+                var campo = grupoDimensoes.children[i];
+                if (campo.type === "statictext" && campo.text === "H:") {
+                    // O campo de input é o próximo elemento após o texto "H:"
+                    var campoH = grupoDimensoes.children[i + 1];
+                    if (campoH && campoH.type === "edittext") {
+                        campoH.text = valorNumerico;
+                        break;
+                    }
+                }
+            }
+            
+            // Continuar com o processamento do alfabeto
+            processarAlfabeto();
+        };
 
         janela.layout.layout(true); // Forçar atualização do layout
         janela.preferredSize.height += 100; // Aumentar a altura da janela

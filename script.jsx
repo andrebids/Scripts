@@ -2365,13 +2365,11 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                             var espacamentoHorizontal = (tamanhoGX === "1,40 m") ? 150 : 220;
                             var sufixoTamanho = (tamanhoGX === "1,40 m") ? "140" : "200";
                             
-                            // Ajustar posição inicial das letras
-                            var posicaoX = artboardBounds[0] + 50;
-                            var posicaoY = artboardBounds[1] - 100; // Mover para mais próximo do topo
-                            var alturaLetras = (tamanhoGX === "1,40 m") ? 200 : 300; // Altura aproximada das letras
+                            // Ajustar altura das letras baseado no tamanho
+                            var alturaLetras = (tamanhoGX === "1,40 m") ? 200 : 300;
                             
-                            // Log para debug
-                            // alert("Tamanho GX: " + tamanhoGX + "\nSufixo: " + sufixoTamanho);
+                            // Definir posição inicial X
+                            var posicaoX = artboardBounds[0] + 50;
                             
                             for (var i = 0; i < palavraDigitada.length; i++) {
                                 var caractere = palavraDigitada[i].toUpperCase();
@@ -2398,10 +2396,10 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                                     if (arquivoAI.exists) {
                                         var placedItem = novaLayer.placedItems.add();
                                         placedItem.file = arquivoAI;
-                                        placedItem.position = [posicaoX, posicaoY];
+                                        placedItem.position = [posicaoX, artboardBounds[1] - 100]; // Usar posicaoX aqui
                                         placedItem.embed();
                                         
-                                        posicaoX += espacamentoHorizontal;
+                                        posicaoX += espacamentoHorizontal; // Incrementar posicaoX para a próxima letra
                                     } else {
                                         alert("Arquivo não encontrado: " + nomeArquivoAI);
                                     }
@@ -2412,9 +2410,10 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                         alert("Erro ao processar alfabeto: " + alfabetoError + "\nTamanho: " + tamanhoGX);
                     }
                     
-                    // Posicionar o texto da legenda abaixo das letras
+                    // Posicionar o texto da legenda (sempre será executado)
                     var textoLegenda = novaLayer.textFrames.add();
-                    textoLegenda.position = [artboardBounds[0] + 50, posicaoY - alturaLetras - 50]; // Usar a nova posição Y calculada
+                    var posicaoYLegenda = artboardBounds[1] - (palavraDigitada ? alturaLetras + 150 : 100);
+                    textoLegenda.position = [artboardBounds[0] + 50, posicaoYLegenda];
                     
                     var tamanhoFontePrincipal = 40;
                     var tamanhoFonteBids = 30;

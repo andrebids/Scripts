@@ -539,7 +539,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.7");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -2445,6 +2445,11 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
 
                     for (var i = 0; i < linhas.length; i++) {
                         var linha = linhas[i];
+                        
+                        // Substituir "moquette blanc" por "moquette blanche" apenas na linha do Logo
+                        if (linha.indexOf("Logo") === 0 && linha.toLowerCase().indexOf("moquette blanc") !== -1) {
+                            linha = linha.replace(/moquette blanc/i, "moquette blanche");
+                        }
                         
                         if (linha.indexOf("Logo") === 0) {
                             var novoParag = textoLegenda.paragraphs.add(linha);

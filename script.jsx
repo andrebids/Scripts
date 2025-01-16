@@ -539,7 +539,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8.2");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8.3");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -1751,11 +1751,91 @@ function atualizarListaItens() {
         frasePrincipal += " bioprint " + (corBioprint || "");
     }
 
-    // Adicionar os componentes agrupados
+    // Definir a ordem dos componentes
+    var ordemComponentes = [
+        'BIOPRINT',
+        'RECYPRINT',
+        'FLEXIPRINT',
+        'MOQUETTE',
+        'CAMOUFLAGE',
+        'FIL LUMIERE',
+        'LUCIOLES',
+        'STALACTITS',
+        'RIDEAUX',
+        'FIL COMÈTE',
+        'SOFT XLED',
+        'BOULE ANIMÉ',
+        'BOULES ANIMÉS',
+        'BOUQUETS',
+        'ECLAT ANIMÉ',
+        'ECLATS ANIMÉS',
+        'FLAME BOULE',
+        'FLAME BOULES',
+        'TIGES X-LED 0,50M',
+        'TIGES X-LED 0,80M',
+        'XLED SPIRAL',
+        'XLED STAR'
+    ];
+
+    // Função auxiliar para extrair o nome base do componente
+    function extrairNomeBase(texto) {
+        // Procura até encontrar o primeiro espaço ou parêntese
+        var pos = texto.indexOf(' ');
+        if (pos === -1) pos = texto.indexOf('(');
+        if (pos === -1) return texto;
+        return texto.substring(0, pos);
+    }
+
+    // Ordenar componentesReferencias
+    componentesReferencias.sort(function(a, b) {
+        var nomeA = extrairNomeBase(a);
+        var nomeB = extrairNomeBase(b);
+        
+        var posA = 999;
+        var posB = 999;
+        
+        for (var i = 0; i < ordemComponentes.length; i++) {
+            if (nomeA === ordemComponentes[i]) {
+                posA = i;
+            }
+            if (nomeB === ordemComponentes[i]) {
+                posB = i;
+            }
+        }
+        
+        return posA - posB;
+    });
+
+    // Modificar a parte onde os componentes são processados
+    var componentesOrdenados = [];
     for (var nomeComponente in componentesAgrupados) {
         if (componentesAgrupados.hasOwnProperty(nomeComponente)) {
-            componentesTexto.push(nomeComponente + " " + componentesAgrupados[nomeComponente].join(", "));
+            componentesOrdenados.push(nomeComponente);
         }
+    }
+    
+    // Ordenar os componentes
+    componentesOrdenados.sort(function(a, b) {
+        var posA = 999;
+        var posB = 999;
+        
+        // Procurar posição na ordem
+        for (var i = 0; i < ordemComponentes.length; i++) {
+            if (a === ordemComponentes[i]) {
+                posA = i;
+            }
+            if (b === ordemComponentes[i]) {
+                posB = i;
+            }
+        }
+        
+        return posA - posB;
+    });
+    
+    // Construir componentesTexto usando a ordem correta
+    for (var i = 0; i < componentesOrdenados.length; i++) {
+        var nomeComponente = componentesOrdenados[i];
+        componentesTexto.push(nomeComponente + " " + componentesAgrupados[nomeComponente].join(", "));
     }
 
     if (componentesTexto.length > 0) {
@@ -2371,7 +2451,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                                 
                                 if (caractere === '<' && palavraDigitada[i+1] === '3') {
                                     caractere = '<3';
-                                    i++;
+                                    i++; // Pula o próximo caractere, pois já foi processado
                                 }
                                 
                                 var nomeArquivoAI = "";

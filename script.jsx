@@ -539,7 +539,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.9");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -860,10 +860,10 @@ var componentesNomes = getComponentesComCombinacoes();
 var listaComponentes = grupo2.add("dropdownlist", undefined, componentesNomes);
 listaComponentes.selection = 0;
 
-// Lista de cores
-var coresNomes = extrairNomes(dados.cores);
+// Lista de cores - modificar esta parte
+var coresNomes = [t("selecioneCor")].concat(extrairNomes(dados.cores)); // Adiciona "Selecione a cor" no início
 var listaCores = grupo2.add("dropdownlist", undefined, coresNomes);
-listaCores.selection = 0;
+listaCores.selection = 0; // Seleciona o primeiro item (Selecione a cor)
 
 // Lista de unidades
 var unidades = ["ml", "m2", "unit"];
@@ -1212,8 +1212,14 @@ checkboxMostrarAlfabeto.onClick = function() {
         subGrupoAlfabeto.add("statictext", undefined, t("bioprint"));
 
         // Adicionar dropdown para cor do bioprint
-        subGrupoAlfabeto.add("statictext", undefined, t("cor"));
-        dropdownCorBioprint = subGrupoAlfabeto.add("dropdownlist", undefined, ["Selecione a cor"]);
+        // Se o dropdown já existir
+        var dropdownCorBioprint = grupo.add("dropdownlist");
+        dropdownCorBioprint.add("item", "Selecione a cor"); // Primeiro item como instrução
+        dropdownCorBioprint.selection = 0; // Selecionar o primeiro item por default
+        dropdownCorBioprint.onChange = function() {
+            // Adicionar lógica para atualizar o texto do bioprint
+            campoPalavraChave.text = dropdownCorBioprint.selection.text;
+        };
 
         // Manter o dropdown de tamanho existente
         subGrupoAlfabeto.add("statictext", undefined, t("tamanho"));

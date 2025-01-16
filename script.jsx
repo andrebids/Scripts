@@ -539,7 +539,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8.2");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -2028,8 +2028,8 @@ function atualizarCores() {
         }
 
     } else {
-        listaCores.add("item", "Selecione uma cor");
-        listaUnidades.add("item", "Selecione uma unidade");
+        listaCores.add("item", t("selecioneCor"));
+        listaUnidades.add("item", t("selecioneUnidade"));
         listaCores.selection = 0;
         listaUnidades.selection = 0;
     }

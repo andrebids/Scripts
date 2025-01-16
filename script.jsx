@@ -539,7 +539,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.9");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -860,10 +860,10 @@ var componentesNomes = getComponentesComCombinacoes();
 var listaComponentes = grupo2.add("dropdownlist", undefined, componentesNomes);
 listaComponentes.selection = 0;
 
-// Lista de cores - modificar esta parte
-var coresNomes = [t("selecioneCor")].concat(extrairNomes(dados.cores)); // Adiciona "Selecione a cor" no início
+// Lista de cores
+var coresNomes = [t("selecioneCor")].concat(extrairNomes(dados.cores));
 var listaCores = grupo2.add("dropdownlist", undefined, coresNomes);
-listaCores.selection = 0; // Seleciona o primeiro item (Selecione a cor)
+listaCores.selection = 0;
 
 // Lista de unidades
 var unidades = ["ml", "m2", "unit"];
@@ -1194,7 +1194,7 @@ checkboxMostrarComponenteExtra.onClick = function() {
 checkboxMostrarAlfabeto.onClick = function() {
     if (this.value) {
         // Adicionar o grupo de alfabeto
-        grupoAlfabeto = grupoExtra.add("panel", undefined, "Alfabeto");
+        grupoAlfabeto = grupoExtra.add("panel", undefined, t("alfabeto"));
         grupoAlfabeto.orientation = "column"; // Alterar para "column" para alinhar verticalmente
         grupoAlfabeto.alignChildren = ["fill", "top"]; // Preencher a largura
         grupoAlfabeto.spacing = 10; // Adicionar espaçamento entre os elementos
@@ -1212,14 +1212,8 @@ checkboxMostrarAlfabeto.onClick = function() {
         subGrupoAlfabeto.add("statictext", undefined, t("bioprint"));
 
         // Adicionar dropdown para cor do bioprint
-        // Se o dropdown já existir
-        var dropdownCorBioprint = grupo.add("dropdownlist");
-        dropdownCorBioprint.add("item", "Selecione a cor"); // Primeiro item como instrução
-        dropdownCorBioprint.selection = 0; // Selecionar o primeiro item por default
-        dropdownCorBioprint.onChange = function() {
-            // Adicionar lógica para atualizar o texto do bioprint
-            campoPalavraChave.text = dropdownCorBioprint.selection.text;
-        };
+        subGrupoAlfabeto.add("statictext", undefined, t("cor"));
+        dropdownCorBioprint = subGrupoAlfabeto.add("dropdownlist", undefined, ["Selecione a cor"]);
 
         // Manter o dropdown de tamanho existente
         subGrupoAlfabeto.add("statictext", undefined, t("tamanho"));
@@ -2281,7 +2275,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
         }
 
         // Continua com a verificação original
-        if (confirm("Tens certeza que adicionaste todos os componentes que precisavas?")) {
+        if (confirm(t("confirmarComponentes"))) {
             try {
                 var legendaInfo = atualizarPreview();
                 
@@ -2532,7 +2526,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                 bt.body = scriptString;
                 bt.onResult = function(resObj) {
                     if (resObj.body === "success") {
-                        alert("Legenda adicionada com sucesso!");
+                        alert(t("legendaAdicionada"));
                         janela.close();
                         janela = null;
                     } else {

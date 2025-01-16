@@ -112,7 +112,9 @@ var TRANSLATIONS = {
         "scriptAtualizado": "O script já está na versão mais recente.",
         "atualizacaoSucesso": "Atualização concluída! Por favor, reinicie o script para usar a nova versão.",
         "erroAtualizacao": "Erro ao atualizar. Por favor, tente novamente.",
-        "gitNaoInstalado": "O Git não está instalado neste computador.\n\nPor favor:\n1. Baixe o Git em https://git-scm.com/downloads\n2. Execute o instalador\n3. Reinicie o computador\n4. Tente atualizar novamente"
+        "gitNaoInstalado": "O Git não está instalado neste computador.\n\nPor favor:\n1. Baixe o Git em https://git-scm.com/downloads\n2. Execute o instalador\n3. Reinicie o computador\n4. Tente atualizar novamente",
+        "confirmarComponentes": "Tens certeza que adicionaste todos os componentes que precisavas?",
+        "legendaAdicionada": "Legenda adicionada com sucesso!"
     },
     "Français": {
         "nomeDesigner": "Nom du Designer",
@@ -216,7 +218,9 @@ var TRANSLATIONS = {
         "scriptAtualizado": "Le script est déjà à jour.",
         "atualizacaoSucesso": "Mise à jour terminée ! Veuillez redémarrer le script pour utiliser la nouvelle version.",
         "erroAtualizacao": "Erreur lors de la mise à jour. Veuillez réessayer.",
-        "gitNaoInstalado": "Git n'est pas installé sur cet ordinateur.\n\nVeuillez :\n1. Télécharger Git sur https://git-scm.com/downloads\n2. Exécuter l'installateur\n3. Redémarrer l'ordinateur\n4. Réessayer la mise à jour"
+        "gitNaoInstalado": "Git n'est pas installé sur cet ordinateur.\n\nVeuillez :\n1. Télécharger Git sur https://git-scm.com/downloads\n2. Exécuter l'installateur\n3. Redémarrer l'ordinateur\n4. Réessayer la mise à jour",
+        "confirmarComponentes": "Êtes-vous sûr d'avoir ajouté tous les composants dont vous aviez besoin?",
+        "legendaAdicionada": "Légende ajoutée avec succès!"
     }
 };
 

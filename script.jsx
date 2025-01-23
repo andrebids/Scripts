@@ -28,7 +28,6 @@ var ultimaSelecao = {
     componente: null,
     cor: null,
     unidade: null,
-    quantidade: "1",
     multiplicador: "1"
 };
 var nomeDesigner;
@@ -126,14 +125,6 @@ if (arquivoExiste(caminhoConfig)) {
     
     janelaConfig.show();
 }
-
-
-//function criarQuadradoPreto(layer, posX, posY, tamanho) {
-  //  var quadrado = layer.pathItems.rectangle(posY, posX, tamanho, tamanho);
-    //quadrado.fillColor = new RGBColor(0, 0, 0); // Preto
-    //quadrado.stroked = false; // Sem contorno
-    //return quadrado;
-//}
 
 function criarInterfaceContadorBolas(grupoContar) {
     var grupo = grupoContar.add("group");
@@ -473,7 +464,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8.5");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8.6");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -2195,9 +2186,7 @@ function salvarSelecaoAtual() {
         if (listaUnidades && listaUnidades.selection) {
             ultimaSelecao.unidade = listaUnidades.selection.text;
         }
-        if (campoQuantidade) {
-            ultimaSelecao.quantidade = campoQuantidade.text;
-        }
+        // Removemos o salvamento da quantidade
         if (campoMultiplicador) {
             ultimaSelecao.multiplicador = campoMultiplicador.text;
         }
@@ -2242,8 +2231,9 @@ function restaurarUltimaSelecao() {
             }
         }
 
+        // Sempre resetar a quantidade para "1"
         if (campoQuantidade) {
-            campoQuantidade.text = ultimaSelecao.quantidade;
+            campoQuantidade.text = "1";
         }
         if (campoMultiplicador) {
             campoMultiplicador.text = ultimaSelecao.multiplicador;

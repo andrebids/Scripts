@@ -539,7 +539,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8.3");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8.4");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -1777,33 +1777,76 @@ function atualizarListaItens() {
         'XLED STAR'
     ];
 
-    // Função auxiliar para extrair o nome base do componente
-    function extrairNomeBase(texto) {
-        // Procura até encontrar o primeiro espaço ou parêntese
+    var ordemUnidades = ['m2', 'ml', 'units'];
+
+    // Função auxiliar para extrair informações do componente
+    function extrairInfoComponente(texto) {
+        var info = {
+            componente: '',
+            cor: '',
+            unidade: ''
+        };
+        
+        // Extrair componente base (ex: flexiprint)
         var pos = texto.indexOf(' ');
-        if (pos === -1) pos = texto.indexOf('(');
-        if (pos === -1) return texto;
-        return texto.substring(0, pos);
+        info.componente = pos === -1 ? texto : texto.substring(0, pos).toLowerCase();
+        
+        // Extrair cor (ex: or PANTONE 131C, blanc RAL 9010)
+        var matches = texto.match(/(or|blanc|noir|rouge|bleu|vert|jaune|PANTONE|RAL)\s+[^\(]+/i);
+        info.cor = matches ? matches[0].toLowerCase() : '';
+        
+        // Extrair unidade (m², ml, units)
+        matches = texto.match(/\((m2|ml|units)\)/i);
+        info.unidade = matches ? matches[1].toLowerCase() : '';
+        
+        return info;
+    }
+
+    // Função para encontrar índice no array
+    function encontrarIndice(array, valor) {
+        for (var i = 0; i < array.length; i++) {
+            if (array[i] === valor) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     // Ordenar componentesReferencias
     componentesReferencias.sort(function(a, b) {
-        var nomeA = extrairNomeBase(a);
-        var nomeB = extrairNomeBase(b);
+        var infoA = extrairInfoComponente(a);
+        var infoB = extrairInfoComponente(b);
         
+        // Primeiro compara pelo componente base usando a ordem definida
         var posA = 999;
         var posB = 999;
         
         for (var i = 0; i < ordemComponentes.length; i++) {
-            if (nomeA === ordemComponentes[i]) {
+            if (infoA.componente === ordemComponentes[i].toLowerCase()) {
                 posA = i;
             }
-            if (nomeB === ordemComponentes[i]) {
+            if (infoB.componente === ordemComponentes[i].toLowerCase()) {
                 posB = i;
             }
         }
         
-        return posA - posB;
+        if (posA !== posB) {
+            return posA - posB;
+        }
+        
+        // Se mesmo componente, ordena por cor
+        if (infoA.cor !== infoB.cor) {
+            return infoA.cor.localeCompare(infoB.cor);
+        }
+        
+        // Se mesma cor, ordena por unidade (m2 antes de ml)
+        var unidadeA = encontrarIndice(ordemUnidades, infoA.unidade);
+        var unidadeB = encontrarIndice(ordemUnidades, infoB.unidade);
+        
+        if (unidadeA === -1) unidadeA = 999;
+        if (unidadeB === -1) unidadeB = 999;
+        
+        return unidadeA - unidadeB;
     });
 
     // Modificar a parte onde os componentes são processados

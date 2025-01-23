@@ -199,7 +199,8 @@ var TRANSLATIONS = {
         "gitNaoInstalado": "O Git não está instalado neste computador.\n\nPor favor:\n1. Baixe o Git em https://git-scm.com/downloads\n2. Execute o instalador\n3. Reinicie o computador\n4. Tente atualizar novamente",
         "confirmarComponentes": "Tens certeza que adicionaste todos os componentes que precisavas?",
         "legendaAdicionada": "Legenda adicionada com sucesso!",
-        "quantidadeNaoInformada": "Por favor, informe a quantidade"
+        "quantidadeNaoInformada": "Por favor, informe a quantidade",
+        "procurarLabel": "procurar:"
     },
     "Français": {
         "nomeDesigner": "Nom du Designer",
@@ -214,7 +215,7 @@ var TRANSLATIONS = {
         "tipoFixacao": "Type de fixation",
         "structureLaqueada": "Structure laquée",
         "painelComponentes": "Composants",
-        "procurar": "chercher:",
+        "procurar": "rechercher:",
         "selecioneComponente": "Sélectionnez un composant",
         "botaoAdicionar": "Ajouter",
         "painelBolas": "Boules",
@@ -306,6 +307,7 @@ var TRANSLATIONS = {
         "gitNaoInstalado": "Git n'est pas installé sur cet ordinateur.\n\nVeuillez :\n1. Télécharger Git sur https://git-scm.com/downloads\n2. Exécuter l'installateur\n3. Redémarrer l'ordinateur\n4. Réessayer la mise à jour",
         "confirmarComponentes": "Êtes-vous sûr d'avoir ajouté tous les composants dont vous aviez besoin?",
         "legendaAdicionada": "Légende ajoutée avec succès!",
-        "quantidadeNaoInformada": "Veuillez indiquer la quantité"
+        "quantidadeNaoInformada": "Veuillez indiquer la quantité",
+        "procurarLabel": "rechercher:"
     }
 };

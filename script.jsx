@@ -464,7 +464,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8.8");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8.9");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -712,8 +712,8 @@ var grupoPesquisa = grupoComponentes.add("group");
 grupoPesquisa.orientation = "row";
 grupoPesquisa.alignChildren = "center";
 
-// Label para o campo de pesquisa
-var labelPesquisa = grupoPesquisa.add("statictext", undefined, t("procurar") + ":");
+
+var labelPesquisa = grupoPesquisa.add("statictext", undefined, t("procurar"));
     
 // Campo de pesquisa
 var campoPesquisa = grupoPesquisa.add("edittext", undefined, "");

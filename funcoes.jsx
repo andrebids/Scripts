@@ -285,3 +285,50 @@ $.global.funcoes.testeRequisicao = testeRequisicao;
             grupoTexturas: grupoTexturas
         };
     }
+
+// Função para formatar unidades
+function formatarUnidade(unidade) {
+    if (unidade === "m2") {
+        return "m²";
+    }
+    return unidade;
+}
+
+// Função para arredondar componente
+function arredondarComponente(valor, unidade, nome) {
+    var nomeLowerCase = nome.toLowerCase();
+    if (nomeLowerCase.indexOf("fil lumière") !== -1 || 
+        nomeLowerCase.indexOf("fil lumiére") !== -1 || 
+        nomeLowerCase.indexOf("fil comète") !== -1 || 
+        nomeLowerCase.indexOf("fil cométe") !== -1) {
+        // Arredondar para o próximo metro inteiro
+        return Math.ceil(valor);
+    } else if (unidade === "ml" || unidade === "m2") {
+        // Arredondar para o próximo 0,05
+        return Math.ceil(valor * 20) / 20;
+    }
+    // Para outras unidades, retornar o valor original
+    return valor;
+}
+
+// Função para criar texto do componente
+function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicador) {
+    var texto = nome;
+    if (referencia) {
+        texto += " (Ref: " + referencia + ")";
+    }
+    texto += " (" + formatarUnidade(unidade) + ")";
+    
+    quantidade = arredondarComponente(quantidade, unidade, nome);
+    
+    var quantidadeFormatada = quantidade.toFixed(2).replace('.', ',');
+    if (multiplicador > 1) {
+        texto += " " + quantidadeFormatada + "x" + multiplicador + ": ";
+        var quantidadeTotal = quantidade * multiplicador;
+        texto += quantidadeTotal.toFixed(2).replace('.', ',');
+    } else {
+        texto += ": " + quantidadeFormatada;
+    }
+    
+    return texto;
+}

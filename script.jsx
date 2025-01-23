@@ -464,7 +464,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8.6");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8.7");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -796,7 +796,7 @@ var listaUnidades = grupo2.add("dropdownlist", undefined, unidades);
 listaUnidades.selection = 0;
 
 // Campo de quantidade
-var campoQuantidade = grupo2.add("edittext", undefined, "1");
+var campoQuantidade = grupo2.add("edittext", undefined, "");
 campoQuantidade.characters = 5;
 apenasNumerosEVirgula(campoQuantidade);
 // Campo de multiplicador
@@ -2231,9 +2231,9 @@ function restaurarUltimaSelecao() {
             }
         }
 
-        // Sempre resetar a quantidade para "1"
+        // Deixar o campo quantidade vazio
         if (campoQuantidade) {
-            campoQuantidade.text = "1";
+            campoQuantidade.text = "";
         }
         if (campoMultiplicador) {
             campoMultiplicador.text = ultimaSelecao.multiplicador;
@@ -2244,6 +2244,14 @@ function restaurarUltimaSelecao() {
 }
     botaoAdicionarComponente.onClick = function() {
         try {
+            // Verificar se a quantidade foi preenchida
+            var quantidade = campoQuantidade.text;
+            if (!quantidade || quantidade.replace(/\s/g, "") === "") {
+                alert(t("quantidadeNaoInformada")); // "Por favor, informe a quantidade"
+                campoQuantidade.active = true; // Foca no campo
+                return;
+            }
+
             // Verificações iniciais
             if (!dados || typeof dados !== 'object') {
                 alert("Erro: dados não está definido ou não é um objeto");

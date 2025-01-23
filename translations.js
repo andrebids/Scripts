@@ -1,3 +1,11 @@
+// Variável global para o idioma - começar em francês
+var IDIOMA_ATUAL = "Français";
+
+// Função para atualizar o idioma
+function atualizarIdioma(novoIdioma) {
+    IDIOMA_ATUAL = novoIdioma;
+}
+
 // Função para obter a tradução
 function t(key) {
     // Pegar o idioma atual do arquivo de configuração
@@ -10,6 +18,82 @@ function t(key) {
     return TRANSLATIONS["Português"][key] || key;
 }
 
+// Código de inicialização do idioma
+if (arquivoExiste(caminhoConfig)) {
+    var config = lerArquivoJSON(caminhoConfig);
+    nomeDesigner = config.nomeDesigner;
+    idiomaUsuario = config.idioma;
+    IDIOMA_ATUAL = idiomaUsuario;
+} else {
+    // Se não existir arquivo de configuração, pedir idioma primeiro
+    var janelaIdioma = new Window("dialog", "Seleção de Idioma / Sélection de la Langue");
+    janelaIdioma.orientation = "column";
+    janelaIdioma.alignChildren = "center";
+    
+    // Texto em ambos os idiomas
+    janelaIdioma.add("statictext", undefined, "Por favor, selecione seu idioma:");
+    janelaIdioma.add("statictext", undefined, "S'il vous plaît, sélectionnez votre langue:");
+    
+    var listaIdiomas = janelaIdioma.add("dropdownlist", undefined, [
+        "Português",
+        "Français"
+    ]);
+    listaIdiomas.selection = 0;
+    
+    var botaoOK = janelaIdioma.add("button", undefined, "OK");
+    var idiomaEscolhido;
+    
+    botaoOK.onClick = function() {
+        idiomaEscolhido = listaIdiomas.selection.text;
+        IDIOMA_ATUAL = idiomaEscolhido;
+        
+        // Criar objeto de configuração
+        var configData = {
+            idioma: idiomaEscolhido,
+            nomeDesigner: ""  // Será preenchido na próxima janela
+        };
+        
+        // Fechar janela de idioma
+        janelaIdioma.close();
+        
+        // Criar janela para nome do designer
+        var janelaNome = new Window("dialog", t("nomeDesigner"));
+        janelaNome.orientation = "column";
+        janelaNome.alignChildren = "center";
+        
+        // Adicionar campos
+        janelaNome.add("statictext", undefined, t("inserirNome"));
+        var campoNome = janelaNome.add("edittext", undefined, "");
+        campoNome.preferredSize.width = 200;
+        
+        // Adicionar botão OK
+        var botaoOKNome = janelaNome.add("button", undefined, t("botaoOk"));
+        
+        botaoOKNome.onClick = function() {
+            if (campoNome.text.length > 0) {
+                // Salvar nome no objeto de configuração
+                configData.nomeDesigner = campoNome.text;
+                
+                // Salvar configuração em arquivo
+                try {
+                    salvarArquivoJSON(caminhoConfig, configData);
+                    nomeDesigner = campoNome.text;
+                    janelaNome.close();
+                } catch(e) {
+                    alert("Erro ao salvar configuração: " + e);
+                }
+            } else {
+                alert(t("erroNomeVazio"));
+            }
+        };
+        
+        janelaNome.show();
+    };
+    
+    janelaIdioma.show();
+}
+
+// Objeto com as traduções
 var TRANSLATIONS = {
     "Português": {
         "nomeDesigner": "Nome do Designer",

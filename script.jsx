@@ -464,7 +464,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8.7");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8.8");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -635,7 +635,7 @@ listaL.preferredSize.width = 60; // Reduz o tamanho do dropdown
 // Tipo de fixação
 linha2.add("statictext", undefined, t("tipoFixacao"));
 
-// Criar array com os tipos de fixação
+// Tipos de fixação
 var tiposFixacao = [];
 var tiposFixacaoKeys = ["poteau", "suspendue", "murale", "sansFixation", "auSol", "speciale"];
 

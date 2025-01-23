@@ -307,4 +307,3 @@ var TRANSLATIONS = {
         "legendaAdicionada": "Légende ajoutée avec succès!"
     }
 };
-

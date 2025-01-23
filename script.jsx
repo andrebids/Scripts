@@ -23,7 +23,14 @@ var caminhoConfig = getPastaDocumentos() + "/cartouche_config.json";
 var caminhoBaseDadosHardcoded = "\\\\192.168.2.22\\Olimpo\\DS\\_BASE DE DADOS\\07. TOOLS\\ILLUSTRATOR\\basededados\\database2.json";
 var itensLegenda = [];
 var itensNomes = [];
-// Verificar se o arquivo de configuração existe
+// Variável para armazenar última seleção
+var ultimaSelecao = {
+    componente: null,
+    cor: null,
+    unidade: null,
+    quantidade: "1",
+    multiplicador: "1"
+};
 var nomeDesigner;
 var idiomaUsuario;
 if (arquivoExiste(caminhoConfig)) {
@@ -466,7 +473,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8.4");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8.5");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -1962,7 +1969,13 @@ function atualizarListaItens() {
     };
 }
 
-
+// Função para formatar unidades
+function formatarUnidade(unidade) {
+    if (unidade === "m2") {
+        return "m²";
+    }
+    return unidade;
+}
 
 // Modificar a função criarLinhaReferencia
 function criarLinhaReferencia(item) {
@@ -2170,45 +2183,159 @@ function atualizarCores() {
     function arredondarParaDecima(valor) {
         return Math.ceil(valor * 10) / 10;
     }
+// Função para salvar a seleção atual
+function salvarSelecaoAtual() {
+    try {
+        if (listaComponentes && listaComponentes.selection) {
+            ultimaSelecao.componente = listaComponentes.selection.text;
+        }
+        if (listaCores && listaCores.selection) {
+            ultimaSelecao.cor = listaCores.selection.text;
+        }
+        if (listaUnidades && listaUnidades.selection) {
+            ultimaSelecao.unidade = listaUnidades.selection.text;
+        }
+        if (campoQuantidade) {
+            ultimaSelecao.quantidade = campoQuantidade.text;
+        }
+        if (campoMultiplicador) {
+            ultimaSelecao.multiplicador = campoMultiplicador.text;
+        }
+    } catch (e) {
+        alert("Erro ao salvar seleção: " + e.message);
+    }
+}
 
-    // Botão para adicionar componente à legenda
-    botaoAdicionarComponente.onClick = function() {
-        if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0 || listaUnidades.selection.index === 0) {
-            alert(t("selecionarComponenteCompleto"));
-            return;
-        }
-    
-        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
-        var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
-        var unidadeSelecionada = listaUnidades.selection.text;
-        var quantidade = parseFloat(campoQuantidade.text.replace(',', '.'));
-        var multiplicador = parseFloat(campoMultiplicador.text.replace(',', '.'));
-    
-        if (isNaN(quantidade) || quantidade <= 0) {
-            alert(t("quantidadeInvalida"));
-            return;
-        }
-    
-        if (isNaN(multiplicador) || multiplicador <= 0) {
-            multiplicador = 1;
-        }
-    
-        var combinacaoSelecionada = null;
-        for (var i = 0; i < dados.combinacoes.length; i++) {
-            if (dados.combinacoes[i].componenteId === componenteSelecionado.id &&
-                dados.combinacoes[i].corId === corSelecionada.id &&
-                dados.combinacoes[i].unidade === unidadeSelecionada) {
-                combinacaoSelecionada = dados.combinacoes[i];
-                break;
+// Função para restaurar a última seleção
+function restaurarUltimaSelecao() {
+    try {
+        if (ultimaSelecao.componente && listaComponentes) {
+            for (var i = 0; i < listaComponentes.items.length; i++) {
+                if (listaComponentes.items[i].text === ultimaSelecao.componente) {
+                    listaComponentes.selection = i;
+                    break;
+                }
             }
         }
+
+        // Atualizar cores baseado no componente
+        atualizarCores();
+
+        if (ultimaSelecao.cor && listaCores) {
+            for (var i = 0; i < listaCores.items.length; i++) {
+                if (listaCores.items[i].text === ultimaSelecao.cor) {
+                    listaCores.selection = i;
+                    break;
+                }
+            }
+        }
+
+        // Atualizar unidades baseado na cor
+        atualizarUnidades();
+
+        if (ultimaSelecao.unidade && listaUnidades) {
+            for (var i = 0; i < listaUnidades.items.length; i++) {
+                if (listaUnidades.items[i].text === ultimaSelecao.unidade) {
+                    listaUnidades.selection = i;
+                    break;
+                }
+            }
+        }
+
+        if (campoQuantidade) {
+            campoQuantidade.text = ultimaSelecao.quantidade;
+        }
+        if (campoMultiplicador) {
+            campoMultiplicador.text = ultimaSelecao.multiplicador;
+        }
+    } catch (e) {
+        alert("Erro ao restaurar seleção: " + e.message);
+    }
+}
+    botaoAdicionarComponente.onClick = function() {
+        try {
+            // Verificações iniciais
+            if (!dados || typeof dados !== 'object') {
+                alert("Erro: dados não está definido ou não é um objeto");
+                return;
+            }
     
-        if (combinacaoSelecionada) {
+            if (!dados.componentes || !dados.cores) {
+                alert("Erro: dados.componentes ou dados.cores não estão definidos");
+                return;
+            }
+    
+            if (!listaComponentes || !listaCores || !listaUnidades) {
+                alert("Erro: Uma ou mais listas não estão definidas\nComponentes: " + 
+                      (listaComponentes ? "OK" : "Não definido") + 
+                      "\nCores: " + (listaCores ? "OK" : "Não definido") + 
+                      "\nUnidades: " + (listaUnidades ? "OK" : "Não definido"));
+                return;
+            }
+    
+            if (!listaComponentes.selection || !listaCores.selection || !listaUnidades.selection) {
+                alert(t("selecionarComponenteCompleto"));
+                return;
+            }
+    
+            if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0 || listaUnidades.selection.index === 0) {
+                alert(t("selecionarComponenteCompleto"));
+                return;
+            }
+    
+            // Salvar seleção atual antes de qualquer operação
+            salvarSelecaoAtual();
+    
+            // Obter dados selecionados
+            var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
+            var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
+            var unidadeSelecionada = listaUnidades.selection.text;
+    
+            // Verificar se os dados foram obtidos corretamente
+            if (!componenteSelecionado || !corSelecionada) {
+                alert("Erro ao obter componente ou cor selecionada:\nComponente: " + 
+                      (componenteSelecionado ? "OK" : "Não encontrado") + 
+                      "\nCor: " + (corSelecionada ? "OK" : "Não encontrada"));
+                return;
+            }
+    
+            // Processar quantidade e multiplicador
+            var quantidade = parseFloat(campoQuantidade.text.replace(',', '.'));
+            var multiplicador = parseFloat(campoMultiplicador.text.replace(',', '.'));
+    
+            if (isNaN(quantidade) || quantidade <= 0) {
+                alert(t("quantidadeInvalida") + "\nValor inserido: " + campoQuantidade.text);
+                return;
+            }
+    
+            if (isNaN(multiplicador) || multiplicador <= 0) {
+                alert("Multiplicador inválido, usando valor padrão 1\nValor inserido: " + campoMultiplicador.text);
+                multiplicador = 1;
+            }
+    
+            // Encontrar combinação
+            var combinacaoSelecionada = null;
+            for (var i = 0; i < dados.combinacoes.length; i++) {
+                if (dados.combinacoes[i].componenteId === componenteSelecionado.id &&
+                    dados.combinacoes[i].corId === corSelecionada.id &&
+                    dados.combinacoes[i].unidade === unidadeSelecionada) {
+                    combinacaoSelecionada = dados.combinacoes[i];
+                    break;
+                }
+            }
+    
+            if (!combinacaoSelecionada) {
+                alert("Combinação não encontrada:\nComponente: " + componenteSelecionado.nome + 
+                      "\nCor: " + corSelecionada.nome + 
+                      "\nUnidade: " + unidadeSelecionada);
+                return;
+            }
+    
+            // Processar o componente
             var nomeComponente = componenteSelecionado.nome + " " + corSelecionada.nome;
-            
-            // Aplicar arredondamento
             quantidade = arredondarComponente(quantidade, unidadeSelecionada, nomeComponente);
     
+            // Verificar se o item já existe
             var itemExistente = null;
             for (var i = 0; i < itensLegenda.length; i++) {
                 if (itensLegenda[i].tipo === "componente" && 
@@ -2219,13 +2346,12 @@ function atualizarCores() {
                 }
             }
     
+            // Atualizar ou adicionar item
             if (itemExistente) {
-                // Atualizar o item existente
                 itemExistente.quantidade = quantidade;
                 itemExistente.multiplicador = multiplicador;
                 itemExistente.texto = criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidade, multiplicador);
             } else {
-                // Adicionar novo item
                 itensLegenda.push({
                     tipo: "componente",
                     nome: nomeComponente,
@@ -2238,28 +2364,69 @@ function atualizarCores() {
                 });
             }
     
+            // Atualizar interface
             atualizarListaItens();
     
-            // Limpar os campos após adicionar
-            campoQuantidade.text = "1";
-            campoMultiplicador.text = "1";
+            try {
+                // Restaurar a última seleção
+                restaurarUltimaSelecao();
+            } catch (e) {
+                alert("Erro ao restaurar seleção: " + e.message + "\nUsando reset padrão");
+                // Reset padrão em caso de erro
+                campoQuantidade.text = "1";
+                campoMultiplicador.text = "1";
+                listaComponentes.selection = 0;
+                listaCores.removeAll();
+                listaCores.add("item", t("selecioneCor"));
+                listaCores.selection = 0;
+                listaUnidades.removeAll();
+                listaUnidades.add("item", t("selecioneUnidade"));
+                listaUnidades.selection = 0;
+            }
     
-            // Resetar as seleções
-            listaComponentes.selection = 0;
-            listaCores.removeAll();
-            listaCores.add("item", "Selecione uma cor");
-            listaCores.selection = 0;
-            listaUnidades.removeAll();
-            listaUnidades.add("item", "Selecione uma unidade");
-            listaUnidades.selection = 0;
-    
-        } else {
-            alert(t("erroCombinacaoComponente"));
+        } catch (e) {
+            alert("Erro geral ao adicionar componente:\n" + e.message + "\nLinha: " + e.line);
         }
     };
 
+    // Função para arredondar para o próximo 0,05 ou 0,1
+    function arredondarComponente(valor, unidade, nome) {
+        var nomeLowerCase = nome.toLowerCase();
+        if (nomeLowerCase.indexOf("fil lumière") !== -1 || 
+            nomeLowerCase.indexOf("fil lumiére") !== -1 || 
+            nomeLowerCase.indexOf("fil comète") !== -1 || 
+            nomeLowerCase.indexOf("fil cométe") !== -1) {
+            // Arredondar para o próximo metro inteiro
+            return Math.ceil(valor);
+        } else if (unidade === "ml" || unidade === "m2") {
+            // Arredondar para o próximo 0,05
+            return Math.ceil(valor * 20) / 20;
+        }
+        // Para outras unidades, retornar o valor original
+        return valor;
+    }
 
-
+// Modificar a função criarTextoComponente
+function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicador) {
+    var texto = nome;
+    if (referencia) {
+        texto += " (Ref: " + referencia + ")";
+    }
+    texto += " (" + formatarUnidade(unidade) + ")";
+    
+    quantidade = arredondarComponente(quantidade, unidade, nome);
+    
+    var quantidadeFormatada = quantidade.toFixed(2).replace('.', ',');
+    if (multiplicador > 1) {
+        texto += " " + quantidadeFormatada + "x" + multiplicador + ": ";
+        var quantidadeTotal = quantidade * multiplicador;
+        texto += quantidadeTotal.toFixed(2).replace('.', ',');
+    } else {
+        texto += ": " + quantidadeFormatada;
+    }
+    
+    return texto;
+}
     // Exibir a janela
     janela.show();
 
@@ -2555,4 +2722,84 @@ function atualizarCores() {
     // Exibir a janela
     janela.show();
 
+    // Função para limpar recursos (pode ser chamada no final do script)
+    function limparRecursos() {
+        if (janela && janela.toString() !== "[object Window]") {
+            janela.close();
+            janela = null;
+        }
+    }
+
+    function criarInterfaceExtra(janela) {
+        var painelExtra = janela.add("panel", undefined, t("extra"));
+        painelExtra.alignChildren = ["fill", "top"];
+        
+        // Criar TabbedPanel principal
+        var tabsExtra = painelExtra.add("tabbedpanel");
+        tabsExtra.alignChildren = ["fill", "fill"];
+        
+        // Tab Geral
+        var tabGeral = tabsExtra.add("tab", undefined, t("geral"));
+        tabGeral.alignChildren = ["fill", "top"];
+        
+        // Conteúdo da tab Geral
+        var checkObservacoes = tabGeral.add("checkbox", undefined, t("observacoes"));
+        var grupoObservacoes = tabGeral.add("group");
+        grupoObservacoes.orientation = "column";
+        grupoObservacoes.alignChildren = ["fill", "top"];
+        // Adicionar conteúdo das observações aqui
+        
+        // Tab Criar
+        var tabCriar = tabsExtra.add("tab", undefined, t("criar"));
+        tabCriar.alignChildren = ["fill", "top"];
+        // Conteúdo da tab Criar aqui
+        
+        // Tab Contador
+        var tabContador = tabsExtra.add("tab", undefined, t("contador"));
+        tabContador.alignChildren = ["fill", "top"];
+        var checkContador = tabContador.add("checkbox", undefined, t("mostrarContador"));
+        var grupoContador = tabContador.add("group");
+        grupoContador.orientation = "column";
+        grupoContador.alignChildren = ["fill", "top"];
+        // Adicionar conteúdo do contador aqui
+        
+        // Tab Texturas
+        var tabTexturas = tabsExtra.add("tab", undefined, t("texturas"));
+        tabTexturas.alignChildren = ["fill", "top"];
+        var checkTexturas = tabTexturas.add("checkbox", undefined, t("texturas"));
+        var grupoTexturas = tabTexturas.add("group");
+        grupoTexturas.orientation = "column";
+        grupoTexturas.alignChildren = ["fill", "top"];
+        // Adicionar conteúdo das texturas aqui
+        
+        // Eventos dos checkboxes
+        checkObservacoes.onClick = function() {
+            grupoObservacoes.visible = this.value;
+        };
+        
+        checkContador.onClick = function() {
+            grupoContador.visible = this.value;
+        };
+        
+        checkTexturas.onClick = function() {
+            grupoTexturas.visible = this.value;
+        };
+        
+        // Configuração inicial
+        grupoObservacoes.visible = false;
+        grupoContador.visible = false;
+        grupoTexturas.visible = false;
+        
+        tabsExtra.selection = 0;
+        
+        return {
+            painelExtra: painelExtra,
+            checkObservacoes: checkObservacoes,
+            checkContador: checkContador,
+            checkTexturas: checkTexturas,
+            grupoObservacoes: grupoObservacoes,
+            grupoContador: grupoContador,
+            grupoTexturas: grupoTexturas
+        };
+    }
 })();

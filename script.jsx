@@ -464,7 +464,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.8.9");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.9");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -1939,7 +1939,7 @@ function atualizarListaItens() {
     todosComponentesExtras = todosComponentesExtras.concat(componentesExtras);
 
     if (todosComponentesExtras.length > 0) {
-        // Remover esta linha que adiciona o espaço em branco
+        // Removemos a linha que adiciona o espaço em branco
         // previewText.push("\u200B"); // Removemos a linha em branco antes dos extras
         
         for (var i = 0; i < todosComponentesExtras.length; i++) {
@@ -2488,38 +2488,50 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                     
                     // Dentro da função scriptIllustrator, na parte que processa as texturas
                     if (texturas && texturas !== "") {
-                        var caminhoBase = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/svg/";
-                        var texturasArray = texturas.split(',');
-                        var larguraTextura = 300;
-                        var alturaTextura = 400;
-                        var espacamentoVertical = 50;
-                        var espacamentoHorizontal = 20;
-                        
-                        // Calcular posição Y inicial para as texturas
-                        // Se houver alfabeto, posicionar abaixo dele, senão, usar posição padrão
-                        var posicaoYTexturas = artboardBounds[1] - (palavraDigitada ? alturaLetras + 600 : 500);
-                        
-                        for (var i = 0; i < texturasArray.length; i++) {
-                            var numeroTextura = texturasArray[i];
-                            var caminhoAI = caminhoBase + "texture" + numeroTextura + ".ai";
-                            var arquivoAI = new File(caminhoAI);
+                        try {
+                            var caminhoBase = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/svg/";
+                            // Converter para string e remover espaços manualmente
+                            var texturasString = String(texturas);
+                            var texturasArray = texturasString.split(',');
+                            var larguraTextura = 300;
+                            var alturaTextura = 400;
+                            var espacamentoHorizontal = 20;
                             
-                            if (arquivoAI.exists) {
-                                var placedItem = novaLayer.placedItems.add();
-                                placedItem.file = arquivoAI;
+                            // Calcular posição Y inicial para as texturas
+                            var posicaoYTexturas = artboardBounds[1] - (palavraDigitada ? alturaLetras + 600 : 500);
+                            
+                            for (var i = 0; i < texturasArray.length; i++) {
+                                // Remover espaços manualmente
+                                var numeroTextura = String(texturasArray[i]);
+                                numeroTextura = numeroTextura.replace(/^\s+/, '').replace(/\s+$/, '');
                                 
-                                // Posicionar as texturas lado a lado
-                                placedItem.position = [
-                                    artboardBounds[0] + (i * (larguraTextura + espacamentoHorizontal)),
-                                    posicaoYTexturas
-                                ];
+                                if (numeroTextura === '') continue;
                                 
-                                placedItem.width = larguraTextura;
-                                placedItem.height = alturaTextura;
-                                placedItem.embed();
-                            } else {
-                                alert("Arquivo não encontrado: texture" + numeroTextura + ".ai");
+                                var caminhoAI = caminhoBase + "texture" + numeroTextura + ".ai";
+                                var arquivoAI = new File(caminhoAI);
+                                
+                                if (arquivoAI.exists) {
+                                    try {
+                                        var placedItem = novaLayer.placedItems.add();
+                                        placedItem.file = arquivoAI;
+                                        
+                                        var posX = artboardBounds[0] + (i * (larguraTextura + espacamentoHorizontal));
+                                        placedItem.position = [posX, posicaoYTexturas];
+                                        
+                                        placedItem.width = larguraTextura;
+                                        placedItem.height = alturaTextura;
+                                        placedItem.embed();
+                                        
+                                        app.redraw();
+                                    } catch (texError) {
+                                        alert("Erro ao adicionar textura " + numeroTextura + ": " + texError);
+                                    }
+                                } else {
+                                    alert("Arquivo não encontrado: texture" + numeroTextura + ".ai");
+                                }
                             }
+                        } catch (e) {
+                            alert("Erro ao processar texturas: " + e);
                         }
                     }
     

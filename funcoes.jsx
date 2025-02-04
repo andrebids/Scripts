@@ -1,25 +1,41 @@
 // funcoes.jsx
 // Função para ler o arquivo JSON
 function lerArquivoJSON(caminho) {
-    var arquivo = new File(caminho);
-    if (!arquivo.exists) {
-        throw new Error("O arquivo não existe: " + caminho);
-    }
-    arquivo.open('r');
-    var conteudo = arquivo.read();
-    arquivo.close();
     try {
-        return funcoes.parseJSON(conteudo);
-    } catch (e) {
-        throw new Error("Erro ao analisar o JSON: " + e.message);
+        var arquivo = new File(caminho);
+        
+        // Se o arquivo não existe, retorna um objeto vazio
+        if (!arquivo.exists) {
+            return {};
+        }
+        
+        arquivo.open('r');
+        var conteudo = arquivo.read();
+        arquivo.close();
+        
+        // Se o conteúdo está vazio, retorna um objeto vazio
+        if (!conteudo || conteudo.trim() === '') {
+            return {};
+        }
+        
+        return parseJSON(conteudo);
+    } catch(e) {
+        $.writeln("Erro ao ler arquivo: " + e.message);
+        return {};
     }
 }
 // Função para analisar JSON
 function parseJSON(str) {
+    if (!str || typeof str !== 'string') {
+        return {};  // Retorna objeto vazio em vez de lançar erro
+    }
+    
     try {
-        return eval('(' + str + ')');
+        var resultado = eval('(' + str + ')');
+        return resultado || {};  // Se resultado for null/undefined, retorna objeto vazio
     } catch (e) {
-        throw new Error("Erro ao analisar o JSON: " + e.message);
+        $.writeln("Erro ao analisar JSON: " + e.message);
+        return {};  // Retorna objeto vazio em caso de erro
     }
 }
 function apenasNumerosEVirgula(campo) {

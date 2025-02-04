@@ -9,123 +9,93 @@ $.evalFile(File($.fileName).path + "/database.jsx");
 $.evalFile(File($.fileName).path + "/ui.jsx");
 $.evalFile(File($.fileName).path + "/translations.js");
 
-// Definir o caminho do arquivo de configuração primeiro
-var caminhoConfig = getPastaDocumentos() + "/cartouche_config.json";
+// Definir variáveis no escopo global
+var caminhoConfig = Folder.myDocuments.fsName + "/cartouche_config.json";
+var nomeDesigner = "";
+var idiomaUsuario = "Português";
+var IDIOMA_ATUAL = "Português";
 
-// Variável global para o idioma - começar em francês
-
-(function() {
+// Função para mostrar janela de configuração inicial
+function mostrarJanelaConfigInicial() {
+    var janelaConfig = new Window("dialog", "Configuração Inicial / Configuration Initiale");
+    janelaConfig.orientation = "column";
+    janelaConfig.alignChildren = "center";
     
-     // Caminho do arquivo de configuração
-var caminhoConfig = getPastaDocumentos() + "/cartouche_config.json";
-
-// Caminho hardcoded para a base de dados
-var caminhoBaseDadosHardcoded = "\\\\192.168.2.22\\Olimpo\\DS\\_BASE DE DADOS\\07. TOOLS\\ILLUSTRATOR\\basededados\\database2.json";
-var itensLegenda = [];
-var itensNomes = [];
-// Variável para armazenar última seleção
-var ultimaSelecao = {
-    componente: null,
-    cor: null,
-    unidade: null,
-    multiplicador: "1"
-};
-var nomeDesigner;
-var idiomaUsuario;
-if (arquivoExiste(caminhoConfig)) {
-    var config = lerArquivoJSON(caminhoConfig);
-    nomeDesigner = config.nomeDesigner;
-    idiomaUsuario = config.idioma;
-    
-    // Verificar se tem nome válido
-    if (!config.nomeDesigner || config.nomeDesigner === "" || config.nomeDesigner === "undefined") {
-        var janelaNome = new Window("dialog", t("nomeDesigner"));
-        janelaNome.orientation = "column";
-        janelaNome.alignChildren = "center";
-        
-        janelaNome.add("statictext", undefined, t("inserirNome"));
-        var campoNome = janelaNome.add("edittext", undefined, "");
-        campoNome.characters = 30;
-        
-        var botaoOK = janelaNome.add("button", undefined, t("botaoOk"));
-        
-        botaoOK.onClick = function() {
-            if (campoNome.text && campoNome.text !== "") {
-                nomeDesigner = campoNome.text;
-                config.nomeDesigner = nomeDesigner;
-                escreverArquivoJSON(caminhoConfig, config);
-                janelaNome.close();
-            } else {
-                alert(t("erroNomeVazio"));
-            }
-        };
-        
-        janelaNome.show();
-    }
-    
-    // Verificar se tem idioma válido
-    if (!config.idioma || config.idioma === "undefined" || 
-        (config.idioma !== "Português" && config.idioma !== "Français")) {
-        var janelaIdioma = new Window("dialog", "Seleção de Idioma / Sélection de la Langue");
-        janelaIdioma.orientation = "column";
-        janelaIdioma.alignChildren = "center";
-        
-        janelaIdioma.add("statictext", undefined, "Por favor, selecione seu idioma:");
-        janelaIdioma.add("statictext", undefined, "S'il vous plaît, sélectionnez votre langue:");
-        
-        var listaIdiomas = janelaIdioma.add("dropdownlist", undefined, [
-            "Português",
-            "Français"
-        ]);
-        listaIdiomas.selection = 0;
-        
-        var botaoOK = janelaIdioma.add("button", undefined, "OK");
-        
-        botaoOK.onClick = function() {
-            idiomaUsuario = listaIdiomas.selection.text;
-            IDIOMA_ATUAL = idiomaUsuario;
-            config.idioma = idiomaUsuario;
-            escreverArquivoJSON(caminhoConfig, config);
-            janelaIdioma.close();
-        };
-        
-        janelaIdioma.show();
-    }
-} else {
-    // Criar janela para pedir o nome do designer e idioma
-    var janelaConfig = new Window("dialog", t("configuracaoInicial"));
-    janelaConfig.add("statictext", undefined, t("inserirNome"));
-    var campoNome = janelaConfig.add("edittext", undefined, "");
+    // Grupo para nome
+    var grupoNome = janelaConfig.add("group");
+    grupoNome.add("statictext", undefined, "Nome do Designer / Nom du Designer:");
+    var campoNome = grupoNome.add("edittext", undefined, "");
     campoNome.characters = 30;
     
-    janelaConfig.add("statictext", undefined, t("selecioneIdioma"));
-    var listaIdiomas = janelaConfig.add("dropdownlist", undefined, [
-        "Português",
-        "Français"
-    ]);
+    // Grupo para idioma
+    var grupoIdioma = janelaConfig.add("group");
+    grupoIdioma.add("statictext", undefined, "Idioma / Langue:");
+    var listaIdiomas = grupoIdioma.add("dropdownlist", undefined, ["Português", "Français"]);
     listaIdiomas.selection = 0;
     
-    var botaoOK = janelaConfig.add("button", undefined, t("botaoOk"));
+    // Botão OK
+    var botaoOK = janelaConfig.add("button", undefined, "OK");
     
     botaoOK.onClick = function() {
-        if (campoNome.text && campoNome.text !== "") {
+        if (campoNome.text.length > 0) {
             nomeDesigner = campoNome.text;
             idiomaUsuario = listaIdiomas.selection.text;
-            janelaConfig.close();
+            IDIOMA_ATUAL = idiomaUsuario;
             
-            // Salvar as configurações no arquivo
-            escreverArquivoJSON(caminhoConfig, {
+            var config = {
                 nomeDesigner: nomeDesigner,
                 idioma: idiomaUsuario
-            });
+            };
+            
+            try {
+                escreverArquivoJSON(caminhoConfig, config);
+                janelaConfig.close();
+            } catch(e) {
+                alert("Erro ao salvar configuração / Erreur lors de l'enregistrement de la configuration: " + e.message);
+            }
         } else {
-            alert(t("erroNomeVazio"));
+            alert("Por favor, insira seu nome / S'il vous plaît, entrez votre nom");
         }
     };
     
     janelaConfig.show();
 }
 
+(function() {
+    // Verificar se existe arquivo de configuração
+    if (arquivoExiste(caminhoConfig)) {
+        try {
+            var config = lerArquivoJSON(caminhoConfig);
+            if (config && config.nomeDesigner && config.idioma) {
+                nomeDesigner = config.nomeDesigner;
+                idiomaUsuario = config.idioma;
+                IDIOMA_ATUAL = config.idioma;
+            } else {
+                mostrarJanelaConfigInicial();
+            }
+        } catch(e) {
+            mostrarJanelaConfigInicial();
+        }
+    } else {
+        mostrarJanelaConfigInicial();
+    }
+    var caminhoBaseDadosHardcoded = "\\\\192.168.2.22\\Olimpo\\DS\\_BASE DE DADOS\\07. TOOLS\\ILLUSTRATOR\\basededados\\database2.json";
+
+    // Adicionar verificação antes de tentar ler o arquivo
+    try {
+        if (arquivoExiste(caminhoBaseDadosHardcoded)) {
+            var dadosBase = lerArquivoJSON(caminhoBaseDadosHardcoded);
+            if (dadosBase) {
+                // Processar os dados...
+            } else {
+                alert("Base de dados vazia ou inválida");
+            }
+        } else {
+            alert("Arquivo da base de dados não encontrado. Por favor, verifique o caminho: " + caminhoBaseDadosHardcoded);
+        }
+    } catch(e) {
+        alert("Erro ao ler o arquivo da base de dados: " + e.message);
+    }
 function criarInterfaceContadorBolas(grupoContar) {
     var grupo = grupoContar.add("group");
     grupo.orientation = "column";
@@ -464,7 +434,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.9");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.9.1");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 

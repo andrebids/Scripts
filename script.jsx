@@ -15,6 +15,15 @@ var nomeDesigner = "";
 var idiomaUsuario = "Português";
 var IDIOMA_ATUAL = "Português";
 
+var itensLegenda = [];
+var itensNomes = [];
+// Variável para armazenar última seleção
+var ultimaSelecao = {
+    componente: null,
+    cor: null,
+    unidade: null,
+    multiplicador: "1"
+};
 // Função para mostrar janela de configuração inicial
 function mostrarJanelaConfigInicial() {
     var janelaConfig = new Window("dialog", "Configuração Inicial / Configuration Initiale");

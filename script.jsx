@@ -9,6 +9,9 @@ $.evalFile(File($.fileName).path + "/database.jsx");
 $.evalFile(File($.fileName).path + "/ui.jsx");
 $.evalFile(File($.fileName).path + "/translations.js");
 
+// Adicionar no início do arquivo, após os outros $.evalFile
+$.evalFile(File($.fileName).path + "/alfabeto.jsx");
+
 // Definir variáveis no escopo global
 var caminhoConfig = Folder.myDocuments.fsName + "/cartouche_config.json";
 var nomeDesigner = "";
@@ -443,7 +446,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.9.1");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.9.2");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -1183,73 +1186,7 @@ checkboxMostrarAlfabeto.onClick = function() {
         // Chamar a função para preencher as cores do bioprint
         preencherCoresBioprint();
 
-        function processarAlfabeto() {
-            var alfabeto = campoPalavraChave.text.toUpperCase();
-            var corBioprintSelecionada = dropdownCorBioprint.selection ? dropdownCorBioprint.selection.text : "";
-            var tamanhoSelecionado = tamanhoAlfabeto.selection.text; // Garantir que pegamos o texto selecionado
-            var referenciasUsadas = {};
-            
-            // Armazenar a palavra digitada
-            var palavraDigitada = campoPalavraChave.text;
-            
-            var referenciasMapeadas = {
-                'A': 'GX214LW', 'B': 'GX215LW', 'C': 'GX216LW', 'D': 'GX217LW',
-                'E': 'GX218LW', 'F': 'GX219LW', 'G': 'GX220LW', 'H': 'GX221LW',
-                'I': 'GX222LW', 'J': 'GX223LW', 'K': 'GX224LW', 'L': 'GX225LW',
-                'M': 'GX226LW', 'N': 'GX227LW', 'O': 'GX228LW', 'P': 'GX229LW',
-                'Q': 'GX230LW', 'R': 'GX231LW', 'S': 'GX232LW', 'T': 'GX233LW',
-                'U': 'GX234LW', 'V': 'GX235LW', 'W': 'GX236LW', 'X': 'GX237LW',
-                'Y': 'GX238LW', 'Z': 'GX239LW', '<3': 'GX240LW', '#': 'GX241LW'
-            };
-            
-            for (var i = 0; i < alfabeto.length; i++) {
-                var caractere = alfabeto[i];
-                if (caractere === '<' && alfabeto[i+1] === '3') {
-                    caractere = '<3';
-                    i++; // Pula o próximo caractere, pois já foi processado
-                }
-                
-                if (referenciasMapeadas.hasOwnProperty(caractere)) {
-                    if (!referenciasUsadas[caractere]) {
-                        referenciasUsadas[caractere] = 1;
-                    } else {
-                        referenciasUsadas[caractere]++;
-                    }
-                }
-            }
-
-            var referenciasTexto = [];
-            for (var caractere in referenciasUsadas) {
-                if (referenciasUsadas.hasOwnProperty(caractere)) {
-                    referenciasTexto.push(referenciasMapeadas[caractere] + " (" + caractere + ") bioprint " + corBioprintSelecionada + " " + tamanhoSelecionado + ": " + referenciasUsadas[caractere]);
-                }
-            }
-            
-            // Adicionar as referências usadas à legenda
-            if (referenciasTexto.length > 0) {
-                itensLegenda.push({
-                    tipo: "alfabeto",
-                    nome: "Referências do Alfabeto",
-                    texto: referenciasTexto.join("\n"),
-                    referencia: "",
-                    quantidade: 1,
-                    unidade: "",
-                    tamanhoAlfabeto: tamanhoSelecionado, // Usar nome mais específico
-                    bioprint: "bioprint",
-                    corBioprint: corBioprintSelecionada,
-                    palavraDigitada: palavraDigitada
-                });
-                
-                atualizarListaItens();
-                campoPalavraChave.text = "";
-                
-                // Atualizar o campo nome/tipo apenas com a palavra digitada
-                campoNomeTipo.text = palavraDigitada;
-            } else {
-                alert(t("nenhumaLetraValida"));
-            }
-        }
-
+        // Substituir a função processarAlfabeto() existente por:
         botaoAdicionarPalavraChave.onClick = function() {
             // Extrair o valor numérico do tamanho selecionado
             var tamanhoSelecionado = tamanhoAlfabeto.selection.text;
@@ -1268,8 +1205,35 @@ checkboxMostrarAlfabeto.onClick = function() {
                 }
             }
             
-            // Continuar com o processamento do alfabeto
-            processarAlfabeto();
+            // Usar a função processarAlfabeto do novo arquivo
+            var resultado = processarAlfabeto(
+                campoPalavraChave.text,
+                dropdownCorBioprint.selection ? dropdownCorBioprint.selection.text : "",
+                tamanhoSelecionado
+            );
+            
+            if (resultado.referenciasTexto.length > 0) {
+                itensLegenda.push({
+                    tipo: "alfabeto",
+                    nome: "Referências do Alfabeto",
+                    texto: resultado.referenciasTexto.join("\n"),
+                    referencia: "",
+                    quantidade: 1,
+                    unidade: "",
+                    tamanhoAlfabeto: tamanhoSelecionado,
+                    bioprint: "bioprint",
+                    corBioprint: dropdownCorBioprint.selection ? dropdownCorBioprint.selection.text : "",
+                    palavraDigitada: resultado.palavraDigitada
+                });
+                
+                atualizarListaItens();
+                campoPalavraChave.text = "";
+                
+                // Atualizar o campo nome/tipo apenas com a palavra digitada
+                campoNomeTipo.text = resultado.palavraDigitada;
+            } else {
+                alert(t("nenhumaLetraValida"));
+            }
         };
 
         janela.layout.layout(true); // Forçar atualização do layout

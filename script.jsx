@@ -1271,9 +1271,25 @@ checkboxMostrarTexturas.onClick = function() {
       grupoLista.alignChildren = ["left", "top"];
       grupoLista.spacing = 5;
 
+      // Função auxiliar para obter o número da textura (colocar ANTES dos eventos)
+      function obterNumeroTextura(texturaNome) {
+          if (texturaNome.indexOf("Texture") === 0) {
+              return parseInt(texturaNome.replace("Texture ", ""));
+          }
+          // Para texturas Flexi, manter a numeração original
+          switch(texturaNome) {
+              case "Flexi Triangle": return 17;
+              case "Flexi Boucle": return 18;
+              case "Flexi Losange": return 19;
+              case "Flexi Meli Melo": return 20;
+              default: return 1;
+          }
+      }
+
       // Lista de texturas no subgrupo
       listaTexturas = grupoLista.add("dropdownlist", undefined, [
-         t("selecioneTextura"),
+          t("selecioneTextura"),
+          "--- SIMPLE TRAIT ---",
           "Texture 01",
           "Texture 02",
           "Texture 03",
@@ -1282,6 +1298,7 @@ checkboxMostrarTexturas.onClick = function() {
           "Texture 06",
           "Texture 07",
           "Texture 08",
+          "--- DOUBLE TRAIT ---",
           "Texture 09",
           "Texture 10",
           "Texture 11",
@@ -1290,6 +1307,7 @@ checkboxMostrarTexturas.onClick = function() {
           "Texture 14",
           "Texture 15",
           "Texture 16",
+          "--- FLEXI ---",
           "Flexi Triangle",
           "Flexi Boucle",
           "Flexi Losange",
@@ -1303,8 +1321,11 @@ checkboxMostrarTexturas.onClick = function() {
 
         // Adicionar o evento onClick para o botão
         botaoInserirTextura.onClick = function() {
-            if (listaTexturas.selection && listaTexturas.selection.index > 0) {
-                var texturaNumero = listaTexturas.selection.index;
+            if (listaTexturas.selection && 
+                listaTexturas.selection.index > 0 && 
+                listaTexturas.selection.text.indexOf("---") === -1) {
+                
+                var texturaNumero = obterNumeroTextura(listaTexturas.selection.text);
                 var texturaNome = listaTexturas.selection.text;
                 
                 // Adicionar a textura à lista de itens
@@ -1333,32 +1354,32 @@ checkboxMostrarTexturas.onClick = function() {
 
       // Evento de mudança na lista
       listaTexturas.onChange = function() {
-          // Limpar preview anterior
-          while(grupoPreview.children.length > 0) {
-              grupoPreview.remove(grupoPreview.children[0]);
-          }
-          
-          if (this.selection.index > 0) {
-              try {
-                  var numeroTextura = this.selection.index;
-                  var nomeArquivo = "texture" + numeroTextura + ".png";
-                  var caminhoImagem = File($.fileName).parent + "/png/" + nomeArquivo;
-                  var arquivoImagem = new File(caminhoImagem);
-                  
-                  if (arquivoImagem.exists) {
-                      var imagem = grupoPreview.add("image", undefined, arquivoImagem);
-                      imagem.preferredSize = [100, 100];
-                  } else {
-                      var textoErro = grupoPreview.add("statictext", undefined, "Imagem não encontrada");
-                  }
-              } catch (e) {
-                alert(t("erroCarregarImagem") + e.message);
-              }
-          }
-          
-          janela.layout.layout(true);
-          janela.layout.resize();
-      };
+        // Limpar preview anterior
+        while(grupoPreview.children.length > 0) {
+            grupoPreview.remove(grupoPreview.children[0]);
+        }
+        
+        if (this.selection.index > 0 && this.selection.text.indexOf("---") === -1) {
+            try {
+                var numeroTextura = obterNumeroTextura(this.selection.text);
+                var nomeArquivo = "texture" + numeroTextura + ".png";
+                var caminhoImagem = File($.fileName).parent + "/png/" + nomeArquivo;
+                var arquivoImagem = new File(caminhoImagem);
+                
+                if (arquivoImagem.exists) {
+                    var imagem = grupoPreview.add("image", undefined, arquivoImagem);
+                    imagem.preferredSize = [100, 100];
+                } else {
+                    var textoErro = grupoPreview.add("statictext", undefined, "Imagem não encontrada");
+                }
+            } catch (e) {
+              alert(t("erroCarregarImagem") + e.message);
+            }
+        }
+        
+        janela.layout.layout(true);
+        janela.layout.resize();
+    };
 
       // Texto de informação
       var infoTexto = grupoLista.add("statictext", undefined, 

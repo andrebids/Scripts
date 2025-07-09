@@ -44,3 +44,44 @@ function processarAlfabeto(alfabeto, corBioprintSelecionada, tamanhoSelecionado)
         palavraDigitada: palavraDigitada
     };
 } 
+
+// Função para adicionar palavra-chave do alfabeto
+function adicionarPalavraChaveAlfabeto(campoPalavraChave, dropdownCorBioprint, tamanhoAlfabeto, grupoDimensoes, itensLegenda, atualizarListaItens, campoNomeTipo, t) {
+    var tamanhoSelecionado = tamanhoAlfabeto.selection.text;
+    var valorNumerico = tamanhoSelecionado.replace(/[^\d,]/g, '').replace(',', '.');
+    var i;
+    for (i = 0; i < grupoDimensoes.children.length; i++) {
+        var campo = grupoDimensoes.children[i];
+        if (campo.type === "statictext" && campo.text === "H:") {
+            var campoH = grupoDimensoes.children[i + 1];
+            if (campoH && campoH.type === "edittext") {
+                campoH.text = valorNumerico;
+                break;
+            }
+        }
+    }
+    var resultado = processarAlfabeto(
+        campoPalavraChave.text,
+        dropdownCorBioprint.selection ? dropdownCorBioprint.selection.text : "",
+        tamanhoSelecionado
+    );
+    if (resultado.referenciasTexto.length > 0) {
+        itensLegenda.push({
+            tipo: "alfabeto",
+            nome: "Referências do Alfabeto",
+            texto: resultado.referenciasTexto.join("\n"),
+            referencia: "",
+            quantidade: 1,
+            unidade: "",
+            tamanhoAlfabeto: tamanhoSelecionado,
+            bioprint: "bioprint",
+            corBioprint: dropdownCorBioprint.selection ? dropdownCorBioprint.selection.text : "",
+            palavraDigitada: resultado.palavraDigitada
+        });
+        atualizarListaItens();
+        campoPalavraChave.text = "";
+        campoNomeTipo.text = resultado.palavraDigitada;
+    } else {
+        alert(t("nenhumaLetraValida"));
+    }
+} 

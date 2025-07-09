@@ -852,52 +852,16 @@ checkboxMostrarAlfabeto.onClick = function() {
 
         // Substituir a função processarAlfabeto() existente por:
         botaoAdicionarPalavraChave.onClick = function() {
-            // Extrair o valor numérico do tamanho selecionado
-            var tamanhoSelecionado = tamanhoAlfabeto.selection.text;
-            var valorNumerico = tamanhoSelecionado.replace(/[^\d,]/g, '').replace(',', '.');
-            
-            // Procurar o campo H nos campos dimensões
-            for (var i = 0; i < grupoDimensoes.children.length; i++) {
-                var campo = grupoDimensoes.children[i];
-                if (campo.type === "statictext" && campo.text === "H:") {
-                    // O campo de input é o próximo elemento após o texto "H:"
-                    var campoH = grupoDimensoes.children[i + 1];
-                    if (campoH && campoH.type === "edittext") {
-                        campoH.text = valorNumerico;
-                        break;
-                    }
-                }
-            }
-            
-            // Usar a função processarAlfabeto do novo arquivo
-            var resultado = processarAlfabeto(
-                campoPalavraChave.text,
-                dropdownCorBioprint.selection ? dropdownCorBioprint.selection.text : "",
-                tamanhoSelecionado
+            adicionarPalavraChaveAlfabeto(
+                campoPalavraChave,
+                dropdownCorBioprint,
+                tamanhoAlfabeto,
+                grupoDimensoes,
+                itensLegenda,
+                atualizarListaItens,
+                campoNomeTipo,
+                t
             );
-            
-            if (resultado.referenciasTexto.length > 0) {
-                itensLegenda.push({
-                    tipo: "alfabeto",
-                    nome: "Referências do Alfabeto",
-                    texto: resultado.referenciasTexto.join("\n"),
-                    referencia: "",
-                    quantidade: 1,
-                    unidade: "",
-                    tamanhoAlfabeto: tamanhoSelecionado,
-                    bioprint: "bioprint",
-                    corBioprint: dropdownCorBioprint.selection ? dropdownCorBioprint.selection.text : "",
-                    palavraDigitada: resultado.palavraDigitada
-                });
-                
-                atualizarListaItens();
-                campoPalavraChave.text = "";
-                
-                // Atualizar o campo nome/tipo apenas com a palavra digitada
-                campoNomeTipo.text = resultado.palavraDigitada;
-            } else {
-                alert(t("nenhumaLetraValida"));
-            }
         };
 
         janela.layout.layout(true); // Forçar atualização do layout

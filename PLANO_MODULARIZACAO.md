@@ -14,6 +14,24 @@
 
 ---
 
+## 2.1A NOVA ESTRATÉGIA DE MODULARIZAÇÃO (a partir da etapa 5.2.2.5)
+
+**Para evitar que funcoes.jsx fique muito grande e difícil de manter, a partir de agora as funções devem ser migradas para arquivos temáticos, conforme o domínio de cada grupo de funções:**
+
+- **funcoesComponentes.jsx**: Funções relacionadas a componentes (ex: criarTextoComponente, atualizarCores, atualizarUnidades, etc.)
+- **funcoesBolas.jsx**: Funções específicas para bolas (ex: atualizarAcabamentos, atualizarTamanhos, atualizarTextoBola, etc.)
+- **funcoesLegenda.jsx**: Funções de processamento e geração de legenda.
+- **funcoesUtilitarias.jsx**: Funções genéricas e utilitárias (arrays, strings, validações, etc.)
+- **funcoesUI.jsx**: Funções auxiliares para interface, se necessário.
+
+**Orientações:**
+- Cada arquivo deve exportar suas funções no escopo global (ex: $.global.funcoesComponentes = {...})
+- No início do script principal, importar todos os arquivos necessários com $.evalFile(...)
+- As próximas funções a serem migradas (e as futuras) devem ser organizadas nesses arquivos separados, não mais centralizando tudo em funcoes.jsx.
+- Atualizar este plano conforme novos domínios de funções surgirem.
+
+---
+
 ## 3. Modularização de Manipulação de Dados ✅ CONCLUÍDA
 - **3.1** ✅ Identificar funções de leitura/escrita de arquivos (`lerArquivoJSON`, `escreverArquivoJSON`, `arquivoExiste`).
 - **3.2** ✅ Mover para `database.jsx`.
@@ -56,17 +74,17 @@
 - [x] 5.2.2.2 Mover função criarLinhaReferencia para funcoes.jsx
 - [x] 5.2.2.3 Mover função selecionarUnidadeMetrica para funcoes.jsx
 - [x] 5.2.2.4 Mover função atualizarCores para funcoes.jsx
-- [ ] 5.2.2.5 Mover função atualizarUnidades para funcoes.jsx
-- [ ] 5.2.2.6 Mover função verificarCMYK para funcoes.jsx
-- [ ] 5.2.2.7 Mover função salvarSelecaoAtual para funcoes.jsx
-- [ ] 5.2.2.8 Mover função restaurarUltimaSelecao para funcoes.jsx
-- [ ] 5.2.2.9 Mover lógica do evento botaoAdicionarComponente.onClick para uma função adicionarComponente em funcoes.jsx
+- [ ] 5.2.2.5 Mover função atualizarUnidades para funcoesComponentes.jsx
+- [ ] 5.2.2.6 Mover função verificarCMYK para funcoesComponentes.jsx
+- [ ] 5.2.2.7 Mover função salvarSelecaoAtual para funcoesComponentes.jsx
+- [ ] 5.2.2.8 Mover função restaurarUltimaSelecao para funcoesComponentes.jsx
+- [ ] 5.2.2.9 Mover lógica do evento botaoAdicionarComponente.onClick para uma função adicionarComponente em funcoesComponentes.jsx
 
 #### 5.2.3 Modularização de Bolas
-- [ ] 5.2.3.1 Mover função atualizarAcabamentos para funcoes.jsx
-- [ ] 5.2.3.2 Mover função atualizarTamanhos para funcoes.jsx
-- [ ] 5.2.3.3 Mover função atualizarTextoBola para funcoes.jsx
-- [ ] 5.2.3.4 Mover lógica do evento botaoAdicionarBola.onClick para uma função adicionarBola em funcoes.jsx
+- [ ] 5.2.3.1 Mover função atualizarAcabamentos para funcoesBolas.jsx
+- [ ] 5.2.3.2 Mover função atualizarTamanhos para funcoesBolas.jsx
+- [ ] 5.2.3.3 Mover função atualizarTextoBola para funcoesBolas.jsx
+- [ ] 5.2.3.4 Mover lógica do evento botaoAdicionarBola.onClick para uma função adicionarBola em funcoesBolas.jsx
 
 #### 5.2.4 Testes manuais incrementais
 - [ ] Após cada função movida, atualizar o import/chamada e testar manualmente a funcionalidade correspondente antes de seguir para a próxima.
@@ -128,3 +146,12 @@
 ---
 
 **Este arquivo deve ser atualizado conforme o progresso da modularização.** 
+
+---
+
+> **Observação:**
+> As funções migradas antes da etapa 5.2.2.5 permanecem em `funcoes.jsx`.
+> A partir da etapa 5.2.2.5, novas funções devem ser organizadas em arquivos temáticos (ex: funcoesComponentes.jsx, funcoesBolas.jsx, etc.).
+> Uma refatoração futura pode ser feita para redistribuir as funções antigas, se necessário.
+
+--- 

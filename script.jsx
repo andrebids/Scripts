@@ -9,6 +9,8 @@ $.evalFile(File($.fileName).path + "/database.jsx");
 $.evalFile(File($.fileName).path + "/ui.jsx");
 $.evalFile(File($.fileName).path + "/translations.js");
 $.evalFile(File($.fileName).path + "/update.jsx");
+$.evalFile(File($.fileName).path + "/funcoesComponentes.jsx");
+$.evalFile(File($.fileName).path + "/funcoesBolas.jsx");    
 
 // Adicionar no início do arquivo, após os outros $.evalFile
 $.evalFile(File($.fileName).path + "/alfabeto.jsx");
@@ -1522,56 +1524,21 @@ function criarLinhaReferencia(item) {
         }
     }
 
-    function atualizarUnidades() {
-        if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0) {
-            return;
-        }
-    
-        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
-        var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
-        var unidadesDisponiveis = ["Selecione uma unidade"];
-    
-        for (var i = 0; i < dados.combinacoes.length; i++) {
-            if (dados.combinacoes[i].componenteId === componenteSelecionado.id && dados.combinacoes[i].corId === corSelecionada.id) {
-                if (!arrayContains(unidadesDisponiveis, dados.combinacoes[i].unidade)) {
-                    unidadesDisponiveis.push(dados.combinacoes[i].unidade);
-                }
-            }
-        }
-    
-        var selecaoAtual = listaUnidades.selection ? listaUnidades.selection.text : null;
-        listaUnidades.removeAll();
-        for (var i = 0; i < unidadesDisponiveis.length; i++) {
-            listaUnidades.add("item", unidadesDisponiveis[i]);
-        }
-    
-    // Selecionar unidade métrica automaticamente
-    var unidadeParaSelecionar = selecionarUnidadeMetrica(unidadesDisponiveis);
-    if (unidadeParaSelecionar) {
-        for (var i = 0; i < listaUnidades.items.length; i++) {
-            if (listaUnidades.items[i].text === unidadeParaSelecionar) {
-                listaUnidades.selection = i;
-                break;
-            }
-        }
-    } else if (unidadesDisponiveis.length === 2) {
-        listaUnidades.selection = 1; // Seleciona automaticamente se houver apenas uma opção
-    } else {
-        listaUnidades.selection = 0;
-    }
-}
-    
+   
     // Atualizar os event listeners
     listaComponentes.onChange = function() {
         funcoes.atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, atualizarUnidades, verificarCMYK);
     };
     
     listaCores.onChange = function() {
-        atualizarUnidades();
+        funcoesComponentes.atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, funcoes.selecionarUnidadeMetrica, funcoes.arrayContains);
         verificarCMYK();
     };
     
-    listaCores.onChange = atualizarUnidades;
+    listaCores.onChange = function() {
+        funcoesComponentes.atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, funcoes.selecionarUnidadeMetrica, funcoes.arrayContains);
+        verificarCMYK();
+    };
     listaUnidades.onChange = verificarCMYK;
 
     // Função para arredondar para a próxima décima
@@ -1600,7 +1567,7 @@ function salvarSelecaoAtual() {
 // Função para restaurar a última seleção
 function restaurarUltimaSelecao() {
     try {
-        if (ultimaSelecao.componente && listaComponentes) {
+        if (ultimaSelecao.componente && listaComponentes && listaComponentes.items && listaComponentes.items.length) {
             for (var i = 0; i < listaComponentes.items.length; i++) {
                 if (listaComponentes.items[i].text === ultimaSelecao.componente) {
                     listaComponentes.selection = i;
@@ -1610,9 +1577,15 @@ function restaurarUltimaSelecao() {
         }
 
         // Atualizar cores baseado no componente
-        funcoes.atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, atualizarUnidades, verificarCMYK);
+        if (typeof funcoes.atualizarCores === 'function') {
+            funcoes.atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, function() {
+                if (funcoesComponentes && funcoesComponentes.atualizarUnidades) {
+                    funcoesComponentes.atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, funcoes.selecionarUnidadeMetrica, funcoes.arrayContains);
+                }
+            }, verificarCMYK);
+        }
 
-        if (ultimaSelecao.cor && listaCores) {
+        if (ultimaSelecao.cor && listaCores && listaCores.items && listaCores.items.length) {
             for (var i = 0; i < listaCores.items.length; i++) {
                 if (listaCores.items[i].text === ultimaSelecao.cor) {
                     listaCores.selection = i;
@@ -1622,9 +1595,11 @@ function restaurarUltimaSelecao() {
         }
 
         // Atualizar unidades baseado na cor
-        atualizarUnidades();
+        if (funcoesComponentes && funcoesComponentes.atualizarUnidades) {
+            funcoesComponentes.atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, funcoes.selecionarUnidadeMetrica, funcoes.arrayContains);
+        }
 
-        if (ultimaSelecao.unidade && listaUnidades) {
+        if (ultimaSelecao.unidade && listaUnidades && listaUnidades.items && listaUnidades.items.length) {
             for (var i = 0; i < listaUnidades.items.length; i++) {
                 if (listaUnidades.items[i].text === ultimaSelecao.unidade) {
                     listaUnidades.selection = i;
@@ -1634,10 +1609,10 @@ function restaurarUltimaSelecao() {
         }
 
         // Deixar o campo quantidade vazio
-        if (campoQuantidade) {
+        if (typeof campoQuantidade !== 'undefined' && campoQuantidade) {
             campoQuantidade.text = "";
         }
-        if (campoMultiplicador) {
+        if (typeof campoMultiplicador !== 'undefined' && campoMultiplicador) {
             campoMultiplicador.text = ultimaSelecao.multiplicador;
         }
     } catch (e) {

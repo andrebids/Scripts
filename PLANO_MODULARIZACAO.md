@@ -64,6 +64,61 @@
     - [x] Modularização da função gerarNomeArquivoAlfabeto concluída e testada
 - [ ] **5.1.5** Revisar dependências e testar o fluxo completo do alfabeto
 
+### 5.1A Sistema de Logs e Debug
+
+#### 5.1A.1 Criação do Sistema de Logs
+- [ ] **5.1A.1.1** Criar arquivo `logs.jsx` com funções de logging
+    - [ ] Função `adicionarLog(mensagem, tipo)` para registrar eventos
+    - [ ] Função `limparLogs()` para limpar o histórico
+    - [ ] Função `exportarLogs()` para salvar logs em arquivo
+    - [ ] Variável global para armazenar logs em memória
+    - [ ] Tipos de log: 'info', 'warning', 'error', 'click', 'function'
+- [ ] **5.1A.1.2** Criar função `logEvento(tipo, detalhes)` para registrar cliques e eventos
+- [ ] **5.1A.1.3** Criar função `logFuncao(nomeFuncao, parametros, resultado)` para registrar execução de funções
+- [ ] **5.1A.1.4** Testar manualmente: verificar se as funções de log funcionam corretamente
+
+#### 5.1A.2 Interface de Logs
+- [ ] **5.1A.2.1** Adicionar nova aba "Logs" no grupo Extra (ui.jsx)
+    - [ ] Modificar função `criarInterfaceExtra()` para incluir nova aba
+    - [ ] Criar área de texto multilinha para exibir logs
+    - [ ] Adicionar botões: "Limpar Logs", "Exportar Logs", "Atualizar"
+    - [ ] Adicionar checkbox "Auto-scroll" para rolagem automática
+- [ ] **5.1A.2.2** Implementar funcionalidade dos botões da aba Logs
+    - [ ] Botão "Limpar Logs" chama `limparLogs()` e atualiza interface
+    - [ ] Botão "Exportar Logs" chama `exportarLogs()` e salva arquivo
+    - [ ] Botão "Atualizar" atualiza a exibição dos logs
+    - [ ] Checkbox "Auto-scroll" controla rolagem automática
+- [ ] **5.1A.2.3** Testar manualmente: abrir aba Logs, verificar se interface é criada corretamente
+
+#### 5.1A.3 Integração do Sistema de Logs
+- [ ] **5.1A.3.1** Adicionar logs em eventos de clique principais
+    - [ ] Logs em botões de adicionar componente/bola
+    - [ ] Logs em mudanças de dropdown (componente, cor, acabamento, etc.)
+    - [ ] Logs em botão de gerar legenda
+    - [ ] Logs em botão de contar bolas
+- [ ] **5.1A.3.2** Adicionar logs em funções críticas
+    - [ ] Logs no início e fim de funções principais
+    - [ ] Logs em caso de erro (try/catch)
+    - [ ] Logs em operações de BridgeTalk
+    - [ ] Logs em operações de arquivo (leitura/escrita)
+- [ ] **5.1A.3.3** Testar manualmente: executar ações e verificar se logs aparecem na aba
+
+#### 5.1A.4 Configuração e Persistência
+- [ ] **5.1A.4.1** Adicionar configurações de log no arquivo de configuração
+    - [ ] Opção para habilitar/desabilitar logs
+    - [ ] Opção para nível de detalhamento (básico, detalhado, debug)
+    - [ ] Opção para auto-limpeza de logs antigos
+- [ ] **5.1A.4.2** Implementar persistência de logs
+    - [ ] Salvar logs em arquivo temporário
+    - [ ] Carregar logs ao abrir o script
+    - [ ] Limitar tamanho do arquivo de logs
+- [ ] **5.1A.4.3** Testar manualmente: verificar se configurações são salvas e logs persistem entre sessões
+
+#### 5.1A.5 Testes Manuais Incrementais
+- [ ] **5.1A.5.1** Após cada etapa, testar manualmente a funcionalidade correspondente
+- [ ] **5.1A.5.2** Verificar se logs ajudam a identificar problemas durante desenvolvimento
+- [ ] **5.1A.5.3** Testar performance: verificar se logs não impactam significativamente a velocidade do script
+
 ### 5.2 Modularização de Componentes/Bolas (funcoes.jsx ou novo arquivo)
 
 #### 5.2.1 Listar funções de processamento de componentes e bolas
@@ -134,6 +189,20 @@
 - [ ] Adicionar/remover itens da lista funciona
 - [ ] Troca de idioma funciona
 - [ ] Atualização via botão Update funciona
+
+## Checklist de Testes - Sistema de Logs
+
+- [ ] Aba "Logs" aparece no grupo Extra
+- [ ] Logs são registrados ao clicar em botões
+- [ ] Logs são registrados ao mudar dropdowns
+- [ ] Logs são registrados ao executar funções principais
+- [ ] Botão "Limpar Logs" funciona corretamente
+- [ ] Botão "Exportar Logs" salva arquivo
+- [ ] Botão "Atualizar" atualiza exibição
+- [ ] Checkbox "Auto-scroll" controla rolagem automática
+- [ ] Configurações de log são salvas
+- [ ] Logs persistem entre sessões
+- [ ] Performance não é impactada significativamente
 
 ---
 

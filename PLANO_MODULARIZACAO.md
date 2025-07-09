@@ -43,18 +43,33 @@
     - [x] Testar manualmente: funcionalidade específica dessa função
 - [x] **5.1.4** Repetir o processo para cada função do alfabeto, uma de cada vez
     - [x] Atualizar imports e testar manualmente após cada mudança
+    - [x] Modularização da função gerarNomeArquivoAlfabeto concluída e testada
 - [ ] **5.1.5** Revisar dependências e testar o fluxo completo do alfabeto
 
 ### 5.2 Modularização de Componentes/Bolas (funcoes.jsx ou novo arquivo)
 
-- [ ] **5.2.1** Listar funções de processamento de componentes e bolas (ex: processarComponente, adicionarComponente, processarBola, adicionarBola, etc.)
-- [ ] **5.2.2** Mover uma função de componente por vez para `funcoes.jsx` (ou `componentes.jsx` se preferir separar)
-    - [ ] Atualizar o import
-    - [ ] Testar manualmente: adicionar componente, verificar preview
-- [ ] **5.2.3** Mover uma função de bola por vez para `funcoes.jsx` (ou `bolas.jsx` se preferir separar)
-    - [ ] Atualizar o import
-    - [ ] Testar manualmente: adicionar bola, verificar preview
-- [ ] **5.2.4** Repetir para cada função, sempre testando após cada mudança
+#### 5.2.1 Listar funções de processamento de componentes e bolas
+- [x] Listar funções de componentes e bolas a modularizar
+
+#### 5.2.2 Modularização de Componentes
+- [ ] 5.2.2.1 Mover função criarTextoComponente para funcoes.jsx
+- [ ] 5.2.2.2 Mover função criarLinhaReferencia para funcoes.jsx
+- [ ] 5.2.2.3 Mover função selecionarUnidadeMetrica para funcoes.jsx
+- [ ] 5.2.2.4 Mover função atualizarCores para funcoes.jsx
+- [ ] 5.2.2.5 Mover função atualizarUnidades para funcoes.jsx
+- [ ] 5.2.2.6 Mover função verificarCMYK para funcoes.jsx
+- [ ] 5.2.2.7 Mover função salvarSelecaoAtual para funcoes.jsx
+- [ ] 5.2.2.8 Mover função restaurarUltimaSelecao para funcoes.jsx
+- [ ] 5.2.2.9 Mover lógica do evento botaoAdicionarComponente.onClick para uma função adicionarComponente em funcoes.jsx
+
+#### 5.2.3 Modularização de Bolas
+- [ ] 5.2.3.1 Mover função atualizarAcabamentos para funcoes.jsx
+- [ ] 5.2.3.2 Mover função atualizarTamanhos para funcoes.jsx
+- [ ] 5.2.3.3 Mover função atualizarTextoBola para funcoes.jsx
+- [ ] 5.2.3.4 Mover lógica do evento botaoAdicionarBola.onClick para uma função adicionarBola em funcoes.jsx
+
+#### 5.2.4 Testes manuais incrementais
+- [ ] Após cada função movida, atualizar o import/chamada e testar manualmente a funcionalidade correspondente antes de seguir para a próxima.
 
 ### 5.3 Atualização de Imports
 

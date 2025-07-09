@@ -236,7 +236,8 @@ $.global.funcoes = {
     lerVersao: lerVersao,
     apenasNumerosEVirgula: apenasNumerosEVirgula,
     formatarDimensao: formatarDimensao,
-    escapeString: escapeString
+    escapeString: escapeString,
+    criarTextoComponente: criarTextoComponente
 };
 
 // Adicione estas funções no arquivo funcoes.jsx
@@ -375,7 +376,7 @@ function contarBolasNaArtboard() {
     }
 }
 
-// Função para criar o texto do componente para a legenda
+// Função para criar o texto do componente (migrada de script.jsx)
 function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicador) {
     var texto = nome;
     if (referencia) {

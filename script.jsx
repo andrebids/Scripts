@@ -1816,12 +1816,12 @@ function restaurarUltimaSelecao() {
             if (itemExistente) {
                 itemExistente.quantidade = quantidade;
                 itemExistente.multiplicador = multiplicador;
-                itemExistente.texto = criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidade, multiplicador);
+                itemExistente.texto = funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidade, multiplicador);
             } else {
                 itensLegenda.push({
                     tipo: "componente",
                     nome: nomeComponente,
-                    texto: criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidade, multiplicador),
+                    texto: funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidade, multiplicador),
                     referencia: combinacaoSelecionada.referencia,
                     quantidade: quantidade,
                     multiplicador: multiplicador,

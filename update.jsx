@@ -1,11 +1,7 @@
 // update.jsx
 // Função para executar o update do projeto Legenda
 
-function executarUpdate(t, modoTeste) {
-    if (modoTeste) {
-        alert("[TESTE] A função executarUpdate foi chamada com sucesso! Nenhum comando real foi executado.");
-        return;
-    }
+function executarUpdate(t) {
     try {
         var currentDir = File($.fileName).parent.fsName;
         // Verificar se o Git está instalado

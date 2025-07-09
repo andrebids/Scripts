@@ -8,6 +8,7 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
 $.evalFile(File($.fileName).path + "/database.jsx");
 $.evalFile(File($.fileName).path + "/ui.jsx");
 $.evalFile(File($.fileName).path + "/translations.js");
+$.evalFile(File($.fileName).path + "/update.jsx");
 
 // Adicionar no início do arquivo, após os outros $.evalFile
 $.evalFile(File($.fileName).path + "/alfabeto.jsx");
@@ -155,18 +156,11 @@ var botaoUpdate = grupoUpdate.add("button", undefined, t("botaoUpdate"));
 botaoUpdate.alignment = ["right", "center"];
 botaoUpdate.size = [60, 25];
 
-// Botão Testar Update
-var botaoTestarUpdate = grupoUpdate.add("button", undefined, "Testar Update");
-botaoTestarUpdate.alignment = ["right", "center"];
-botaoTestarUpdate.size = [100, 25];
-
 // Adicionar a funcionalidade do Update
 botaoUpdate.onClick = function() {
     executarUpdate(t);
 };
-botaoTestarUpdate.onClick = function() {
-    executarUpdate(t, true);
-};
+
 // Criar abas para Legenda e Contador de Bolas
 var abas = janela.add("tabbedpanel");
 abas.alignChildren = ["fill", "fill"];

@@ -155,77 +155,17 @@ var botaoUpdate = grupoUpdate.add("button", undefined, t("botaoUpdate"));
 botaoUpdate.alignment = ["right", "center"];
 botaoUpdate.size = [60, 25];
 
+// Botão Testar Update
+var botaoTestarUpdate = grupoUpdate.add("button", undefined, "Testar Update");
+botaoTestarUpdate.alignment = ["right", "center"];
+botaoTestarUpdate.size = [100, 25];
+
 // Adicionar a funcionalidade do Update
 botaoUpdate.onClick = function() {
-    try {
-        var currentDir = File($.fileName).parent.fsName;
-        
-        // Verificar se o Git está instalado
-        var checkGitFile = new File(currentDir + "/check_git.bat");
-        if (checkGitFile.open('w')) {
-            checkGitFile.write("@echo off\n");
-            checkGitFile.write("git --version > git_check.txt 2>&1\n");
-            checkGitFile.write("exit\n");
-            checkGitFile.close();
-            
-            checkGitFile.execute();
-            $.sleep(1000);
-            
-            var gitCheckFile = new File(currentDir + "/git_check.txt");
-            if (gitCheckFile.exists) {
-                gitCheckFile.open('r');
-                var gitCheck = gitCheckFile.read();
-                gitCheckFile.close();
-                gitCheckFile.remove();
-                checkGitFile.remove();
-                
-                if (gitCheck.indexOf("git version") === -1) {
-                    alert(t("gitNaoInstalado"));
-                    return;
-                }
-            }
-        }
-        
-        // Criar arquivo .bat para Windows
-        var scriptFile = new File(currentDir + "/update_script.bat");
-        
-        if (scriptFile.open('w')) {
-            scriptFile.write("@echo off\n");
-            scriptFile.write("cd /d \"" + currentDir + "\"\n");
-            
-            // Limpar arquivos de log antigos
-            scriptFile.write("del /f /q temp_log.txt update_log.txt 2>nul\n");
-            
-            // Configurar e forçar atualização de todos os arquivos
-            scriptFile.write("git config --global --add safe.directory \"%CD%\" > update_log.txt\n");
-            scriptFile.write("git fetch origin main >> update_log.txt\n");
-            scriptFile.write("git checkout -f origin/main >> update_log.txt 2>&1\n");  // Força o checkout de todos os arquivos
-            scriptFile.write("git clean -fd >> update_log.txt\n");  // Remove arquivos não rastreados
-            scriptFile.write("exit\n");
-            scriptFile.close();
-        }
-
-        if (scriptFile.exists) {
-            if (scriptFile.execute()) {
-                $.sleep(2000);
-                
-                var logFile = new File(currentDir + "/update_log.txt");
-                if (logFile.exists) {
-                    logFile.open('r');
-                    var logContent = logFile.read();
-                    logFile.close();
-                    
-                    // Sempre mostra mensagem de sucesso pois os arquivos foram recarregados
-                    alert(t("atualizacaoSucesso"));
-                    
-                    // Limpar arquivo temporário
-                    scriptFile.remove();
-                }
-            }
-        }
-    } catch (e) {
-        alert(t("erroAtualizacao") + ": " + e);
-    }
+    executarUpdate(t);
+};
+botaoTestarUpdate.onClick = function() {
+    executarUpdate(t, true);
 };
 // Criar abas para Legenda e Contador de Bolas
 var abas = janela.add("tabbedpanel");

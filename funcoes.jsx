@@ -374,3 +374,25 @@ function contarBolasNaArtboard() {
         return "contagem:0|combinacoes:Erro: " + (e.message || "Erro desconhecido");
     }
 }
+
+// Função para criar o texto do componente para a legenda
+function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicador) {
+    var texto = nome;
+    if (referencia) {
+        texto += " (Ref: " + referencia + ")";
+    }
+    texto += " (" + funcoes.formatarUnidade(unidade) + ")";
+    
+    quantidade = funcoes.arredondarComponente(quantidade, unidade, nome);
+    
+    var quantidadeFormatada = quantidade.toFixed(2).replace('.', ',');
+    if (multiplicador > 1) {
+        texto += " " + quantidadeFormatada + "x" + multiplicador + ": ";
+        var quantidadeTotal = quantidade * multiplicador;
+        texto += quantidadeTotal.toFixed(2).replace('.', ',');
+    } else {
+        texto += ": " + quantidadeFormatada;
+    }
+    
+    return texto;
+}

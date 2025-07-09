@@ -134,7 +134,82 @@ function encontrarIndicePorNome(array, nome) {
     return -1;
 }
 
+// Função para remover duplicatas de um array
+function removerDuplicatas(array) {
+    var resultado = [];
+    var jaVisto = {};
+    for (var i = 0; i < array.length; i++) {
+        var item = array[i];
+        if (!jaVisto[item]) {
+            resultado.push(item);
+            jaVisto[item] = true;
+        }
+    }
+    return resultado;
+}
 
+// Função para formatar unidades
+function formatarUnidade(unidade) {
+    if (unidade === "m2") {
+        return "m²";
+    }
+    return unidade;
+}
+
+// Função para arredondar para décima
+function arredondarParaDecima(valor) {
+    return Math.ceil(valor * 10) / 10;
+}
+
+// Função para arredondar componente baseado no tipo
+function arredondarComponente(valor, unidade, nome) {
+    var nomeLowerCase = nome.toLowerCase();
+    if (nomeLowerCase.indexOf("fil lumière") !== -1 || 
+        nomeLowerCase.indexOf("fil lumiére") !== -1 || 
+        nomeLowerCase.indexOf("fil comète") !== -1 || 
+        nomeLowerCase.indexOf("fil cométe") !== -1) {
+        // Arredondar para o próximo metro inteiro
+        return Math.ceil(valor);
+    } else if (unidade === "ml" || unidade === "m2") {
+        // Arredondar para o próximo 0,05
+        return Math.ceil(valor * 20) / 20;
+    }
+    // Para outras unidades, retornar o valor original
+    return valor;
+}
+
+// Função auxiliar para extrair informações do componente
+function extrairInfoComponente(texto) {
+    var info = {
+        componente: '',
+        cor: '',
+        unidade: ''
+    };
+    
+    // Extrair componente base (ex: flexiprint)
+    var pos = texto.indexOf(' ');
+    info.componente = pos === -1 ? texto : texto.substring(0, pos).toLowerCase();
+    
+    // Extrair cor (ex: or PANTONE 131C, blanc RAL 9010)
+    var matches = texto.match(/(or|blanc|noir|rouge|bleu|vert|jaune|PANTONE|RAL)\s+[^\(]+/i);
+    info.cor = matches ? matches[0].toLowerCase() : '';
+    
+    // Extrair unidade (m², ml, units)
+    matches = texto.match(/\((m2|ml|units)\)/i);
+    info.unidade = matches ? matches[1].toLowerCase() : '';
+    
+    return info;
+}
+
+// Função para encontrar índice no array
+function encontrarIndice(array, valor) {
+    for (var i = 0; i < array.length; i++) {
+        if (array[i] === valor) {
+            return i;
+        }
+    }
+    return -1;
+}
 
 // Função para ler a versão do arquivo version.json
 function lerVersao() {
@@ -188,116 +263,53 @@ $.global.funcoes = {
     encontrarPorId: encontrarPorId,
     arrayContains: arrayContains,
     encontrarIndicePorNome: encontrarIndicePorNome,
+    removerDuplicatas: removerDuplicatas,
+    formatarUnidade: formatarUnidade,
+    arredondarParaDecima: arredondarParaDecima,
+    arredondarComponente: arredondarComponente,
+    extrairInfoComponente: extrairInfoComponente,
+    encontrarIndice: encontrarIndice,
     lerVersao: lerVersao,
-  
+    apenasNumerosEVirgula: apenasNumerosEVirgula,
+    formatarDimensao: formatarDimensao,
+    escapeString: escapeString
 };
-
 
 // Adicione estas funções no arquivo funcoes.jsx
 function testeRequisicao() {
     var url = "https://raw.githubusercontent.com/andrebids/Scripts/main/version.json";
     var request = new XMLHttpRequest();
     
-    alert("Iniciando teste de requisição para: " + url);
-    
     try {
         request.open("GET", url, false);
-        request.setRequestHeader("User-Agent", "ScriptUpdateAgent");
-        
-        alert("Enviando requisição de teste...");
         request.send();
         
-        alert("Requisição de teste enviada. Status: " + request.status + "\nResposta: " + request.responseText);
-        
         if (request.status === 200) {
-            var conteudo = JSON.parse(request.responseText);
-            alert("Versão obtida: " + conteudo.version + "\nURL de download: " + conteudo.downloadUrl);
+            var response = parseJSON(request.responseText);
+            return response.version;
         } else {
-            alert("Erro na requisição. Status: " + request.status);
+            return null;
         }
     } catch (e) {
-        alert("Erro no teste de requisição: " + e.message + "\nTipo de erro: " + e.name);
+        return null;
     }
 }
 
-$.global.funcoes.testeRequisicao = testeRequisicao;
-    // Função para limpar recursos (pode ser chamada no final do script)
-    function limparRecursos() {
-        if (janela && janela.toString() !== "[object Window]") {
-            janela.close();
-            janela = null;
-        }
+// Função para limpar recursos
+function limparRecursos() {
+    // Limpar variáveis globais se necessário
+    if (typeof itensLegenda !== 'undefined') {
+        itensLegenda = [];
     }
+}
 
-    function criarInterfaceExtra(janela) {
-        var painelExtra = janela.add("panel", undefined, t("extra"));
-        painelExtra.alignChildren = ["fill", "top"];
-        
-        // Criar TabbedPanel principal
-        var tabsExtra = painelExtra.add("tabbedpanel");
-        tabsExtra.alignChildren = ["fill", "fill"];
-        
-        // Tab Geral
-        var tabGeral = tabsExtra.add("tab", undefined, t("geral"));
-        tabGeral.alignChildren = ["fill", "top"];
-        
-        // Conteúdo da tab Geral
-        var checkObservacoes = tabGeral.add("checkbox", undefined, t("observacoes"));
-        var grupoObservacoes = tabGeral.add("group");
-        grupoObservacoes.orientation = "column";
-        grupoObservacoes.alignChildren = ["fill", "top"];
-        // Adicionar conteúdo das observações aqui
-        
-        // Tab Criar
-        var tabCriar = tabsExtra.add("tab", undefined, t("criar"));
-        tabCriar.alignChildren = ["fill", "top"];
-        // Conteúdo da tab Criar aqui
-        
-        // Tab Contador
-        var tabContador = tabsExtra.add("tab", undefined, t("contador"));
-        tabContador.alignChildren = ["fill", "top"];
-        var checkContador = tabContador.add("checkbox", undefined, t("mostrarContador"));
-        var grupoContador = tabContador.add("group");
-        grupoContador.orientation = "column";
-        grupoContador.alignChildren = ["fill", "top"];
-        // Adicionar conteúdo do contador aqui
-        
-        // Tab Texturas
-        var tabTexturas = tabsExtra.add("tab", undefined, t("texturas"));
-        tabTexturas.alignChildren = ["fill", "top"];
-        var checkTexturas = tabTexturas.add("checkbox", undefined, t("texturas"));
-        var grupoTexturas = tabTexturas.add("group");
-        grupoTexturas.orientation = "column";
-        grupoTexturas.alignChildren = ["fill", "top"];
-        // Adicionar conteúdo das texturas aqui
-        
-        // Eventos dos checkboxes
-        checkObservacoes.onClick = function() {
-            grupoObservacoes.visible = this.value;
-        };
-        
-        checkContador.onClick = function() {
-            grupoContador.visible = this.value;
-        };
-        
-        checkTexturas.onClick = function() {
-            grupoTexturas.visible = this.value;
-        };
-        
-        // Configuração inicial
-        grupoObservacoes.visible = false;
-        grupoContador.visible = false;
-        grupoTexturas.visible = false;
-        
-        tabsExtra.selection = 0;
-        
-        return {
-            painelExtra: painelExtra,
-            checkObservacoes: checkObservacoes,
-            checkContador: checkContador,
-            checkTexturas: checkTexturas,
-            grupoObservacoes: grupoObservacoes,
-            grupoContador: grupoContador,
-            grupoTexturas: grupoTexturas
-        };
-    }
+// Função para criar interface extra
+function criarInterfaceExtra(janela) {
+    // Implementação da interface extra
+    var grupoExtra = janela.add("panel", undefined, "Extra");
+    grupoExtra.orientation = "column";
+    grupoExtra.alignChildren = ["fill", "top"];
+    grupoExtra.spacing = 5;
+    
+    return grupoExtra;
+}

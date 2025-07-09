@@ -6,11 +6,11 @@
 
 ---
 
-## 2. Modularização de Funções Utilitárias
-- **2.1** Identificar funções utilitárias (ex: `removerDuplicatas`, `apenasNumerosEVirgula`, `arrayContains`, etc.).
-- **2.2** Mover essas funções para `funcoes.jsx`.
-- **2.3** Atualizar os imports no `script.jsx`.
-- **2.4** Testar manualmente: abrir o script, usar campos que dependem dessas funções (ex: adicionar componentes, bolas, etc.).
+## 2. Modularização de Funções Utilitárias ✅ CONCLUÍDA
+- **2.1** ✅ Identificar funções utilitárias (ex: `removerDuplicatas`, `apenasNumerosEVirgula`, `arrayContains`, etc.).
+- **2.2** ✅ Mover essas funções para `funcoes.jsx`.
+- **2.3** ✅ Atualizar os imports no `script.jsx`.
+- **2.4** ⏳ Testar manualmente: abrir o script, usar campos que dependem dessas funções (ex: adicionar componentes, bolas, etc.).
 
 ---
 

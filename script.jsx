@@ -446,7 +446,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.9.2");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.9.3");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -672,15 +672,7 @@ checkStructure.onClick = function() {
     corStructure.visible = this.value;
 };
 
-// Função apenasNumerosEVirgula (se não estiver definida em outro lugar)
-function apenasNumerosEVirgula(campo) {
-    campo.addEventListener('keydown', function(e) {
-        var charCode = e.keyCode;
-        if (charCode != 188 && charCode != 190 && charCode > 31 && (charCode < 48 || charCode > 57)) {
-            e.preventDefault();
-        }
-    });
-}
+// Função apenasNumerosEVirgula movida para funcoes.jsx
 
 
 
@@ -780,12 +772,12 @@ listaUnidades.selection = 0;
 // Campo de quantidade
 var campoQuantidade = grupo2.add("edittext", undefined, "");
 campoQuantidade.characters = 5;
-apenasNumerosEVirgula(campoQuantidade);
+funcoes.apenasNumerosEVirgula(campoQuantidade);
 // Campo de multiplicador
 grupo2.add("statictext", undefined, "x");
 var campoMultiplicador = grupo2.add("edittext", undefined, "1");
 campoMultiplicador.characters = 3;
-apenasNumerosEVirgula(campoMultiplicador);
+funcoes.apenasNumerosEVirgula(campoMultiplicador);
 
 // Botão adicionar componente
 var botaoAdicionarComponente = grupo2.add("button", undefined, t("botaoAdicionar"));
@@ -870,7 +862,7 @@ listaTamanhos.selection = 0;
 // Campo para quantidade de bolas
 var campoQuantidadeBolas = grupoBolasSelecao.add("edittext", undefined, "1");
 campoQuantidadeBolas.characters = 5;
-apenasNumerosEVirgula(campoQuantidadeBolas);
+funcoes.apenasNumerosEVirgula(campoQuantidadeBolas);
 
 // Botão adicionar bola
 var botaoAdicionarBola = grupoBolasSelecao.add("button", undefined, t("adicionarBola"));
@@ -1452,19 +1444,7 @@ checkboxMostrarObs.onClick = function() {
   janela.layout.resize();
 };
 
-// Adicione esta função no início do seu arquivo ou antes de ser usada
-function removerDuplicatas(array) {
-  var resultado = [];
-  var jaVisto = {};
-  for (var i = 0; i < array.length; i++) {
-      var item = array[i];
-      if (!jaVisto[item]) {
-          resultado.push(item);
-          jaVisto[item] = true;
-      }
-  }
-  return resultado;
-}
+// Função removerDuplicatas movida para funcoes.jsx
 
 
 // Manter apenas este código para a lista única
@@ -1668,43 +1648,12 @@ function atualizarListaItens() {
 
     var ordemUnidades = ['m2', 'ml', 'units'];
 
-    // Função auxiliar para extrair informações do componente
-    function extrairInfoComponente(texto) {
-        var info = {
-            componente: '',
-            cor: '',
-            unidade: ''
-        };
-        
-        // Extrair componente base (ex: flexiprint)
-        var pos = texto.indexOf(' ');
-        info.componente = pos === -1 ? texto : texto.substring(0, pos).toLowerCase();
-        
-        // Extrair cor (ex: or PANTONE 131C, blanc RAL 9010)
-        var matches = texto.match(/(or|blanc|noir|rouge|bleu|vert|jaune|PANTONE|RAL)\s+[^\(]+/i);
-        info.cor = matches ? matches[0].toLowerCase() : '';
-        
-        // Extrair unidade (m², ml, units)
-        matches = texto.match(/\((m2|ml|units)\)/i);
-        info.unidade = matches ? matches[1].toLowerCase() : '';
-        
-        return info;
-    }
-
-    // Função para encontrar índice no array
-    function encontrarIndice(array, valor) {
-        for (var i = 0; i < array.length; i++) {
-            if (array[i] === valor) {
-                return i;
-            }
-        }
-        return -1;
-    }
+    // Funções extrairInfoComponente e encontrarIndice movidas para funcoes.jsx
 
     // Ordenar componentesReferencias
     componentesReferencias.sort(function(a, b) {
-        var infoA = extrairInfoComponente(a);
-        var infoB = extrairInfoComponente(b);
+        var infoA = funcoes.extrairInfoComponente(a);
+        var infoB = funcoes.extrairInfoComponente(b);
         
         // Primeiro compara pelo componente base usando a ordem definida
         var posA = 999;
@@ -1729,8 +1678,8 @@ function atualizarListaItens() {
         }
         
         // Se mesma cor, ordena por unidade (m2 antes de ml)
-        var unidadeA = encontrarIndice(ordemUnidades, infoA.unidade);
-        var unidadeB = encontrarIndice(ordemUnidades, infoB.unidade);
+        var unidadeA = funcoes.encontrarIndice(ordemUnidades, infoA.unidade);
+        var unidadeB = funcoes.encontrarIndice(ordemUnidades, infoB.unidade);
         
         if (unidadeA === -1) unidadeA = 999;
         if (unidadeB === -1) unidadeB = 999;
@@ -1796,8 +1745,8 @@ function atualizarListaItens() {
         }
     }
     
-    todasBolas = removerDuplicatas(todasBolas);
-    bolasCompostas = removerDuplicatas(bolasCompostas);
+            todasBolas = funcoes.removerDuplicatas(todasBolas);
+        bolasCompostas = funcoes.removerDuplicatas(bolasCompostas);
 
     if (todasBolas.length > 0 || bolasCompostas.length > 0) {
         var textoBoule = totalBolas > 1 ? "boules" : "boule";
@@ -1924,22 +1873,16 @@ function atualizarListaItens() {
     };
 }
 
-// Função para formatar unidades
-function formatarUnidade(unidade) {
-    if (unidade === "m2") {
-        return "m²";
-    }
-    return unidade;
-}
+// Função formatarUnidade movida para funcoes.jsx
 
 // Modificar a função criarLinhaReferencia
 function criarLinhaReferencia(item) {
     var linha = item.referencia ? item.referencia : item.nome;
     if (item.unidade) {
-        linha += " (" + formatarUnidade(item.unidade) + ")";
+        linha += " (" + funcoes.formatarUnidade(item.unidade) + ")";
     }
     
-    var quantidade = arredondarComponente(item.quantidade, item.unidade, item.nome);
+    var quantidade = funcoes.arredondarComponente(item.quantidade, item.unidade, item.nome);
     
     var quantidadeFormatada;
     if (item.unidade === "units") {
@@ -2135,9 +2078,7 @@ function atualizarCores() {
     listaUnidades.onChange = verificarCMYK;
 
     // Função para arredondar para a próxima décima
-    function arredondarParaDecima(valor) {
-        return Math.ceil(valor * 10) / 10;
-    }
+    // Função arredondarParaDecima movida para funcoes.jsx
 // Função para salvar a seleção atual
 function salvarSelecaoAtual() {
     try {
@@ -2295,7 +2236,7 @@ function restaurarUltimaSelecao() {
     
             // Processar o componente
             var nomeComponente = componenteSelecionado.nome + " " + corSelecionada.nome;
-            quantidade = arredondarComponente(quantidade, unidadeSelecionada, nomeComponente);
+            quantidade = funcoes.arredondarComponente(quantidade, unidadeSelecionada, nomeComponente);
     
             // Verificar se o item já existe
             var itemExistente = null;
@@ -2352,21 +2293,7 @@ function restaurarUltimaSelecao() {
     };
 
     // Função para arredondar para o próximo 0,05 ou 0,1
-    function arredondarComponente(valor, unidade, nome) {
-        var nomeLowerCase = nome.toLowerCase();
-        if (nomeLowerCase.indexOf("fil lumière") !== -1 || 
-            nomeLowerCase.indexOf("fil lumiére") !== -1 || 
-            nomeLowerCase.indexOf("fil comète") !== -1 || 
-            nomeLowerCase.indexOf("fil cométe") !== -1) {
-            // Arredondar para o próximo metro inteiro
-            return Math.ceil(valor);
-        } else if (unidade === "ml" || unidade === "m2") {
-            // Arredondar para o próximo 0,05
-            return Math.ceil(valor * 20) / 20;
-        }
-        // Para outras unidades, retornar o valor original
-        return valor;
-    }
+    // Função arredondarComponente movida para funcoes.jsx
 
 // Modificar a função criarTextoComponente
 function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicador) {
@@ -2374,9 +2301,9 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
     if (referencia) {
         texto += " (Ref: " + referencia + ")";
     }
-    texto += " (" + formatarUnidade(unidade) + ")";
+    texto += " (" + funcoes.formatarUnidade(unidade) + ")";
     
-    quantidade = arredondarComponente(quantidade, unidade, nome);
+    quantidade = funcoes.arredondarComponente(quantidade, unidade, nome);
     
     var quantidadeFormatada = quantidade.toFixed(2).replace('.', ',');
     if (multiplicador > 1) {

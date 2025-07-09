@@ -31,10 +31,40 @@
 ---
 
 ## 5. Modularização de Processamento Específico
-- **5.1** Mover funções relacionadas ao alfabeto para `alfabeto.jsx` (ex: `processarAlfabeto`).
-- **5.2** Mover funções de processamento de componentes/bolas para `funcoes.jsx` (ou criar arquivos separados se necessário).
-- **5.3** Atualizar os imports no `script.jsx`.
-- **5.4** Testar manualmente: adicionar palavras-chave do alfabeto, adicionar bolas, componentes, verificar preview.
+
+### 5.1 Modularização do Alfabeto (alfabeto.jsx)
+
+- [ ] **5.1.1** Listar todas as funções relacionadas ao alfabeto (ex: processarAlfabeto, adicionarPalavraChaveAlfabeto, validarLetraAlfabeto, etc.)
+- [ ] **5.1.2** Mover a função `processarAlfabeto` para `alfabeto.jsx`
+    - [ ] Atualizar o import no(s) arquivo(s) que usam essa função
+    - [ ] Testar manualmente: adicionar palavra-chave do alfabeto, verificar processamento
+- [ ] **5.1.3** Mover a próxima função relacionada ao alfabeto (ex: adicionarPalavraChaveAlfabeto)
+    - [ ] Atualizar o import
+    - [ ] Testar manualmente: funcionalidade específica dessa função
+- [ ] **5.1.4** Repetir o processo para cada função do alfabeto, uma de cada vez
+    - [ ] Atualizar imports e testar manualmente após cada mudança
+- [ ] **5.1.5** Revisar dependências e testar o fluxo completo do alfabeto
+
+### 5.2 Modularização de Componentes/Bolas (funcoes.jsx ou novo arquivo)
+
+- [ ] **5.2.1** Listar funções de processamento de componentes e bolas (ex: processarComponente, adicionarComponente, processarBola, adicionarBola, etc.)
+- [ ] **5.2.2** Mover uma função de componente por vez para `funcoes.jsx` (ou `componentes.jsx` se preferir separar)
+    - [ ] Atualizar o import
+    - [ ] Testar manualmente: adicionar componente, verificar preview
+- [ ] **5.2.3** Mover uma função de bola por vez para `funcoes.jsx` (ou `bolas.jsx` se preferir separar)
+    - [ ] Atualizar o import
+    - [ ] Testar manualmente: adicionar bola, verificar preview
+- [ ] **5.2.4** Repetir para cada função, sempre testando após cada mudança
+
+### 5.3 Atualização de Imports
+
+- [ ] **5.3.1** Após cada função movida, atualizar o import correspondente no `script.jsx`
+- [ ] **5.3.2** Testar a funcionalidade relacionada imediatamente após cada alteração
+
+### 5.4 Testes Manuais Incrementais
+
+- [ ] **5.4.1** Após cada função movida, rodar o teste manual correspondente
+- [ ] **5.4.2** Corrigir eventuais erros antes de seguir para a próxima função
 
 ---
 

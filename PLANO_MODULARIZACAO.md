@@ -55,7 +55,7 @@
 - [x] 5.2.2.1 Mover função criarTextoComponente para funcoes.jsx
 - [x] 5.2.2.2 Mover função criarLinhaReferencia para funcoes.jsx
 - [x] 5.2.2.3 Mover função selecionarUnidadeMetrica para funcoes.jsx
-- [ ] 5.2.2.4 Mover função atualizarCores para funcoes.jsx
+- [x] 5.2.2.4 Mover função atualizarCores para funcoes.jsx
 - [ ] 5.2.2.5 Mover função atualizarUnidades para funcoes.jsx
 - [ ] 5.2.2.6 Mover função verificarCMYK para funcoes.jsx
 - [ ] 5.2.2.7 Mover função salvarSelecaoAtual para funcoes.jsx

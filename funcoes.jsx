@@ -239,7 +239,8 @@ $.global.funcoes = {
     escapeString: escapeString,
     criarTextoComponente: criarTextoComponente,
     criarLinhaReferencia: criarLinhaReferencia,
-    selecionarUnidadeMetrica: selecionarUnidadeMetrica
+    selecionarUnidadeMetrica: selecionarUnidadeMetrica,
+    atualizarCores: atualizarCores
 };
 
 // Adicione estas funções no arquivo funcoes.jsx
@@ -448,4 +449,75 @@ function selecionarUnidadeMetrica(unidades) {
         }
     }
     return null;
+}
+
+// Função para atualizar cores (migrada de script.jsx)
+function atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, atualizarUnidades, verificarCMYK) {
+    listaCores.removeAll();
+    listaUnidades.removeAll();
+    
+    if (listaComponentes.selection && listaComponentes.selection.index > 0) {
+        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
+        var coresDisponiveis = [t("selecioneCor")];
+        var coresIds = [];
+        var unidadesDisponiveis = [t("selecioneUnidade")];
+
+        for (var i = 0; i < dados.combinacoes.length; i++) {
+            if (dados.combinacoes[i].componenteId === componenteSelecionado.id) {
+                var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
+                if (cor && !arrayContains(coresIds, cor.id)) {
+                    coresDisponiveis.push(cor.nome);
+                    coresIds.push(cor.id);
+                }
+                if (!arrayContains(unidadesDisponiveis, dados.combinacoes[i].unidade)) {
+                    unidadesDisponiveis.push(dados.combinacoes[i].unidade);
+                }
+            }
+        }
+
+        for (var i = 0; i < coresDisponiveis.length; i++) {
+            listaCores.add("item", coresDisponiveis[i]);
+        }
+        listaCores.selection = 0;
+
+        // Pré-selecionar a cor se houver apenas uma opção
+        if (coresDisponiveis.length === 2) {
+            listaCores.selection = 1;
+        } else {
+            listaCores.selection = 0;
+        }
+
+        for (var i = 0; i < unidadesDisponiveis.length; i++) {
+            listaUnidades.add("item", unidadesDisponiveis[i]);
+        }
+
+        // Selecionar unidade métrica automaticamente
+        var unidadeParaSelecionar = selecionarUnidadeMetrica(unidadesDisponiveis);
+        if (unidadeParaSelecionar) {
+            for (var i = 0; i < listaUnidades.items.length; i++) {
+                if (listaUnidades.items[i].text === unidadeParaSelecionar) {
+                    listaUnidades.selection = i;
+                    break;
+                }
+            }
+        } else {
+            listaUnidades.selection = 0;
+        }
+
+    } else {
+        listaCores.add("item", t("selecioneCor"));
+        listaUnidades.add("item", t("selecioneUnidade"));
+        listaCores.selection = 0;
+        listaUnidades.selection = 0;
+    }
+    
+    // Chamar atualizarUnidades() para atualizar as unidades com base na cor selecionada
+    if (atualizarUnidades) {
+        atualizarUnidades();
+    }
+    
+    // Verificar o CMYK da combinação selecionada (sem exibir alerta)
+    if (verificarCMYK) {
+        verificarCMYK();
+    }
 }

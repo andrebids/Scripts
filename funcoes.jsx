@@ -237,7 +237,9 @@ $.global.funcoes = {
     apenasNumerosEVirgula: apenasNumerosEVirgula,
     formatarDimensao: formatarDimensao,
     escapeString: escapeString,
-    criarTextoComponente: criarTextoComponente
+    criarTextoComponente: criarTextoComponente,
+    criarLinhaReferencia: criarLinhaReferencia,
+    selecionarUnidadeMetrica: selecionarUnidadeMetrica
 };
 
 // Adicione estas funções no arquivo funcoes.jsx
@@ -396,4 +398,54 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
     }
     
     return texto;
+}
+
+// Função para criar a linha de referência (migrada de script.jsx)
+function criarLinhaReferencia(item) {
+    var linha = item.referencia ? item.referencia : item.nome;
+    if (item.unidade) {
+        linha += " (" + funcoes.formatarUnidade(item.unidade) + ")";
+    }
+    
+    var quantidade = funcoes.arredondarComponente(item.quantidade, item.unidade, item.nome);
+    
+    var quantidadeFormatada;
+    if (item.unidade === "units") {
+        quantidadeFormatada = Math.round(quantidade).toString();
+    } else {
+        quantidadeFormatada = quantidade.toFixed(2).replace('.', ',');
+    }
+    
+    if (item.multiplicador && item.multiplicador > 1) {
+        linha += " " + quantidadeFormatada + "x" + item.multiplicador + ": ";
+        var quantidadeTotal = quantidade * item.multiplicador;
+        var quantidadeTotalFormatada;
+        if (item.unidade === "units") {
+            quantidadeTotalFormatada = Math.round(quantidadeTotal).toString();
+        } else {
+            quantidadeTotalFormatada = quantidadeTotal.toFixed(2).replace('.', ',');
+        }
+        linha += quantidadeTotalFormatada;
+    } else {
+        linha += ": " + quantidadeFormatada;
+    }
+    
+    if (item.composta) {
+        linha += " (composta)";
+    }
+    return linha;
+}
+
+// Função para selecionar unidade métrica (migrada de script.jsx)
+function selecionarUnidadeMetrica(unidades) {
+    var prioridade = ["m2", "ml", "unit"];
+    if (unidades.length === 2 && unidades[1] === "unit") {
+        return "unit";
+    }
+    for (var i = 0; i < prioridade.length; i++) {
+        if (arrayContains(unidades, prioridade[i])) {
+            return prioridade[i];
+        }
+    }
+    return null;
 }

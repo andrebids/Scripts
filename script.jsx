@@ -1136,7 +1136,7 @@ function atualizarListaItens() {
                 componentesAgrupados[nomeComponente].push(corComponente);
             }
             if (!itensProcessados[item.referencia + item.unidade]) {
-                componentesReferencias.push(criarLinhaReferencia(item));
+                componentesReferencias.push(funcoes.criarLinhaReferencia(item));
                 itensProcessados[item.referencia + item.unidade] = true;
             }
         } else if (item.tipo === "bola") {
@@ -1380,7 +1380,7 @@ function atualizarListaItens() {
         for (var chaveBola in bolasProcessadas) {
             if (bolasProcessadas.hasOwnProperty(chaveBola)) {
                 var bolaItem = bolasProcessadas[chaveBola];
-                previewText.push(criarLinhaReferencia(bolaItem));
+                previewText.push(funcoes.criarLinhaReferencia(bolaItem));
             }
         }
     }

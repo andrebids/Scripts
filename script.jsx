@@ -27,51 +27,7 @@ var ultimaSelecao = {
     unidade: null,
     multiplicador: "1"
 };
-// Função para mostrar janela de configuração inicial
-function mostrarJanelaConfigInicial() {
-    var janelaConfig = new Window("dialog", "Configuração Inicial / Configuration Initiale");
-    janelaConfig.orientation = "column";
-    janelaConfig.alignChildren = "center";
-    
-    // Grupo para nome
-    var grupoNome = janelaConfig.add("group");
-    grupoNome.add("statictext", undefined, "Nome do Designer / Nom du Designer:");
-    var campoNome = grupoNome.add("edittext", undefined, "");
-    campoNome.characters = 30;
-    
-    // Grupo para idioma
-    var grupoIdioma = janelaConfig.add("group");
-    grupoIdioma.add("statictext", undefined, "Idioma / Langue:");
-    var listaIdiomas = grupoIdioma.add("dropdownlist", undefined, ["Português", "Français"]);
-    listaIdiomas.selection = 0;
-    
-    // Botão OK
-    var botaoOK = janelaConfig.add("button", undefined, "OK");
-    
-    botaoOK.onClick = function() {
-        if (campoNome.text.length > 0) {
-            nomeDesigner = campoNome.text;
-            idiomaUsuario = listaIdiomas.selection.text;
-            IDIOMA_ATUAL = idiomaUsuario;
-            
-            var config = {
-                nomeDesigner: nomeDesigner,
-                idioma: idiomaUsuario
-            };
-            
-            try {
-                database.escreverArquivoJSON(caminhoConfig, config);
-                janelaConfig.close();
-            } catch(e) {
-                alert("Erro ao salvar configuração / Erreur lors de l'enregistrement de la configuration: " + e.message);
-            }
-        } else {
-            alert("Por favor, insira seu nome / S'il vous plaît, entrez votre nom");
-        }
-    };
-    
-    janelaConfig.show();
-}
+// Função para mostrar janela de configuração inicial movida para ui.jsx
 
 (function() {
     // Verificar se existe arquivo de configuração
@@ -108,133 +64,7 @@ function mostrarJanelaConfigInicial() {
     } catch(e) {
         alert("Erro ao ler o arquivo da base de dados: " + e.message);
     }
-function criarInterfaceContadorBolas(grupoContar) {
-    var grupo = grupoContar.add("group");
-    grupo.orientation = "column";
-    grupo.alignChildren = ["left", "top"];
-    grupo.spacing = 10;
-
-    // Adicionar um subgrupo com orientação horizontal para alinhar o campo de resultado e o botão lado a lado
-    var subgrupoContador = grupo.add("group");
-    subgrupoContador.orientation = "row";
-    subgrupoContador.alignChildren = ["left", "center"];
-    subgrupoContador.spacing = 10;
-
-    // Campo de resultado
-    var textoResultado = subgrupoContador.add("edittext", undefined, t("resultado"), {multiline: true, scrollable: true});
-    textoResultado.preferredSize.width = 400;
-    textoResultado.preferredSize.height = 150; // Linha 56
-
-    // Botão para contar
-    var botaoContar = subgrupoContador.add("button", undefined, t("contarElementos"));
-    // Botão para adicionar ao preview
-    var botaoAdicionarPreview = subgrupoContador.add("button", undefined, t("adicionarAoPreview"));
-
-// Atualizar os eventos conforme necessário
-botaoAdicionarPreview.onClick = function() {
-    var resultado = textoResultado.text;
-    if (resultado && resultado !== "Resultado: ") {
-        // Procurar por uma contagem existente e removê-la
-        for (var i = itensLegenda.length - 1; i >= 0; i--) {
-            if (itensLegenda[i].tipo === "contagem") {
-                itensLegenda.splice(i, 1);
-                break;
-            }
-        }
-        
-        // Adicionar a nova contagem
-        itensLegenda.push({
-            tipo: "contagem",
-            nome: "Contagem de Elementos",
-            texto: resultado
-        });
-        atualizarListaItens();
-        alert(t("contagemAtualizada"));
-    } else {
-        alert(t("realizarContagemPrimeiro"));
-    }
-};
-    // Atualizar os eventos conforme necessário
-    botaoContar.onClick = function() {
-        try {
-            if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.componentes)) {
-                alert("Erro: A base de dados não está acessível ou está em um formato inválido.");
-                return;
-            }
-            var pastaScripts = File($.fileName).parent.fsName.replace(/\\/g, '/');
-            var bt = new BridgeTalk();
-            bt.target = "illustrator";
-            var btCode = ''
-                + '$.evalFile("' + pastaScripts + '/json2.js");'
-                + '$.evalFile("' + pastaScripts + '/funcoes.jsx");'
-                + '$.evalFile("' + pastaScripts + '/database.jsx");'
-                + '(' + contarBolasNaArtboard.toString() + ')();';
-            bt.body = btCode;
-            bt.onResult = function(resObj) {
-                var resultado = resObj.body.split("|");
-                var contagem, combinacoes;
-            
-                for (var i = 0; i < resultado.length; i++) {
-                    var parte = resultado[i].split(":");
-                    if (parte[0] === "contagem") {
-                        contagem = parseInt(parte[1]);
-                    } else if (parte[0] === "combinacoes") {
-                        combinacoes = parte.slice(1).join(":"); // Para lidar com possíveis ":" nas mensagens de erro
-                    }
-                }
-            
-                var textoCompleto = "";
-                if (contagem !== undefined) {
-                    if (contagem === 0) {
-                        textoCompleto = "Resultado: " + (combinacoes || "Nenhum objeto selecionado") + "\n\n";
-                    } else {
-                        var textoBoule = contagem === 1 ? "boule" : "boules";
-                        textoCompleto = "Total de " + contagem + " " + textoBoule + " :\n";
-                        
-                        if (combinacoes && combinacoes !== "Nenhum objeto selecionado") {
-                            var combArray = combinacoes.split(",");
-                            for (var i = 1; i < combArray.length; i++) { // Começar do índice 1 para pular o total
-                                var combInfo = combArray[i].split("=");
-                                if (combInfo.length === 3) {
-                                    var cor = decodeURIComponent(combInfo[0]);
-                                    var tamanho = combInfo[1];
-                                    var quantidade = combInfo[2];
-                                    
-                                    textoCompleto += "boule " + cor + " ⌀ " + tamanho + " m: " + quantidade + "\n";
-                                } else {
-                                    textoCompleto += combArray[i] + "\n";
-                                }
-                            }
-                        } else {
-                            textoCompleto += "Nenhuma informação de combinação disponível\n";
-                        }
-                    }
-                } else {
-                    textoCompleto = "Erro: " + resObj.body;
-                }
-                
-                textoResultado.text = textoCompleto;
-                textoResultado.notify("onChange");
-                alert("Resultado atualizado na janela de contagem");
-            };
-            bt.onError = function(err) {
-                alert("Erro no BridgeTalk: " + err.body);
-                textoResultado.text = "Erro no BridgeTalk: " + err.body;
-                textoResultado.notify("onChange");
-            };
-            bt.send();
-        } catch (e) {
-            alert("Erro ao iniciar contagem: " + (e.message || "Erro desconhecido") + "\nTipo de erro: " + (e.name || "Tipo de erro desconhecido"));
-            textoResultado.text = "Erro ao iniciar contagem: " + (e.message || "Erro desconhecido") + "\nTipo de erro: " + (e.name || "Tipo de erro desconhecido");
-            textoResultado.notify("onChange");
-        }
-    };
-
-    return {
-        botaoContar: botaoContar,
-        textoResultado: textoResultado
-    };
-} // Linha 75
+// Função criarInterfaceContadorBolas movida para ui.jsx
 // Carregar dados do arquivo database2.json
 var dados;
 try {
@@ -250,134 +80,8 @@ if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.
     return;
 }
 
-function contarBolasNaArtboard() {
-    try {
-        // Caminho hardcoded para a base de dados
-        var caminhoBaseDadosHardcoded = "//192.168.2.22/Olimpo/DS/_BASE DE DADOS/07. TOOLS/ILLUSTRATOR/basededados/database2.json";
-        
-        // Função para verificar se um objeto é um array
-        function isArray(obj) {
-            return Object.prototype.toString.call(obj) === '[object Array]';
-        }
+// Função contarBolasNaArtboard movida para funcoes.jsx
 
-        // Função lerArquivoJSON movida para database.jsx
-        
-        // Carregar dados da base de dados
-        var dados = database.carregarDadosBase(caminhoBaseDadosHardcoded);
-
-        // Verificar se a propriedade 'cores' existe e é um array
-        if (!dados || !isArray(dados.cores)) {
-            throw 'Os dados da base de cores não são um array ou a propriedade "cores" está ausente.';
-        }
-        var dadosCores = dados.cores;
-
-        // Função getNomeCor movida para database.jsx
-
-        if (app.documents.length === 0) {
-            throw "Nenhum documento aberto. Por favor, abra um documento no Illustrator.";
-        }
-        var doc = app.activeDocument;
-        if (!doc) {
-            throw "Não foi possível acessar o documento ativo.";
-        }
-        
-        var selecao = doc.selection;
-        if (!selecao || selecao.length === 0) {
-            return "contagem:0|combinacoes:Nenhum objeto selecionado";
-        }
-    
-        var contagem = 0;
-        var combinacoes = {};
-    
-        for (var i = 0; i < selecao.length; i++) {
-            var item = selecao[i];
-            if (item.typename === "PathItem" && item.closed && item.filled) {
-                contagem++;
-                
-                // Coletar informações sobre cor
-                var cor = item.fillColor;
-                var corKey = "";
-                if (cor.typename === "CMYKColor") {
-                    var cmykArray = [
-                        Math.round(cor.cyan),
-                        Math.round(cor.magenta),
-                        Math.round(cor.yellow),
-                        Math.round(cor.black)
-                    ];
-                    var nomeCor = database.getNomeCor(cmykArray, dadosCores);
-                    if (nomeCor) {
-                        corKey = nomeCor;
-                    } else {
-                        corKey = "CMYK:" + database.cmykToString(cor);
-                    }
-                } else if (cor.typename === "SpotColor") {
-                    var spotColor = cor.spot.color;
-                    if (spotColor.typename === "CMYKColor") {
-                        var spotCmykArray = [
-                            Math.round(spotColor.cyan),
-                            Math.round(spotColor.magenta),
-                            Math.round(spotColor.yellow),
-                            Math.round(spotColor.black)
-                        ];
-                        var nomeSpotCor = getNomeCor(spotCmykArray);
-                        if (nomeSpotCor) {
-                            corKey = nomeSpotCor;
-                        } else {
-                            corKey = "Spot CMYK:" + database.cmykToString(spotColor);
-                        }
-                    } else {
-                        corKey = "Spot:" + cor.spot.name;
-                    }
-                } else {
-                    corKey = cor.typename;
-                }
-
-                // Coletar informações sobre tamanho
-                var tamanhoPx = Math.round(item.width); // Assumindo que os círculos são perfeitos
-                var tamanhoM = tamanhoPx * 0.009285714285714286; // Converter de pixels para metros
-                var tamanhoMKey = tamanhoM.toFixed(3);
-
-                // Criar uma chave única para cada combinação de cor e tamanho
-                var combinacaoKey = corKey + "|" + tamanhoMKey;
-                
-                if (!combinacoes[combinacaoKey]) {
-                    combinacoes[combinacaoKey] = {
-                        cor: corKey,
-                        tamanho: tamanhoMKey,
-                        quantidade: 1
-                    };
-                } else {
-                    combinacoes[combinacaoKey].quantidade++;
-                }
-            }
-        }
-    
-        // Função cmykToString movida para database.jsx
-    
-        // Preparar o resultado como uma string formatada
-        var resultado = "contagem:" + contagem + "|";
-        resultado += "combinacoes:";
-        var combinacoesArray = [];
-        
-        // Determinar se deve usar singular ou plural
-        var textoBoule = contagem === 1 ? "boule" : "boules";
-        
-        // Adicionar o total de bolas no início do resultado
-        combinacoesArray.push("Total de " + contagem + " " + textoBoule + " :");
-
-        for (var key in combinacoes) {
-            if (combinacoes.hasOwnProperty(key)) {
-                var comb = combinacoes[key];
-                combinacoesArray.push(encodeURIComponent(comb.cor) + "=" + comb.tamanho + "=" + comb.quantidade);
-            }
-        }
-        resultado += combinacoesArray.join(",");
-
-        return resultado;
-    } catch (e) {
-        return "contagem:0|combinacoes:Erro: " + (e.message || "Erro desconhecido");
-    }
-}
 // Criar a janela principal
 var janela = new Window("palette", t("tituloJanela"), undefined);
 janela.orientation = "column";
@@ -414,7 +118,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.9.4");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.9.5");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -1369,7 +1073,7 @@ checkboxMostrarContar.onClick = function() {
       grupoContar.spacing = 10;
 
       // Criar a interface do contador de bolas
-      var interfaceContador = criarInterfaceContadorBolas(grupoContar);
+      var interfaceContador = criarInterfaceContadorBolas(grupoContar, dados, itensLegenda, atualizarListaItens);
 
       janela.layout.layout(true);
       janela.preferredSize.height += 200; // Aumentar a altura da janela
@@ -2599,76 +2303,5 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
         }
     }
 
-    function criarInterfaceExtra(janela) {
-        var painelExtra = janela.add("panel", undefined, t("extra"));
-        painelExtra.alignChildren = ["fill", "top"];
-        
-        // Criar TabbedPanel principal
-        var tabsExtra = painelExtra.add("tabbedpanel");
-        tabsExtra.alignChildren = ["fill", "fill"];
-        
-        // Tab Geral
-        var tabGeral = tabsExtra.add("tab", undefined, t("geral"));
-        tabGeral.alignChildren = ["fill", "top"];
-        
-        // Conteúdo da tab Geral
-        var checkObservacoes = tabGeral.add("checkbox", undefined, t("observacoes"));
-        var grupoObservacoes = tabGeral.add("group");
-        grupoObservacoes.orientation = "column";
-        grupoObservacoes.alignChildren = ["fill", "top"];
-        // Adicionar conteúdo das observações aqui
-        
-        // Tab Criar
-        var tabCriar = tabsExtra.add("tab", undefined, t("criar"));
-        tabCriar.alignChildren = ["fill", "top"];
-        // Conteúdo da tab Criar aqui
-        
-        // Tab Contador
-        var tabContador = tabsExtra.add("tab", undefined, t("contador"));
-        tabContador.alignChildren = ["fill", "top"];
-        var checkContador = tabContador.add("checkbox", undefined, t("mostrarContador"));
-        var grupoContador = tabContador.add("group");
-        grupoContador.orientation = "column";
-        grupoContador.alignChildren = ["fill", "top"];
-        // Adicionar conteúdo do contador aqui
-        
-        // Tab Texturas
-        var tabTexturas = tabsExtra.add("tab", undefined, t("texturas"));
-        tabTexturas.alignChildren = ["fill", "top"];
-        var checkTexturas = tabTexturas.add("checkbox", undefined, t("texturas"));
-        var grupoTexturas = tabTexturas.add("group");
-        grupoTexturas.orientation = "column";
-        grupoTexturas.alignChildren = ["fill", "top"];
-        // Adicionar conteúdo das texturas aqui
-        
-        // Eventos dos checkboxes
-        checkObservacoes.onClick = function() {
-            grupoObservacoes.visible = this.value;
-        };
-        
-        checkContador.onClick = function() {
-            grupoContador.visible = this.value;
-        };
-        
-        checkTexturas.onClick = function() {
-            grupoTexturas.visible = this.value;
-        };
-        
-        // Configuração inicial
-        grupoObservacoes.visible = false;
-        grupoContador.visible = false;
-        grupoTexturas.visible = false;
-        
-        tabsExtra.selection = 0;
-        
-        return {
-            painelExtra: painelExtra,
-            checkObservacoes: checkObservacoes,
-            checkContador: checkContador,
-            checkTexturas: checkTexturas,
-            grupoObservacoes: grupoObservacoes,
-            grupoContador: grupoContador,
-            grupoTexturas: grupoTexturas
-        };
-    }
+    // Função criarInterfaceExtra movida para ui.jsx
 })();

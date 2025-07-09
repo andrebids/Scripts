@@ -22,11 +22,11 @@
 
 ---
 
-## 4. Modularização da Interface (UI)
-- **4.1** Identificar funções de criação de interface (ex: `criarInterfaceContadorBolas`, `criarInterfaceExtra`, criação de grupos, painéis, abas).
-- **4.2** Mover para `ui.jsx`.
-- **4.3** Atualizar os imports no `script.jsx`.
-- **4.4** Testar manualmente: abrir todas as abas, interagir com todos os painéis, verificar se a interface responde corretamente.
+## 4. Modularização da Interface (UI) ✅ CONCLUÍDA
+- **4.1** ✅ Identificar funções de criação de interface (ex: `criarInterfaceContadorBolas`, `criarInterfaceExtra`, criação de grupos, painéis, abas).
+- **4.2** ✅ Mover para `ui.jsx`.
+- **4.3** ✅ Atualizar os imports no `script.jsx`.
+- **4.4** ⏳ Testar manualmente: abrir todas as abas, interagir com todos os painéis, verificar se a interface responde corretamente.
 
 ---
 

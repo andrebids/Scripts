@@ -262,6 +262,249 @@
     return {lista: lista, atualizar: atualizarLista};
 }
 
+// Função para mostrar janela de configuração inicial
+function mostrarJanelaConfigInicial() {
+    var janelaConfig = new Window("dialog", "Configuração Inicial / Configuration Initiale");
+    janelaConfig.orientation = "column";
+    janelaConfig.alignChildren = "center";
+    
+    // Grupo para nome
+    var grupoNome = janelaConfig.add("group");
+    grupoNome.add("statictext", undefined, "Nome do Designer / Nom du Designer:");
+    var campoNome = grupoNome.add("edittext", undefined, "");
+    campoNome.characters = 30;
+    
+    // Grupo para idioma
+    var grupoIdioma = janelaConfig.add("group");
+    grupoIdioma.add("statictext", undefined, "Idioma / Langue:");
+    var listaIdiomas = grupoIdioma.add("dropdownlist", undefined, ["Português", "Français"]);
+    listaIdiomas.selection = 0;
+    
+    // Botão OK
+    var botaoOK = janelaConfig.add("button", undefined, "OK");
+    
+    botaoOK.onClick = function() {
+        if (campoNome.text.length > 0) {
+            nomeDesigner = campoNome.text;
+            idiomaUsuario = listaIdiomas.selection.text;
+            IDIOMA_ATUAL = idiomaUsuario;
+            
+            var config = {
+                nomeDesigner: nomeDesigner,
+                idioma: idiomaUsuario
+            };
+            
+            try {
+                database.escreverArquivoJSON(caminhoConfig, config);
+                janelaConfig.close();
+            } catch(e) {
+                alert("Erro ao salvar configuração / Erreur lors de l'enregistrement de la configuration: " + e.message);
+            }
+        } else {
+            alert("Por favor, insira seu nome / S'il vous plaît, entrez votre nom");
+        }
+    };
+    
+    janelaConfig.show();
+}
+
+// Função para criar interface do contador de bolas
+function criarInterfaceContadorBolas(grupoContar, dados, itensLegenda, atualizarListaItens) {
+    var grupo = grupoContar.add("group");
+    grupo.orientation = "column";
+    grupo.alignChildren = ["left", "top"];
+    grupo.spacing = 10;
+
+    // Adicionar um subgrupo com orientação horizontal para alinhar o campo de resultado e o botão lado a lado
+    var subgrupoContador = grupo.add("group");
+    subgrupoContador.orientation = "row";
+    subgrupoContador.alignChildren = ["left", "center"];
+    subgrupoContador.spacing = 10;
+
+    // Campo de resultado
+    var textoResultado = subgrupoContador.add("edittext", undefined, t("resultado"), {multiline: true, scrollable: true});
+    textoResultado.preferredSize.width = 400;
+    textoResultado.preferredSize.height = 150;
+
+    // Botão para contar
+    var botaoContar = subgrupoContador.add("button", undefined, t("contarElementos"));
+    // Botão para adicionar ao preview
+    var botaoAdicionarPreview = subgrupoContador.add("button", undefined, t("adicionarAoPreview"));
+
+    // Atualizar os eventos conforme necessário
+    botaoAdicionarPreview.onClick = function() {
+        var resultado = textoResultado.text;
+        if (resultado && resultado !== "Resultado: ") {
+            // Procurar por uma contagem existente e removê-la
+            for (var i = itensLegenda.length - 1; i >= 0; i--) {
+                if (itensLegenda[i].tipo === "contagem") {
+                    itensLegenda.splice(i, 1);
+                    break;
+                }
+            }
+            // Adicionar a nova contagem
+            itensLegenda.push({
+                tipo: "contagem",
+                nome: "Contagem de Elementos",
+                texto: resultado
+            });
+            atualizarListaItens();
+            alert(t("contagemAtualizada"));
+        } else {
+            alert(t("realizarContagemPrimeiro"));
+        }
+    };
+
+    botaoContar.onClick = function() {
+        try {
+            if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.componentes)) {
+                alert("Erro: A base de dados não está acessível ou está em um formato inválido.");
+                return;
+            }
+            var pastaScripts = File($.fileName).parent.fsName.replace(/\\/g, '/');
+            var bt = new BridgeTalk();
+            bt.target = "illustrator";
+            var btCode = ''
+                + '$.evalFile("' + pastaScripts + '/json2.js");'
+                + '$.evalFile("' + pastaScripts + '/funcoes.jsx");'
+                + '$.evalFile("' + pastaScripts + '/database.jsx");'
+                + '(' + contarBolasNaArtboard.toString() + ')();';
+            bt.body = btCode;
+            bt.onResult = function(resObj) {
+                var resultado = resObj.body.split("|");
+                var contagem, combinacoes;
+                for (var i = 0; i < resultado.length; i++) {
+                    var parte = resultado[i].split(":");
+                    if (parte[0] === "contagem") {
+                        contagem = parseInt(parte[1]);
+                    } else if (parte[0] === "combinacoes") {
+                        combinacoes = parte.slice(1).join(":");
+                    }
+                }
+                var textoCompleto = "";
+                if (contagem !== undefined) {
+                    if (contagem === 0) {
+                        textoCompleto = "Resultado: " + (combinacoes || "Nenhum objeto selecionado") + "\n\n";
+                    } else {
+                        var textoBoule = contagem === 1 ? "boule" : "boules";
+                        textoCompleto = "Total de " + contagem + " " + textoBoule + " :\n";
+                        if (combinacoes && combinacoes !== "Nenhum objeto selecionado") {
+                            var combArray = combinacoes.split(",");
+                            for (var i = 1; i < combArray.length; i++) {
+                                var combInfo = combArray[i].split("=");
+                                if (combInfo.length === 3) {
+                                    var cor = decodeURIComponent(combInfo[0]);
+                                    var tamanho = combInfo[1];
+                                    var quantidade = combInfo[2];
+                                    textoCompleto += "boule " + cor + " ⌀ " + tamanho + " m: " + quantidade + "\n";
+                                } else {
+                                    textoCompleto += combArray[i] + "\n";
+                                }
+                            }
+                        } else {
+                            textoCompleto += "Nenhuma informação de combinação disponível\n";
+                        }
+                    }
+                } else {
+                    textoCompleto = "Erro: " + resObj.body;
+                }
+                textoResultado.text = textoCompleto;
+                textoResultado.notify("onChange");
+                alert("Resultado atualizado na janela de contagem");
+            };
+            bt.onError = function(err) {
+                alert("Erro no BridgeTalk: " + err.body);
+                textoResultado.text = "Erro no BridgeTalk: " + err.body;
+                textoResultado.notify("onChange");
+            };
+            bt.send();
+        } catch (e) {
+            alert("Erro ao iniciar contagem: " + (e.message || "Erro desconhecido") + "\nTipo de erro: " + (e.name || "Tipo de erro desconhecido"));
+            textoResultado.text = "Erro ao iniciar contagem: " + (e.message || "Erro desconhecido") + "\nTipo de erro: " + (e.name || "Tipo de erro desconhecido");
+            textoResultado.notify("onChange");
+        }
+    };
+
+    return {
+        botaoContar: botaoContar,
+        textoResultado: textoResultado
+    };
+}
+
+// Função para criar interface extra
+function criarInterfaceExtra(janela) {
+    var painelExtra = janela.add("panel", undefined, t("extra"));
+    painelExtra.alignChildren = ["fill", "top"];
+    
+    // Criar TabbedPanel principal
+    var tabsExtra = painelExtra.add("tabbedpanel");
+    tabsExtra.alignChildren = ["fill", "fill"];
+    
+    // Tab Geral
+    var tabGeral = tabsExtra.add("tab", undefined, t("geral"));
+    tabGeral.alignChildren = ["fill", "top"];
+    
+    // Conteúdo da tab Geral
+    var checkObservacoes = tabGeral.add("checkbox", undefined, t("observacoes"));
+    var grupoObservacoes = tabGeral.add("group");
+    grupoObservacoes.orientation = "column";
+    grupoObservacoes.alignChildren = ["fill", "top"];
+    // Adicionar conteúdo das observações aqui
+    
+    // Tab Criar
+    var tabCriar = tabsExtra.add("tab", undefined, t("criar"));
+    tabCriar.alignChildren = ["fill", "top"];
+    // Conteúdo da tab Criar aqui
+    
+    // Tab Contador
+    var tabContador = tabsExtra.add("tab", undefined, t("contador"));
+    tabContador.alignChildren = ["fill", "top"];
+    var checkContador = tabContador.add("checkbox", undefined, t("mostrarContador"));
+    var grupoContador = tabContador.add("group");
+    grupoContador.orientation = "column";
+    grupoContador.alignChildren = ["fill", "top"];
+    // Adicionar conteúdo do contador aqui
+    
+    // Tab Texturas
+    var tabTexturas = tabsExtra.add("tab", undefined, t("texturas"));
+    tabTexturas.alignChildren = ["fill", "top"];
+    var checkTexturas = tabTexturas.add("checkbox", undefined, t("texturas"));
+    var grupoTexturas = tabTexturas.add("group");
+    grupoTexturas.orientation = "column";
+    grupoTexturas.alignChildren = ["fill", "top"];
+    // Adicionar conteúdo das texturas aqui
+    
+    // Eventos dos checkboxes
+    checkObservacoes.onClick = function() {
+        grupoObservacoes.visible = this.value;
+    };
+    
+    checkContador.onClick = function() {
+        grupoContador.visible = this.value;
+    };
+    
+    checkTexturas.onClick = function() {
+        grupoTexturas.visible = this.value;
+    };
+    
+    // Configuração inicial
+    grupoObservacoes.visible = false;
+    grupoContador.visible = false;
+    grupoTexturas.visible = false;
+    
+    tabsExtra.selection = 0;
+    
+    return {
+        painelExtra: painelExtra,
+        checkObservacoes: checkObservacoes,
+        checkContador: checkContador,
+        checkTexturas: checkTexturas,
+        grupoObservacoes: grupoObservacoes,
+        grupoContador: grupoContador,
+        grupoTexturas: grupoTexturas
+    };
+}
+
 
 // Make functions available globally
 $.global.ui = {

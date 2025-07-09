@@ -277,3 +277,100 @@ function criarInterfaceExtra(janela) {
     
     return grupoExtra;
 }
+
+function contarBolasNaArtboard() {
+    try {
+        var caminhoBaseDadosHardcoded = "//192.168.2.22/Olimpo/DS/_BASE DE DADOS/07. TOOLS/ILLUSTRATOR/basededados/database2.json";
+        function isArray(obj) {
+            return Object.prototype.toString.call(obj) === '[object Array]';
+        }
+        var dados = database.carregarDadosBase(caminhoBaseDadosHardcoded);
+        if (!dados || !isArray(dados.cores)) {
+            throw 'Os dados da base de cores não são um array ou a propriedade "cores" está ausente.';
+        }
+        var dadosCores = dados.cores;
+        if (app.documents.length === 0) {
+            throw "Nenhum documento aberto. Por favor, abra um documento no Illustrator.";
+        }
+        var doc = app.activeDocument;
+        if (!doc) {
+            throw "Não foi possível acessar o documento ativo.";
+        }
+        var selecao = doc.selection;
+        if (!selecao || selecao.length === 0) {
+            return "contagem:0|combinacoes:Nenhum objeto selecionado";
+        }
+        var contagem = 0;
+        var combinacoes = {};
+        for (var i = 0; i < selecao.length; i++) {
+            var item = selecao[i];
+            if (item.typename === "PathItem" && item.closed && item.filled) {
+                contagem++;
+                var cor = item.fillColor;
+                var corKey = "";
+                if (cor.typename === "CMYKColor") {
+                    var cmykArray = [
+                        Math.round(cor.cyan),
+                        Math.round(cor.magenta),
+                        Math.round(cor.yellow),
+                        Math.round(cor.black)
+                    ];
+                    var nomeCor = database.getNomeCor(cmykArray, dadosCores);
+                    if (nomeCor) {
+                        corKey = nomeCor;
+                    } else {
+                        corKey = "CMYK:" + database.cmykToString(cor);
+                    }
+                } else if (cor.typename === "SpotColor") {
+                    var spotColor = cor.spot.color;
+                    if (spotColor.typename === "CMYKColor") {
+                        var spotCmykArray = [
+                            Math.round(spotColor.cyan),
+                            Math.round(spotColor.magenta),
+                            Math.round(spotColor.yellow),
+                            Math.round(spotColor.black)
+                        ];
+                        var nomeSpotCor = getNomeCor(spotCmykArray);
+                        if (nomeSpotCor) {
+                            corKey = nomeSpotCor;
+                        } else {
+                            corKey = "Spot CMYK:" + database.cmykToString(spotColor);
+                        }
+                    } else {
+                        corKey = "Spot:" + cor.spot.name;
+                    }
+                } else {
+                    corKey = cor.typename;
+                }
+                var tamanhoPx = Math.round(item.width);
+                var tamanhoM = tamanhoPx * 0.009285714285714286;
+                var tamanhoMKey = tamanhoM.toFixed(3);
+                var combinacaoKey = corKey + "|" + tamanhoMKey;
+                if (!combinacoes[combinacaoKey]) {
+                    combinacoes[combinacaoKey] = {
+                        cor: corKey,
+                        tamanho: tamanhoMKey,
+                        quantidade: 1
+                    };
+                } else {
+                    combinacoes[combinacaoKey].quantidade++;
+                }
+            }
+        }
+        var resultado = "contagem:" + contagem + "|";
+        resultado += "combinacoes:";
+        var combinacoesArray = [];
+        var textoBoule = contagem === 1 ? "boule" : "boules";
+        combinacoesArray.push("Total de " + contagem + " " + textoBoule + " :");
+        for (var key in combinacoes) {
+            if (combinacoes.hasOwnProperty(key)) {
+                var comb = combinacoes[key];
+                combinacoesArray.push(encodeURIComponent(comb.cor) + "=" + comb.tamanho + "=" + comb.quantidade);
+            }
+        }
+        resultado += combinacoesArray.join(",");
+        return resultado;
+    } catch (e) {
+        return "contagem:0|combinacoes:Erro: " + (e.message || "Erro desconhecido");
+    }
+}

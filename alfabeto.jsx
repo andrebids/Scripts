@@ -120,3 +120,15 @@ function obterTamanhoAlfabeto(itensLegenda) {
     }
     return tamanho;
 } 
+
+// Função para obter a palavra digitada do alfabeto nos itens da legenda
+function obterPalavraDigitadaAlfabeto(itensLegenda) {
+    var palavra = "";
+    for (var i = 0; i < itensLegenda.length; i++) {
+        if (itensLegenda[i].tipo === "alfabeto") {
+            palavra = itensLegenda[i].palavraDigitada;
+            break;
+        }
+    }
+    return palavra;
+} 

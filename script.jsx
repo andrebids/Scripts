@@ -2205,13 +2205,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                 };
     
                 // Capturar a palavra digitada do campo alfabeto
-                var palavraDigitada = "";
-                for (var i = 0; i < itensLegenda.length; i++) {
-                    if (itensLegenda[i].tipo === "alfabeto") {
-                        palavraDigitada = itensLegenda[i].palavraDigitada;
-                        break;
-                    }
-                }
+                var palavraDigitada = obterPalavraDigitadaAlfabeto(itensLegenda);
     
                 var scriptString = "(" + scriptIllustrator.toString() + ")";
                 scriptString += "('" + escapeString(nomeDesigner) + "', '" + 

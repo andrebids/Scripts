@@ -14,11 +14,11 @@
 
 ---
 
-## 3. Modularização de Manipulação de Dados
-- **3.1** Identificar funções de leitura/escrita de arquivos (`lerArquivoJSON`, `escreverArquivoJSON`, `arquivoExiste`).
-- **3.2** Mover para `database.jsx`.
-- **3.3** Atualizar os imports no `script.jsx`.
-- **3.4** Testar manualmente: inicialização do script, salvar/ler configurações, carregar base de dados.
+## 3. Modularização de Manipulação de Dados ✅ CONCLUÍDA
+- **3.1** ✅ Identificar funções de leitura/escrita de arquivos (`lerArquivoJSON`, `escreverArquivoJSON`, `arquivoExiste`).
+- **3.2** ✅ Mover para `database.jsx`.
+- **3.3** ✅ Atualizar os imports no `script.jsx`.
+- **3.4** ⏳ Testar manualmente: inicialização do script, salvar/ler configurações, carregar base de dados.
 
 ---
 

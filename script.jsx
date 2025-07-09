@@ -60,7 +60,7 @@ function mostrarJanelaConfigInicial() {
             };
             
             try {
-                escreverArquivoJSON(caminhoConfig, config);
+                database.escreverArquivoJSON(caminhoConfig, config);
                 janelaConfig.close();
             } catch(e) {
                 alert("Erro ao salvar configuração / Erreur lors de l'enregistrement de la configuration: " + e.message);
@@ -77,7 +77,7 @@ function mostrarJanelaConfigInicial() {
     // Verificar se existe arquivo de configuração
     if (arquivoExiste(caminhoConfig)) {
         try {
-            var config = lerArquivoJSON(caminhoConfig);
+            var config = database.lerArquivoJSON(caminhoConfig);
             if (config && config.nomeDesigner && config.idioma) {
                 nomeDesigner = config.nomeDesigner;
                 idiomaUsuario = config.idioma;
@@ -95,8 +95,8 @@ function mostrarJanelaConfigInicial() {
 
     // Adicionar verificação antes de tentar ler o arquivo
     try {
-        if (arquivoExiste(caminhoBaseDadosHardcoded)) {
-            var dadosBase = lerArquivoJSON(caminhoBaseDadosHardcoded);
+        if (database.arquivoExiste(caminhoBaseDadosHardcoded)) {
+            var dadosBase = database.lerArquivoJSON(caminhoBaseDadosHardcoded);
             if (dadosBase) {
                 // Processar os dados...
             } else {
@@ -161,10 +161,15 @@ botaoAdicionarPreview.onClick = function() {
                 alert("Erro: A base de dados não está acessível ou está em um formato inválido.");
                 return;
             }
-            
+            var pastaScripts = File($.fileName).parent.fsName.replace(/\\/g, '/');
             var bt = new BridgeTalk();
             bt.target = "illustrator";
-            bt.body = "(" + contarBolasNaArtboard.toString() + ")()";
+            var btCode = ''
+                + '$.evalFile("' + pastaScripts + '/json2.js");'
+                + '$.evalFile("' + pastaScripts + '/funcoes.jsx");'
+                + '$.evalFile("' + pastaScripts + '/database.jsx");'
+                + '(' + contarBolasNaArtboard.toString() + ')();';
+            bt.body = btCode;
             bt.onResult = function(resObj) {
                 var resultado = resObj.body.split("|");
                 var contagem, combinacoes;
@@ -255,26 +260,10 @@ function contarBolasNaArtboard() {
             return Object.prototype.toString.call(obj) === '[object Array]';
         }
 
-        // Função para ler e parsear um arquivo JSON
-        function lerArquivoJSON(caminho) {
-            var arquivo = new File(caminho);
-            if (!arquivo.exists) {
-                throw 'Arquivo não encontrado: ' + caminho;
-            }
-            arquivo.open('r');
-            var conteudo = arquivo.read();
-            arquivo.close();
-
-            try {
-                var dados = eval('(' + conteudo + ')');
-                return dados;
-            } catch (e) {
-                throw 'Erro ao parsear o JSON: ' + e.message;
-            }
-        }
+        // Função lerArquivoJSON movida para database.jsx
         
         // Carregar dados da base de dados
-        var dados = lerArquivoJSON(caminhoBaseDadosHardcoded);
+        var dados = database.carregarDadosBase(caminhoBaseDadosHardcoded);
 
         // Verificar se a propriedade 'cores' existe e é um array
         if (!dados || !isArray(dados.cores)) {
@@ -282,23 +271,7 @@ function contarBolasNaArtboard() {
         }
         var dadosCores = dados.cores;
 
-        // Função para encontrar o nome da cor baseado em CMYK
-        function getNomeCor(cmykArray) {
-            for (var i = 0; i < dadosCores.length; i++) {
-                var cor = dadosCores[i];
-                if (cor && cor.cmyk && cor.nome) {
-                    if (
-                        cor.cmyk[0] === cmykArray[0] &&
-                        cor.cmyk[1] === cmykArray[1] &&
-                        cor.cmyk[2] === cmykArray[2] &&
-                        cor.cmyk[3] === cmykArray[3]
-                    ) {
-                        return cor.nome;
-                    }
-                }
-            }
-            return null;
-        }
+        // Função getNomeCor movida para database.jsx
 
         if (app.documents.length === 0) {
             throw "Nenhum documento aberto. Por favor, abra um documento no Illustrator.";
@@ -331,11 +304,11 @@ function contarBolasNaArtboard() {
                         Math.round(cor.yellow),
                         Math.round(cor.black)
                     ];
-                    var nomeCor = getNomeCor(cmykArray);
+                    var nomeCor = database.getNomeCor(cmykArray, dadosCores);
                     if (nomeCor) {
                         corKey = nomeCor;
                     } else {
-                        corKey = "CMYK:" + cmykToString(cor);
+                        corKey = "CMYK:" + database.cmykToString(cor);
                     }
                 } else if (cor.typename === "SpotColor") {
                     var spotColor = cor.spot.color;
@@ -350,7 +323,7 @@ function contarBolasNaArtboard() {
                         if (nomeSpotCor) {
                             corKey = nomeSpotCor;
                         } else {
-                            corKey = "Spot CMYK:" + cmykToString(spotColor);
+                            corKey = "Spot CMYK:" + database.cmykToString(spotColor);
                         }
                     } else {
                         corKey = "Spot:" + cor.spot.name;
@@ -379,12 +352,7 @@ function contarBolasNaArtboard() {
             }
         }
     
-        function cmykToString(cmykColor) {
-            return Math.round(cmykColor.cyan) + "," + 
-                   Math.round(cmykColor.magenta) + "," + 
-                   Math.round(cmykColor.yellow) + "," + 
-                   Math.round(cmykColor.black);
-        }
+        // Função cmykToString movida para database.jsx
     
         // Preparar o resultado como uma string formatada
         var resultado = "contagem:" + contagem + "|";
@@ -446,7 +414,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.9.3");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.9.4");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 

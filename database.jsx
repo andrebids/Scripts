@@ -1,3 +1,5 @@
+// database.jsx - Módulo de manipulação de dados e banco de dados
+
 // Função para ler o arquivo JSON
 function lerArquivoJSON(caminho) {
     var arquivo = new File(caminho);
@@ -67,10 +69,76 @@ function salvarJSON(arquivo, dados) {
     }
 }
 
+// Função para encontrar o nome da cor baseado em CMYK
+function getNomeCor(cmykArray, dadosCores) {
+    for (var i = 0; i < dadosCores.length; i++) {
+        var cor = dadosCores[i];
+        if (cor && cor.cmyk && cor.nome) {
+            if (
+                cor.cmyk[0] === cmykArray[0] &&
+                cor.cmyk[1] === cmykArray[1] &&
+                cor.cmyk[2] === cmykArray[2] &&
+                cor.cmyk[3] === cmykArray[3]
+            ) {
+                return cor.nome;
+            }
+        }
+    }
+    return null;
+}
+
+// Função para converter CMYK para string
+function cmykToString(cmykColor) {
+    return Math.round(cmykColor.cyan) + "," + 
+           Math.round(cmykColor.magenta) + "," + 
+           Math.round(cmykColor.yellow) + "," + 
+           Math.round(cmykColor.black);
+}
+
+// Função para carregar dados da base de dados
+function carregarDadosBase(caminhoBaseDados) {
+    try {
+        var dados = lerArquivoJSON(caminhoBaseDados);
+        
+        // Verificar se a propriedade 'cores' existe e é um array
+        if (!dados || !funcoes.isArray(dados.cores)) {
+            throw new Error('Os dados da base de cores não são um array ou a propriedade "cores" está ausente.');
+        }
+        
+        return dados;
+    } catch (e) {
+        throw new Error("Erro ao carregar dados da base: " + e.message);
+    }
+}
+
+// Função para validar estrutura da base de dados
+function validarEstruturaBase(dados) {
+    var secoesObrigatorias = ["componentes", "cores", "combinacoes", "acabamentos", "tamanhos", "bolas"];
+    
+    for (var i = 0; i < secoesObrigatorias.length; i++) {
+        var secao = secoesObrigatorias[i];
+        if (!dados.hasOwnProperty(secao) || !funcoes.isArray(dados[secao])) {
+            throw new Error("Seção obrigatória '" + secao + "' ausente ou inválida na base de dados");
+        }
+    }
+    
+    return true;
+}
+
+// Função para verificar se o arquivo existe
+function arquivoExiste(caminho) {
+    return new File(caminho).exists;
+}
+
 // Make functions available globally
 $.global.database = {
     lerArquivoJSON: lerArquivoJSON,
     escreverArquivoJSON: escreverArquivoJSON,
     carregarJSON: carregarJSON,
-    salvarJSON: salvarJSON
+    salvarJSON: salvarJSON,
+    getNomeCor: getNomeCor,
+    cmykToString: cmykToString,
+    carregarDadosBase: carregarDadosBase,
+    validarEstruturaBase: validarEstruturaBase,
+    arquivoExiste: arquivoExiste
 };

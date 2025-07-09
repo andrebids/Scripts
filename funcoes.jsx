@@ -1,29 +1,5 @@
 // funcoes.jsx
-// Função para ler o arquivo JSON
-function lerArquivoJSON(caminho) {
-    try {
-        var arquivo = new File(caminho);
-        
-        // Se o arquivo não existe, retorna um objeto vazio
-        if (!arquivo.exists) {
-            return {};
-        }
-        
-        arquivo.open('r');
-        var conteudo = arquivo.read();
-        arquivo.close();
-        
-        // Se o conteúdo está vazio, retorna um objeto vazio
-        if (!conteudo || conteudo.trim() === '') {
-            return {};
-        }
-        
-        return parseJSON(conteudo);
-    } catch(e) {
-        $.writeln("Erro ao ler arquivo: " + e.message);
-        return {};
-    }
-}
+// Função lerArquivoJSON movida para database.jsx
 // Função para analisar JSON
 function parseJSON(str) {
     if (!str || typeof str !== 'string') {
@@ -77,18 +53,9 @@ function stringifyJSON(obj) {
     function getPastaDocumentos() {
         return Folder.myDocuments.fsName;
     }
- // Função para verificar se o arquivo existe
- function arquivoExiste(caminho) {
-    return new File(caminho).exists;
-}
+ // Função arquivoExiste movida para database.jsx
 
-// Função para escrever no arquivo JSON
-function escreverArquivoJSON(caminho, dados) {
-    var arquivo = new File(caminho);
-    arquivo.open('w');
-    arquivo.write(stringifyJSON(dados));
-    arquivo.close();
-}
+// Função escreverArquivoJSON movida para database.jsx
 
 // Funo para verificar se um objeto é um array
 function isArray(obj) {
@@ -253,11 +220,8 @@ $.global.funcoes.parseJSON = parseJSON;
 $.global.funcoes = {
     parseJSON: parseJSON,
     stringifyJSON: stringifyJSON,
-    lerArquivoJSON: lerArquivoJSON,
     selecionarArquivo: selecionarArquivo,
     getPastaDocumentos: getPastaDocumentos,
-    arquivoExiste: arquivoExiste,
-    escreverArquivoJSON: escreverArquivoJSON,
     isArray: isArray,
     extrairNomes: extrairNomes,
     encontrarPorId: encontrarPorId,

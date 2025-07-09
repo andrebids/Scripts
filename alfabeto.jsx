@@ -108,3 +108,15 @@ function gerarPreviewAlfabeto(itensLegenda) {
         corBioprint: corBioprint
     };
 } 
+
+// Função para obter o tamanho do alfabeto nos itens da legenda
+function obterTamanhoAlfabeto(itensLegenda) {
+    var tamanho = "";
+    for (var i = 0; i < itensLegenda.length; i++) {
+        if (itensLegenda[i].tipo === "alfabeto") {
+            tamanho = itensLegenda[i].tamanhoAlfabeto;
+            break;
+        }
+    }
+    return tamanho;
+} 

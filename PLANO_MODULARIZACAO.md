@@ -41,7 +41,7 @@
 - [x] **5.1.3** Mover a próxima função relacionada ao alfabeto (adicionarPalavraChaveAlfabeto)
     - [x] Atualizar o import
     - [x] Testar manualmente: funcionalidade específica dessa função
-- [ ] **5.1.4** Repetir o processo para cada função do alfabeto, uma de cada vez
+- [x] **5.1.4** Repetir o processo para cada função do alfabeto, uma de cada vez
     - [ ] Atualizar imports e testar manualmente após cada mudança
 - [ ] **5.1.5** Revisar dependências e testar o fluxo completo do alfabeto
 

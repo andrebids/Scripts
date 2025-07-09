@@ -1981,13 +1981,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                 var legendaConteudo = legendaInfo.texto.replace(/(\d+)\.(\d+)/g, formatarNumero);
     
                 // Encontrar o tamanho do alfabeto nos itens da legenda
-                var tamanhoGXSelecionado = "";
-                for (var i = 0; i < itensLegenda.length; i++) {
-                    if (itensLegenda[i].tipo === "alfabeto") {
-                        tamanhoGXSelecionado = itensLegenda[i].tamanhoAlfabeto; // Usar o mesmo nome específico
-                        break;
-                    }
-                }
+                var tamanhoGXSelecionado = obterTamanhoAlfabeto(itensLegenda);
 
                 var scriptIllustrator = function(nomeDesigner, conteudoLegenda, texturas, palavraDigitada, tamanhoGX) {
                     var doc = app.activeDocument;

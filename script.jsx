@@ -1164,9 +1164,6 @@ function atualizarListaItens() {
     var frasePrincipal = "";
     var componentesExtras = [];
     var primeiroComponenteExtra = null;
-    var palavraDigitada = "";
-    var corBioprint = "";
-    var alfabetoUsado = false;
     var componentesAgrupados = {};
     var bolasCores = [];
     var totalBolas = 0;
@@ -1176,26 +1173,25 @@ function atualizarListaItens() {
     var componentesTexto = [];
     var bolasTexto = [];
     var texturasAdicionadas = [];
-    
     var componentesReferencias = [];
     var bolasProcessadas = {};
-    var referenciasAlfabeto = [];
     var itensProcessados = {};
-    
-    // Procurar pela palavra digitada no alfabeto, a cor do bioprint, componentes, bolas e texturas
+
+    // Usar função modularizada para processar o alfabeto
+    var resultadoAlfabeto = gerarPreviewAlfabeto(itensLegenda);
+    var referenciasAlfabeto = resultadoAlfabeto.referenciasAlfabeto;
+    var alfabetoUsado = resultadoAlfabeto.alfabetoUsado;
+    var palavraDigitada = resultadoAlfabeto.palavraDigitada;
+    var corBioprint = resultadoAlfabeto.corBioprint;
+
+    // Procurar por componentes, bolas e texturas
     for (var i = 0; i < itensLegenda.length; i++) {
         var item = itensLegenda[i];
-        
         if (item.tipo === "textura") {
             var numeroTextura = item.referencia.match(/\d+/)[0];
             if (!arrayContains(texturasAdicionadas, numeroTextura)) {
                 texturasAdicionadas.push(numeroTextura);
             }
-        } else if (item.tipo === "alfabeto" && item.palavraDigitada) {
-            palavraDigitada = item.palavraDigitada;
-            corBioprint = item.corBioprint;
-            alfabetoUsado = true;
-            referenciasAlfabeto.push(item);
         } else if (item.tipo === "componente") {
             var nomeComponente = item.nome.split(' ')[0];
             var corComponente = item.nome.split(' ').slice(1).join(' ');
@@ -1215,17 +1211,14 @@ function atualizarListaItens() {
                 bolasCores.push(corBola);
             }
             totalBolas += item.quantidade;
-            
             var chaveBola = item.referencia || item.nome;
             if (!contagemBolas[chaveBola]) {
                 contagemBolas[chaveBola] = 0;
             }
             contagemBolas[chaveBola] += item.quantidade;
-
             if (item.nome.toLowerCase().indexOf("composta") !== -1) {
                 bolasCompostas = true;
             }
-            
             if (!bolasProcessadas[chaveBola] || item.unidade === "units") {
                 bolasProcessadas[chaveBola] = item;
             }

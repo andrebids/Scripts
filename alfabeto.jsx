@@ -85,3 +85,26 @@ function adicionarPalavraChaveAlfabeto(campoPalavraChave, dropdownCorBioprint, t
         alert(t("nenhumaLetraValida"));
     }
 } 
+
+// Função para gerar referências do alfabeto para o preview
+function gerarPreviewAlfabeto(itensLegenda) {
+    var referenciasAlfabeto = [];
+    var alfabetoUsado = false;
+    var palavraDigitada = "";
+    var corBioprint = "";
+    for (var i = 0; i < itensLegenda.length; i++) {
+        var item = itensLegenda[i];
+        if (item.tipo === "alfabeto" && item.palavraDigitada) {
+            palavraDigitada = item.palavraDigitada;
+            corBioprint = item.corBioprint;
+            alfabetoUsado = true;
+            referenciasAlfabeto.push(item);
+        }
+    }
+    return {
+        referenciasAlfabeto: referenciasAlfabeto,
+        alfabetoUsado: alfabetoUsado,
+        palavraDigitada: palavraDigitada,
+        corBioprint: corBioprint
+    };
+} 

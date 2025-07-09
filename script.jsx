@@ -1984,6 +1984,18 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                 var tamanhoGXSelecionado = obterTamanhoAlfabeto(itensLegenda);
 
                 var scriptIllustrator = function(nomeDesigner, conteudoLegenda, texturas, palavraDigitada, tamanhoGX) {
+                    function gerarNomeArquivoAlfabeto(caractere, sufixoTamanho) {
+                        var nomeArquivoAI = "";
+                        if (caractere >= 'A' && caractere <= 'Z') {
+                            var numeroLetra = 214 + (caractere.charCodeAt(0) - 'A'.charCodeAt(0));
+                            nomeArquivoAI = "GX" + numeroLetra + "LW_" + sufixoTamanho + ".ai";
+                        } else if (caractere === '<3') {
+                            nomeArquivoAI = "GX240LW_" + sufixoTamanho + ".ai";
+                        } else if (caractere === '#') {
+                            nomeArquivoAI = "GX241LW_" + sufixoTamanho + ".ai";
+                        }
+                        return nomeArquivoAI;
+                    }
                     var doc = app.activeDocument;
     
                     if (!doc) {
@@ -2073,16 +2085,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                                     i++; // Pula o próximo caractere, pois já foi processado
                                 }
                                 
-                                var nomeArquivoAI = "";
-                                if (caractere >= 'A' && caractere <= 'Z') {
-                                    var numeroLetra = 214 + (caractere.charCodeAt(0) - 'A'.charCodeAt(0));
-                                    nomeArquivoAI = "GX" + numeroLetra + "LW_" + sufixoTamanho + ".ai";
-                                } else if (caractere === '<3') {
-                                    nomeArquivoAI = "GX240LW_" + sufixoTamanho + ".ai";
-                                } else if (caractere === '#') {
-                                    nomeArquivoAI = "GX241LW_" + sufixoTamanho + ".ai";
-                                }
-                                
+                                var nomeArquivoAI = gerarNomeArquivoAlfabeto(caractere, sufixoTamanho);
                                 if (nomeArquivoAI !== "") {
                                     var caminhoAI = caminhoAlfabeto + nomeArquivoAI;
                                     var arquivoAI = new File(caminhoAI);

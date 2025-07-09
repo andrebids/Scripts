@@ -132,3 +132,17 @@ function obterPalavraDigitadaAlfabeto(itensLegenda) {
     }
     return palavra;
 } 
+
+// Função para gerar o nome do arquivo AI do alfabeto
+function gerarNomeArquivoAlfabeto(caractere, sufixoTamanho) {
+    var nomeArquivoAI = "";
+    if (caractere >= 'A' && caractere <= 'Z') {
+        var numeroLetra = 214 + (caractere.charCodeAt(0) - 'A'.charCodeAt(0));
+        nomeArquivoAI = "GX" + numeroLetra + "LW_" + sufixoTamanho + ".ai";
+    } else if (caractere === '<3') {
+        nomeArquivoAI = "GX240LW_" + sufixoTamanho + ".ai";
+    } else if (caractere === '#') {
+        nomeArquivoAI = "GX241LW_" + sufixoTamanho + ".ai";
+    }
+    return nomeArquivoAI;
+} 

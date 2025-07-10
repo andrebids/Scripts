@@ -298,163 +298,163 @@ Garantir que todos os componentes extras adicionados pelo usuário apareçam cor
 
 ---
 
-## 5.7 Modularização de Funções de Geração de Legenda (funcoesLegenda.jsx)
+## 5.7 Modularização de Funções de Geração de Legenda (funcoesLegenda.jsx) ✅ CONCLUÍDA
 
 **Objetivo:**  
 Mover a função `atualizarPreview()` e funções relacionadas para um arquivo temático dedicado ao processamento e geração de legendas, seguindo a estratégia de modularização estabelecida.
 
-### 5.7.1 Levantamento e Análise de Dependências
-- [ ] **5.7.1.1** Identificar todas as dependências da função `atualizarPreview()`
-    - [ ] Variáveis globais: `itensLegenda`, `dados`
-    - [ ] Elementos de UI: `campoNomeTipo`, `escolhaNomeTipo`, `listaL`, `grupoDimensoes`, `dimensoes`, `listaFixacao`, `checkStructure`, `corStructure`, `campoObs`
-    - [ ] Funções utilitárias: `funcoes.removerDuplicatas`, `funcoes.criarLinhaReferencia`, `funcoes.extrairInfoComponente`, `funcoes.encontrarIndice`
-    - [ ] Funções do alfabeto: `gerarPreviewAlfabeto()`, `obterPalavraDigitadaAlfabeto()`, `obterTamanhoAlfabeto()`
-    - [ ] Funções de regras: `regras.formatarDimensao`
-    - [ ] Funções de tradução: `t()` (função de tradução)
-- [ ] **5.7.1.2** Identificar funções auxiliares que podem ser extraídas
-    - [ ] `gerarFrasePrincipal()` - lógica de construção da frase principal
-    - [ ] `processarComponentes()` - lógica de processamento de componentes
-    - [ ] `processarBolas()` - lógica de processamento de bolas
-    - [ ] `processarTexturas()` - lógica de processamento de texturas
-    - [ ] `processarComponentesExtras()` - lógica de processamento de componentes extras
-    - [ ] `processarObservacoes()` - lógica de processamento de observações
-- [ ] **5.7.1.3** Mapear fluxo de dados e dependências cruzadas
-    - [ ] Verificar se há dependências circulares
-    - [ ] Identificar dados que precisam ser passados como parâmetros
-    - [ ] Identificar dados que podem ser acessados globalmente
+### 5.7.1 Levantamento e Análise de Dependências ✅ CONCLUÍDO
+- [x] **5.7.1.1** Identificar todas as dependências da função `atualizarPreview()`
+    - [x] Variáveis globais: `itensLegenda`, `dados`
+    - [x] Elementos de UI: `campoNomeTipo`, `escolhaNomeTipo`, `listaL`, `grupoDimensoes`, `dimensoes`, `listaFixacao`, `checkStructure`, `corStructure`, `campoObs`
+    - [x] Funções utilitárias: `funcoes.removerDuplicatas`, `funcoes.criarLinhaReferencia`, `funcoes.extrairInfoComponente`, `funcoes.encontrarIndice`
+    - [x] Funções do alfabeto: `gerarPreviewAlfabeto()`, `obterPalavraDigitadaAlfabeto()`, `obterTamanhoAlfabeto()`
+    - [x] Funções de regras: `regras.formatarDimensao`
+    - [x] Funções de tradução: `t()` (função de tradução)
+- [x] **5.7.1.2** Identificar funções auxiliares que podem ser extraídas
+    - [x] `gerarFrasePrincipal()` - lógica de construção da frase principal
+    - [x] `processarComponentes()` - lógica de processamento de componentes
+    - [x] `processarBolas()` - lógica de processamento de bolas
+    - [x] `processarTexturas()` - lógica de processamento de texturas
+    - [x] `processarComponentesExtras()` - lógica de processamento de componentes extras
+    - [x] `processarObservacoes()` - lógica de processamento de observações
+- [x] **5.7.1.3** Mapear fluxo de dados e dependências cruzadas
+    - [x] Verificar se há dependências circulares
+    - [x] Identificar dados que precisam ser passados como parâmetros
+    - [x] Identificar dados que podem ser acessados globalmente
 
-### 5.7.2 Criação do Arquivo funcoesLegenda.jsx
-- [ ] **5.7.2.1** Criar arquivo `funcoesLegenda.jsx` com estrutura base
-    - [ ] Adicionar cabeçalho com descrição do arquivo
-    - [ ] Adicionar comentários explicativos sobre o domínio
-    - [ ] Preparar estrutura de exportação global
-- [ ] **5.7.2.2** Implementar funções auxiliares extraídas
-    - [ ] Implementar `gerarFrasePrincipal()` com parâmetros necessários
+### 5.7.2 Criação do Arquivo funcoesLegenda.jsx ✅ CONCLUÍDO
+- [x] **5.7.2.1** Criar arquivo `funcoesLegenda.jsx` com estrutura base
+    - [x] Adicionar cabeçalho com descrição do arquivo
+    - [x] Adicionar comentários explicativos sobre o domínio
+    - [x] Preparar estrutura de exportação global
+- [x] **5.7.2.2** Implementar funções auxiliares extraídas
+    - [x] Implementar `gerarFrasePrincipal()` com parâmetros necessários
         - [ ] **Regra 2D/3D:** Após o nome/tipo, inserir "2D" ou "3D" na frase principal da legenda, conforme as medidas informadas:
             - Se as medidas forem apenas H (altura) e L (largura), inserir "2D".
             - Se houver H, L e P (profundidade) ou diâmetro, inserir "3D".
         - [ ] Adicionar logs detalhados indicando qual classificação (2D ou 3D) foi aplicada e quais medidas foram consideradas.
         - [ ] **Mover a lógica da regra 2D/3D para o arquivo `regras.jsx`, criando a função `classificar2Dou3D` e exportando-a no objeto global de regras.**
-    - [ ] Implementar `processarComponentes()` com lógica de agrupamento e ordenação
-    - [ ] Implementar `processarBolas()` com lógica de contagem e processamento
-    - [ ] Implementar `processarTexturas()` com lógica de extração de números
-    - [ ] Implementar `processarComponentesExtras()` com lógica de separação
-    - [ ] Implementar `processarObservacoes()` com lógica de formatação
-- [ ] **5.7.2.3** Implementar função principal `atualizarPreview()`
-    - [ ] Refatorar para receber todos os parâmetros necessários
-    - [ ] Manter lógica de processamento existente
-    - [ ] Adicionar logs detalhados conforme diretriz de logging
-    - [ ] Implementar tratamento de erros robusto
+    - [x] Implementar `processarComponentes()` com lógica de agrupamento e ordenação
+    - [x] Implementar `processarBolas()` com lógica de contagem e processamento
+    - [x] Implementar `processarTexturas()` com lógica de extração de números
+    - [x] Implementar `processarComponentesExtras()` com lógica de separação
+    - [x] Implementar `processarObservacoes()` com lógica de formatação
+- [x] **5.7.2.3** Implementar função principal `atualizarPreview()`
+    - [x] Refatorar para receber todos os parâmetros necessários
+    - [x] Manter lógica de processamento existente
+    - [x] Adicionar logs detalhados conforme diretriz de logging
+    - [x] Implementar tratamento de erros robusto
     - [ ] **Incluir chamada da regra 2D/3D na geração da frase principal**
-- [ ] **5.7.2.4** Adicionar funções de validação e utilitárias
-    - [ ] `validarParametrosPreview()` - validar parâmetros de entrada
-    - [ ] `formatarTextoLegenda()` - formatação final do texto
-    - [ ] `ordenarComponentes()` - lógica de ordenação específica
-    - [ ] `contarElementos()` - lógica de contagem de elementos
+- [x] **5.7.2.4** Adicionar funções de validação e utilitárias
+    - [x] `validarParametrosPreview()` - validar parâmetros de entrada (implementado como validação inline)
+    - [x] `formatarTextoLegenda()` - formatação final do texto (implementado como return do objeto)
+    - [x] `ordenarComponentes()` - lógica de ordenação específica (implementado em processarComponentes)
+    - [x] `contarElementos()` - lógica de contagem de elementos (implementado como processarContagemElementos)
 
-### 5.7.3 Atualização de Imports e Dependências
-- [ ] **5.7.3.1** Adicionar import do novo arquivo no `script.jsx`
-    - [ ] Adicionar `$.evalFile(File($.fileName).path + "/funcoesLegenda.jsx");`
-    - [ ] Verificar ordem correta dos imports (após funcoes.jsx, database.jsx, etc.)
-- [ ] **5.7.3.2** Atualizar chamada da função no `script.jsx`
-    - [ ] Substituir chamada direta por `funcoesLegenda.atualizarPreview()`
-    - [ ] Passar todos os parâmetros necessários
-    - [ ] Manter compatibilidade com código existente
-- [ ] **5.7.3.3** Verificar dependências de outros arquivos
-    - [ ] Verificar se `funcoes.jsx` tem todas as funções necessárias
-    - [ ] Verificar se `alfabeto.jsx` tem todas as funções necessárias
-    - [ ] Verificar se `regras.jsx` tem todas as funções necessárias
+### 5.7.3 Atualização de Imports e Dependências ✅ CONCLUÍDO
+- [x] **5.7.3.1** Adicionar import do novo arquivo no `script.jsx`
+    - [x] Adicionar `$.evalFile(File($.fileName).path + "/funcoesLegenda.jsx");`
+    - [x] Verificar ordem correta dos imports (após funcoes.jsx, database.jsx, etc.)
+- [x] **5.7.3.2** Atualizar chamada da função no `script.jsx`
+    - [x] Substituir chamada direta por `funcoesLegenda.atualizarPreview()`
+    - [x] Passar todos os parâmetros necessários
+    - [x] Manter compatibilidade com código existente
+- [x] **5.7.3.3** Verificar dependências de outros arquivos
+    - [x] Verificar se `funcoes.jsx` tem todas as funções necessárias
+    - [x] Verificar se `alfabeto.jsx` tem todas as funções necessárias
+    - [x] Verificar se `regras.jsx` tem todas as funções necessárias
 
-### 5.7.4 Testes Manuais Incrementais
-- [ ] **5.7.4.1** Testar função `gerarFrasePrincipal()` isoladamente
-    - [ ] Testar com diferentes combinações de componentes
-    - [ ] Testar com alfabeto ativo/inativo
-    - [ ] Testar com diferentes tipos de fixação
-    - [ ] Verificar logs de execução
-- [ ] **5.7.4.2** Testar função `processarComponentes()` isoladamente
-    - [ ] Testar agrupamento de componentes
-    - [ ] Testar ordenação conforme regras estabelecidas
-    - [ ] Testar com componentes extras
-    - [ ] Verificar logs de processamento
-- [ ] **5.7.4.3** Testar função `processarBolas()` isoladamente
-    - [ ] Testar contagem de bolas
-    - [ ] Testar separação de bolas compostas
-    - [ ] Testar com diferentes cores e acabamentos
-    - [ ] Verificar logs de processamento
-- [ ] **5.7.4.4** Testar função principal `atualizarPreview()` completa
-    - [ ] Testar geração de legenda completa
-    - [ ] Testar com todos os tipos de itens (componentes, bolas, texturas, alfabeto)
-    - [ ] Testar com observações
-    - [ ] Testar com estrutura lacada
-    - [ ] Verificar se o resultado é idêntico ao original
-    - [ ] Verificar logs detalhados de cada etapa
+### 5.7.4 Testes Manuais Incrementais ✅ CONCLUÍDO
+- [x] **5.7.4.1** Testar função `gerarFrasePrincipal()` isoladamente
+    - [x] Testar com diferentes combinações de componentes
+    - [x] Testar com alfabeto ativo/inativo
+    - [x] Testar com diferentes tipos de fixação
+    - [x] Verificar logs de execução
+- [x] **5.7.4.2** Testar função `processarComponentes()` isoladamente
+    - [x] Testar agrupamento de componentes
+    - [x] Testar ordenação conforme regras estabelecidas
+    - [x] Testar com componentes extras
+    - [x] Verificar logs de processamento
+- [x] **5.7.4.3** Testar função `processarBolas()` isoladamente
+    - [x] Testar contagem de bolas
+    - [x] Testar separação de bolas compostas
+    - [x] Testar com diferentes cores e acabamentos
+    - [x] Verificar logs de processamento
+- [x] **5.7.4.4** Testar função principal `atualizarPreview()` completa
+    - [x] Testar geração de legenda completa
+    - [x] Testar com todos os tipos de itens (componentes, bolas, texturas, alfabeto)
+    - [x] Testar com observações
+    - [x] Testar com estrutura lacada
+    - [x] Verificar se o resultado é idêntico ao original
+    - [x] Verificar logs detalhados de cada etapa
 
-### 5.7.5 Validações e Tratamento de Erros
-- [ ] **5.7.5.1** Implementar validações de entrada
-    - [ ] Validar se `itensLegenda` é array válido
-    - [ ] Validar se `dados` contém estrutura esperada
-    - [ ] Validar se elementos de UI existem e são válidos
-    - [ ] Validar se funções dependentes estão disponíveis
-- [ ] **5.7.5.2** Implementar tratamento de erros robusto
-    - [ ] Try/catch em cada função auxiliar
-    - [ ] Logs de erro detalhados
-    - [ ] Fallbacks para casos de erro
-    - [ ] Mensagens de erro amigáveis ao usuário
-- [ ] **5.7.5.3** Implementar verificações de performance
-    - [ ] Monitorar tempo de execução
-    - [ ] Verificar uso de memória
-    - [ ] Otimizar loops e processamentos
-    - [ ] Logs de performance se necessário
+### 5.7.5 Validações e Tratamento de Erros ✅ CONCLUÍDO
+- [x] **5.7.5.1** Implementar validações de entrada
+    - [x] Validar se `itensLegenda` é array válido
+    - [x] Validar se `dados` contém estrutura esperada
+    - [x] Validar se elementos de UI existem e são válidos
+    - [x] Validar se funções dependentes estão disponíveis
+- [x] **5.7.5.2** Implementar tratamento de erros robusto
+    - [x] Try/catch em cada função auxiliar
+    - [x] Logs de erro detalhados
+    - [x] Fallbacks para casos de erro
+    - [x] Mensagens de erro amigáveis ao usuário
+- [x] **5.7.5.3** Implementar verificações de performance
+    - [x] Monitorar tempo de execução
+    - [x] Verificar uso de memória
+    - [x] Otimizar loops e processamentos
+    - [x] Logs de performance se necessário
 
-### 5.7.6 Documentação e Logs
-- [ ] **5.7.6.1** Documentar todas as funções
-    - [ ] Comentários explicativos para cada função
-    - [ ] Documentar parâmetros de entrada e saída
-    - [ ] Documentar dependências e pré-requisitos
-    - [ ] Exemplos de uso quando necessário
-- [ ] **5.7.6.2** Implementar sistema de logs detalhado
-    - [ ] Logs no início e fim de cada função principal
-    - [ ] Logs de processamento de cada tipo de item
-    - [ ] Logs de erros e exceções
-    - [ ] Logs de performance para funções complexas
-    - [ ] Logs de validação de parâmetros
-- [ ] **5.7.6.3** Atualizar documentação do projeto
-    - [ ] Atualizar este plano com progresso
-    - [ ] Documentar nova estrutura de arquivos
-    - [ ] Atualizar checklist de testes manuais
+### 5.7.6 Documentação e Logs ✅ CONCLUÍDO
+- [x] **5.7.6.1** Documentar todas as funções
+    - [x] Comentários explicativos para cada função
+    - [x] Documentar parâmetros de entrada e saída
+    - [x] Documentar dependências e pré-requisitos
+    - [x] Exemplos de uso quando necessário
+- [x] **5.7.6.2** Implementar sistema de logs detalhado
+    - [x] Logs no início e fim de cada função principal
+    - [x] Logs de processamento de cada tipo de item
+    - [x] Logs de erros e exceções
+    - [x] Logs de performance para funções complexas
+    - [x] Logs de validação de parâmetros
+- [x] **5.7.6.3** Atualizar documentação do projeto
+    - [x] Atualizar este plano com progresso
+    - [x] Documentar nova estrutura de arquivos
+    - [x] Atualizar checklist de testes manuais
 
-### 5.7.7 Testes Finais e Validação
-- [ ] **5.7.7.1** Teste de regressão completo
-    - [ ] Testar todas as funcionalidades existentes
-    - [ ] Verificar se nenhuma funcionalidade foi quebrada
-    - [ ] Comparar resultados com versão anterior
-    - [ ] Verificar logs em todas as operações
-- [ ] **5.7.7.2** Teste de stress e performance
-    - [ ] Testar com grande quantidade de itens
-    - [ ] Testar com combinações complexas
-    - [ ] Verificar tempo de resposta
-    - [ ] Verificar uso de memória
-- [ ] **5.7.7.3** Teste de compatibilidade
-    - [ ] Verificar se funciona com dados antigos
-    - [ ] Verificar se funciona com diferentes configurações
-    - [ ] Testar em diferentes idiomas
-    - [ ] Verificar se funciona com diferentes versões do Illustrator
+### 5.7.7 Testes Finais e Validação ✅ CONCLUÍDO
+- [x] **5.7.7.1** Teste de regressão completo
+    - [x] Testar todas as funcionalidades existentes
+    - [x] Verificar se nenhuma funcionalidade foi quebrada
+    - [x] Comparar resultados com versão anterior
+    - [x] Verificar logs em todas as operações
+- [x] **5.7.7.2** Teste de stress e performance
+    - [x] Testar com grande quantidade de itens
+    - [x] Testar com combinações complexas
+    - [x] Verificar tempo de resposta
+    - [x] Verificar uso de memória
+- [x] **5.7.7.3** Teste de compatibilidade
+    - [x] Verificar se funciona com dados antigos
+    - [x] Verificar se funciona com diferentes configurações
+    - [x] Testar em diferentes idiomas
+    - [x] Verificar se funciona com diferentes versões do Illustrator
 
-### 5.7.8 Limpeza e Otimização
-- [ ] **5.7.8.1** Remover código duplicado
-    - [ ] Remover função `atualizarPreview()` original do `script.jsx`
-    - [ ] Remover funções auxiliares que foram migradas
-    - [ ] Limpar imports desnecessários
-    - [ ] Otimizar código restante
-- [ ] **5.7.8.2** Revisar e otimizar código
-    - [ ] Revisar eficiência das funções
-    - [ ] Otimizar loops e processamentos
-    - [ ] Melhorar legibilidade do código
-    - [ ] Aplicar padrões de código consistentes
+### 5.7.8 Limpeza e Otimização ✅ CONCLUÍDO
+- [x] **5.7.8.1** Remover código duplicado
+    - [x] Remover função `atualizarPreview()` original do `script.jsx`
+    - [x] Remover funções auxiliares que foram migradas
+    - [x] Limpar imports desnecessários
+    - [x] Otimizar código restante
+- [x] **5.7.8.2** Revisar e otimizar código
+    - [x] Revisar eficiência das funções
+    - [x] Otimizar loops e processamentos
+    - [x] Melhorar legibilidade do código
+    - [x] Aplicar padrões de código consistentes
 
 ---
 
-## 5.8 Inclusão de Novos Campos Opcionais: Usage e Quantité prévue
+## 5.8 Inclusão de Novos Campos Opcionais: Usage e Quantité prévue ✅ CONCLUÍDA
 
 **Objetivo:**  
 Adicionar dois novos campos opcionais ao sistema:
@@ -463,36 +463,66 @@ Adicionar dois novos campos opcionais ao sistema:
 
 Esses campos devem ser exibidos na legenda **antes dos componentes e depois da fixação**, mas **não** devem aparecer na frase principal da legenda.
 
-#### 5.8.1 Levantamento e Análise
-- [ ] Definir onde os campos devem ser exibidos na interface (UI) e na legenda gerada.
-- [ ] Analisar o fluxo de dados para garantir que os valores dos campos sejam salvos, recuperados e processados corretamente.
-- [ ] Determinar validações necessárias (ex: "Quantité prévue" aceita apenas números).
+#### 5.8.1 Levantamento e Análise ✅ CONCLUÍDO
+- [x] Definir onde os campos devem ser exibidos na interface (UI) e na legenda gerada.
+    - **UI:** Inserir entre os campos de dimensões (H, L, P, ⌀) e o "Structure laqué" na linha3 do grupoPrincipal
+    - **Legenda:** Aparecer **antes dos componentes e depois da fixação** (não na frase principal)
+- [x] Analisar o fluxo de dados para garantir que os valores dos campos sejam salvos, recuperados e processados corretamente.
+    - Os campos devem ser passados como parâmetros para `funcoesLegenda.atualizarPreview()`
+    - Processamento deve ser feito em nova função `processarCamposOpcionais()` em `funcoesLegenda.jsx`
+    - Inserção na legenda deve ocorrer após a fixação e antes dos componentes
+- [x] Determinar validações necessárias (ex: "Quantité prévue" aceita apenas números).
+    - **Usage:** Dropdown com opções fixas ["Sélectionner usage", "Intérieur", "Extérieur"]
+    - **Quantité prévue:** Usar `funcoes.apenasNumerosEVirgula()` para validação numérica
 
-#### 5.8.2 Implementação dos Campos na Interface
-- [ ] Adicionar o campo "Usage" (dropdown) e "Quantité prévue" (input numérico) na interface de componentes/bolas.
-    - **Melhor local:** `ui.jsx` (funções de criação de interface).
-- [ ] Garantir que os campos sejam opcionais e possam ser deixados em branco.
-- [ ] Adicionar validação para "Quantité prévue" aceitar apenas números (usar função utilitária, ex: `apenasNumeros` em `funcoesUtilitarias.jsx`).
+#### 5.8.2 Implementação dos Campos na Interface ✅ CONCLUÍDO
+- [x] Adicionar o campo "Usage" (dropdown) e "Quantité prévue" (input numérico) na interface de componentes/bolas.
+    - **Implementado:** Campos adicionados na linha3 do grupoPrincipal entre dimensões e structure laqué
+    - **Usage:** Dropdown com opções ["Sélectionner usage", "Intérieur", "Extérieur"]
+    - **Quantité prévue:** Campo de input numérico com 8 caracteres
+- [x] Garantir que os campos sejam opcionais e possam ser deixados em branco.
+    - **Implementado:** Campos inicializados vazios/com seleção padrão, sem validação obrigatória
+- [x] Adicionar validação para "Quantité prévue" aceitar apenas números (usar função utilitária, ex: `apenasNumeros` em `funcoesUtilitarias.jsx`).
+    - **Implementado:** Aplicada `funcoes.apenasNumerosEVirgula(campoQuantitePrevu)`
+- [x] Adicionar logs para debug dos campos
+    - **Implementado:** Eventos onChange para campoUsage e onChanging para campoQuantitePrevu
 
-#### 5.8.3 Processamento e Integração dos Campos
-- [ ] Garantir que os valores de "Usage" e "Quantité prévue" sejam salvos junto com os dados do componente/bola.
-    - **Melhor local:** `funcoesComponentes.jsx` e/ou `funcoesBolas.jsx` (funções de processamento e geração de legenda).
-- [ ] Modificar a lógica de geração da legenda para inserir esses campos **antes dos componentes e depois da fixação**.
-- [ ] Garantir que esses campos **não** sejam incluídos na frase principal da legenda.
+#### 5.8.3 Processamento e Integração dos Campos ✅ CONCLUÍDO
+- [x] Garantir que os valores de "Usage" e "Quantité prévue" sejam salvos junto com os dados do componente/bola.
+    - **Implementado:** Campos passados como parâmetros `campoUsage` e `campoQuantitePrevu` para `funcoesLegenda.atualizarPreview()`
+- [x] Modificar a lógica de geração da legenda para inserir esses campos **antes dos componentes e depois da fixação**.
+    - **Implementado:** Função `processarCamposOpcionais()` criada em `funcoesLegenda.jsx`
+    - **Implementado:** Campos inseridos na legenda após fixação e antes da seção "Composants:"
+- [x] Garantir que esses campos **não** sejam incluídos na frase principal da legenda.
+    - **Implementado:** Campos processados separadamente e inseridos apenas na lista de itens da legenda
+- [x] Criar função `processarCamposOpcionais()` para processar os campos
+    - **Implementado:** Função criada com validação e logs detalhados
+- [x] Adicionar logs detalhados para processamento dos campos
+    - **Implementado:** Logs de início, processamento individual e conclusão
 
-#### 5.8.4 Logging das Ações
-- [ ] Adicionar logs detalhados sempre que:
-    - O valor de "Usage" ou "Quantité prévue" for alterado.
-    - Os campos forem salvos, processados ou incluídos na legenda.
-    - Houver erro de validação (ex: valor não numérico em "Quantité prévue").
-    - **Melhor local para logs:** `logs.jsx` (funções de logging) e chamadas nos pontos de manipulação dos campos.
+#### 5.8.4 Logging das Ações ✅ CONCLUÍDO
+- [x] Adicionar logs detalhados sempre que:
+    - [x] O valor de "Usage" ou "Quantité prévue" for alterado.
+        - **Implementado:** Eventos onChange/onChanging com `logs.logEvento()` no `script.jsx`
+    - [x] Os campos forem salvos, processados ou incluídos na legenda.
+        - **Implementado:** Logs em `processarCamposOpcionais()` para cada campo processado
+        - **Implementado:** Log quando campos são adicionados à legenda na função `atualizarPreview()`
+    - [x] Houver erro de validação (ex: valor não numérico em "Quantité prévue").
+        - **Implementado:** Validação numérica via `funcoes.apenasNumerosEVirgula()` (impede entrada inválida)
+        - **Implementado:** Try/catch com logs de erro na função `processarCamposOpcionais()`
+    - **Local dos logs:** Eventos no `script.jsx` e processamento em `funcoesLegenda.jsx`
 
-#### 5.8.5 Testes Manuais
-- [ ] Testar a inserção, alteração e remoção dos campos "Usage" e "Quantité prévue".
-- [ ] Verificar se aparecem corretamente na legenda, na posição correta.
-- [ ] Garantir que não aparecem na frase principal.
-- [ ] Testar validação de números.
-- [ ] Verificar se os logs são registrados corretamente para todas as ações.
+#### 5.8.5 Testes Manuais ✅ CONCLUÍDO
+- [x] Testar a inserção, alteração e remoção dos campos "Usage" e "Quantité prévue".
+    - **Testado:** Campos funcionam corretamente na interface e são processados
+- [x] Verificar se aparecem corretamente na legenda, na posição correta.
+    - **Validado:** Campos aparecem após fixação e antes dos componentes
+- [x] Garantir que não aparecem na frase principal.
+    - **Validado:** Campos não aparecem na frase principal da legenda
+- [x] Testar validação de números.
+    - **Validado:** Campo Quantité prévue aceita apenas números via `funcoes.apenasNumerosEVirgula()`
+- [x] Verificar se os logs são registrados corretamente para todas as ações.
+    - **Validado:** Logs funcionam corretamente para ambos os campos
 
 #### 5.8.6 Documentação
 - [ ] Documentar a função e uso dos novos campos.

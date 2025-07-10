@@ -484,6 +484,48 @@ function processarContagemElementos(itensLegenda) {
 }
 
 /**
+ * Processa os campos opcionais Usage e Quantité prévue
+ * @param {Object} campoUsage - Dropdown de Usage
+ * @param {Object} campoQuantitePrevu - Campo de Quantité prévue
+ * @returns {Array} Array com texto dos campos opcionais formatado
+ */
+function processarCamposOpcionais(campoUsage, campoQuantitePrevu) {
+    logLegenda("Iniciando processamento de campos opcionais", "function");
+    
+    try {
+        var camposOpcionaisTexto = [];
+
+        // Processar campo Usage
+        if (campoUsage && campoUsage.selection && campoUsage.selection.index > 0 && campoUsage.selection.text) {
+            var usageTexto = "Usage: " + campoUsage.selection.text;
+            camposOpcionaisTexto.push(usageTexto);
+            logLegenda("Campo Usage processado: " + usageTexto, "info");
+        }
+
+        // Processar campo Quantité prévue
+        if (campoQuantitePrevu && campoQuantitePrevu.text !== undefined) {
+            // Converter para string e remover espaços manualmente
+            var textoQuantite = String(campoQuantitePrevu.text);
+            var textoLimpo = textoQuantite.replace(/^\s+/, '').replace(/\s+$/, '');
+            
+            if (textoLimpo !== "") {
+                var quantiteTexto = "Quantité prévue: " + textoLimpo;
+                camposOpcionaisTexto.push(quantiteTexto);
+                logLegenda("Campo Quantité prévue processado: " + quantiteTexto, "info");
+            }
+        }
+
+        logLegenda("Processamento de campos opcionais concluído: " + camposOpcionaisTexto.length + " campos", "info");
+        
+        return camposOpcionaisTexto;
+        
+    } catch (erro) {
+        logLegenda("Erro ao processar campos opcionais: " + erro, "error");
+        return [];
+    }
+}
+
+/**
  * Função principal para atualizar o preview da legenda
  * @param {Object} parametros - Objeto com todos os parâmetros necessários
  * @returns {Object} Objeto com texto da legenda e texturas
@@ -563,6 +605,16 @@ function atualizarPreview(parametros) {
         // Adicionar tipo de fixação
         if (parametros.listaFixacao && parametros.listaFixacao.selection) {
             previewText.push("Fixation: " + parametros.listaFixacao.selection.text);
+        }
+
+        // Adicionar campos opcionais (Usage e Quantité prévue) após fixação
+        var camposOpcionaisTexto = processarCamposOpcionais(parametros.campoUsage, parametros.campoQuantitePrevu);
+        if (camposOpcionaisTexto.length > 0) {
+            previewText.push("\u200B"); // Linha de separação antes dos campos opcionais
+            for (var i = 0; i < camposOpcionaisTexto.length; i++) {
+                previewText.push(camposOpcionaisTexto[i]);
+            }
+            logLegenda("Campos opcionais adicionados à legenda com linha separadora: " + camposOpcionaisTexto.length + " campos", "info");
         }
 
         // Adicionar "Composants:" se houver componentes, alfabeto ou componentes extras
@@ -659,5 +711,6 @@ $.global.funcoesLegenda = {
     processarComponentesExtras: processarComponentesExtras,
     processarObservacoes: processarObservacoes,
     processarDimensoes: processarDimensoes,
-    processarContagemElementos: processarContagemElementos
+    processarContagemElementos: processarContagemElementos,
+    processarCamposOpcionais: processarCamposOpcionais
 }; 

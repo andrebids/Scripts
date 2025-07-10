@@ -260,6 +260,38 @@ for (var i = 0; i < dimensoes.length; i++) {
 var espacoFlexivel = linha3.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
+// Campos opcionais: Usage e Quantité prévue
+var grupoCamposOpcionais = linha3.add("group");
+grupoCamposOpcionais.orientation = "row";
+grupoCamposOpcionais.alignChildren = ["left", "center"];
+grupoCamposOpcionais.spacing = 10;
+
+// Campo Usage (dropdown)
+grupoCamposOpcionais.add("statictext", undefined, "Usage:");
+var campoUsage = grupoCamposOpcionais.add("dropdownlist", undefined, ["Sélectionner usage", "Intérieur", "Extérieur"]);
+campoUsage.selection = 0;
+campoUsage.preferredSize.width = 120;
+
+// Adicionar evento para logs
+campoUsage.onChange = function() {
+    if (logs && logs.logEvento) {
+        logs.logEvento("change", "campoUsage - " + (this.selection ? this.selection.text : "nenhuma seleção"));
+    }
+};
+
+// Campo Quantité prévue (input numérico)
+grupoCamposOpcionais.add("statictext", undefined, "Quantité prévue:");
+var campoQuantitePrevu = grupoCamposOpcionais.add("edittext", undefined, "");
+campoQuantitePrevu.characters = 8;
+funcoes.apenasNumerosEVirgula(campoQuantitePrevu);
+
+// Adicionar evento para logs
+campoQuantitePrevu.onChanging = function() {
+    if (logs && logs.logEvento) {
+        logs.logEvento("change", "campoQuantitePrevu - " + this.text);
+    }
+};
+
 var coresStructure = [
     "Blanc RAL 9010",
     "Or PANTONE 131C",
@@ -1148,7 +1180,9 @@ function atualizarListaItens() {
                     listaFixacao: listaFixacao,
                     checkStructure: checkStructure,
                     corStructure: corStructure,
-                    campoObs: campoObs
+                    campoObs: campoObs,
+                    campoUsage: campoUsage,
+                    campoQuantitePrevu: campoQuantitePrevu
                 };
                 
                 var legendaInfo = funcoesLegenda.atualizarPreview(parametrosPreview);

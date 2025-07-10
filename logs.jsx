@@ -14,11 +14,94 @@ var TIPOS_LOG = {
     FUNCTION: 'function'
 };
 
+// Níveis de verbosidade
+var NIVEIS_LOG = {
+    BASIC: 1,      // Apenas clicks, erros e warnings
+    DETAILED: 2,   // + functions importantes
+    DEBUG: 3       // Todos os logs incluindo operações de arquivo
+};
+
+// Configuração atual de verbosidade
+var nivelAtual = NIVEIS_LOG.BASIC;
+
+// Cache para evitar logs repetitivos
+var cacheOperacoes = {};
+var limiteCacheOperacao = 3; // Máximo de vezes que a mesma operação é logada
+
+// Função para verificar se deve registrar o log baseado no nível
+function deveRegistrarLog(tipo, mensagem) {
+    // Sempre registrar erros e warnings
+    if (tipo === TIPOS_LOG.ERROR || tipo === TIPOS_LOG.WARNING) {
+        return true;
+    }
+    
+    // Sempre registrar clicks no nível BASIC ou superior
+    if (tipo === TIPOS_LOG.CLICK && nivelAtual >= NIVEIS_LOG.BASIC) {
+        return true;
+    }
+    
+    // Registrar functions no nível DETAILED ou superior
+    if (tipo === TIPOS_LOG.FUNCTION && nivelAtual >= NIVEIS_LOG.DETAILED) {
+        return true;
+    }
+    
+    // Registrar alguns logs INFO importantes mesmo no nível BASIC
+    if (tipo === TIPOS_LOG.INFO) {
+        // Logs de inicialização e operações importantes sempre aparecem
+        if (mensagem.indexOf("inicializado") !== -1 || 
+            mensagem.indexOf("Sistema de logs") !== -1 ||
+            mensagem.indexOf("Módulo de logs") !== -1 ||
+            mensagem.indexOf("Nível de log alterado") !== -1 ||
+            mensagem.indexOf("Cache de operações limpo") !== -1 ||
+            mensagem.indexOf("Logs limpos") !== -1 ||
+            mensagem.indexOf("Auto-scroll") !== -1 ||
+            mensagem.indexOf("adicionado") !== -1 ||
+            mensagem.indexOf("removido") !== -1 ||
+            mensagem.indexOf("atualizado") !== -1) {
+            return true;
+        }
+        
+        // Outros logs INFO apenas no nível DEBUG
+        if (nivelAtual >= NIVEIS_LOG.DEBUG) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+// Função para verificar se a operação já foi logada muitas vezes
+function verificarCacheOperacao(mensagem) {
+    // Criar chave simplificada da operação
+    var chave = mensagem.substring(0, 50); // Primeiros 50 caracteres
+    
+    if (!cacheOperacoes[chave]) {
+        cacheOperacoes[chave] = 0;
+    }
+    
+    cacheOperacoes[chave]++;
+    
+    // Se excedeu o limite, adicionar sufixo
+    if (cacheOperacoes[chave] > limiteCacheOperacao) {
+        return "(" + cacheOperacoes[chave] + "x) " + mensagem;
+    }
+    
+    return mensagem;
+}
+
 // Função para adicionar log
-function adicionarLog(mensagem, tipo) {
+function adicionarLog(mensagem, tipo, nivel) {
     if (!tipo) {
         tipo = TIPOS_LOG.INFO;
     }
+    
+    // Verificar se deve registrar baseado no nível
+    if (!deveRegistrarLog(tipo, mensagem)) {
+        return null;
+    }
+    
+    // Verificar cache para operações repetitivas
+    mensagem = verificarCacheOperacao(mensagem);
     
     var timestamp = new Date();
     var logEntry = {
@@ -36,8 +119,14 @@ function adicionarLog(mensagem, tipo) {
         logsArray.shift(); // Remove o log mais antigo
     }
     
-    // Atualizar interface se existir
-    if (typeof atualizarInterfaceLogs === 'function') {
+    // Atualizar interface se existir 
+    // Nos primeiros 20 logs ou em logs importantes, atualizar sempre
+    var deveAtualizarSempre = logsArray.length <= 20 || 
+                              tipo === TIPOS_LOG.ERROR || 
+                              tipo === TIPOS_LOG.WARNING ||
+                              mensagem.indexOf("inicializado") !== -1;
+    
+    if ((deveAtualizarSempre || logsArray.length % 5 === 0) && typeof atualizarInterfaceLogs === 'function') {
         atualizarInterfaceLogs();
     }
     
@@ -190,11 +279,52 @@ function configurarEventosLogs() {
     }
 }
 
+// Função para configurar nível de verbosidade
+function configurarNivelLog(nivel) {
+    if (nivel >= NIVEIS_LOG.BASIC && nivel <= NIVEIS_LOG.DEBUG) {
+        nivelAtual = nivel;
+        var nivelNome = nivel === NIVEIS_LOG.BASIC ? "BASIC" : 
+                       nivel === NIVEIS_LOG.DETAILED ? "DETAILED" : "DEBUG";
+        adicionarLog("Nível de log alterado para: " + nivelNome, TIPOS_LOG.INFO);
+        return true;
+    }
+    return false;
+}
+
+// Função para obter nível atual
+function obterNivelAtual() {
+    return nivelAtual;
+}
+
+// Função simplificada para logs de arquivo (evita verbosidade excessiva)
+function logArquivo(operacao, arquivo, sucesso, detalhes) {
+    var mensagem = operacao + ": " + arquivo.split('/').pop(); // Apenas nome do arquivo
+    if (sucesso) {
+        if (detalhes) {
+            mensagem += " (" + detalhes + ")";
+        }
+        adicionarLog(mensagem + " ✓", TIPOS_LOG.INFO);
+    } else {
+        adicionarLog(mensagem + " ✗ - " + (detalhes || "erro"), TIPOS_LOG.ERROR);
+    }
+}
+
+// Função para limpar cache de operações
+function limparCacheOperacoes() {
+    cacheOperacoes = {};
+    adicionarLog("Cache de operações limpo", TIPOS_LOG.INFO);
+}
+
 // Função para inicializar o sistema de logs
 function inicializarSistemaLogs() {
-    adicionarLog("Sistema de logs inicializado", TIPOS_LOG.INFO);
+    adicionarLog("Sistema de logs inicializado (nível: " + 
+                (nivelAtual === NIVEIS_LOG.BASIC ? "BASIC" : 
+                 nivelAtual === NIVEIS_LOG.DETAILED ? "DETAILED" : "DEBUG") + ")", TIPOS_LOG.INFO);
     configurarEventosLogs();
     atualizarInterfaceLogs();
+    
+    // Adicionar um log de boas-vindas para o usuário ver que funciona
+    adicionarLog("Logs prontos! Use o dropdown 'Nível' para controlar verbosidade", TIPOS_LOG.INFO);
 }
 
 // Função para obter estatísticas dos logs
@@ -250,15 +380,20 @@ $.global.logs = {
     exportarLogs: exportarLogs,
     logEvento: logEvento,
     logFuncao: logFuncao,
+    logArquivo: logArquivo,
     obterLogsFormatados: obterLogsFormatados,
     atualizarInterfaceLogs: atualizarInterfaceLogs,
     configurarEventosLogs: configurarEventosLogs,
     inicializarSistemaLogs: inicializarSistemaLogs,
+    configurarNivelLog: configurarNivelLog,
+    obterNivelAtual: obterNivelAtual,
+    limparCacheOperacoes: limparCacheOperacoes,
     obterEstatisticasLogs: obterEstatisticasLogs,
     filtrarLogsPorTipo: filtrarLogsPorTipo,
     buscarLogs: buscarLogs,
-    TIPOS_LOG: TIPOS_LOG
+    TIPOS_LOG: TIPOS_LOG,
+    NIVEIS_LOG: NIVEIS_LOG
 };
 
-// Log inicial
-adicionarLog("Módulo de logs carregado", TIPOS_LOG.INFO); 
+// Log inicial sempre visível
+adicionarLog("Sistema de logs inicializado", TIPOS_LOG.INFO); 

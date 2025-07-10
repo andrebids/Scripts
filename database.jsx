@@ -4,24 +4,48 @@
 function lerArquivoJSON(caminho) {
     var arquivo = new File(caminho);
     if (!arquivo.exists) {
+        if (typeof logs !== 'undefined' && logs.logArquivo) {
+            logs.logArquivo("Leitura", caminho, false, "arquivo não existe");
+        }
         throw new Error("O arquivo não existe: " + caminho);
     }
-    arquivo.open('r');
-    var conteudo = arquivo.read();
-    arquivo.close();
+    
     try {
-        return funcoes.parseJSON(conteudo);
+        arquivo.open('r');
+        var conteudo = arquivo.read();
+        arquivo.close();
+        
+        var resultado = funcoes.parseJSON(conteudo);
+        if (typeof logs !== 'undefined' && logs.logArquivo) {
+            logs.logArquivo("Leitura", caminho, true, conteudo.length + " chars");
+        }
+        return resultado;
     } catch (e) {
+        if (typeof logs !== 'undefined' && logs.logArquivo) {
+            logs.logArquivo("Leitura", caminho, false, "erro JSON: " + e.message);
+        }
         throw new Error("Erro ao analisar o JSON: " + e.message);
     }
 }
 
 // Função para escrever no arquivo JSON
 function escreverArquivoJSON(caminho, dados) {
-    var arquivo = new File(caminho);
-    arquivo.open('w');
-    arquivo.write(stringifyJSON(dados));
-    arquivo.close();
+    try {
+        var arquivo = new File(caminho);
+        arquivo.open('w');
+        var jsonString = stringifyJSON(dados);
+        arquivo.write(jsonString);
+        arquivo.close();
+        
+        if (typeof logs !== 'undefined' && logs.logArquivo) {
+            logs.logArquivo("Escrita", caminho, true, jsonString.length + " chars");
+        }
+    } catch (e) {
+        if (typeof logs !== 'undefined' && logs.logArquivo) {
+            logs.logArquivo("Escrita", caminho, false, e.message);
+        }
+        throw e;
+    }
 }
 
 // Modifique a função carregarJSON para usar parseJSON em vez de JSON.parse
@@ -102,11 +126,17 @@ function carregarDadosBase(caminhoBaseDados) {
         
         // Verificar se a propriedade 'cores' existe e é um array
         if (!dados || !funcoes.isArray(dados.cores)) {
+            if (typeof logs !== 'undefined' && logs.adicionarLog) {
+                logs.adicionarLog("Base de dados inválida: propriedade cores ausente ou inválida", logs.TIPOS_LOG.ERROR);
+            }
             throw new Error('Os dados da base de cores não são um array ou a propriedade "cores" está ausente.');
         }
         
         return dados;
     } catch (e) {
+        if (typeof logs !== 'undefined' && logs.adicionarLog) {
+            logs.adicionarLog("Erro ao carregar base de dados: " + e.message, logs.TIPOS_LOG.ERROR);
+        }
         throw new Error("Erro ao carregar dados da base: " + e.message);
     }
 }

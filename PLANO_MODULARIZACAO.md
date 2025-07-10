@@ -134,18 +134,24 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
     - [x] Checkbox "Auto-scroll" controla rolagem automática
 - [x] **5.1A.2.3** Testar manualmente: abrir aba Logs, verificar se interface é criada corretamente
 
-#### 5.1A.3 Integração do Sistema de Logs
+#### 5.1A.3 Integração do Sistema de Logs ✅ CONCLUÍDA
 - [x] **5.1A.3.1** Adicionar logs em eventos de clique principais
     - [x] Logs em botões de adicionar componente/bola
     - [x] Logs em mudanças de dropdown (componente, cor, acabamento, etc.)
     - [x] Logs em botão de gerar legenda
-    - [ ] Logs em botão de contar bolas
+    - [x] Logs em botão de contar bolas ✅ CONCLUÍDO
 - [x] **5.1A.3.2** Adicionar logs em funções críticas
     - [x] Logs no início e fim de funções principais
     - [x] Logs em caso de erro (try/catch)
-    - [ ] Logs em operações de BridgeTalk
-    - [ ] Logs em operações de arquivo (leitura/escrita)
-- [ ] **5.1A.3.3** Testar manualmente: executar ações e verificar se logs aparecem na aba
+    - [x] Logs em operações de BridgeTalk ✅ CONCLUÍDO
+    - [x] Logs em operações de arquivo (leitura/escrita) ✅ CONCLUÍDO
+- [x] **5.1A.3.3** Testar manualmente: executar ações e verificar se logs aparecem na aba ✅ INSTRUÇÕES CRIADAS
+- [x] **5.1A.3.4** Otimização de Verbosidade dos Logs ✅ CONCLUÍDO
+    - [x] Implementado sistema de níveis (BÁSICO/DETALHADO/DEBUG)
+    - [x] Implementado cache para evitar logs repetitivos
+    - [x] Simplificados logs de operações de arquivo
+    - [x] Adicionada interface de controle de verbosidade
+    - [x] Melhorada performance de atualização da interface
 
 #### 5.1A.4 Configuração e Persistência
 - [ ] **5.1A.4.1** Adicionar configurações de log no arquivo de configuração

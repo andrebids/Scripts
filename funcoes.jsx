@@ -425,7 +425,7 @@ function contarBolasNaArtboard() {
                             Math.round(spotColor.yellow),
                             Math.round(spotColor.black)
                         ];
-                        var nomeSpotCor = getNomeCor(spotCmykArray);
+                        var nomeSpotCor = database.getNomeCor(spotCmykArray, dadosCores);
                         if (nomeSpotCor) {
                             corKey = nomeSpotCor;
                         } else {

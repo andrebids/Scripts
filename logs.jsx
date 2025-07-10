@@ -148,16 +148,18 @@ function logFuncao(nomeFuncao, parametros, resultado) {
 
 // Função para atualizar a interface de logs
 function atualizarInterfaceLogs() {
-    if (typeof areaLogs !== 'undefined' && areaLogs) {
-        var textoLogs = obterLogsFormatados();
-        areaLogs.text = textoLogs;
-        
-        // Auto-scroll se estiver ativado
-        if (typeof checkAutoScroll !== 'undefined' && checkAutoScroll && checkAutoScroll.value) {
-            // Mover para o final do texto
-            areaLogs.active = true;
-            areaLogs.selection = areaLogs.text.length;
+    try {
+        if (typeof areaLogs !== 'undefined' && areaLogs) {
+            var textoLogs = obterLogsFormatados();
+            areaLogs.text = textoLogs;
+
+            if (typeof checkAutoScroll !== 'undefined' && checkAutoScroll && checkAutoScroll.value) {
+                areaLogs.active = true;
+                areaLogs.selection = areaLogs.text.length;
+            }
         }
+    } catch (e) {
+        // Se areaLogs estiver inválido, ignora o erro para evitar que o script pare.
     }
 }
 

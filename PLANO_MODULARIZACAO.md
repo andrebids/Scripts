@@ -166,10 +166,10 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
     - ~~Limitar tamanho do arquivo de logs~~ **REMOVIDO por solicitação do usuário**
 - [x] **5.1A.4.3** Testar manualmente: verificar se configurações são salvas e funcionam corretamente ✅ CONCLUÍDO
 
-#### 5.1A.5 Testes Manuais Incrementais
-- [ ] **5.1A.5.1** Após cada etapa, testar manualmente a funcionalidade correspondente
-- [ ] **5.1A.5.2** Verificar se logs ajudam a identificar problemas durante desenvolvimento
-- [ ] **5.1A.5.3** Testar performance: verificar se logs não impactam significativamente a velocidade do script
+#### 5.1A.5 Testes Manuais Incrementais ✅ CONCLUÍDA
+- [x] **5.1A.5.1** Após cada etapa, testar manualmente a funcionalidade correspondente ✅ CONCLUÍDO
+- [x] **5.1A.5.2** Verificar se logs ajudam a identificar problemas durante desenvolvimento ✅ CONCLUÍDO
+- [x] **5.1A.5.3** Testar performance: verificar se logs não impactam significativamente a velocidade do script ✅ CONCLUÍDO
 
 ### 5.2 Modularização de Componentes/Bolas (funcoes.jsx ou novo arquivo)
 
@@ -263,15 +263,22 @@ Garantir que qualquer texto inserido nas observações (OBS) seja corretamente t
 **Objetivo:**  
 Garantir que todos os componentes extras adicionados pelo usuário apareçam corretamente na frase principal da legenda gerada, e não apenas o primeiro.
 
-#### 5.6.1 Levantamento e Análise
-- [ ] Identificar onde, no código, a frase principal da legenda é montada.
-- [ ] Verificar como os componentes extras são armazenados (array, string, etc.).
-- [ ] Analisar se está sendo feita a iteração sobre todos os componentes extras ou apenas sobre o primeiro.
+#### 5.6.1 Levantamento e Análise ✅ CONCLUÍDO
+- [x] Identificar onde, no código, a frase principal da legenda é montada. ✅ CONCLUÍDO
+  - Função `gerarFrasePrincipal()` no arquivo `funcoesLegenda.jsx`
+- [x] Verificar como os componentes extras são armazenados (array, string, etc.). ✅ CONCLUÍDO
+  - Armazenados como array de objetos com propriedade `nome`
+- [x] Analisar se está sendo feita a iteração sobre todos os componentes extras ou apenas sobre o primeiro. ✅ CONCLUÍDO
+  - **PROBLEMA IDENTIFICADO:** Apenas o primeiro componente extra era incluído na frase principal
 
-#### 5.6.2 Implementação da Solução
-- [ ] Corrigir a lógica para percorrer todos os componentes extras ao montar a frase principal.
-- [ ] Garantir que a concatenação dos componentes extras seja feita corretamente, separando-os por vírgula, ponto e vírgula ou conforme o padrão desejado.
-- [ ] Adicionar logs para registrar todos os componentes extras incluídos na frase principal.
+#### 5.6.2 Implementação da Solução ✅ CONCLUÍDO
+- [x] Corrigir a lógica para percorrer todos os componentes extras ao montar a frase principal. ✅ CONCLUÍDO
+  - Função `processarComponentesExtras()` agora retorna `todosComponentesExtras` array
+  - Função `gerarFrasePrincipal()` agora itera sobre todos os componentes extras
+- [x] Garantir que a concatenação dos componentes extras seja feita corretamente, separando-os por vírgula, ponto e vírgula ou conforme o padrão desejado. ✅ CONCLUÍDO
+  - Componentes extras são separados por vírgula usando `nomesExtras.join(", ")`
+- [x] Adicionar logs para registrar todos os componentes extras incluídos na frase principal. ✅ CONCLUÍDO
+  - Log detalhado: "Adicionados X componentes extras na frase principal: nome1, nome2, ..."
 
 #### 5.6.3 Testes Manuais
 - [ ] Adicionar dois ou mais componentes extras e verificar se todos aparecem na frase principal da legenda.

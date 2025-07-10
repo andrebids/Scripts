@@ -68,9 +68,14 @@ function gerarFrasePrincipal(parametros) {
             frasePrincipal += " " + parametros.componentesTexto.join(", ");
         }
 
-        // Adicionar o primeiro componente extra
-        if (parametros.primeiroComponenteExtra) {
-            frasePrincipal += ", " + parametros.primeiroComponenteExtra.nome;
+        // Adicionar todos os componentes extras
+        if (parametros.todosComponentesExtras && parametros.todosComponentesExtras.length > 0) {
+            var nomesExtras = [];
+            for (var i = 0; i < parametros.todosComponentesExtras.length; i++) {
+                nomesExtras.push(parametros.todosComponentesExtras[i].nome);
+            }
+            frasePrincipal += ", " + nomesExtras.join(", ");
+            logLegenda("Adicionados " + nomesExtras.length + " componentes extras na frase principal: " + nomesExtras.join(", "), "info");
         }
 
         // Adicionar as bolas
@@ -344,36 +349,39 @@ function processarBolas(itensLegenda) {
 /**
  * Processa os componentes extras da legenda
  * @param {Array} itensLegenda - Array com todos os itens da legenda
- * @returns {Object} Objeto com primeiro componente extra e lista de extras
+ * @returns {Object} Objeto com todos os componentes extras e primeiro componente extra (para compatibilidade)
  */
 function processarComponentesExtras(itensLegenda) {
     logLegenda("Iniciando processamento de componentes extras", "function");
     
     try {
-        var componentesExtras = [];
+        var todosComponentesExtras = [];
         var primeiroComponenteExtra = null;
 
-        // Processar componentes extras
+        // Processar todos os componentes extras
         for (var i = 0; i < itensLegenda.length; i++) {
             if (itensLegenda[i].tipo === "extra") {
+                todosComponentesExtras.push(itensLegenda[i]);
+                
+                // Manter o primeiro para compatibilidade
                 if (!primeiroComponenteExtra) {
                     primeiroComponenteExtra = itensLegenda[i];
-                } else {
-                    componentesExtras.push(itensLegenda[i]);
                 }
             }
         }
 
-        logLegenda("Processamento de componentes extras concluído: " + componentesExtras.length + " extras", "info");
+        logLegenda("Processamento de componentes extras concluído: " + todosComponentesExtras.length + " extras", "info");
         
         return {
-            primeiroComponenteExtra: primeiroComponenteExtra,
-            componentesExtras: componentesExtras
+            todosComponentesExtras: todosComponentesExtras,
+            primeiroComponenteExtra: primeiroComponenteExtra,  // manter para compatibilidade
+            componentesExtras: todosComponentesExtras.slice(1)  // manter para compatibilidade
         };
         
     } catch (erro) {
         logLegenda("Erro ao processar componentes extras: " + erro, "error");
         return {
+            todosComponentesExtras: [],
             primeiroComponenteExtra: null,
             componentesExtras: []
         };
@@ -518,6 +526,7 @@ function atualizarPreview(parametros) {
 
         // Processar componentes extras
         var resultadoExtras = processarComponentesExtras(itensLegenda);
+        var todosComponentesExtras = resultadoExtras.todosComponentesExtras;
         var primeiroComponenteExtra = resultadoExtras.primeiroComponenteExtra;
         var componentesExtras = resultadoExtras.componentesExtras;
 
@@ -530,7 +539,8 @@ function atualizarPreview(parametros) {
             corBioprint: corBioprint,
             listaL: parametros.listaL ? parametros.listaL.selection.text : "",
             componentesTexto: componentesTexto,
-            primeiroComponenteExtra: primeiroComponenteExtra,
+            todosComponentesExtras: todosComponentesExtras,
+            primeiroComponenteExtra: primeiroComponenteExtra,  // manter para compatibilidade
             todasBolas: todasBolas,
             bolasCompostas: bolasCompostas,
             totalBolas: totalBolas,
@@ -596,13 +606,7 @@ function atualizarPreview(parametros) {
             previewText = previewText.concat(contagemElementosTexto);
         }
 
-        // Adicionar componentes extras, incluindo o primeiro
-        var todosComponentesExtras = [];
-        if (primeiroComponenteExtra) {
-            todosComponentesExtras.push(primeiroComponenteExtra);
-        }
-        todosComponentesExtras = todosComponentesExtras.concat(componentesExtras);
-
+        // Adicionar componentes extras (já processados anteriormente)
         if (todosComponentesExtras.length > 0) {
             for (var i = 0; i < todosComponentesExtras.length; i++) {
                 previewText.push(todosComponentesExtras[i].texto);

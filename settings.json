@@ -1,1 +1,7 @@
-{"autoSaveInterval":1}
+{
+    "autoSaveInterval": 1,
+    "logs": {
+        "habilitados": true,
+        "nivelDetalhe": "detalhado"
+    }
+}

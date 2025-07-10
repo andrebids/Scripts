@@ -528,10 +528,12 @@ function criarInterfaceExtra(janela) {
     grupoControlesLogs.alignChildren = ["left", "center"];
     grupoControlesLogs.spacing = 10;
     
-    // Botões de controle
+    // Checkbox para habilitar/desabilitar logs
+    var checkHabilitarLogs = grupoControlesLogs.add("checkbox", undefined, "Habilitar Logs");
+    checkHabilitarLogs.value = true; // Ativado por padrão
+    
+    // Botão de controle
     var botaoLimparLogs = grupoControlesLogs.add("button", undefined, "Limpar Logs");
-    var botaoExportarLogs = grupoControlesLogs.add("button", undefined, "Exportar Logs");
-    var botaoAtualizarLogs = grupoControlesLogs.add("button", undefined, "Atualizar");
     
     // Checkbox para auto-scroll
     var checkAutoScroll = grupoControlesLogs.add("checkbox", undefined, "Auto-scroll");
@@ -551,12 +553,22 @@ function criarInterfaceExtra(janela) {
     // Botão para limpar cache
     var botaoLimparCache = grupoNivelLogs.add("button", undefined, "Limpar Cache");
     
+    // Evento para habilitar/desabilitar logs
+    checkHabilitarLogs.onClick = function() {
+        logs.alternarLogs();
+        logs.atualizarInterfaceLogs();
+        if (!this.value) {
+            areaLogs.text = "Logs desabilitados";
+        }
+    };
+    
     // Evento para mudança de nível
     dropdownNivelLogs.onChange = function() {
-        var nivel = this.selection.index + 1; // 1=BASIC, 2=DETAILED, 3=DEBUG
-        var nomes = ["Básico", "Detalhado", "Debug"];
-        logs.configurarNivelLog(nivel);
-        logs.adicionarLog("Nível alterado para: " + nomes[this.selection.index] + " - Logs filtrados conforme nível", logs.TIPOS_LOG.INFO);
+        var niveisTexto = ["basico", "detalhado", "debug"];
+        var nomesExibicao = ["Básico", "Detalhado", "Debug"];
+        
+        logs.alterarNivelDetalhe(niveisTexto[this.selection.index]);
+        logs.adicionarLog("Nível alterado para: " + nomesExibicao[this.selection.index], logs.TIPOS_LOG.INFO);
         logs.atualizarInterfaceLogs();
     };
     
@@ -598,9 +610,9 @@ function criarInterfaceExtra(janela) {
         // Retornos para a interface de logs
         areaLogs: areaLogs,
         botaoLimparLogs: botaoLimparLogs,
-        botaoExportarLogs: botaoExportarLogs,
-        botaoAtualizarLogs: botaoAtualizarLogs,
-        checkAutoScroll: checkAutoScroll
+        checkAutoScroll: checkAutoScroll,
+        checkHabilitarLogs: checkHabilitarLogs,
+        dropdownNivelLogs: dropdownNivelLogs
     };
 }
 

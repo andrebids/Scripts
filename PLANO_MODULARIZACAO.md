@@ -153,16 +153,18 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
     - [x] Adicionada interface de controle de verbosidade
     - [x] Melhorada performance de atualização da interface
 
-#### 5.1A.4 Configuração e Persistência
-- [ ] **5.1A.4.1** Adicionar configurações de log no arquivo de configuração
-    - [ ] Opção para habilitar/desabilitar logs
-    - [ ] Opção para nível de detalhamento (básico, detalhado, debug)
-    - [ ] Opção para auto-limpeza de logs antigos
-- [ ] **5.1A.4.2** Implementar persistência de logs
-    - [ ] Salvar logs em arquivo temporário
-    - [ ] Carregar logs ao abrir o script
-    - [ ] Limitar tamanho do arquivo de logs
-- [ ] **5.1A.4.3** Testar manualmente: verificar se configurações são salvas e logs persistem entre sessões
+#### 5.1A.4 Configuração e Persistência ✅ CONCLUÍDA
+- [x] **5.1A.4.1** Adicionar configurações de log no arquivo de configuração ✅ CONCLUÍDO
+    - [x] Opção para habilitar/desabilitar logs
+    - [x] Opção para nível de detalhamento (básico, detalhado, debug)
+    - [x] Interface de controle adicionada na aba Logs
+    - [x] Sincronização da interface com configurações carregadas
+    - [x] Persistência das configurações no arquivo settings.json
+- [x] **5.1A.4.2** ~~Implementar persistência de logs~~ **REMOVIDO**
+    - ~~Salvar logs em arquivo temporário~~ **REMOVIDO por solicitação do usuário**
+    - ~~Carregar logs ao abrir o script~~ **REMOVIDO por solicitação do usuário**
+    - ~~Limitar tamanho do arquivo de logs~~ **REMOVIDO por solicitação do usuário**
+- [x] **5.1A.4.3** Testar manualmente: verificar se configurações são salvas e funcionam corretamente ✅ CONCLUÍDO
 
 #### 5.1A.5 Testes Manuais Incrementais
 - [ ] **5.1A.5.1** Após cada etapa, testar manualmente a funcionalidade correspondente

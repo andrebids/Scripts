@@ -5,6 +5,12 @@
 var logsArray = [];
 var maxLogs = 1000; // Limite máximo de logs em memória
 
+// Configurações de log carregadas do settings.json
+var configLogs = {
+    habilitados: true,
+    nivelDetalhe: "basico"
+};
+
 // Tipos de log disponíveis
 var TIPOS_LOG = {
     INFO: 'info',
@@ -30,18 +36,31 @@ var limiteCacheOperacao = 3; // Máximo de vezes que a mesma operação é logad
 
 // Função para verificar se deve registrar o log baseado no nível
 function deveRegistrarLog(tipo, mensagem) {
+    // Verificar se os logs estão habilitados
+    if (!configLogs.habilitados) {
+        return false;
+    }
+    
     // Sempre registrar erros e warnings
     if (tipo === TIPOS_LOG.ERROR || tipo === TIPOS_LOG.WARNING) {
         return true;
     }
     
+    // Converter configuração para nível numérico
+    var nivelConfig = NIVEIS_LOG.BASIC; // padrão
+    if (configLogs.nivelDetalhe === "detalhado") {
+        nivelConfig = NIVEIS_LOG.DETAILED;
+    } else if (configLogs.nivelDetalhe === "debug") {
+        nivelConfig = NIVEIS_LOG.DEBUG;
+    }
+    
     // Sempre registrar clicks no nível BASIC ou superior
-    if (tipo === TIPOS_LOG.CLICK && nivelAtual >= NIVEIS_LOG.BASIC) {
+    if (tipo === TIPOS_LOG.CLICK && nivelConfig >= NIVEIS_LOG.BASIC) {
         return true;
     }
     
     // Registrar functions no nível DETAILED ou superior
-    if (tipo === TIPOS_LOG.FUNCTION && nivelAtual >= NIVEIS_LOG.DETAILED) {
+    if (tipo === TIPOS_LOG.FUNCTION && nivelConfig >= NIVEIS_LOG.DETAILED) {
         return true;
     }
     
@@ -62,7 +81,7 @@ function deveRegistrarLog(tipo, mensagem) {
         }
         
         // Outros logs INFO apenas no nível DEBUG
-        if (nivelAtual >= NIVEIS_LOG.DEBUG) {
+        if (nivelConfig >= NIVEIS_LOG.DEBUG) {
             return true;
         }
     }
@@ -144,40 +163,7 @@ function limparLogs() {
     }
 }
 
-// Função para exportar logs
-function exportarLogs() {
-    try {
-        var pastaDocumentos = Folder.myDocuments;
-        var nomeArquivo = "logs_legenda_" + new Date().toISOString().slice(0, 10) + ".txt";
-        var arquivoLogs = new File(pastaDocumentos + "/" + nomeArquivo);
-        
-        arquivoLogs.open('w');
-        
-        // Cabeçalho do arquivo
-        arquivoLogs.write("=== LOGS DO SCRIPT LEGENDA ===\n");
-        arquivoLogs.write("Data de exportação: " + new Date().toLocaleString() + "\n");
-        arquivoLogs.write("Total de logs: " + logsArray.length + "\n");
-        arquivoLogs.write("================================\n\n");
-        
-        // Escrever cada log
-        for (var i = 0; i < logsArray.length; i++) {
-            var log = logsArray[i];
-            var linha = "[" + log.data + " " + log.hora + "] [" + log.tipo.toUpperCase() + "] " + log.mensagem + "\n";
-            arquivoLogs.write(linha);
-        }
-        
-        arquivoLogs.close();
-        
-        adicionarLog("Logs exportados para: " + arquivoLogs.fsName, TIPOS_LOG.INFO);
-        alert("Logs exportados com sucesso para:\n" + arquivoLogs.fsName);
-        
-        return arquivoLogs.fsName;
-    } catch (e) {
-        adicionarLog("Erro ao exportar logs: " + e.message, TIPOS_LOG.ERROR);
-        alert("Erro ao exportar logs: " + e.message);
-        return null;
-    }
-}
+
 
 // Função para obter logs formatados para exibição
 function obterLogsFormatados() {
@@ -257,18 +243,6 @@ function configurarEventosLogs() {
     if (typeof botaoLimparLogs !== 'undefined' && botaoLimparLogs) {
         botaoLimparLogs.onClick = function() {
             limparLogs();
-        };
-    }
-    
-    if (typeof botaoExportarLogs !== 'undefined' && botaoExportarLogs) {
-        botaoExportarLogs.onClick = function() {
-            exportarLogs();
-        };
-    }
-    
-    if (typeof botaoAtualizarLogs !== 'undefined' && botaoAtualizarLogs) {
-        botaoAtualizarLogs.onClick = function() {
-            atualizarInterfaceLogs();
         };
     }
     
@@ -373,11 +347,130 @@ function buscarLogs(texto) {
     return logsEncontrados;
 }
 
+// Função para carregar configurações de log do settings.json
+function carregarConfiguracoesLog() {
+    try {
+        var pastaProjeto = File($.fileName).path;
+        var arquivoSettings = new File(pastaProjeto + "/settings.json");
+        
+        if (arquivoSettings.exists) {
+            arquivoSettings.open('r');
+            var conteudo = arquivoSettings.read();
+            arquivoSettings.close();
+            
+            var settings = JSON.parse(conteudo);
+            
+            if (settings && settings.logs) {
+                configLogs.habilitados = settings.logs.habilitados !== false; // padrão true
+                
+                // Validar e definir nível de detalhe
+                var nivelValido = ["basico", "detalhado", "debug"];
+                var nivelEncontrado = false;
+                for (var i = 0; i < nivelValido.length; i++) {
+                    if (nivelValido[i] === settings.logs.nivelDetalhe) {
+                        nivelEncontrado = true;
+                        break;
+                    }
+                }
+                if (nivelEncontrado) {
+                    configLogs.nivelDetalhe = settings.logs.nivelDetalhe;
+                } else {
+                    configLogs.nivelDetalhe = "basico"; // padrão
+                }
+                
+                adicionarLog("Configurações de log carregadas: " + 
+                            (configLogs.habilitados ? "habilitados" : "desabilitados") + 
+                            ", nível: " + configLogs.nivelDetalhe, TIPOS_LOG.INFO);
+            }
+        } else {
+            adicionarLog("Arquivo settings.json não encontrado, usando configurações padrão", TIPOS_LOG.WARNING);
+        }
+    } catch (e) {
+        adicionarLog("Erro ao carregar configurações de log: " + e.message, TIPOS_LOG.ERROR);
+    }
+}
+
+// Função para salvar configurações de log no settings.json
+function salvarConfiguracoesLog() {
+    try {
+        var pastaProjeto = File($.fileName).path;
+        var arquivoSettings = new File(pastaProjeto + "/settings.json");
+        
+        var settings = {};
+        
+        // Carregar configurações existentes primeiro
+        if (arquivoSettings.exists) {
+            arquivoSettings.open('r');
+            var conteudo = arquivoSettings.read();
+            arquivoSettings.close();
+            
+            try {
+                settings = JSON.parse(conteudo);
+            } catch (e) {
+                settings = {};
+            }
+        }
+        
+        // Atualizar configurações de log
+        if (!settings.logs) {
+            settings.logs = {};
+        }
+        
+        settings.logs.habilitados = configLogs.habilitados;
+        settings.logs.nivelDetalhe = configLogs.nivelDetalhe;
+        
+        // Salvar arquivo
+        arquivoSettings.open('w');
+        arquivoSettings.write(JSON.stringify(settings, null, 4));
+        arquivoSettings.close();
+        
+        adicionarLog("Configurações de log salvas", TIPOS_LOG.INFO);
+        return true;
+    } catch (e) {
+        adicionarLog("Erro ao salvar configurações de log: " + e.message, TIPOS_LOG.ERROR);
+        return false;
+    }
+}
+
+// Função para alternar logs habilitados/desabilitados
+function alternarLogs() {
+    configLogs.habilitados = !configLogs.habilitados;
+    salvarConfiguracoesLog();
+    adicionarLog("Logs " + (configLogs.habilitados ? "habilitados" : "desabilitados"), TIPOS_LOG.INFO);
+    return configLogs.habilitados;
+}
+
+// Função para alterar nível de detalhe
+function alterarNivelDetalhe(novoNivel) {
+    var niveisValidos = ["basico", "detalhado", "debug"];
+    var nivelValido = false;
+    for (var i = 0; i < niveisValidos.length; i++) {
+        if (niveisValidos[i] === novoNivel) {
+            nivelValido = true;
+            break;
+        }
+    }
+    if (nivelValido) {
+        configLogs.nivelDetalhe = novoNivel;
+        salvarConfiguracoesLog();
+        adicionarLog("Nível de detalhe alterado para: " + novoNivel, TIPOS_LOG.INFO);
+        return true;
+    }
+    return false;
+}
+
+// Função para obter configurações atuais
+function obterConfiguracoesLog() {
+    return {
+        habilitados: configLogs.habilitados,
+        nivelDetalhe: configLogs.nivelDetalhe
+    };
+}
+
 // Exportar funções para o escopo global
 $.global.logs = {
     adicionarLog: adicionarLog,
     limparLogs: limparLogs,
-    exportarLogs: exportarLogs,
     logEvento: logEvento,
     logFuncao: logFuncao,
     logArquivo: logArquivo,
@@ -391,9 +484,17 @@ $.global.logs = {
     obterEstatisticasLogs: obterEstatisticasLogs,
     filtrarLogsPorTipo: filtrarLogsPorTipo,
     buscarLogs: buscarLogs,
+    carregarConfiguracoesLog: carregarConfiguracoesLog,
+    salvarConfiguracoesLog: salvarConfiguracoesLog,
+    alternarLogs: alternarLogs,
+    alterarNivelDetalhe: alterarNivelDetalhe,
+    obterConfiguracoesLog: obterConfiguracoesLog,
     TIPOS_LOG: TIPOS_LOG,
     NIVEIS_LOG: NIVEIS_LOG
 };
+
+// Carregar configurações automaticamente
+carregarConfiguracoesLog();
 
 // Log inicial sempre visível
 adicionarLog("Sistema de logs inicializado", TIPOS_LOG.INFO); 

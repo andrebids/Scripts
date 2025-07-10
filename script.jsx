@@ -193,11 +193,11 @@ linha1.add("statictext", undefined, textoNome);
 var campoNome = linha1.add("statictext", undefined, nomeDesigner);
 campoNome.characters = 20;
 
-// Segunda linha: Nome/Tipo dropdown, L e Tipo de fixação
+// Segunda linha: Nome/Tipo dropdown, L e Tipo de fixação (otimizada)
 var linha2 = grupoPrincipal.add("group");
 linha2.orientation = "row";
 linha2.alignChildren = ["left", "center"];
-linha2.spacing = 10;
+linha2.spacing = 8; // Reduzir espaçamento geral de 10 para 8
 
 // Modificar a criação do dropdown para usar as strings traduzidas
 var escolhaNomeTipo = linha2.add("dropdownlist", undefined, [
@@ -214,18 +214,20 @@ campoNomeTipo.characters = 20;
 var espacoFlexivel = linha2.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
-// Dropdown L1-L20 (tamanho reduzido)
-linha2.add("statictext", undefined, "L:");
+// Grupo super compacto para L e Tipo de fixação (eliminar espaço extra)
+var grupoLFixacao = linha2.add("group");
+grupoLFixacao.orientation = "row";
+grupoLFixacao.spacing = 3; // Espaçamento mínimo entre todos os elementos
+grupoLFixacao.add("statictext", undefined, "L:");
 var opcoesL = [];
 for (var i = 1; i <= 20; i++) {
     opcoesL.push("L" + i);
 }
-var listaL = linha2.add("dropdownlist", undefined, opcoesL);
+var listaL = grupoLFixacao.add("dropdownlist", undefined, opcoesL);
 listaL.selection = 0;
-listaL.preferredSize.width = 60; // Reduz o tamanho do dropdown
+listaL.preferredSize.width = 50; // Reduzir ainda mais para 50px
 
-// Tipo de fixação
-linha2.add("statictext", undefined, t("tipoFixacao"));
+grupoLFixacao.add("statictext", undefined, t("fixacao"));
 
 // Tipos de fixação
 var tiposFixacao = [];
@@ -237,22 +239,24 @@ for (var i = 0; i < tiposFixacaoKeys.length; i++) {
 }
 
 // Criar o dropdown com os tipos traduzidos
-var listaFixacao = linha2.add("dropdownlist", undefined, [t("selecioneTipoFixacao")].concat(tiposFixacao));
+var listaFixacao = grupoLFixacao.add("dropdownlist", undefined, [t("selecioneFixacao")].concat(tiposFixacao));
 listaFixacao.selection = 0;
 
-// Terceira linha: Dimensões e Structure laqueé
+// Terceira linha: Dimensões e Structure laqueé (otimizada)
 var linha3 = grupoPrincipal.add("group");
 linha3.orientation = "row";
 linha3.alignChildren = ["left", "center"];
-linha3.spacing = 10;
+linha3.spacing = 5; // Reduzir espaçamento geral de 10 para 5
 
-// Campos H, L, P, ⌀
+// Campos H, L, P, ⌀ (otimizados para economizar espaço)
 var grupoDimensoes = linha3.add("group");
+grupoDimensoes.spacing = 3; // Reduzir espaçamento entre elementos
 var dimensoes = ["H", "L", "P", "⌀"];
 for (var i = 0; i < dimensoes.length; i++) {
     grupoDimensoes.add("statictext", undefined, dimensoes[i] + ":");
     var campoDimensao = grupoDimensoes.add("edittext", undefined, "");
-    campoDimensao.characters = 5;
+    campoDimensao.characters = 4; // Reduzir de 5 para 4 caracteres
+    campoDimensao.preferredSize.width = 35; // Definir largura fixa menor
     apenasNumerosEVirgula(campoDimensao);
 }
 
@@ -260,17 +264,17 @@ for (var i = 0; i < dimensoes.length; i++) {
 var espacoFlexivel = linha3.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
-// Campos opcionais: Usage e Quantité prévue
+// Campos opcionais: Usage e Quantité prévue (otimizados)
 var grupoCamposOpcionais = linha3.add("group");
 grupoCamposOpcionais.orientation = "row";
 grupoCamposOpcionais.alignChildren = ["left", "center"];
-grupoCamposOpcionais.spacing = 10;
+grupoCamposOpcionais.spacing = 5; // Reduzir espaçamento de 10 para 5
 
-// Campo Usage (dropdown)
-grupoCamposOpcionais.add("statictext", undefined, "Usage:");
+// Campo Usage (dropdown mais compacto)
+grupoCamposOpcionais.add("statictext", undefined, t("usage"));
 var campoUsage = grupoCamposOpcionais.add("dropdownlist", undefined, ["Sélectionner usage", "Intérieur", "Extérieur"]);
 campoUsage.selection = 0;
-campoUsage.preferredSize.width = 120;
+campoUsage.preferredSize.width = 100; // Reduzir de 120 para 100
 
 // Adicionar evento para logs
 campoUsage.onChange = function() {
@@ -279,10 +283,11 @@ campoUsage.onChange = function() {
     }
 };
 
-// Campo Quantité prévue (input numérico)
-grupoCamposOpcionais.add("statictext", undefined, "Quantité prévue:");
+// Campo Quantité prévue (input numérico mais compacto)
+grupoCamposOpcionais.add("statictext", undefined, t("quantitePrevu"));
 var campoQuantitePrevu = grupoCamposOpcionais.add("edittext", undefined, "");
-campoQuantitePrevu.characters = 8;
+campoQuantitePrevu.characters = 6; // Reduzir de 8 para 6
+campoQuantitePrevu.preferredSize.width = 50; // Definir largura fixa menor
 funcoes.apenasNumerosEVirgula(campoQuantitePrevu);
 
 // Adicionar evento para logs
@@ -331,9 +336,10 @@ grupoPesquisa.alignChildren = "center";
 
 var labelPesquisa = grupoPesquisa.add("statictext", undefined, t("procurar"));
     
-// Campo de pesquisa
+// Campo de pesquisa (otimizado)
 var campoPesquisa = grupoPesquisa.add("edittext", undefined, "");
-campoPesquisa.characters = 20;
+campoPesquisa.characters = 15; // Reduzir de 20 para 15
+campoPesquisa.preferredSize.width = 120; // Definir largura fixa
 campoPesquisa.onChanging = function() {
     filtrarComponentes(campoPesquisa.text);
 };
@@ -429,14 +435,16 @@ listaCores.onChange = function() {
 var listaUnidades = grupo2.add("dropdownlist", undefined, [t("selecioneUnidade")]);
 listaUnidades.selection = 0;
 
-// Campo de quantidade
+// Campo de quantidade (otimizado)
 var campoQuantidade = grupo2.add("edittext", undefined, "");
-campoQuantidade.characters = 5;
+campoQuantidade.characters = 4; // Reduzir de 5 para 4
+campoQuantidade.preferredSize.width = 40; // Definir largura fixa menor
 funcoes.apenasNumerosEVirgula(campoQuantidade);
-// Campo de multiplicador
+// Campo de multiplicador (otimizado)
 grupo2.add("statictext", undefined, "x");
 var campoMultiplicador = grupo2.add("edittext", undefined, "1");
-campoMultiplicador.characters = 3;
+campoMultiplicador.characters = 2; // Reduzir de 3 para 2
+campoMultiplicador.preferredSize.width = 25; // Definir largura fixa menor
 funcoes.apenasNumerosEVirgula(campoMultiplicador);
 
 // Botão adicionar componente

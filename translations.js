@@ -31,6 +31,9 @@ var TRANSLATIONS = {
         "informacoesPrincipais": "Informações Principais",
         "legenda": "Legenda",
         "tipoFixacao": "Tipo de fixação",
+        "fixacao": "Fixação:",
+        "usage": "Uso:",
+        "quantitePrevu": "Qtd:",
         "structureLaqueada": "Structure laquée",
         "painelComponentes": "Componentes",
         "procurar": "procurar:",
@@ -128,6 +131,7 @@ var TRANSLATIONS = {
         "quantidadeNaoInformada": "Por favor, informe a quantidade",
         "procurarLabel": "procurar:",
         "selecioneTipoFixacao": "Selecione o tipo de fixação",
+        "selecioneFixacao": "Selecione fixação",
         "selecionarTipoFixacao": "Selecione o tipo de fixação!"
     },
     "Français": {
@@ -141,6 +145,9 @@ var TRANSLATIONS = {
         "informacoesPrincipales": "Informations Principales",
         "legenda": "Légende",
         "tipoFixacao": "Type de fixation",
+        "fixacao": "Fixation:",
+        "usage": "Usage:",
+        "quantitePrevu": "Qté prévue:",
         "structureLaqueada": "Structure laquée",
         "painelComponentes": "Composants",
         "procurar": "rechercher:",
@@ -239,6 +246,7 @@ var TRANSLATIONS = {
         "quantidadeNaoInformada": "Veuillez indiquer la quantité",
         "procurarLabel": "rechercher:",
         "selecioneTipoFixacao": "Sélectionnez le type de fixation",
+        "selecioneFixacao": "Sélectionnez fixation",
         "selecionarTipoFixacao": "Veuillez sélectionner le type de fixation avant de générer la légende."
     }
 };

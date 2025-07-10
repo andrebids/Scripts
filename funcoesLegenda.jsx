@@ -604,7 +604,7 @@ function atualizarPreview(parametros) {
 
         // Adicionar tipo de fixação
         if (parametros.listaFixacao && parametros.listaFixacao.selection) {
-            previewText.push("Fixation: " + parametros.listaFixacao.selection.text);
+            previewText.push(t("fixacao") + " " + parametros.listaFixacao.selection.text);
         }
 
         // Adicionar campos opcionais (Usage e Quantité prévue) após fixação

@@ -3,6 +3,13 @@
 ## Diretriz de Logging Obrigatório
 Sempre que for criada, alterada ou removida qualquer funcionalidade, componente, bola, item de lista ou ação relevante no sistema, **deve ser registrado um log detalhado na janela de logs**. O log deve conter informações completas sobre a ação (tipo, dados envolvidos, resultado, etc.), para facilitar a verificação manual e o debug. Nenhuma ação importante deve passar sem registro no sistema de logs.
 
+## Correções Aplicadas
+- ✅ **Problema de duplicação de unidades no dropdown corrigido**
+  - Removida linha duplicada do evento `listaCores.onChange`
+  - Inicialização do dropdown de unidades apenas com "Selecione uma unidade"
+  - Adicionada verificação de duplicatas nas funções `atualizarUnidades` e `atualizarCores`
+  - Adicionados logs para debug da atualização de unidades
+
 ## 1. Preparação e Base de Testes
 - **1.1** Criar um checklist/manual de testes básicos para cada funcionalidade principal do script (UI abre, adicionar componente, adicionar bola, gerar legenda, etc.).
 - **1.2** Garantir que o script atual está funcionando corretamente antes de iniciar as mudanças (rodar todos os testes manuais).

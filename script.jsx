@@ -374,8 +374,7 @@ var listaCores = grupo2.add("dropdownlist", undefined, coresNomes);
 listaCores.selection = 0;
 
 // Lista de unidades
-var unidades = ["ml", "m2", "unit"];
-var listaUnidades = grupo2.add("dropdownlist", undefined, unidades);
+var listaUnidades = grupo2.add("dropdownlist", undefined, [t("selecioneUnidade")]);
 listaUnidades.selection = 0;
 
 // Campo de quantidade
@@ -442,7 +441,7 @@ grupoLogs.orientation = "column";
 grupoLogs.alignChildren = ["fill", "fill"];
 var areaLogs = grupoLogs.add("edittext", undefined, "", {multiline: true, scrollable: true, readonly: true});
 areaLogs.preferredSize.width = 500;
-areaLogs.preferredSize.height = 150;
+areaLogs.preferredSize.height = 80;
 
 // Grupo de controles dos logs
 var grupoControlesLogs = abaLogs.add("group");
@@ -452,9 +451,8 @@ grupoControlesLogs.spacing = 10;
 
 // Botões de controle
 var botaoLimparLogs = grupoControlesLogs.add("button", undefined, "Limpar Logs");
-var botaoExportarLogs = grupoControlesLogs.add("button", undefined, "Exportar Logs");
-// Removido: var botaoAtualizarLogs = grupoControlesLogs.add("button", undefined, "Atualizar");
-
+// Removido: var botaoExportarLogs = grupoControlesLogs.add("button", undefined, "Exportar Logs");
+// ...
 // Checkbox para auto-scroll
 var checkAutoScroll = grupoControlesLogs.add("checkbox", undefined, "Auto-scroll");
 checkAutoScroll.value = true; // Ativado por padrão
@@ -462,8 +460,7 @@ checkAutoScroll.value = true; // Ativado por padrão
 // Torna as variáveis globais
 $.global.areaLogs = areaLogs;
 $.global.botaoLimparLogs = botaoLimparLogs;
-$.global.botaoExportarLogs = botaoExportarLogs;
-// Removido: $.global.botaoAtualizarLogs = botaoAtualizarLogs;
+// Removido: $.global.botaoExportarLogs = botaoExportarLogs;
 $.global.checkAutoScroll = checkAutoScroll;
 
 // Inicializar sistema de logs
@@ -1582,10 +1579,6 @@ function criarLinhaReferencia(item) {
         verificarCMYK();
     };
     
-    listaCores.onChange = function() {
-        funcoesComponentes.atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, funcoes.selecionarUnidadeMetrica, funcoes.arrayContains);
-        verificarCMYK();
-    };
     listaUnidades.onChange = verificarCMYK;
 
     // Função para arredondar para a próxima décima
@@ -2147,22 +2140,3 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
     // Função criarInterfaceExtra movida para ui.jsx
 })();
 
-// Substituir funcionalidade do botão Exportar Logs para copiar para o clipboard
-botaoExportarLogs.onClick = function() {
-    if (areaLogs && areaLogs.text) {
-        // Função para copiar para clipboard no ExtendScript
-        var texto = areaLogs.text;
-        var command = 'echo ' + texto.replace(/"/g, '\"') + ' | clip';
-        try {
-            // Tenta usar o método do Windows
-            var tempFile = new File(Folder.temp + "/temp_logs_legenda.txt");
-            tempFile.open("w");
-            tempFile.write(texto);
-            tempFile.close();
-            tempFile.execute(); // Abre o arquivo, permitindo copiar manualmente
-            alert("Logs copiados! (O arquivo temporário foi aberto, pressione Ctrl+A e Ctrl+C para copiar)");
-        } catch (e) {
-            alert("Não foi possível copiar automaticamente. Selecione e copie manualmente:");
-        }
-    }
-};

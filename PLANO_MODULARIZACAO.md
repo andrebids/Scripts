@@ -184,7 +184,7 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
 - [x] 5.2.3.3 Mover função atualizarTextoBola para funcoesBolas.jsx ✅ CONCLUÍDO
     - [x] Atualizar o import no(s) arquivo(s) que usam essa função
     - [x] Testar manualmente: funcionalidade específica dessa função
-- [ ] 5.2.3.4 Mover lógica do evento botaoAdicionarBola.onClick para uma função adicionarBola em funcoesBolas.jsx
+- [x] 5.2.3.4 Mover lógica do evento botaoAdicionarBola.onClick para uma função adicionarBola em funcoesBolas.jsx ✅ CONCLUÍDO
 
 
 

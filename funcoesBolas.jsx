@@ -129,9 +129,81 @@ function atualizarTextoBola(bola) {
     }
 }
 
+// Função para adicionar uma bola à lista de itensLegenda
+function adicionarBola(listaCoresBolas, listaAcabamentos, listaTamanhos, campoQuantidadeBolas, dados, itensLegenda, atualizarListaItens, t, logs, funcoes) {
+    logs.logEvento("click", "botaoAdicionarBola");
+    if (listaCoresBolas.selection.index === 0 || listaAcabamentos.selection.index === 0 || listaTamanhos.selection.index === 0) {
+        alert(t("selecionarCor"));
+        return;
+    }
+
+    var quantidade = parseFloat(campoQuantidadeBolas.text.replace(',', '.'));
+    if (isNaN(quantidade) || quantidade <= 0) {
+        alert(t("quantidadeInvalida"));
+        return;
+    }
+
+    var corSelecionada = dados.cores[funcoes.encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
+    var acabamentoSelecionado = dados.acabamentos[funcoes.encontrarIndicePorNome(dados.acabamentos, listaAcabamentos.selection.text)];
+    var tamanhoSelecionado = dados.tamanhos[funcoes.encontrarIndicePorNome(dados.tamanhos, listaTamanhos.selection.text)];
+
+    var bolaSelecionada = null;
+    for (var i = 0; i < dados.bolas.length; i++) {
+        if (dados.bolas[i].corId === corSelecionada.id &&
+            dados.bolas[i].acabamentoId === acabamentoSelecionado.id &&
+            dados.bolas[i].tamanhoId === tamanhoSelecionado.id) {
+            bolaSelecionada = dados.bolas[i];
+            break;
+        }
+    }
+    
+    if (bolaSelecionada) {
+        try {
+            // Verificar se já existe uma bola com a mesma referência
+            var bolaExistente = null;
+            for (var i = 0; i < itensLegenda.length; i++) {
+                if (itensLegenda[i].tipo === "bola" && itensLegenda[i].referencia === bolaSelecionada.referencia) {
+                    bolaExistente = itensLegenda[i];
+                    break;
+                }
+            }
+
+            if (bolaExistente) {
+                bolaExistente.quantidade = quantidade; // Atualiza com a nova quantidade
+                bolaExistente.texto = atualizarTextoBola(bolaExistente);
+            } else {
+                var textoBoule = quantidade === 1 ? "boule" : "boules";
+                var texto = textoBoule + " " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome;
+                if (bolaSelecionada.referencia) {
+                    texto += " (Ref: " + bolaSelecionada.referencia + ")";
+                }
+                texto += " units: " + quantidade.toFixed(2).replace('.', ',');
+
+                itensLegenda.push({
+                    tipo: "bola",
+                    nome: textoBoule + " " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome,
+                    texto: texto,
+                    referencia: bolaSelecionada.referencia,
+                    quantidade: quantidade,
+                    unidade: "units",
+                    composta: bolaSelecionada.composta || false
+                });
+            }
+            
+            atualizarListaItens();
+        } catch (e) {
+            logs.adicionarLog("Erro ao processar bola: " + e.message, logs.TIPOS_LOG.ERROR);
+            alert(t("erroProcessarBola") + e.message);
+        }
+    } else {
+        alert(t("erroCombinacaoBola"));
+    }
+}
+
 // Exportação global
 $.global.funcoesBolas = {
     atualizarAcabamentos: atualizarAcabamentos,
     atualizarTamanhos: atualizarTamanhos,
-    atualizarTextoBola: atualizarTextoBola
+    atualizarTextoBola: atualizarTextoBola,
+    adicionarBola: adicionarBola
 }; 

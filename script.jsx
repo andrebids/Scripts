@@ -529,74 +529,19 @@ listaAcabamentos.onChange = function() {
 };
 
 botaoAdicionarBola.onClick = function() {
-    logs.logEvento("click", "botaoAdicionarBola");
-    if (listaCoresBolas.selection.index === 0 || listaAcabamentos.selection.index === 0 || listaTamanhos.selection.index === 0) {
-        alert(t("selecionarCor"));
-        return;
-    }
-
-    var quantidade = parseFloat(campoQuantidadeBolas.text.replace(',', '.'));
-    if (isNaN(quantidade) || quantidade <= 0) {
-        alert(t("quantidadeInvalida"));
-        return;
-    }
-
-    var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
-    var acabamentoSelecionado = dados.acabamentos[encontrarIndicePorNome(dados.acabamentos, listaAcabamentos.selection.text)];
-    var tamanhoSelecionado = dados.tamanhos[encontrarIndicePorNome(dados.tamanhos, listaTamanhos.selection.text)];
-
-    var bolaSelecionada = null;
-    for (var i = 0; i < dados.bolas.length; i++) {
-        if (dados.bolas[i].corId === corSelecionada.id &&
-            dados.bolas[i].acabamentoId === acabamentoSelecionado.id &&
-            dados.bolas[i].tamanhoId === tamanhoSelecionado.id) {
-            bolaSelecionada = dados.bolas[i];
-            break;
-        }
-    }
-    
-    if (bolaSelecionada) {
-        try {
-            // Verificar se já existe uma bola com a mesma referência
-            var bolaExistente = null;
-            for (var i = 0; i < itensLegenda.length; i++) {
-                if (itensLegenda[i].tipo === "bola" && itensLegenda[i].referencia === bolaSelecionada.referencia) {
-                    bolaExistente = itensLegenda[i];
-                    break;
-                }
-            }
-
-            if (bolaExistente) {
-                bolaExistente.quantidade = quantidade; // Atualiza com a nova quantidade
-                bolaExistente.texto = funcoesBolas.atualizarTextoBola(bolaExistente);
-            } else {
-                var textoBoule = quantidade === 1 ? "boule" : "boules";
-                var texto = textoBoule + " " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome;
-                if (bolaSelecionada.referencia) {
-                    texto += " (Ref: " + bolaSelecionada.referencia + ")";
-                }
-                texto += " units: " + quantidade.toFixed(2).replace('.', ',');
-
-                itensLegenda.push({
-                    tipo: "bola",
-                    nome: textoBoule + " " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome,
-                    texto: texto,
-                    referencia: bolaSelecionada.referencia,
-                    quantidade: quantidade,
-                    unidade: "units",
-                    composta: bolaSelecionada.composta || false
-                });
-            }
-            
-            atualizarListaItens();
-        } catch (e) {
-            logs.adicionarLog("Erro ao processar bola: " + e.message, logs.TIPOS_LOG.ERROR);
-            alert(t("erroProcessarBola") + e.message);
-        }
-    } else {
-        alert(t("erroCombinacaoBola"));
-    }
-}
+    funcoesBolas.adicionarBola(
+        listaCoresBolas,
+        listaAcabamentos,
+        listaTamanhos,
+        campoQuantidadeBolas,
+        dados,
+        itensLegenda,
+        atualizarListaItens,
+        t,
+        logs,
+        funcoes
+    );
+};
 
 // Função atualizarTextoBola migrada para funcoesBolas.jsx
 

@@ -1140,9 +1140,6 @@ function atualizarListaItens() {
     }
 };
 
-
-
-
   function atualizarPreview() {
     var previewText = [];
     var frasePrincipal = "";
@@ -1689,7 +1686,7 @@ function restaurarUltimaSelecao() {
             }
     
             // Salvar seleção atual antes de qualquer operação
-            salvarSelecaoAtual();
+            funcoesComponentes.salvarSelecaoAtual(listaComponentes, listaCores, listaUnidades, campoMultiplicador, ultimaSelecao);
     
             // Obter dados selecionados
             var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];

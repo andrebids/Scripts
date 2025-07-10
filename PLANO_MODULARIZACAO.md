@@ -9,6 +9,12 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
   - Inicialização do dropdown de unidades apenas com "Selecione uma unidade"
   - Adicionada verificação de duplicatas nas funções `atualizarUnidades` e `atualizarCores`
   - Adicionados logs para debug da atualização de unidades
+- ✅ **Função salvarSelecaoAtual migrada para funcoesComponentes.jsx**
+  - Função movida com sucesso para o arquivo temático
+  - Parâmetros adicionados para melhor modularização
+  - Logs detalhados adicionados para debug
+  - Chamada atualizada no script.jsx para usar funcoesComponentes.salvarSelecaoAtual
+  - Teste manual realizado com sucesso
 
 ## 1. Preparação e Base de Testes
 - **1.1** Criar um checklist/manual de testes básicos para cada funcionalidade principal do script (UI abre, adicionar componente, adicionar bola, gerar legenda, etc.).
@@ -151,7 +157,7 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
 - [x] 5.2.2.4 Mover função atualizarCores para funcoes.jsx
 - [x] 5.2.2.5 Mover função atualizarUnidades para funcoesComponentes.jsx
 - [x] 5.2.2.6 Mover função verificarCMYK para funcoesComponentes.jsx
-- [ ] 5.2.2.7 Mover função salvarSelecaoAtual para funcoesComponentes.jsx
+- [x] 5.2.2.7 Mover função salvarSelecaoAtual para funcoesComponentes.jsx
 - [ ] 5.2.2.8 Mover função restaurarUltimaSelecao para funcoesComponentes.jsx
 - [ ] 5.2.2.9 Mover lógica do evento botaoAdicionarComponente.onClick para uma função adicionarComponente em funcoesComponentes.jsx
 
@@ -224,6 +230,60 @@ Garantir que todos os componentes extras adicionados pelo usuário apareçam cor
 #### 5.6.4 Documentação
 - [ ] Documentar a lógica de concatenação dos componentes extras na frase principal.
 - [ ] Atualizar o checklist de testes manuais para incluir este caso.
+
+---
+
+## 5.7 Inclusão de Novos Campos Opcionais: Usage e Quantité prévue
+
+**Objetivo:**  
+Adicionar dois novos campos opcionais ao sistema:
+- **Usage:** Dropdown com opções "Intérieur" e "Exterieur".
+- **Quantité prévue:** Campo numérico, aceita apenas números.
+
+Esses campos devem ser exibidos na legenda **antes dos componentes e depois da fixação**, mas **não** devem aparecer na frase principal da legenda.
+
+#### 5.7.1 Levantamento e Análise
+- [ ] Definir onde os campos devem ser exibidos na interface (UI) e na legenda gerada.
+- [ ] Analisar o fluxo de dados para garantir que os valores dos campos sejam salvos, recuperados e processados corretamente.
+- [ ] Determinar validações necessárias (ex: "Quantité prévue" aceita apenas números).
+
+#### 5.7.2 Implementação dos Campos na Interface
+- [ ] Adicionar o campo "Usage" (dropdown) e "Quantité prévue" (input numérico) na interface de componentes/bolas.
+    - **Melhor local:** `ui.jsx` (funções de criação de interface).
+- [ ] Garantir que os campos sejam opcionais e possam ser deixados em branco.
+- [ ] Adicionar validação para "Quantité prévue" aceitar apenas números (usar função utilitária, ex: `apenasNumeros` em `funcoesUtilitarias.jsx`).
+
+#### 5.7.3 Processamento e Integração dos Campos
+- [ ] Garantir que os valores de "Usage" e "Quantité prévue" sejam salvos junto com os dados do componente/bola.
+    - **Melhor local:** `funcoesComponentes.jsx` e/ou `funcoesBolas.jsx` (funções de processamento e geração de legenda).
+- [ ] Modificar a lógica de geração da legenda para inserir esses campos **antes dos componentes e depois da fixação**.
+- [ ] Garantir que esses campos **não** sejam incluídos na frase principal da legenda.
+
+#### 5.7.4 Logging das Ações
+- [ ] Adicionar logs detalhados sempre que:
+    - O valor de "Usage" ou "Quantité prévue" for alterado.
+    - Os campos forem salvos, processados ou incluídos na legenda.
+    - Houver erro de validação (ex: valor não numérico em "Quantité prévue").
+    - **Melhor local para logs:** `logs.jsx` (funções de logging) e chamadas nos pontos de manipulação dos campos.
+
+#### 5.7.5 Testes Manuais
+- [ ] Testar a inserção, alteração e remoção dos campos "Usage" e "Quantité prévue".
+- [ ] Verificar se aparecem corretamente na legenda, na posição correta.
+- [ ] Garantir que não aparecem na frase principal.
+- [ ] Testar validação de números.
+- [ ] Verificar se os logs são registrados corretamente para todas as ações.
+
+#### 5.7.6 Documentação
+- [ ] Documentar a função e uso dos novos campos.
+- [ ] Atualizar o checklist de testes manuais para incluir casos de uso e validação desses campos.
+
+---
+
+**Resumo dos melhores locais para implementação:**
+- **Interface (UI):** `ui.jsx`
+- **Processamento e geração de legenda:** `funcoesComponentes.jsx` e/ou `funcoesBolas.jsx`
+- **Validação numérica:** `funcoesUtilitarias.jsx`
+- **Logs:** `logs.jsx` (com chamadas nos arquivos acima)
 
 ---
 

@@ -110,9 +110,37 @@ function verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, encon
     logs.logFuncao("verificarCMYK", {}, "Verificação CMYK concluída");
 }
 
+// Função para salvar a seleção atual (migrada de script.jsx)
+function salvarSelecaoAtual(listaComponentes, listaCores, listaUnidades, campoMultiplicador, ultimaSelecao) {
+    try {
+        if (listaComponentes && listaComponentes.selection) {
+            ultimaSelecao.componente = listaComponentes.selection.text;
+        }
+        if (listaCores && listaCores.selection) {
+            ultimaSelecao.cor = listaCores.selection.text;
+        }
+        if (listaUnidades && listaUnidades.selection) {
+            ultimaSelecao.unidade = listaUnidades.selection.text;
+        }
+        if (campoMultiplicador) {
+            ultimaSelecao.multiplicador = campoMultiplicador.text;
+        }
+        logs.logFuncao("salvarSelecaoAtual", {
+            componente: ultimaSelecao.componente,
+            cor: ultimaSelecao.cor,
+            unidade: ultimaSelecao.unidade,
+            multiplicador: ultimaSelecao.multiplicador
+        }, "Seleção salva");
+    } catch (e) {
+        alert("Erro ao salvar seleção: " + e.message);
+        logs.adicionarLog("Erro ao salvar seleção: " + e.message, logs.TIPOS_LOG.ERROR);
+    }
+}
+
 // Exportação global
 $.global.funcoesComponentes = {
     atualizarUnidades: atualizarUnidades,
-    verificarCMYK: verificarCMYK
+    verificarCMYK: verificarCMYK,
+    salvarSelecaoAtual: salvarSelecaoAtual
     // Adicione outras funções aqui
 }; 

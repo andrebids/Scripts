@@ -1590,61 +1590,7 @@ function salvarSelecaoAtual() {
     }
 }
 
-// Função para restaurar a última seleção
-function restaurarUltimaSelecao() {
-    try {
-        if (ultimaSelecao.componente && listaComponentes && listaComponentes.items && listaComponentes.items.length) {
-            for (var i = 0; i < listaComponentes.items.length; i++) {
-                if (listaComponentes.items[i].text === ultimaSelecao.componente) {
-                    listaComponentes.selection = i;
-                    break;
-                }
-            }
-        }
-
-        // Atualizar cores baseado no componente
-        if (typeof funcoes.atualizarCores === 'function') {
-            funcoes.atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, function() {
-                if (funcoesComponentes && funcoesComponentes.verificarCMYK) {
-                    funcoesComponentes.verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, funcoes.encontrarIndicePorNome);
-                }
-            });
-        }
-
-        if (ultimaSelecao.cor && listaCores && listaCores.items && listaCores.items.length) {
-            for (var i = 0; i < listaCores.items.length; i++) {
-                if (listaCores.items[i].text === ultimaSelecao.cor) {
-                    listaCores.selection = i;
-                    break;
-                }
-            }
-        }
-
-        // Atualizar unidades baseado na cor
-        if (funcoesComponentes && funcoesComponentes.atualizarUnidades) {
-            funcoesComponentes.atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, funcoes.selecionarUnidadeMetrica, funcoes.arrayContains);
-        }
-
-        if (ultimaSelecao.unidade && listaUnidades && listaUnidades.items && listaUnidades.items.length) {
-            for (var i = 0; i < listaUnidades.items.length; i++) {
-                if (listaUnidades.items[i].text === ultimaSelecao.unidade) {
-                    listaUnidades.selection = i;
-                    break;
-                }
-            }
-        }
-
-        // Deixar o campo quantidade vazio
-        if (typeof campoQuantidade !== 'undefined' && campoQuantidade) {
-            campoQuantidade.text = "";
-        }
-        if (typeof campoMultiplicador !== 'undefined' && campoMultiplicador) {
-            campoMultiplicador.text = ultimaSelecao.multiplicador;
-        }
-    } catch (e) {
-        alert("Erro ao restaurar seleção: " + e.message);
-    }
-}
+// Função restaurarUltimaSelecao movida para funcoesComponentes.jsx
     botaoAdicionarComponente.onClick = function() {
         logs.logEvento("click", "botaoAdicionarComponente");
         try {
@@ -1771,7 +1717,7 @@ function restaurarUltimaSelecao() {
     
             try {
                 // Restaurar a última seleção
-                restaurarUltimaSelecao();
+                funcoesComponentes.restaurarUltimaSelecao(listaComponentes, listaCores, listaUnidades, campoQuantidade, campoMultiplicador, ultimaSelecao, dados, t);
             } catch (e) {
                 alert("Erro ao restaurar seleção: " + e.message + "\nUsando reset padrão");
                 // Reset padrão em caso de erro

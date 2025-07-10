@@ -127,10 +127,86 @@ function salvarSelecaoAtual(listaComponentes, listaCores, listaUnidades, campoMu
     }
 }
 
+// Função para restaurar a última seleção (migrada de script.jsx)
+function restaurarUltimaSelecao(listaComponentes, listaCores, listaUnidades, campoQuantidade, campoMultiplicador, ultimaSelecao, dados, t) {
+    logs.logFuncao("restaurarUltimaSelecao", {
+        componente: ultimaSelecao.componente,
+        cor: ultimaSelecao.cor,
+        unidade: ultimaSelecao.unidade,
+        multiplicador: ultimaSelecao.multiplicador
+    }, "Iniciando restauração da última seleção");
+    
+    try {
+        if (ultimaSelecao.componente && listaComponentes && listaComponentes.items && listaComponentes.items.length) {
+            for (var i = 0; i < listaComponentes.items.length; i++) {
+                if (listaComponentes.items[i].text === ultimaSelecao.componente) {
+                    listaComponentes.selection = i;
+                    logs.adicionarLog("Componente restaurado: " + ultimaSelecao.componente, logs.TIPOS_LOG.INFO);
+                    break;
+                }
+            }
+        }
+
+        // Atualizar cores baseado no componente
+        if (typeof funcoes.atualizarCores === 'function') {
+            funcoes.atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, function() {
+                if (funcoesComponentes && funcoesComponentes.verificarCMYK) {
+                    funcoesComponentes.verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, funcoes.encontrarIndicePorNome);
+                }
+            });
+        }
+
+        if (ultimaSelecao.cor && listaCores && listaCores.items && listaCores.items.length) {
+            for (var i = 0; i < listaCores.items.length; i++) {
+                if (listaCores.items[i].text === ultimaSelecao.cor) {
+                    listaCores.selection = i;
+                    logs.adicionarLog("Cor restaurada: " + ultimaSelecao.cor, logs.TIPOS_LOG.INFO);
+                    break;
+                }
+            }
+        }
+
+        // Atualizar unidades baseado na cor
+        if (funcoesComponentes && funcoesComponentes.atualizarUnidades) {
+            funcoesComponentes.atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, funcoes.selecionarUnidadeMetrica, funcoes.arrayContains);
+        }
+
+        if (ultimaSelecao.unidade && listaUnidades && listaUnidades.items && listaUnidades.items.length) {
+            for (var i = 0; i < listaUnidades.items.length; i++) {
+                if (listaUnidades.items[i].text === ultimaSelecao.unidade) {
+                    listaUnidades.selection = i;
+                    logs.adicionarLog("Unidade restaurada: " + ultimaSelecao.unidade, logs.TIPOS_LOG.INFO);
+                    break;
+                }
+            }
+        }
+
+        // Deixar o campo quantidade vazio
+        if (typeof campoQuantidade !== 'undefined' && campoQuantidade) {
+            campoQuantidade.text = "";
+        }
+        if (typeof campoMultiplicador !== 'undefined' && campoMultiplicador) {
+            campoMultiplicador.text = ultimaSelecao.multiplicador;
+        }
+        
+        logs.logFuncao("restaurarUltimaSelecao", {
+            componente: ultimaSelecao.componente,
+            cor: ultimaSelecao.cor,
+            unidade: ultimaSelecao.unidade,
+            multiplicador: ultimaSelecao.multiplicador
+        }, "Restauração da última seleção concluída com sucesso");
+        
+    } catch (e) {
+        logs.adicionarLog("Erro ao restaurar seleção: " + e.message, logs.TIPOS_LOG.ERROR);
+        alert("Erro ao restaurar seleção: " + e.message);
+    }
+}
+
 // Exportação global
 $.global.funcoesComponentes = {
     atualizarUnidades: atualizarUnidades,
     verificarCMYK: verificarCMYK,
-    salvarSelecaoAtual: salvarSelecaoAtual
+    salvarSelecaoAtual: salvarSelecaoAtual,
+    restaurarUltimaSelecao: restaurarUltimaSelecao
     // Adicione outras funções aqui
 }; 

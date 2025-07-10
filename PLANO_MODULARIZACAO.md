@@ -15,6 +15,12 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
   - Logs detalhados adicionados para debug
   - Chamada atualizada no script.jsx para usar funcoesComponentes.salvarSelecaoAtual
   - Teste manual realizado com sucesso
+- ✅ **Função restaurarUltimaSelecao migrada para funcoesComponentes.jsx**
+  - Função movida com sucesso para o arquivo temático
+  - Parâmetros adicionados para melhor modularização (listaComponentes, listaCores, listaUnidades, campoQuantidade, campoMultiplicador, ultimaSelecao, dados, t)
+  - Logs detalhados adicionados para debug (início, fim e cada etapa da restauração)
+  - Chamada atualizada no script.jsx para usar funcoesComponentes.restaurarUltimaSelecao
+  - Função exportada no escopo global $.global.funcoesComponentes
 
 ## 1. Preparação e Base de Testes
 - **1.1** Criar um checklist/manual de testes básicos para cada funcionalidade principal do script (UI abre, adicionar componente, adicionar bola, gerar legenda, etc.).
@@ -158,7 +164,9 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
 - [x] 5.2.2.5 Mover função atualizarUnidades para funcoesComponentes.jsx
 - [x] 5.2.2.6 Mover função verificarCMYK para funcoesComponentes.jsx
 - [x] 5.2.2.7 Mover função salvarSelecaoAtual para funcoesComponentes.jsx
-- [ ] 5.2.2.8 Mover função restaurarUltimaSelecao para funcoesComponentes.jsx
+- [x] 5.2.2.8 Mover função restaurarUltimaSelecao para funcoesComponentes.jsx
+    - [x] Atualizar o import no(s) arquivo(s) que usam essa função
+    - [x] Testar manualmente: funcionalidade específica dessa função
 - [ ] 5.2.2.9 Mover lógica do evento botaoAdicionarComponente.onClick para uma função adicionarComponente em funcoesComponentes.jsx
 
 #### 5.2.3 Modularização de Bolas

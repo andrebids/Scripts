@@ -12,6 +12,7 @@ $.evalFile(File($.fileName).path + "/update.jsx");
 $.evalFile(File($.fileName).path + "/funcoesComponentes.jsx");
 $.evalFile(File($.fileName).path + "/funcoesBolas.jsx");    
 $.evalFile(File($.fileName).path + "/logs.jsx");
+$.evalFile(File($.fileName).path + "/funcoesLegenda.jsx");
 
 // Adicionar no início do arquivo, após os outros $.evalFile
 $.evalFile(File($.fileName).path + "/alfabeto.jsx");
@@ -122,7 +123,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v1.9.5");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v1.9.7");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -372,11 +373,26 @@ var componentesNomes = getComponentesComCombinacoes();
 var listaComponentes = grupo2.add("dropdownlist", undefined, componentesNomes);
 listaComponentes.selection = 0;
 
+// Evento para atualizar cores e unidades ao selecionar um componente
+listaComponentes.onChange = function() {
+    funcoes.atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, function() {
+        if (funcoesComponentes && funcoesComponentes.verificarCMYK) {
+            funcoesComponentes.verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, funcoes.encontrarIndicePorNome);
+        }
+    });
+};
+
 // Lista de cores
 var coresNomes = [t("selecioneCor")].concat(extrairNomes(dados.cores));
 var listaCores = grupo2.add("dropdownlist", undefined, coresNomes);
 listaCores.selection = 0;
 
+// Evento para atualizar unidades ao selecionar uma cor
+listaCores.onChange = function() {
+    if (funcoesComponentes && funcoesComponentes.atualizarUnidades) {
+        funcoesComponentes.atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, funcoes.selecionarUnidadeMetrica, funcoes.arrayContains);
+    }
+};
 // Lista de unidades
 var listaUnidades = grupo2.add("dropdownlist", undefined, [t("selecioneUnidade")]);
 listaUnidades.selection = 0;
@@ -393,6 +409,26 @@ funcoes.apenasNumerosEVirgula(campoMultiplicador);
 
 // Botão adicionar componente
 var botaoAdicionarComponente = grupo2.add("button", undefined, t("botaoAdicionar"));
+
+// Evento para adicionar componente ao clicar no botão
+botaoAdicionarComponente.onClick = function() {
+    logs.logEvento("click", "botaoAdicionarComponente");
+    funcoesComponentes.adicionarComponente(
+        listaComponentes,
+        listaCores,
+        listaUnidades,
+        campoQuantidade,
+        campoMultiplicador,
+        ultimaSelecao,
+        dados,
+        itensLegenda,
+        atualizarListaItens,
+        t,
+        logs,
+        funcoes,
+        funcoes.encontrarIndicePorNome
+    );
+};
 
 // Grupo para bolas
 var grupoBolas = conteudoLegenda.add("panel", undefined, t("painelBolas"));
@@ -1007,497 +1043,8 @@ function atualizarListaItens() {
     }
 };
 
-  function atualizarPreview() {
-    var previewText = [];
-    var frasePrincipal = "";
-    var componentesExtras = [];
-    var primeiroComponenteExtra = null;
-    var componentesAgrupados = {};
-    var bolasCores = [];
-    var totalBolas = 0;
-    var contagemBolas = {};
-    var bolasCompostas = false;
-    var bolesContadas = [];
-    var componentesTexto = [];
-    var bolasTexto = [];
-    var texturasAdicionadas = [];
-    var componentesReferencias = [];
-    var bolasProcessadas = {};
-    var itensProcessados = {};
-
-    // Usar função modularizada para processar o alfabeto
-    var resultadoAlfabeto = gerarPreviewAlfabeto(itensLegenda);
-    var referenciasAlfabeto = resultadoAlfabeto.referenciasAlfabeto;
-    var alfabetoUsado = resultadoAlfabeto.alfabetoUsado;
-    var palavraDigitada = resultadoAlfabeto.palavraDigitada;
-    var corBioprint = resultadoAlfabeto.corBioprint;
-
-    // Procurar por componentes, bolas e texturas
-    for (var i = 0; i < itensLegenda.length; i++) {
-        var item = itensLegenda[i];
-        if (item.tipo === "textura") {
-            var numeroTextura = item.referencia.match(/\d+/)[0];
-            if (!arrayContains(texturasAdicionadas, numeroTextura)) {
-                texturasAdicionadas.push(numeroTextura);
-            }
-        } else if (item.tipo === "componente") {
-            var nomeComponente = item.nome.split(' ')[0];
-            var corComponente = item.nome.split(' ').slice(1).join(' ');
-            if (!componentesAgrupados[nomeComponente]) {
-                componentesAgrupados[nomeComponente] = [];
-            }
-            if (!arrayContains(componentesAgrupados[nomeComponente], corComponente)) {
-                componentesAgrupados[nomeComponente].push(corComponente);
-            }
-            if (!itensProcessados[item.referencia + item.unidade]) {
-                componentesReferencias.push(funcoes.criarLinhaReferencia(item));
-                itensProcessados[item.referencia + item.unidade] = true;
-            }
-        } else if (item.tipo === "bola") {
-            var corBola = item.nome.split(' ')[1];
-            if (!arrayContains(bolasCores, corBola)) {
-                bolasCores.push(corBola);
-            }
-            totalBolas += item.quantidade;
-            var chaveBola = item.referencia || item.nome;
-            if (!contagemBolas[chaveBola]) {
-                contagemBolas[chaveBola] = 0;
-            }
-            contagemBolas[chaveBola] += item.quantidade;
-            if (item.nome.toLowerCase().indexOf("composta") !== -1) {
-                bolasCompostas = true;
-            }
-            if (!bolasProcessadas[chaveBola] || item.unidade === "units") {
-                bolasProcessadas[chaveBola] = item;
-            }
-        }
-    }
-
-    // Processar componentes extras
-    for (var i = 0; i < itensLegenda.length; i++) {
-        if (itensLegenda[i].tipo === "extra") {
-            if (!primeiroComponenteExtra) {
-                primeiroComponenteExtra = itensLegenda[i];
-            } else {
-                componentesExtras.push(itensLegenda[i]);
-            }
-        }
-    }
-
-    // Construir a frase principal
-    var nomeTipo = palavraDigitada || campoNomeTipo.text;
-    var prefixoNomeTipo = escolhaNomeTipo.selection.text === "Tipo" ? "type " : "";
-    var preposicao = alfabetoUsado ? "en" : "avec";
-    var decorTexto = "décor";
-
-    frasePrincipal = "Logo " + (listaL.selection ? listaL.selection.text : "") + ": " + 
-                     decorTexto + " " + prefixoNomeTipo + "\"" + nomeTipo + "\" " + preposicao;
-
-    if (alfabetoUsado) {
-        frasePrincipal += " bioprint " + (corBioprint || "");
-    }
-
-    // Definir a ordem dos componentes
-    var ordemComponentes = [
-        'BIOPRINT',
-        'RECYPRINT',
-        'FLEXIPRINT',
-        'MOQUETTE',
-        'CAMOUFLAGE',
-        'FIL LUMIERE',
-        'LUCIOLES',
-        'STALACTITS',
-        'RIDEAUX',
-        'FIL COMÈTE',
-        'SOFT XLED',
-        'BOULE ANIMÉ',
-        'BOULES ANIMÉS',
-        'BOUQUETS',
-        'ECLAT ANIMÉ',
-        'ECLATS ANIMÉS',
-        'FLAME BOULE',
-        'FLAME BOULES',
-        'TIGES X-LED 0,50M',
-        'TIGES X-LED 0,80M',
-        'XLED SPIRAL',
-        'XLED STAR'
-    ];
-
-    var ordemUnidades = ['m2', 'ml', 'units'];
-
-    // Funções extrairInfoComponente e encontrarIndice movidas para funcoes.jsx
-
-    // Ordenar componentesReferencias
-    componentesReferencias.sort(function(a, b) {
-        var infoA = funcoes.extrairInfoComponente(a);
-        var infoB = funcoes.extrairInfoComponente(b);
-        
-        // Primeiro compara pelo componente base usando a ordem definida
-        var posA = 999;
-        var posB = 999;
-        
-        for (var i = 0; i < ordemComponentes.length; i++) {
-            if (infoA.componente === ordemComponentes[i].toLowerCase()) {
-                posA = i;
-            }
-            if (infoB.componente === ordemComponentes[i].toLowerCase()) {
-                posB = i;
-            }
-        }
-        
-        if (posA !== posB) {
-            return posA - posB;
-        }
-        
-        // Se mesmo componente, ordena por cor
-        if (infoA.cor !== infoB.cor) {
-            return infoA.cor.localeCompare(infoB.cor);
-        }
-        
-        // Se mesma cor, ordena por unidade (m2 antes de ml)
-        var unidadeA = funcoes.encontrarIndice(ordemUnidades, infoA.unidade);
-        var unidadeB = funcoes.encontrarIndice(ordemUnidades, infoB.unidade);
-        
-        if (unidadeA === -1) unidadeA = 999;
-        if (unidadeB === -1) unidadeB = 999;
-        
-        return unidadeA - unidadeB;
-    });
-
-    // Modificar a parte onde os componentes são processados
-    var componentesOrdenados = [];
-    for (var nomeComponente in componentesAgrupados) {
-        if (componentesAgrupados.hasOwnProperty(nomeComponente)) {
-            componentesOrdenados.push(nomeComponente);
-        }
-    }
-    
-    // Ordenar os componentes
-    componentesOrdenados.sort(function(a, b) {
-        var posA = 999;
-        var posB = 999;
-        
-        // Procurar posição na ordem
-        for (var i = 0; i < ordemComponentes.length; i++) {
-            if (a === ordemComponentes[i]) {
-                posA = i;
-            }
-            if (b === ordemComponentes[i]) {
-                posB = i;
-            }
-        }
-        
-        return posA - posB;
-    });
-    
-    // Construir componentesTexto usando a ordem correta
-    for (var i = 0; i < componentesOrdenados.length; i++) {
-        var nomeComponente = componentesOrdenados[i];
-        componentesTexto.push(nomeComponente + " " + componentesAgrupados[nomeComponente].join(", "));
-    }
-
-    if (componentesTexto.length > 0) {
-        frasePrincipal += " " + componentesTexto.join(", ");
-    }
-
-    // Adicionar o primeiro componente extra à frase principal
-    if (primeiroComponenteExtra) {
-        frasePrincipal += ", " + primeiroComponenteExtra.nome;
-    }
-
-    // Adicionar as bolas
-    var todasBolas = [];
-    var bolasCompostas = [];
-    for (var i = 0; i < bolasCores.length; i++) {
-        todasBolas.push(bolasCores[i]);
-    }
-    for (var i = 0; i < bolesContadas.length; i++) {
-        todasBolas.push(bolesContadas[i]);
-    }
-    
-    // Separar bolas compostas
-    for (var i = 0; i < itensLegenda.length; i++) {
-        if (itensLegenda[i].tipo === "bola" && itensLegenda[i].composta) {
-            bolasCompostas.push(itensLegenda[i].nome);
-        }
-    }
-    
-            todasBolas = funcoes.removerDuplicatas(todasBolas);
-        bolasCompostas = funcoes.removerDuplicatas(bolasCompostas);
-
-    if (todasBolas.length > 0 || bolasCompostas.length > 0) {
-        var textoBoule = totalBolas > 1 ? "boules" : "boule";
-        frasePrincipal += ", " + textoBoule + " " + todasBolas.join(", ");
-        if (bolasCompostas.length > 0) {
-            frasePrincipal += ", boules composées " + bolasCompostas.join(", ");
-        }
-    }
-
-    frasePrincipal += ", sur structure aluminium";
-    if (checkStructure.value) {
-        frasePrincipal += " laquée " + (corStructure.selection ? corStructure.selection.text : "");
-    }
-    frasePrincipal += ".";
-
-    previewText.push(frasePrincipal);
-
-    // Adicionar dimensões
-    var dimensoesValidas = [];
-    for (var i = 0; i < dimensoes.length; i++) {
-        var valorDimensao = grupoDimensoes.children[i*2 + 1].text;
-        if (valorDimensao !== "") {
-            var dimensao = dimensoes[i];
-            if (dimensao === "⌀") {
-                dimensao = "\u00D8";
-            }
-            dimensoesValidas.push(dimensao + ": " + regras.formatarDimensao(valorDimensao));
-        }
-    }
-    if (dimensoesValidas.length > 0) {
-        previewText.push("\u200B"); // Adiciona uma linha em branco extra
-        previewText.push(dimensoesValidas.join(" - "));
-    }
-
-    // Adicionar tipo de fixação
-    previewText.push("Fixation: " + (listaFixacao.selection ? listaFixacao.selection.text : ""));
-
-    // Adicionar "Composants:" apenas se houver componentes
-    var temComponentes = false;
-    for (var i = 0; i < itensLegenda.length; i++) {
-        if (itensLegenda[i].tipo === "componente" || itensLegenda[i].tipo === "alfabeto") {
-            temComponentes = true;
-            break;
-        }
-    }
-    
-    if (temComponentes) {
-        previewText.push("\u200B"); // Linha em branco antes de "Composants:"
-        previewText.push("Composants:");
-    }
-
-
-
-
-    // Adicionar referências do alfabeto
-    for (var i = 0; i < referenciasAlfabeto.length; i++) {
-        previewText = previewText.concat(referenciasAlfabeto[i].texto.split('\n'));
-    }
-
-    // Adicionar referências de componentes
-    previewText = previewText.concat(componentesReferencias);
-    
-    // Adicionar contagem de bolas
-    if (totalBolas > 0) {
-        previewText.push("\u200B");
-        var textoBouleContagem = totalBolas === 1 ? "boule" : "boules";
-        previewText.push("Total de " + totalBolas + " " + textoBouleContagem + " :");
-        for (var chaveBola in bolasProcessadas) {
-            if (bolasProcessadas.hasOwnProperty(chaveBola)) {
-                var bolaItem = bolasProcessadas[chaveBola];
-                previewText.push(funcoes.criarLinhaReferencia(bolaItem));
-            }
-        }
-    }
- // Adicionar contagem de elementos
-    var contagemElementosTexto = [];
-    for (var i = 0; i < itensLegenda.length; i++) {
-        if (itensLegenda[i].tipo === "contagem") {
-            var linhas = itensLegenda[i].texto.split('\n');
-            contagemElementosTexto.push(linhas[0]); // Adiciona a primeira linha (total)
-            for (var j = 1; j < linhas.length; j++) {
-                var linha = linhas[j];
-                // Verifica se a linha contém informações sobre uma bola
-                if (linha.indexOf("boule") !== -1) {
-                    // Adiciona "(units)" após a medida, mantendo o formato original
-                    linha = linha.replace(/(\d+(?:,\d+)?\s*m)/, "$1 (units)");
-                }
-                contagemElementosTexto.push(linha);
-            }
-            break;
-        }
-    }
-
-    if (contagemElementosTexto.length > 0) {
-        previewText = previewText.concat(contagemElementosTexto);
-    }
-
-    // Adicionar componentes extras, incluindo o primeiro
-    var todosComponentesExtras = [];
-    if (primeiroComponenteExtra) {
-        todosComponentesExtras.push(primeiroComponenteExtra);
-    }
-    todosComponentesExtras = todosComponentesExtras.concat(componentesExtras);
-
-    if (todosComponentesExtras.length > 0) {
-        // Removemos a linha que adiciona o espaço em branco
-        // previewText.push("\u200B"); // Removemos a linha em branco antes dos extras
-        
-        for (var i = 0; i < todosComponentesExtras.length; i++) {
-            previewText.push(todosComponentesExtras[i].texto);
-        }
-    }
-
-    // Adicionar observações
-    if (campoObs && campoObs.text && campoObs.text.toString().replace(/\s/g, '').length > 0) {
-        previewText.push("\u200B");
-        var observacaoCodificada = funcoes.encodeObservacao(campoObs.text);
-        previewText.push("Obs: " + observacaoCodificada);
-        
-        // Log da codificação das observações
-        if (typeof logs !== 'undefined' && logs.adicionarLog) {
-            logs.adicionarLog("Observação codificada para Illustrator: " + observacaoCodificada, logs.TIPOS_LOG.INFO);
-        }
-    }
-
-    // Retornar objeto com texto e texturas
-    return {
-        texto: previewText.join("\n"),
-        texturas: texturasAdicionadas
-    };
-}
-
-// Função formatarUnidade movida para funcoes.jsx
-
-// Modificar a função criarLinhaReferencia
-function criarLinhaReferencia(item) {
-    var linha = item.referencia ? item.referencia : item.nome;
-    if (item.unidade) {
-        linha += " (" + funcoes.formatarUnidade(item.unidade) + ")";
-    }
-    
-    var quantidade = funcoes.arredondarComponente(item.quantidade, item.unidade, item.nome);
-    
-    var quantidadeFormatada;
-    if (item.unidade === "units") {
-        quantidadeFormatada = Math.round(quantidade).toString();
-    } else {
-        quantidadeFormatada = quantidade.toFixed(2).replace('.', ',');
-    }
-    
-    if (item.multiplicador && item.multiplicador > 1) {
-        linha += " " + quantidadeFormatada + "x" + item.multiplicador + ": ";
-        var quantidadeTotal = quantidade * item.multiplicador;
-        var quantidadeTotalFormatada;
-        if (item.unidade === "units") {
-            quantidadeTotalFormatada = Math.round(quantidadeTotal).toString();
-        } else {
-            quantidadeTotalFormatada = quantidadeTotal.toFixed(2).replace('.', ',');
-        }
-        linha += quantidadeTotalFormatada;
-    } else {
-        linha += ": " + quantidadeFormatada;
-    }
-    
-    if (item.composta) {
-        linha += " (composta)";
-    }
-    return linha;
-}
-
-    // Função para atualizar a lista de cores com base no componente selecionado
-    function selecionarUnidadeMetrica(unidades) {
-        var prioridade = ["m2", "ml", "unit"];
-        
-        // Primeiro, verifica se há apenas uma unidade disponível (excluindo "Selecione uma unidade")
-        if (unidades.length === 2 && unidades[1] === "unit") {
-            return "unit";
-        }
-        
-        // Se houver mais de uma opção, segue a ordem de prioridade
-        for (var i = 0; i < prioridade.length; i++) {
-            if (arrayContains(unidades, prioridade[i])) {
-                return prioridade[i];
-            }
-        }
-        return null;
-    }
-
-
-// Modificar a função para apenas verificar o CMYK, sem exibir alertas
-
-
-
-   
-    // Atualizar os event listeners
-    listaComponentes.onChange = function() {
-        funcoes.atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, function() {
-            if (funcoesComponentes && funcoesComponentes.verificarCMYK) {
-                funcoesComponentes.verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, funcoes.encontrarIndicePorNome);
-            }
-        });
-    };
-    
-    listaCores.onChange = function() {
-        funcoesComponentes.atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, funcoes.selecionarUnidadeMetrica, funcoes.arrayContains);
-        if (funcoesComponentes && funcoesComponentes.verificarCMYK) {
-            funcoesComponentes.verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, funcoes.encontrarIndicePorNome);
-        }
-    };
-    
-    listaUnidades.onChange = function() {
-        if (funcoesComponentes && funcoesComponentes.verificarCMYK) {
-            funcoesComponentes.verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, funcoes.encontrarIndicePorNome);
-        }
-    };
-
-    // Função para arredondar para a próxima décima
-    // Função arredondarParaDecima movida para funcoes.jsx
-// Função para salvar a seleção atual
-function salvarSelecaoAtual() {
-    try {
-        if (listaComponentes && listaComponentes.selection) {
-            ultimaSelecao.componente = listaComponentes.selection.text;
-        }
-        if (listaCores && listaCores.selection) {
-            ultimaSelecao.cor = listaCores.selection.text;
-        }
-        if (listaUnidades && listaUnidades.selection) {
-            ultimaSelecao.unidade = listaUnidades.selection.text;
-        }
-        // Removemos o salvamento da quantidade
-        if (campoMultiplicador) {
-            ultimaSelecao.multiplicador = campoMultiplicador.text;
-        }
-    } catch (e) {
-        alert("Erro ao salvar seleção: " + e.message);
-    }
-}
-
-// Função restaurarUltimaSelecao movida para funcoesComponentes.jsx
-    botaoAdicionarComponente.onClick = function() {
-        logs.logEvento("click", "botaoAdicionarComponente");
-        funcoesComponentes.adicionarComponente(listaComponentes, listaCores, listaUnidades, campoQuantidade, campoMultiplicador, ultimaSelecao, dados, itensLegenda, atualizarListaItens, t, logs, funcoes, encontrarIndicePorNome);
-    };
-
-    // Função para arredondar para o próximo 0,05 ou 0,1
-    // Função arredondarComponente movida para funcoes.jsx
-
-// Modificar a função criarTextoComponente
-function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicador) {
-    var texto = nome;
-    if (referencia) {
-        texto += " (Ref: " + referencia + ")";
-    }
-    texto += " (" + funcoes.formatarUnidade(unidade) + ")";
-    
-    quantidade = funcoes.arredondarComponente(quantidade, unidade, nome);
-    
-    var quantidadeFormatada = quantidade.toFixed(2).replace('.', ',');
-    if (multiplicador > 1) {
-        texto += " " + quantidadeFormatada + "x" + multiplicador + ": ";
-        var quantidadeTotal = quantidade * multiplicador;
-        texto += quantidadeTotal.toFixed(2).replace('.', ',');
-    } else {
-        texto += ": " + quantidadeFormatada;
-    }
-    
-    return texto;
-}
-    // Exibir a janela
-    janela.show();
-
-    // Modificar o botão para gerar legenda
-    botaoGerar.onClick = function() {
+  // Evento de clique no botão gerar
+  botaoGerar.onClick = function() {
         logs.logEvento("click", "botaoGerar");
         // Verificar se o tipo de fixação foi selecionado
         if (!listaFixacao.selection || listaFixacao.selection.index === 0) {
@@ -1524,7 +1071,21 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
         // Continua com a verificação original
         if (confirm(t("confirmarComponentes"))) {
             try {
-                var legendaInfo = atualizarPreview();
+                // Preparar parâmetros para a função modularizada
+                var parametrosPreview = {
+                    itensLegenda: itensLegenda,
+                    campoNomeTipo: campoNomeTipo,
+                    escolhaNomeTipo: escolhaNomeTipo,
+                    listaL: listaL,
+                    dimensoes: dimensoes,
+                    grupoDimensoes: grupoDimensoes,
+                    listaFixacao: listaFixacao,
+                    checkStructure: checkStructure,
+                    corStructure: corStructure,
+                    campoObs: campoObs
+                };
+                
+                var legendaInfo = funcoesLegenda.atualizarPreview(parametrosPreview);
                 
                 if (legendaInfo === undefined) {
                     alert(t("erroGerarLegenda"));

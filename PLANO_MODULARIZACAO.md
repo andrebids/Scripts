@@ -3,6 +3,23 @@
 ## Diretriz de Logging Obrigatório
 Sempre que for criada, alterada ou removida qualquer funcionalidade, componente, bola, item de lista ou ação relevante no sistema, **deve ser registrado um log detalhado na janela de logs**. O log deve conter informações completas sobre a ação (tipo, dados envolvidos, resultado, etc.), para facilitar a verificação manual e o debug. Nenhuma ação importante deve passar sem registro no sistema de logs.
 
+## ⚠️ IMPORTANTE: Configuração Obrigatória do Adobe Illustrator
+**NUNCA REMOVER** as seguintes diretivas do cabeçalho do `script.jsx`:
+```javascript
+#target illustrator
+#targetengine maintarget
+```
+
+**Explicação:**
+- `#target illustrator` - Define que o script é para o Adobe Illustrator
+- `#targetengine maintarget` - Define o engine de execução principal, **obrigatório** para:
+  - Comunicação entre aplicações (BridgeTalk)
+  - Manter estado entre execuções
+  - Acessar funcionalidades avançadas do Illustrator
+  - Funcionamento correto do alfabeto e outras funções
+
+**Nota:** O linter JavaScript pode mostrar erros nessas linhas, mas são **normais e devem ser ignorados** - essas diretivas são específicas do Adobe Illustrator e necessárias para o funcionamento do script.
+
 ## Correções Aplicadas
 - ✅ **Problema de duplicação de unidades no dropdown corrigido**
   - Removida linha duplicada do evento `listaCores.onChange`
@@ -553,9 +570,15 @@ Esses campos devem ser exibidos na legenda **antes dos componentes e depois da f
 - [x] Verificar se os logs são registrados corretamente para todas as ações.
     - **Validado:** Logs funcionam corretamente para ambos os campos
 
-#### 5.8.6 Documentação
-- [ ] Documentar a função e uso dos novos campos.
-- [ ] Atualizar o checklist de testes manuais para incluir casos de uso e validação desses campos.
+#### 5.8.6 Documentação ✅ CONCLUÍDA
+- [x] Documentar a função e uso dos novos campos.
+    - **Campo Usage:** Dropdown opcional com opções "Intérieur" e "Exterieur" para indicar o uso interno ou externo do projeto
+    - **Campo Quantité prévue:** Campo numérico opcional para inserir quantidade prevista do componente
+    - **Localização na UI:** Entre campos de dimensões e "Structure laqué" na interface
+    - **Localização na Legenda:** Após fixação e antes da seção "Composants:" (não aparecem na frase principal)
+    - **Validação:** Quantité prévue aceita apenas números via `funcoes.apenasNumerosEVirgula()`
+    - **Processamento:** Função `processarCamposOpcionais()` em `funcoesLegenda.jsx`
+- [x] Atualizar o checklist de testes manuais para incluir casos de uso e validação desses campos.
 
 ---
 
@@ -591,10 +614,26 @@ Esses campos devem ser exibidos na legenda **antes dos componentes e depois da f
 
 ---
 
-## 11. Modularização de Configuração
-- **11.1** Mover lógica de configuração inicial (nome do designer, idioma) para `config.jsx`.
-- **11.2** Atualizar os imports no `script.jsx`.
-- **11.3** Testar manualmente: rodar o script em um ambiente limpo, verificar se a configuração inicial aparece e é salva corretamente.
+## 11. Modularização de Configuração ✅ CONCLUÍDA
+- [x] **11.1** Mover lógica de configuração inicial (nome do designer, idioma) para `config.jsx`.
+    - [x] Criado arquivo `config.jsx` com todas as funções de configuração
+    - [x] Migradas funções: `mostrarJanelaConfigInicial()`, `carregarConfiguracaoUsuario()`, `salvarConfiguracaoUsuario()`, `alterarIdioma()`, `inicializarConfiguracao()`
+    - [x] Adicionadas funções auxiliares: `obterConfiguracaoAtual()`, `validarConfiguracao()`
+    - [x] Logs detalhados adicionados para todas as operações de configuração
+    - [x] Função removida do `ui.jsx` (era duplicada)
+- [x] **11.2** Atualizar os imports no `script.jsx`.
+    - [x] Adicionado `$.evalFile(File($.fileName).path + "/config.jsx");` na ordem correta
+    - [x] Lógica de inicialização substituída por `config.inicializarConfiguracao()`
+    - [x] Evento de mudança de idioma atualizado para usar `config.alterarIdioma()`
+- [x] **11.3** Testar manualmente: rodar o script em um ambiente limpo, verificar se a configuração inicial aparece e é salva corretamente.
+    - [x] **INSTRUÇÕES DE TESTE:**
+        1. Remover arquivo `cartouche_config.json` da pasta Documentos (se existir)
+        2. Executar script no Illustrator
+        3. Verificar se janela de configuração inicial aparece
+        4. Inserir nome e selecionar idioma
+        5. Verificar se configuração é salva e carregada na próxima execução
+        6. Testar mudança de idioma via dropdown na interface principal
+        7. Verificar logs na aba Logs para todas as operações
 
 > **Lembrete:** Toda ação de criação, alteração ou remoção neste módulo deve registrar um log detalhado na janela de logs, incluindo dados relevantes da operação.
 
@@ -659,6 +698,20 @@ Esses campos devem ser exibidos na legenda **antes dos componentes e depois da f
 - [ ] Configurações de log são salvas
 - [ ] Logs persistem entre sessões
 - [ ] Performance não é impactada significativamente
+
+## Checklist de Testes - Campos Usage e Quantité prévue
+
+- [ ] Campo "Usage" aparece na interface entre dimensões e "Structure laqué"
+- [ ] Dropdown "Usage" contém opções corretas: "Sélectionner usage", "Intérieur", "Extérieur"
+- [ ] Campo "Quantité prévue" aparece na interface ao lado do campo "Usage"
+- [ ] Campo "Quantité prévue" aceita apenas números (validação funciona)
+- [ ] Campos são opcionais e podem ficar vazios sem erro
+- [ ] Campo "Usage" quando preenchido aparece na legenda após fixação
+- [ ] Campo "Quantité prévue" quando preenchido aparece na legenda após fixação
+- [ ] Campos aparecem ANTES da seção "Composants:" na legenda
+- [ ] Campos NÃO aparecem na frase principal da legenda
+- [ ] Logs são registrados ao alterar valores dos campos
+- [ ] Campos funcionam corretamente com diferentes combinações de preenchimento
 
 ---
 

@@ -1,17 +1,18 @@
 #target illustrator
-#targetengine maintarget illustrator
+#targetengine maintarget
 
 // Importar o arquivo de regras
 $.evalFile(File($.fileName).path + "/json2.js");
 $.evalFile(File($.fileName).path + "/regras.jsx");
 $.evalFile(File($.fileName).path + "/funcoes.jsx");
 $.evalFile(File($.fileName).path + "/database.jsx");
+$.evalFile(File($.fileName).path + "/logs.jsx");
+$.evalFile(File($.fileName).path + "/config.jsx");
 $.evalFile(File($.fileName).path + "/ui.jsx");
 $.evalFile(File($.fileName).path + "/translations.js");
 $.evalFile(File($.fileName).path + "/update.jsx");
 $.evalFile(File($.fileName).path + "/funcoesComponentes.jsx");
 $.evalFile(File($.fileName).path + "/funcoesBolas.jsx");    
-$.evalFile(File($.fileName).path + "/logs.jsx");
 $.evalFile(File($.fileName).path + "/funcoesLegenda.jsx");
 
 // Adicionar no início do arquivo, após os outros $.evalFile
@@ -35,23 +36,8 @@ var ultimaSelecao = {
 // Função para mostrar janela de configuração inicial movida para ui.jsx
 
 (function() {
-    // Verificar se existe arquivo de configuração
-    if (arquivoExiste(caminhoConfig)) {
-        try {
-            var config = database.lerArquivoJSON(caminhoConfig);
-            if (config && config.nomeDesigner && config.idioma) {
-                nomeDesigner = config.nomeDesigner;
-                idiomaUsuario = config.idioma;
-                IDIOMA_ATUAL = config.idioma;
-            } else {
-                mostrarJanelaConfigInicial();
-            }
-        } catch(e) {
-            mostrarJanelaConfigInicial();
-        }
-    } else {
-        mostrarJanelaConfigInicial();
-    }
+    // Inicializar sistema de configuração usando o módulo config.jsx
+    config.inicializarConfiguracao();
     var caminhoBaseDadosHardcoded = "\\\\192.168.2.22\\Olimpo\\DS\\_BASE DE DADOS\\07. TOOLS\\ILLUSTRATOR\\basededados\\database2.json";
 
     // Adicionar verificação antes de tentar ler o arquivo
@@ -140,16 +126,16 @@ dropdownIdiomas.onChange = function() {
     
     // Só mostrar alerta e salvar se o idioma realmente mudou
     if (novoIdioma !== idiomaUsuario) {
-        // Salvar o novo idioma no arquivo de configuração
-        var config = lerArquivoJSON(caminhoConfig);
-        config.idioma = novoIdioma;
-        escreverArquivoJSON(caminhoConfig, config);
-        
-        // Mostrar mensagem para o usuário
-        alert(t("idiomaAlterado") + novoIdioma + t("reiniciarScript"));
-        
-        // Fechar a janela atual
-        janela.close();
+        // Usar módulo config para alterar idioma
+        if (config.alterarIdioma(novoIdioma)) {
+            // Mostrar mensagem para o usuário
+            alert(t("idiomaAlterado") + novoIdioma + t("reiniciarScript"));
+            
+            // Fechar a janela atual
+            janela.close();
+        } else {
+            alert("Erro ao alterar idioma. Por favor, tente novamente.");
+        }
     }
 };
 

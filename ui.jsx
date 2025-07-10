@@ -263,50 +263,7 @@
 }
 
 // Função para mostrar janela de configuração inicial
-function mostrarJanelaConfigInicial() {
-    var janelaConfig = new Window("dialog", "Configuração Inicial / Configuration Initiale");
-    janelaConfig.orientation = "column";
-    janelaConfig.alignChildren = "center";
-    
-    // Grupo para nome
-    var grupoNome = janelaConfig.add("group");
-    grupoNome.add("statictext", undefined, "Nome do Designer / Nom du Designer:");
-    var campoNome = grupoNome.add("edittext", undefined, "");
-    campoNome.characters = 30;
-    
-    // Grupo para idioma
-    var grupoIdioma = janelaConfig.add("group");
-    grupoIdioma.add("statictext", undefined, "Idioma / Langue:");
-    var listaIdiomas = grupoIdioma.add("dropdownlist", undefined, ["Português", "Français"]);
-    listaIdiomas.selection = 0;
-    
-    // Botão OK
-    var botaoOK = janelaConfig.add("button", undefined, "OK");
-    
-    botaoOK.onClick = function() {
-        if (campoNome.text.length > 0) {
-            nomeDesigner = campoNome.text;
-            idiomaUsuario = listaIdiomas.selection.text;
-            IDIOMA_ATUAL = idiomaUsuario;
-            
-            var config = {
-                nomeDesigner: nomeDesigner,
-                idioma: idiomaUsuario
-            };
-            
-            try {
-                database.escreverArquivoJSON(caminhoConfig, config);
-                janelaConfig.close();
-            } catch(e) {
-                alert("Erro ao salvar configuração / Erreur lors de l'enregistrement de la configuration: " + e.message);
-            }
-        } else {
-            alert("Por favor, insira seu nome / S'il vous plaît, entrez votre nom");
-        }
-    };
-    
-    janelaConfig.show();
-}
+// Função mostrarJanelaConfigInicial migrada para config.jsx
 
 // Função para criar interface do contador de bolas
 function criarInterfaceContadorBolas(grupoContar, dados, itensLegenda, atualizarListaItens) {

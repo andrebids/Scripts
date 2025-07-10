@@ -459,7 +459,6 @@ $.global.logs = {
     logArquivo: logArquivo,
     obterLogsFormatados: obterLogsFormatados,
     atualizarInterfaceLogs: atualizarInterfaceLogs,
-    configurarEventosLogs: configurarEventosLogs,
     inicializarSistemaLogs: inicializarSistemaLogs,
     configurarNivelLog: configurarNivelLog,
     obterNivelAtual: obterNivelAtual,

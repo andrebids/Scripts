@@ -258,7 +258,7 @@ Garantir que qualquer texto inserido nas observações (OBS) seja corretamente t
 
 ---
 
-## 5.6 Correção da Inclusão de Todos os Componentes Extras na Frase Principal
+## 5.6 Correção da Inclusão de Todos os Componentes Extras na Frase Principal ✅ CONCLUÍDA
 
 **Objetivo:**  
 Garantir que todos os componentes extras adicionados pelo usuário apareçam corretamente na frase principal da legenda gerada, e não apenas o primeiro.
@@ -280,14 +280,21 @@ Garantir que todos os componentes extras adicionados pelo usuário apareçam cor
 - [x] Adicionar logs para registrar todos os componentes extras incluídos na frase principal. ✅ CONCLUÍDO
   - Log detalhado: "Adicionados X componentes extras na frase principal: nome1, nome2, ..."
 
-#### 5.6.3 Testes Manuais
-- [ ] Adicionar dois ou mais componentes extras e verificar se todos aparecem na frase principal da legenda.
-- [ ] Testar diferentes combinações de componentes extras (com nomes curtos, longos, caracteres especiais, etc.).
-- [ ] Verificar se a listagem de componentes extras continua funcionando normalmente.
+#### 5.6.3 Testes Manuais ✅ CONCLUÍDO
+- [x] Adicionar dois ou mais componentes extras e verificar se todos aparecem na frase principal da legenda. ✅ CONCLUÍDO
+- [x] Testar diferentes combinações de componentes extras (com nomes curtos, longos, caracteres especiais, etc.). ✅ CONCLUÍDO
+- [x] Verificar se a listagem de componentes extras continua funcionando normalmente. ✅ CONCLUÍDO
+- [x] **CORREÇÃO ADICIONAL:** Corrigir exibição de "Composants:" quando há apenas componentes extras ✅ CONCLUÍDO
+  - Problema: "Composants:" só aparecia se houvesse componentes normais ou alfabeto
+  - Solução: Incluir verificação de componentes do tipo "extra" na lógica
 
-#### 5.6.4 Documentação
-- [ ] Documentar a lógica de concatenação dos componentes extras na frase principal.
-- [ ] Atualizar o checklist de testes manuais para incluir este caso.
+#### 5.6.4 Documentação ✅ CONCLUÍDO
+- [x] Documentar a lógica de concatenação dos componentes extras na frase principal. ✅ CONCLUÍDO
+  - Todos os componentes extras são agora incluídos na frase principal separados por vírgula
+  - Função `processarComponentesExtras()` retorna `todosComponentesExtras[]` com todos os componentes
+  - Função `gerarFrasePrincipal()` itera sobre todos e os concatena
+- [x] Atualizar o checklist de testes manuais para incluir este caso. ✅ CONCLUÍDO
+  - Incluído teste específico para verificar "Composants:" com apenas componentes extras
 
 ---
 
@@ -501,28 +508,52 @@ Esses campos devem ser exibidos na legenda **antes dos componentes e depois da f
 
 ---
 
-## 6. Modularização de Configuração
-- **6.1** Mover lógica de configuração inicial (nome do designer, idioma) para `config.jsx`.
-- **6.2** Atualizar os imports no `script.jsx`.
-- **6.3** Testar manualmente: rodar o script em um ambiente limpo, verificar se a configuração inicial aparece e é salva corretamente.
+## 9. Criação de Componente GP (Paille Synthétique)
+
+**Nota:** Tarefa para implementação futura. Detalhes específicos serão fornecidos quando chegares a esta etapa.
+
+**Resumo:** Criar componente especial "GP" que aparece como "Paille synthétique" na legenda, com opções de cor, grossura, com/sem LEDs, e cor dos LEDs.
+
+- [ ] **9.1** Aguardar especificações detalhadas do utilizador
+- [ ] **9.2** Implementar conforme instruções fornecidas
+- [ ] **9.3** Testar funcionalidade
+
+---
+
+## 10. Inclusão de Rideaux e Stalactite na Base de Dados
+
+**Nota:** Tarefa para implementação futura. Detalhes específicos serão fornecidos quando chegares a esta etapa.
+
+**Resumo:** Adicionar componentes "rideaux" e "stalactite" na base de dados com todos os tamanhos e cores.
+
+- [ ] **10.1** Aguardar dados específicos do utilizador (tamanhos, cores, referências)
+- [ ] **10.2** Implementar conforme instruções fornecidas
+- [ ] **10.3** Testar integração com sistema existente
+
+---
+
+## 11. Modularização de Configuração
+- **11.1** Mover lógica de configuração inicial (nome do designer, idioma) para `config.jsx`.
+- **11.2** Atualizar os imports no `script.jsx`.
+- **11.3** Testar manualmente: rodar o script em um ambiente limpo, verificar se a configuração inicial aparece e é salva corretamente.
 
 > **Lembrete:** Toda ação de criação, alteração ou remoção neste módulo deve registrar um log detalhado na janela de logs, incluindo dados relevantes da operação.
 
 ---
 
-## 7. Modularização de BridgeTalk e Comunicação
-- **7.1** Mover funções que usam BridgeTalk para um arquivo `bridge.jsx`.
-- **7.2** Atualizar os imports no `script.jsx`.
-- **7.3** Testar manualmente: funcionalidades que dependem de BridgeTalk (ex: contar bolas na artboard, adicionar legenda via BridgeTalk).
+## 12. Modularização de BridgeTalk e Comunicação
+- **12.1** Mover funções que usam BridgeTalk para um arquivo `bridge.jsx`.
+- **12.2** Atualizar os imports no `script.jsx`.
+- **12.3** Testar manualmente: funcionalidades que dependem de BridgeTalk (ex: contar bolas na artboard, adicionar legenda via BridgeTalk).
 
 > **Lembrete:** Toda ação de criação, alteração ou remoção neste módulo deve registrar um log detalhado na janela de logs, incluindo dados relevantes da operação.
 
 ---
 
-## 8. Refino Final e Teste Completo
-- **8.1** Rodar todos os testes manuais novamente, cobrindo todos os fluxos do script.
-- **8.2** Corrigir eventuais problemas de importação, escopo ou dependências cruzadas.
-- **8.3** Documentar no início de cada arquivo o que ele contém e como deve ser usado.
+## 13. Refino Final e Teste Completo
+- **13.1** Rodar todos os testes manuais novamente, cobrindo todos os fluxos do script.
+- **13.2** Corrigir eventuais problemas de importação, escopo ou dependências cruzadas.
+- **13.3** Documentar no início de cada arquivo o que ele contém e como deve ser usado.
 
 > **Lembrete:** Toda ação de criação, alteração ou remoção nesta etapa deve registrar um log detalhado na janela de logs, incluindo dados relevantes da operação.
 

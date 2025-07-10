@@ -565,10 +565,12 @@ function atualizarPreview(parametros) {
             previewText.push("Fixation: " + parametros.listaFixacao.selection.text);
         }
 
-        // Adicionar "Composants:" apenas se houver componentes
+        // Adicionar "Composants:" se houver componentes, alfabeto ou componentes extras
         var temComponentes = false;
         for (var i = 0; i < itensLegenda.length; i++) {
-            if (itensLegenda[i].tipo === "componente" || itensLegenda[i].tipo === "alfabeto") {
+            if (itensLegenda[i].tipo === "componente" || 
+                itensLegenda[i].tipo === "alfabeto" || 
+                itensLegenda[i].tipo === "extra") {
                 temComponentes = true;
                 break;
             }
@@ -577,6 +579,7 @@ function atualizarPreview(parametros) {
         if (temComponentes) {
             previewText.push("\u200B"); // Linha em branco antes de "Composants:"
             previewText.push("Composants:");
+            logLegenda("Secção 'Composants:' adicionada (componentes, alfabeto ou extras detectados)", "info");
         }
 
         // Adicionar referências do alfabeto
@@ -609,7 +612,15 @@ function atualizarPreview(parametros) {
         // Adicionar componentes extras (já processados anteriormente)
         if (todosComponentesExtras.length > 0) {
             for (var i = 0; i < todosComponentesExtras.length; i++) {
-                previewText.push(todosComponentesExtras[i].texto);
+                // Aplicar maiúsculas apenas no nome do componente extra na lista
+                var textoComponenteExtra = todosComponentesExtras[i].texto;
+                var nomeComponenteExtra = todosComponentesExtras[i].nome;
+                
+                // Substituir o nome pelo nome em maiúsculas no texto da linha de referência
+                var textoComMaiusculas = textoComponenteExtra.replace(nomeComponenteExtra, nomeComponenteExtra.toUpperCase());
+                
+                previewText.push(textoComMaiusculas);
+                logLegenda("Componente extra em maiúsculas adicionado na lista: " + nomeComponenteExtra.toUpperCase(), "info");
             }
         }
 

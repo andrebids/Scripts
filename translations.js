@@ -111,7 +111,8 @@ var TRANSLATIONS = {
             "murale": "murale",
             "sansFixation": "sans fixation",
             "auSol": "au sol",
-            "speciale": "spéciale"
+            "speciale": "spéciale",
+            "aucune": "aucune"
         },
         "Tipo": "Tipo",
         "selecioneUnidade": "Selecione uma unidade",
@@ -125,7 +126,9 @@ var TRANSLATIONS = {
         "confirmarComponentes": "Tens certeza que adicionaste todos os componentes que precisavas?",
         "legendaAdicionada": "Legenda adicionada com sucesso!",
         "quantidadeNaoInformada": "Por favor, informe a quantidade",
-        "procurarLabel": "procurar:"
+        "procurarLabel": "procurar:",
+        "selecioneTipoFixacao": "Selecione o tipo de fixação",
+        "selecionarTipoFixacao": "Por favor, selecione o tipo de fixação antes de gerar a legenda."
     },
     "Français": {
         "nomeDesigner": "Nom du Designer",
@@ -135,7 +138,7 @@ var TRANSLATIONS = {
         "configuracaoIdioma": "Configuration de la Langue",
         "selecioneIdioma": "Sélectionnez la langue:",
         "configuracaoInicial": "Configuration Initiale",
-        "informacoesPrincipais": "Informations Principales",
+        "informacoesPrincipales": "Informations Principales",
         "legenda": "Légende",
         "tipoFixacao": "Type de fixation",
         "structureLaqueada": "Structure laquée",
@@ -214,11 +217,12 @@ var TRANSLATIONS = {
         "tituloJanela": "Cartouche",
         "tiposFixacao": {
             "poteau": "poteau",
-            "suspendue": "suspendue/transversal",
+            "suspendue": "suspendue/transversale",
             "murale": "murale",
             "sansFixation": "sans fixation",
             "auSol": "au sol",
-            "speciale": "spéciale"
+            "speciale": "spéciale",
+            "aucune": "aucune"
         },
         "Nome": "Nom",
         "Tipo": "Type",
@@ -233,6 +237,8 @@ var TRANSLATIONS = {
         "confirmarComponentes": "Êtes-vous sûr d'avoir ajouté tous les composants dont vous aviez besoin?",
         "legendaAdicionada": "Légende ajoutée avec succès!",
         "quantidadeNaoInformada": "Veuillez indiquer la quantité",
-        "procurarLabel": "rechercher:"
+        "procurarLabel": "rechercher:",
+        "selecioneTipoFixacao": "Sélectionnez le type de fixation",
+        "selecionarTipoFixacao": "Veuillez sélectionner le type de fixation avant de générer la légende."
     }
 };

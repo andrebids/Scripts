@@ -4,6 +4,10 @@
 
 // Exemplo de função (stub)
 function atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, selecionarUnidadeMetrica, arrayContains) {
+    logs.logFuncao("atualizarUnidades", {
+        componente: listaComponentes.selection ? listaComponentes.selection.text : "Nenhum",
+        cor: listaCores.selection ? listaCores.selection.text : "Nenhuma"
+    }, "Iniciando atualização de unidades");
     if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0) {
         // Limpar unidades se não há seleção válida
         listaUnidades.removeAll();
@@ -45,6 +49,11 @@ function atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, s
     
     // Log para debug
     logs.adicionarLog("Unidades atualizadas: " + unidadesDisponiveis.join(", "), logs.TIPOS_LOG.INFO);
+    
+    logs.logFuncao("atualizarUnidades", {
+        unidadesEncontradas: unidadesDisponiveis.length - 1,
+        unidades: unidadesDisponiveis.slice(1) // Remove "Selecione uma unidade"
+    }, "Atualização de unidades concluída");
 
     // Selecionar unidade métrica automaticamente
     var unidadeParaSelecionar = funcoes.selecionarUnidadeMetrica(unidadesDisponiveis);
@@ -62,8 +71,48 @@ function atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, s
     }
 }
 
+// Função para verificar CMYK (migrada de script.jsx)
+function verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, encontrarIndicePorNome) {
+    logs.logFuncao("verificarCMYK", {
+        componente: listaComponentes.selection ? listaComponentes.selection.text : "Nenhum",
+        cor: listaCores.selection ? listaCores.selection.text : "Nenhuma",
+        unidade: listaUnidades.selection ? listaUnidades.selection.text : "Nenhuma"
+    }, "Iniciando verificação CMYK");
+    
+    if (listaComponentes.selection && listaComponentes.selection.index > 0 &&
+        listaCores.selection && listaCores.selection.index > 0 &&
+        listaUnidades.selection && listaUnidades.selection.index > 0) {
+        
+        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
+        var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
+        var unidadeSelecionada = listaUnidades.selection.text;
+
+        for (var i = 0; i < dados.combinacoes.length; i++) {
+            if (dados.combinacoes[i].componenteId === componenteSelecionado.id &&
+                dados.combinacoes[i].corId === corSelecionada.id &&
+                dados.combinacoes[i].unidade === unidadeSelecionada) {
+                
+                // Aqui você pode adicionar qualquer lógica adicional que queira executar
+                // quando um CMYK é encontrado, sem exibir alertas
+                if (dados.combinacoes[i].cmyk) {
+                    // Por exemplo, você poderia armazenar o CMYK em uma variável global
+                    // ou atualizar algum elemento da interface
+                    // cmykAtual = dados.combinacoes[i].cmyk;
+                    logs.logFuncao("verificarCMYK", {
+                        cmyk: dados.combinacoes[i].cmyk
+                    }, "CMYK encontrado para a combinação");
+                }
+                break;
+            }
+        }
+    }
+    
+    logs.logFuncao("verificarCMYK", {}, "Verificação CMYK concluída");
+}
+
 // Exportação global
 $.global.funcoesComponentes = {
-    atualizarUnidades: atualizarUnidades
+    atualizarUnidades: atualizarUnidades,
+    verificarCMYK: verificarCMYK
     // Adicione outras funções aqui
 }; 

@@ -149,8 +149,8 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
 - [x] 5.2.2.2 Mover função criarLinhaReferencia para funcoes.jsx
 - [x] 5.2.2.3 Mover função selecionarUnidadeMetrica para funcoes.jsx
 - [x] 5.2.2.4 Mover função atualizarCores para funcoes.jsx
-- [ ] 5.2.2.5 Mover função atualizarUnidades para funcoesComponentes.jsx
-- [ ] 5.2.2.6 Mover função verificarCMYK para funcoesComponentes.jsx
+- [x] 5.2.2.5 Mover função atualizarUnidades para funcoesComponentes.jsx
+- [x] 5.2.2.6 Mover função verificarCMYK para funcoesComponentes.jsx
 - [ ] 5.2.2.7 Mover função salvarSelecaoAtual para funcoesComponentes.jsx
 - [ ] 5.2.2.8 Mover função restaurarUltimaSelecao para funcoesComponentes.jsx
 - [ ] 5.2.2.9 Mover lógica do evento botaoAdicionarComponente.onClick para uma função adicionarComponente em funcoesComponentes.jsx

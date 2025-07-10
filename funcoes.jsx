@@ -452,7 +452,7 @@ function selecionarUnidadeMetrica(unidades) {
 }
 
 // Função para atualizar cores (migrada de script.jsx)
-function atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, atualizarUnidades, verificarCMYK) {
+function atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, verificarCMYK) {
     listaCores.removeAll();
     
     if (listaComponentes.selection && listaComponentes.selection.index > 0) {
@@ -488,12 +488,12 @@ function atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, a
     }
     
     // Chamar atualizarUnidades() para atualizar as unidades com base na cor selecionada
-    if (atualizarUnidades) {
-        atualizarUnidades();
+    if (typeof funcoesComponentes !== 'undefined' && funcoesComponentes && funcoesComponentes.atualizarUnidades) {
+        funcoesComponentes.atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, selecionarUnidadeMetrica, arrayContains);
     }
     
     // Verificar o CMYK da combinação selecionada (sem exibir alerta)
-    if (verificarCMYK) {
+    if (verificarCMYK && typeof verificarCMYK === 'function') {
         verificarCMYK();
     }
 }

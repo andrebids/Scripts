@@ -228,7 +228,7 @@ linha2.add("statictext", undefined, t("tipoFixacao"));
 
 // Tipos de fixação
 var tiposFixacao = [];
-var tiposFixacaoKeys = ["poteau", "suspendue", "murale", "sansFixation", "auSol", "speciale"];
+var tiposFixacaoKeys = ["poteau", "suspendue", "murale", "sansFixation", "auSol", "speciale", "aucune"];
 
 // Preencher o array com as traduções
 for (var i = 0; i < tiposFixacaoKeys.length; i++) {
@@ -236,7 +236,7 @@ for (var i = 0; i < tiposFixacaoKeys.length; i++) {
 }
 
 // Criar o dropdown com os tipos traduzidos
-var listaFixacao = linha2.add("dropdownlist", undefined, tiposFixacao);
+var listaFixacao = linha2.add("dropdownlist", undefined, [t("selecioneTipoFixacao")].concat(tiposFixacao));
 listaFixacao.selection = 0;
 
 // Terceira linha: Dimensões e Structure laqueé
@@ -340,7 +340,11 @@ function filtrarComponentes(termo) {
     }
 
     // Atualizar cores e unidades
-    funcoes.atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, atualizarUnidades, verificarCMYK);
+    funcoes.atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, function() {
+        if (funcoesComponentes && funcoesComponentes.verificarCMYK) {
+            funcoesComponentes.verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, funcoes.encontrarIndicePorNome);
+        }
+    });
 }
 
 var grupo2 = grupoComponentes.add("group");
@@ -1541,45 +1545,30 @@ function criarLinhaReferencia(item) {
 
 // Modificar a função para apenas verificar o CMYK, sem exibir alertas
 
-    function verificarCMYK() {
-        if (listaComponentes.selection && listaComponentes.selection.index > 0 &&
-            listaCores.selection && listaCores.selection.index > 0 &&
-            listaUnidades.selection && listaUnidades.selection.index > 0) {
-            
-            var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
-            var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
-            var unidadeSelecionada = listaUnidades.selection.text;
-    
-            for (var i = 0; i < dados.combinacoes.length; i++) {
-                if (dados.combinacoes[i].componenteId === componenteSelecionado.id &&
-                    dados.combinacoes[i].corId === corSelecionada.id &&
-                    dados.combinacoes[i].unidade === unidadeSelecionada) {
-                    
-                    // Aqui você pode adicionar qualquer lógica adicional que queira executar
-                    // quando um CMYK é encontrado, sem exibir alertas
-                    if (dados.combinacoes[i].cmyk) {
-                        // Por exemplo, você poderia armazenar o CMYK em uma variável global
-                        // ou atualizar algum elemento da interface
-                        // cmykAtual = dados.combinacoes[i].cmyk;
-                    }
-                    break;
-                }
-            }
-        }
-    }
+
 
    
     // Atualizar os event listeners
     listaComponentes.onChange = function() {
-        funcoes.atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, atualizarUnidades, verificarCMYK);
+        funcoes.atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, function() {
+            if (funcoesComponentes && funcoesComponentes.verificarCMYK) {
+                funcoesComponentes.verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, funcoes.encontrarIndicePorNome);
+            }
+        });
     };
     
     listaCores.onChange = function() {
         funcoesComponentes.atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, funcoes.selecionarUnidadeMetrica, funcoes.arrayContains);
-        verificarCMYK();
+        if (funcoesComponentes && funcoesComponentes.verificarCMYK) {
+            funcoesComponentes.verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, funcoes.encontrarIndicePorNome);
+        }
     };
     
-    listaUnidades.onChange = verificarCMYK;
+    listaUnidades.onChange = function() {
+        if (funcoesComponentes && funcoesComponentes.verificarCMYK) {
+            funcoesComponentes.verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, funcoes.encontrarIndicePorNome);
+        }
+    };
 
     // Função para arredondar para a próxima décima
     // Função arredondarParaDecima movida para funcoes.jsx
@@ -1619,10 +1608,10 @@ function restaurarUltimaSelecao() {
         // Atualizar cores baseado no componente
         if (typeof funcoes.atualizarCores === 'function') {
             funcoes.atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, function() {
-                if (funcoesComponentes && funcoesComponentes.atualizarUnidades) {
-                    funcoesComponentes.atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, funcoes.selecionarUnidadeMetrica, funcoes.arrayContains);
+                if (funcoesComponentes && funcoesComponentes.verificarCMYK) {
+                    funcoesComponentes.verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, funcoes.encontrarIndicePorNome);
                 }
-            }, verificarCMYK);
+            });
         }
 
         if (ultimaSelecao.cor && listaCores && listaCores.items && listaCores.items.length) {
@@ -1836,6 +1825,11 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
     // Modificar o botão para gerar legenda
     botaoGerar.onClick = function() {
         logs.logEvento("click", "botaoGerar");
+        // Verificar se o tipo de fixação foi selecionado
+        if (!listaFixacao.selection || listaFixacao.selection.index === 0) {
+            alert(t("selecionarTipoFixacao"));
+            return;
+        }
         // Verificar se há dimensões preenchidas
         var temDimensoes = false;
         for (var i = 0; i < dimensoes.length; i++) {

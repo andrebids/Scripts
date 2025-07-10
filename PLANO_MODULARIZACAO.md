@@ -201,6 +201,32 @@ Garantir que qualquer texto inserido nas observações (OBS) seja corretamente t
 
 ---
 
+## 5.6 Correção da Inclusão de Todos os Componentes Extras na Frase Principal
+
+**Objetivo:**  
+Garantir que todos os componentes extras adicionados pelo usuário apareçam corretamente na frase principal da legenda gerada, e não apenas o primeiro.
+
+#### 5.6.1 Levantamento e Análise
+- [ ] Identificar onde, no código, a frase principal da legenda é montada.
+- [ ] Verificar como os componentes extras são armazenados (array, string, etc.).
+- [ ] Analisar se está sendo feita a iteração sobre todos os componentes extras ou apenas sobre o primeiro.
+
+#### 5.6.2 Implementação da Solução
+- [ ] Corrigir a lógica para percorrer todos os componentes extras ao montar a frase principal.
+- [ ] Garantir que a concatenação dos componentes extras seja feita corretamente, separando-os por vírgula, ponto e vírgula ou conforme o padrão desejado.
+- [ ] Adicionar logs para registrar todos os componentes extras incluídos na frase principal.
+
+#### 5.6.3 Testes Manuais
+- [ ] Adicionar dois ou mais componentes extras e verificar se todos aparecem na frase principal da legenda.
+- [ ] Testar diferentes combinações de componentes extras (com nomes curtos, longos, caracteres especiais, etc.).
+- [ ] Verificar se a listagem de componentes extras continua funcionando normalmente.
+
+#### 5.6.4 Documentação
+- [ ] Documentar a lógica de concatenação dos componentes extras na frase principal.
+- [ ] Atualizar o checklist de testes manuais para incluir este caso.
+
+---
+
 ## 6. Modularização de Configuração
 - **6.1** Mover lógica de configuração inicial (nome do designer, idioma) para `config.jsx`.
 - **6.2** Atualizar os imports no `script.jsx`.

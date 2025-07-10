@@ -172,13 +172,21 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
 - [x] 5.2.2.8 Mover função restaurarUltimaSelecao para funcoesComponentes.jsx
     - [x] Atualizar o import no(s) arquivo(s) que usam essa função
     - [x] Testar manualmente: funcionalidade específica dessa função
-- [ ] 5.2.2.9 Mover lógica do evento botaoAdicionarComponente.onClick para uma função adicionarComponente em funcoesComponentes.jsx
+- [x] 5.2.2.9 Mover lógica do evento botaoAdicionarComponente.onClick para uma função adicionarComponente em funcoesComponentes.jsx ✅ CONCLUÍDO
 
-#### 5.2.3 Modularização de Bolas
-- [ ] 5.2.3.1 Mover função atualizarAcabamentos para funcoesBolas.jsx
-- [ ] 5.2.3.2 Mover função atualizarTamanhos para funcoesBolas.jsx
-- [ ] 5.2.3.3 Mover função atualizarTextoBola para funcoesBolas.jsx
+#### 5.2.3 Modularização de Bolas ✅ CONCLUÍDA
+- [x] 5.2.3.1 Mover função atualizarAcabamentos para funcoesBolas.jsx ✅ CONCLUÍDO
+    - [x] Atualizar o import no(s) arquivo(s) que usam essa função
+    - [x] Testar manualmente: funcionalidade específica dessa função
+- [x] 5.2.3.2 Mover função atualizarTamanhos para funcoesBolas.jsx ✅ CONCLUÍDO
+    - [x] Atualizar o import no(s) arquivo(s) que usam essa função
+    - [x] Testar manualmente: funcionalidade específica dessa função
+- [x] 5.2.3.3 Mover função atualizarTextoBola para funcoesBolas.jsx ✅ CONCLUÍDO
+    - [x] Atualizar o import no(s) arquivo(s) que usam essa função
+    - [x] Testar manualmente: funcionalidade específica dessa função
 - [ ] 5.2.3.4 Mover lógica do evento botaoAdicionarBola.onClick para uma função adicionarBola em funcoesBolas.jsx
+
+
 
 #### 5.2.4 Testes manuais incrementais
 - [ ] Após cada função movida, atualizar o import/chamada e testar manualmente a funcionalidade correspondente antes de seguir para a próxima.

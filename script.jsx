@@ -514,88 +514,18 @@ funcoes.apenasNumerosEVirgula(campoQuantidadeBolas);
 // Botão adicionar bola
 var botaoAdicionarBola = grupoBolasSelecao.add("button", undefined, t("adicionarBola"));
 
-// Função para atualizar a lista de acabamentos com base na cor selecionada
-function atualizarAcabamentos() {
-    if (listaCoresBolas.selection.index === 0) {
-        listaAcabamentos.removeAll();
-        listaAcabamentos.add("item", t("selecioneAcabamento"));
-        listaAcabamentos.selection = 0;
-        return;
-    }
-
-    var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
-    var acabamentosDisponiveis = [t("selecioneAcabamento")];
-    var acabamentosIds = [];
-
-    for (var i = 0; i < dados.bolas.length; i++) {
-        if (dados.bolas[i].corId === corSelecionada.id) {
-            var acabamento = encontrarPorId(dados.acabamentos, dados.bolas[i].acabamentoId);
-            if (acabamento && !arrayContains(acabamentosIds, acabamento.id)) {
-                acabamentosDisponiveis.push(acabamento.nome);
-                acabamentosIds.push(acabamento.id);
-            }
-        }
-    }
-
-    listaAcabamentos.removeAll();
-    for (var i = 0; i < acabamentosDisponiveis.length; i++) {
-        listaAcabamentos.add("item", acabamentosDisponiveis[i]);
-    }
-    
-    // Pré-selecionar o acabamento se houver apenas uma opção
-    if (acabamentosDisponiveis.length === 2) {
-        listaAcabamentos.selection = 1;
-    } else {
-        listaAcabamentos.selection = 0;
-    }
-    
-    // Atualizar tamanhos após selecionar o acabamento
-    atualizarTamanhos();
-}
-
-// Função para atualizar a lista de tamanhos com base na cor e acabamento selecionados
-function atualizarTamanhos() {
-    if (listaCoresBolas.selection.index === 0 || listaAcabamentos.selection.index === 0) {
-        listaTamanhos.removeAll();
-        listaTamanhos.add("item", t("selecioneTamanho"));
-        listaTamanhos.selection = 0;
-        return;
-    }
-
-    var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCoresBolas.selection.text)];
-    var acabamentoSelecionado = dados.acabamentos[encontrarIndicePorNome(dados.acabamentos, listaAcabamentos.selection.text)];
-    var tamanhosDisponiveis = [t("selecioneTamanho")];
-
-    for (var i = 0; i < dados.bolas.length; i++) {
-        if (dados.bolas[i].corId === corSelecionada.id && dados.bolas[i].acabamentoId === acabamentoSelecionado.id) {
-            var tamanho = encontrarPorId(dados.tamanhos, dados.bolas[i].tamanhoId);
-            if (tamanho && !arrayContains(tamanhosDisponiveis, tamanho.nome)) {
-                tamanhosDisponiveis.push(tamanho.nome);
-            }
-        }
-    }
-
-    listaTamanhos.removeAll();
-    for (var i = 0; i < tamanhosDisponiveis.length; i++) {
-        listaTamanhos.add("item", tamanhosDisponiveis[i]);
-    }
-    
-    // Pré-selecionar o tamanho se houver apenas uma opção
-    if (tamanhosDisponiveis.length === 2) {
-        listaTamanhos.selection = 1;
-    } else {
-        listaTamanhos.selection = 0;
-    }
-}
+// Funções de bolas migradas para funcoesBolas.jsx
 
 // Adicionar eventos de mudança
 listaCoresBolas.onChange = function() {
     logs.logEvento("change", "listaCoresBolas - " + (this.selection ? this.selection.text : "nenhuma seleção"));
-    atualizarAcabamentos();
+    funcoesBolas.atualizarAcabamentos(listaCoresBolas, listaAcabamentos, dados, t, funcoes, function() {
+        funcoesBolas.atualizarTamanhos(listaCoresBolas, listaAcabamentos, listaTamanhos, dados, t, funcoes);
+    });
 };
 listaAcabamentos.onChange = function() {
     logs.logEvento("change", "listaAcabamentos - " + (this.selection ? this.selection.text : "nenhuma seleção"));
-    atualizarTamanhos();
+    funcoesBolas.atualizarTamanhos(listaCoresBolas, listaAcabamentos, listaTamanhos, dados, t, funcoes);
 };
 
 botaoAdicionarBola.onClick = function() {
@@ -638,7 +568,7 @@ botaoAdicionarBola.onClick = function() {
 
             if (bolaExistente) {
                 bolaExistente.quantidade = quantidade; // Atualiza com a nova quantidade
-                bolaExistente.texto = atualizarTextoBola(bolaExistente);
+                bolaExistente.texto = funcoesBolas.atualizarTextoBola(bolaExistente);
             } else {
                 var textoBoule = quantidade === 1 ? "boule" : "boules";
                 var texto = textoBoule + " " + corSelecionada.nome + " " + acabamentoSelecionado.nome + " " + tamanhoSelecionado.nome;
@@ -668,15 +598,7 @@ botaoAdicionarBola.onClick = function() {
     }
 }
 
-function atualizarTextoBola(bola) {
-    var textoBoule = bola.quantidade === 1 ? "boule" : "boules";
-    var texto = textoBoule + " " + bola.nome;
-    if (bola.referencia) {
-        texto += " (Ref: " + bola.referencia + ")";
-    }
-    texto += " units: " + bola.quantidade.toFixed(2).replace('.', ',');
-    return texto;
-}
+// Função atualizarTextoBola migrada para funcoesBolas.jsx
 
 
 // Adicionar evento para o checkbox de alfabeto

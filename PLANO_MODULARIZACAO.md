@@ -1,8 +1,13 @@
 # Plano de Modularização do Projeto Legenda
 
+## Diretriz de Logging Obrigatório
+Sempre que for criada, alterada ou removida qualquer funcionalidade, componente, bola, item de lista ou ação relevante no sistema, **deve ser registrado um log detalhado na janela de logs**. O log deve conter informações completas sobre a ação (tipo, dados envolvidos, resultado, etc.), para facilitar a verificação manual e o debug. Nenhuma ação importante deve passar sem registro no sistema de logs.
+
 ## 1. Preparação e Base de Testes
 - **1.1** Criar um checklist/manual de testes básicos para cada funcionalidade principal do script (UI abre, adicionar componente, adicionar bola, gerar legenda, etc.).
 - **1.2** Garantir que o script atual está funcionando corretamente antes de iniciar as mudanças (rodar todos os testes manuais).
+
+> **Lembrete:** Toda ação de criação, alteração ou remoção nesta etapa deve registrar um log detalhado na janela de logs, incluindo dados relevantes da operação.
 
 ---
 
@@ -11,6 +16,8 @@
 - **2.2** ✅ Mover essas funções para `funcoes.jsx`.
 - **2.3** ✅ Atualizar os imports no `script.jsx`.
 - **2.4** ⏳ Testar manualmente: abrir o script, usar campos que dependem dessas funções (ex: adicionar componentes, bolas, etc.).
+
+> **Lembrete:** Toda ação de criação, alteração ou remoção neste módulo deve registrar um log detalhado na janela de logs, incluindo dados relevantes da operação.
 
 ---
 
@@ -38,6 +45,8 @@
 - **3.3** ✅ Atualizar os imports no `script.jsx`.
 - **3.4** ⏳ Testar manualmente: inicialização do script, salvar/ler configurações, carregar base de dados.
 
+> **Lembrete:** Toda ação de criação, alteração ou remoção neste módulo deve registrar um log detalhado na janela de logs, incluindo dados relevantes da operação.
+
 ---
 
 ## 4. Modularização da Interface (UI) ✅ CONCLUÍDA
@@ -45,6 +54,8 @@
 - **4.2** ✅ Mover para `ui.jsx`.
 - **4.3** ✅ Atualizar os imports no `script.jsx`.
 - **4.4** ⏳ Testar manualmente: abrir todas as abas, interagir com todos os painéis, verificar se a interface responde corretamente.
+
+> **Lembrete:** Toda ação de criação, alteração ou remoção neste módulo deve registrar um log detalhado na janela de logs, incluindo dados relevantes da operação.
 
 ---
 
@@ -64,41 +75,43 @@
     - [x] Modularização da função gerarNomeArquivoAlfabeto concluída e testada
 - [ ] **5.1.5** Revisar dependências e testar o fluxo completo do alfabeto
 
+> **Lembrete:** Toda ação de criação, alteração ou remoção neste módulo deve registrar um log detalhado na janela de logs, incluindo dados relevantes da operação.
+
 ### 5.1A Sistema de Logs e Debug
 
 #### 5.1A.1 Criação do Sistema de Logs
-- [ ] **5.1A.1.1** Criar arquivo `logs.jsx` com funções de logging
-    - [ ] Função `adicionarLog(mensagem, tipo)` para registrar eventos
-    - [ ] Função `limparLogs()` para limpar o histórico
-    - [ ] Função `exportarLogs()` para salvar logs em arquivo
-    - [ ] Variável global para armazenar logs em memória
-    - [ ] Tipos de log: 'info', 'warning', 'error', 'click', 'function'
-- [ ] **5.1A.1.2** Criar função `logEvento(tipo, detalhes)` para registrar cliques e eventos
-- [ ] **5.1A.1.3** Criar função `logFuncao(nomeFuncao, parametros, resultado)` para registrar execução de funções
-- [ ] **5.1A.1.4** Testar manualmente: verificar se as funções de log funcionam corretamente
+- [x] **5.1A.1.1** Criar arquivo `logs.jsx` com funções de logging
+    - [x] Função `adicionarLog(mensagem, tipo)` para registrar eventos
+    - [x] Função `limparLogs()` para limpar o histórico
+    - [x] Função `exportarLogs()` para salvar logs em arquivo
+    - [x] Variável global para armazenar logs em memória
+    - [x] Tipos de log: 'info', 'warning', 'error', 'click', 'function'
+- [x] **5.1A.1.2** Criar função `logEvento(tipo, detalhes)` para registrar cliques e eventos
+- [x] **5.1A.1.3** Criar função `logFuncao(nomeFuncao, parametros, resultado)` para registrar execução de funções
+- [x] **5.1A.1.4** Testar manualmente: verificar se as funções de log funcionam corretamente
 
 #### 5.1A.2 Interface de Logs
-- [ ] **5.1A.2.1** Adicionar nova aba "Logs" no grupo Extra (ui.jsx)
-    - [ ] Modificar função `criarInterfaceExtra()` para incluir nova aba
-    - [ ] Criar área de texto multilinha para exibir logs
-    - [ ] Adicionar botões: "Limpar Logs", "Exportar Logs", "Atualizar"
-    - [ ] Adicionar checkbox "Auto-scroll" para rolagem automática
-- [ ] **5.1A.2.2** Implementar funcionalidade dos botões da aba Logs
-    - [ ] Botão "Limpar Logs" chama `limparLogs()` e atualiza interface
-    - [ ] Botão "Exportar Logs" chama `exportarLogs()` e salva arquivo
-    - [ ] Botão "Atualizar" atualiza a exibição dos logs
-    - [ ] Checkbox "Auto-scroll" controla rolagem automática
-- [ ] **5.1A.2.3** Testar manualmente: abrir aba Logs, verificar se interface é criada corretamente
+- [x] **5.1A.2.1** Adicionar nova aba "Logs" no grupo Extra (script.jsx)
+    - [x] Modificar função `criarInterfaceExtra()` para incluir nova aba
+    - [x] Criar área de texto multilinha para exibir logs
+    - [x] Adicionar botões: "Limpar Logs", "Exportar Logs", "Atualizar"
+    - [x] Adicionar checkbox "Auto-scroll" para rolagem automática
+- [x] **5.1A.2.2** Implementar funcionalidade dos botões da aba Logs
+    - [x] Botão "Limpar Logs" chama `limparLogs()` e atualiza interface
+    - [x] Botão "Exportar Logs" chama `exportarLogs()` e salva arquivo
+    - [x] Botão "Atualizar" atualiza a exibição dos logs
+    - [x] Checkbox "Auto-scroll" controla rolagem automática
+- [x] **5.1A.2.3** Testar manualmente: abrir aba Logs, verificar se interface é criada corretamente
 
 #### 5.1A.3 Integração do Sistema de Logs
-- [ ] **5.1A.3.1** Adicionar logs em eventos de clique principais
-    - [ ] Logs em botões de adicionar componente/bola
-    - [ ] Logs em mudanças de dropdown (componente, cor, acabamento, etc.)
-    - [ ] Logs em botão de gerar legenda
+- [x] **5.1A.3.1** Adicionar logs em eventos de clique principais
+    - [x] Logs em botões de adicionar componente/bola
+    - [x] Logs em mudanças de dropdown (componente, cor, acabamento, etc.)
+    - [x] Logs em botão de gerar legenda
     - [ ] Logs em botão de contar bolas
-- [ ] **5.1A.3.2** Adicionar logs em funções críticas
-    - [ ] Logs no início e fim de funções principais
-    - [ ] Logs em caso de erro (try/catch)
+- [x] **5.1A.3.2** Adicionar logs em funções críticas
+    - [x] Logs no início e fim de funções principais
+    - [x] Logs em caso de erro (try/catch)
     - [ ] Logs em operações de BridgeTalk
     - [ ] Logs em operações de arquivo (leitura/escrita)
 - [ ] **5.1A.3.3** Testar manualmente: executar ações e verificar se logs aparecem na aba
@@ -161,6 +174,8 @@
 - **6.2** Atualizar os imports no `script.jsx`.
 - **6.3** Testar manualmente: rodar o script em um ambiente limpo, verificar se a configuração inicial aparece e é salva corretamente.
 
+> **Lembrete:** Toda ação de criação, alteração ou remoção neste módulo deve registrar um log detalhado na janela de logs, incluindo dados relevantes da operação.
+
 ---
 
 ## 7. Modularização de BridgeTalk e Comunicação
@@ -168,12 +183,16 @@
 - **7.2** Atualizar os imports no `script.jsx`.
 - **7.3** Testar manualmente: funcionalidades que dependem de BridgeTalk (ex: contar bolas na artboard, adicionar legenda via BridgeTalk).
 
+> **Lembrete:** Toda ação de criação, alteração ou remoção neste módulo deve registrar um log detalhado na janela de logs, incluindo dados relevantes da operação.
+
 ---
 
 ## 8. Refino Final e Teste Completo
 - **8.1** Rodar todos os testes manuais novamente, cobrindo todos os fluxos do script.
 - **8.2** Corrigir eventuais problemas de importação, escopo ou dependências cruzadas.
 - **8.3** Documentar no início de cada arquivo o que ele contém e como deve ser usado.
+
+> **Lembrete:** Toda ação de criação, alteração ou remoção nesta etapa deve registrar um log detalhado na janela de logs, incluindo dados relevantes da operação.
 
 ---
 

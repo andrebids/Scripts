@@ -11,6 +11,7 @@ $.evalFile(File($.fileName).path + "/translations.js");
 $.evalFile(File($.fileName).path + "/update.jsx");
 $.evalFile(File($.fileName).path + "/funcoesComponentes.jsx");
 $.evalFile(File($.fileName).path + "/funcoesBolas.jsx");    
+$.evalFile(File($.fileName).path + "/logs.jsx");
 
 // Adicionar no início do arquivo, após os outros $.evalFile
 $.evalFile(File($.fileName).path + "/alfabeto.jsx");
@@ -430,9 +431,46 @@ var abaTexturas = abasExtra.add("tab", undefined, t("texturas"));
 abaTexturas.alignChildren = ["fill", "top"];
 var checkboxMostrarTexturas = abaTexturas.add("checkbox", undefined, t("adicionarTexturas"));
 
+// Aba 5: Logs
+var abaLogs = abasExtra.add("tab", undefined, "Logs");
+abaLogs.alignChildren = ["fill", "top"];
+abaLogs.spacing = 10;
+
+// Área de logs com barra de rolagem
+var grupoLogs = abaLogs.add("group");
+grupoLogs.orientation = "column";
+grupoLogs.alignChildren = ["fill", "fill"];
+var areaLogs = grupoLogs.add("edittext", undefined, "", {multiline: true, scrollable: true, readonly: true});
+areaLogs.preferredSize.width = 500;
+areaLogs.preferredSize.height = 150;
+
+// Grupo de controles dos logs
+var grupoControlesLogs = abaLogs.add("group");
+grupoControlesLogs.orientation = "row";
+grupoControlesLogs.alignChildren = ["left", "center"];
+grupoControlesLogs.spacing = 10;
+
+// Botões de controle
+var botaoLimparLogs = grupoControlesLogs.add("button", undefined, "Limpar Logs");
+var botaoExportarLogs = grupoControlesLogs.add("button", undefined, "Exportar Logs");
+// Removido: var botaoAtualizarLogs = grupoControlesLogs.add("button", undefined, "Atualizar");
+
+// Checkbox para auto-scroll
+var checkAutoScroll = grupoControlesLogs.add("checkbox", undefined, "Auto-scroll");
+checkAutoScroll.value = true; // Ativado por padrão
+
+// Torna as variáveis globais
+$.global.areaLogs = areaLogs;
+$.global.botaoLimparLogs = botaoLimparLogs;
+$.global.botaoExportarLogs = botaoExportarLogs;
+// Removido: $.global.botaoAtualizarLogs = botaoAtualizarLogs;
+$.global.checkAutoScroll = checkAutoScroll;
+
+// Inicializar sistema de logs
+logs.inicializarSistemaLogs();
+
 // Selecionar a primeira aba por padrão
 abasExtra.selection = abaGeral;
-
 
 var grupoBolasSelecao = grupoBolas.add("group");
 grupoBolasSelecao.orientation = "row";
@@ -550,10 +588,17 @@ function atualizarTamanhos() {
 }
 
 // Adicionar eventos de mudança
-listaCoresBolas.onChange = atualizarAcabamentos;
-listaAcabamentos.onChange = atualizarTamanhos;
+listaCoresBolas.onChange = function() {
+    logs.logEvento("change", "listaCoresBolas - " + (this.selection ? this.selection.text : "nenhuma seleção"));
+    atualizarAcabamentos();
+};
+listaAcabamentos.onChange = function() {
+    logs.logEvento("change", "listaAcabamentos - " + (this.selection ? this.selection.text : "nenhuma seleção"));
+    atualizarTamanhos();
+};
 
 botaoAdicionarBola.onClick = function() {
+    logs.logEvento("click", "botaoAdicionarBola");
     if (listaCoresBolas.selection.index === 0 || listaAcabamentos.selection.index === 0 || listaTamanhos.selection.index === 0) {
         alert(t("selecionarCor"));
         return;
@@ -614,6 +659,7 @@ botaoAdicionarBola.onClick = function() {
             
             atualizarListaItens();
         } catch (e) {
+            logs.adicionarLog("Erro ao processar bola: " + e.message, logs.TIPOS_LOG.ERROR);
             alert(t("erroProcessarBola") + e.message);
         }
     } else {
@@ -1050,6 +1096,7 @@ botaoGerar.graphics.foregroundColor = botaoGerar.graphics.newPen(botaoGerar.grap
 
   
 function atualizarListaItens() {
+    logs.logFuncao("atualizarListaItens", {totalItens: itensLegenda.length}, "Lista atualizada");
     listaItens.removeAll();
     var componentesNaoBolas = [];
     var bolas = [];
@@ -1620,6 +1667,7 @@ function restaurarUltimaSelecao() {
     }
 }
     botaoAdicionarComponente.onClick = function() {
+        logs.logEvento("click", "botaoAdicionarComponente");
         try {
             // Verificar se a quantidade foi preenchida
             var quantidade = campoQuantidade.text;
@@ -1760,6 +1808,7 @@ function restaurarUltimaSelecao() {
             }
     
         } catch (e) {
+            logs.adicionarLog("Erro ao adicionar componente: " + e.message + " (Linha: " + e.line + ")", logs.TIPOS_LOG.ERROR);
             alert("Erro geral ao adicionar componente:\n" + e.message + "\nLinha: " + e.line);
         }
     };
@@ -1793,6 +1842,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
 
     // Modificar o botão para gerar legenda
     botaoGerar.onClick = function() {
+        logs.logEvento("click", "botaoGerar");
         // Verificar se há dimensões preenchidas
         var temDimensoes = false;
         for (var i = 0; i < dimensoes.length; i++) {
@@ -2096,3 +2146,23 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
 
     // Função criarInterfaceExtra movida para ui.jsx
 })();
+
+// Substituir funcionalidade do botão Exportar Logs para copiar para o clipboard
+botaoExportarLogs.onClick = function() {
+    if (areaLogs && areaLogs.text) {
+        // Função para copiar para clipboard no ExtendScript
+        var texto = areaLogs.text;
+        var command = 'echo ' + texto.replace(/"/g, '\"') + ' | clip';
+        try {
+            // Tenta usar o método do Windows
+            var tempFile = new File(Folder.temp + "/temp_logs_legenda.txt");
+            tempFile.open("w");
+            tempFile.write(texto);
+            tempFile.close();
+            tempFile.execute(); // Abre o arquivo, permitindo copiar manualmente
+            alert("Logs copiados! (O arquivo temporário foi aberto, pressione Ctrl+A e Ctrl+C para copiar)");
+        } catch (e) {
+            alert("Não foi possível copiar automaticamente. Selecione e copie manualmente:");
+        }
+    }
+};

@@ -474,6 +474,34 @@ function criarInterfaceExtra(janela) {
     grupoTexturas.alignChildren = ["fill", "top"];
     // Adicionar conteúdo das texturas aqui
     
+    // Tab Logs
+    var tabLogs = tabsExtra.add("tab", undefined, "Logs");
+    tabLogs.alignChildren = ["fill", "top"];
+    tabLogs.spacing = 10;
+    
+    // Área de logs com barra de rolagem
+    var grupoLogs = tabLogs.add("group");
+    grupoLogs.orientation = "column";
+    grupoLogs.alignChildren = ["fill", "fill"];
+    var areaLogs = grupoLogs.add("edittext", undefined, "", {multiline: true, scrollable: true, readonly: true});
+    areaLogs.preferredSize.width = 500;
+    areaLogs.preferredSize.height = 300;
+    
+    // Grupo de controles dos logs
+    var grupoControlesLogs = tabLogs.add("group");
+    grupoControlesLogs.orientation = "row";
+    grupoControlesLogs.alignChildren = ["left", "center"];
+    grupoControlesLogs.spacing = 10;
+    
+    // Botões de controle
+    var botaoLimparLogs = grupoControlesLogs.add("button", undefined, "Limpar Logs");
+    var botaoExportarLogs = grupoControlesLogs.add("button", undefined, "Exportar Logs");
+    var botaoAtualizarLogs = grupoControlesLogs.add("button", undefined, "Atualizar");
+    
+    // Checkbox para auto-scroll
+    var checkAutoScroll = grupoControlesLogs.add("checkbox", undefined, "Auto-scroll");
+    checkAutoScroll.value = true; // Ativado por padrão
+    
     // Eventos dos checkboxes
     checkObservacoes.onClick = function() {
         grupoObservacoes.visible = this.value;
@@ -501,7 +529,13 @@ function criarInterfaceExtra(janela) {
         checkTexturas: checkTexturas,
         grupoObservacoes: grupoObservacoes,
         grupoContador: grupoContador,
-        grupoTexturas: grupoTexturas
+        grupoTexturas: grupoTexturas,
+        // Retornos para a interface de logs
+        areaLogs: areaLogs,
+        botaoLimparLogs: botaoLimparLogs,
+        botaoExportarLogs: botaoExportarLogs,
+        botaoAtualizarLogs: botaoAtualizarLogs,
+        checkAutoScroll: checkAutoScroll
     };
 }
 

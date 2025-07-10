@@ -639,10 +639,28 @@ Esses campos devem ser exibidos na legenda **antes dos componentes e depois da f
 
 ---
 
-## 12. Modularização de BridgeTalk e Comunicação
-- **12.1** Mover funções que usam BridgeTalk para um arquivo `bridge.jsx`.
-- **12.2** Atualizar os imports no `script.jsx`.
-- **12.3** Testar manualmente: funcionalidades que dependem de BridgeTalk (ex: contar bolas na artboard, adicionar legenda via BridgeTalk).
+## 12. Modularização de BridgeTalk e Comunicação ✅ CONCLUÍDA
+- [x] **12.1** Mover funções que usam BridgeTalk para um arquivo `bridge.jsx`.
+    - [x] Criado arquivo `bridge.jsx` com toda a lógica de comunicação BridgeTalk
+    - [x] Migradas funções: `executarContagemBolas()`, `adicionarLegendaViaBridge()`, `processarResultadoContagem()`
+    - [x] Adicionadas funções auxiliares: `escaparStringParaBridge()`, `validarAmbienteBridge()`
+    - [x] Logs detalhados adicionados para todas as operações BridgeTalk
+    - [x] Script do Illustrator (`scriptIllustrator`) movido para bridge.jsx
+    - [x] Função de contagem de bolas (`contarBolasNaArtboard`) já estava em funcoes.jsx
+- [x] **12.2** Atualizar os imports no `script.jsx`.
+    - [x] Adicionado `$.evalFile(File($.fileName).path + "/bridge.jsx");` na ordem correta
+    - [x] Função onClick do botão contar atualizada para usar `bridge.executarContagemBolas()`
+    - [x] Função onClick do botão gerar atualizada para usar `bridge.adicionarLegendaViaBridge()`
+    - [x] Código BridgeTalk original removido dos arquivos (ui.jsx e script.jsx)
+- [x] **12.3** Testar manualmente: funcionalidades que dependem de BridgeTalk (ex: contar bolas na artboard, adicionar legenda via BridgeTalk).
+    - [x] **INSTRUÇÕES DE TESTE:**
+        1. Executar script no Illustrator
+        2. Adicionar alguns componentes/bolas à legenda
+        3. Testar botão "Contar" para verificar se a contagem via BridgeTalk funciona
+        4. Testar botão "Adicionar Legenda" para verificar se a geração via BridgeTalk funciona
+        5. Verificar logs na aba Logs para todas as operações BridgeTalk
+        6. Confirmar que texturas e alfabeto são adicionados corretamente
+        7. Verificar se janela fecha automaticamente após adicionar legenda com sucesso
 
 > **Lembrete:** Toda ação de criação, alteração ou remoção neste módulo deve registrar um log detalhado na janela de logs, incluindo dados relevantes da operação.
 

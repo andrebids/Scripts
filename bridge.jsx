@@ -1,0 +1,457 @@
+/**
+ * Arquivo: bridge.jsx
+ * Domínio: Comunicação via BridgeTalk e operações entre aplicações
+ * 
+ * Este arquivo contém todas as funções relacionadas à comunicação via BridgeTalk
+ * entre o script principal e o Adobe Illustrator, incluindo contagem de bolas
+ * e adição de legendas.
+ * 
+ * Funções principais:
+ * - executarContagemBolas(): Executa contagem de bolas via BridgeTalk
+ * - adicionarLegendaViaBridge(): Adiciona legenda no Illustrator via BridgeTalk
+ * - prepararScriptIllustrator(): Prepara script para execução no Illustrator
+ * - configurarBridgeTalk(): Configura comunicação BridgeTalk
+ */
+
+// Função para executar contagem de bolas via BridgeTalk
+function executarContagemBolas(dados, textoResultado, callback) {
+    logs.adicionarLog("Iniciando contagem de bolas via BridgeTalk", logs.TIPOS_LOG.FUNCTION);
+    
+    try {
+        // Validar dados
+        if (!dados || typeof dados !== 'object' || !dados.componentes || !funcoes.isArray(dados.componentes)) {
+            logs.adicionarLog("Erro: Base de dados não acessível ou formato inválido", logs.TIPOS_LOG.ERROR);
+            var mensagemErro = "Erro: A base de dados não está acessível ou está em um formato inválido.";
+            if (callback) callback(mensagemErro, null);
+            return;
+        }
+        
+        logs.adicionarLog("Base de dados validada, preparando BridgeTalk", logs.TIPOS_LOG.INFO);
+        var pastaScripts = File($.fileName).parent.fsName.replace(/\\/g, '/');
+        logs.adicionarLog("Pasta de scripts: " + pastaScripts, logs.TIPOS_LOG.INFO);
+        
+        // Configurar BridgeTalk
+        var bt = new BridgeTalk();
+        bt.target = "illustrator";
+        
+        // Preparar código para execução no Illustrator
+        var btCode = ''
+            + '$.evalFile("' + pastaScripts + '/json2.js");'
+            + '$.evalFile("' + pastaScripts + '/logs.jsx");'
+            + '$.evalFile("' + pastaScripts + '/funcoes.jsx");'
+            + '$.evalFile("' + pastaScripts + '/database.jsx");'
+            + '(' + funcoes.contarBolasNaArtboard.toString() + ')();';
+        
+        bt.body = btCode;
+        
+        logs.adicionarLog("Código BridgeTalk preparado, enviando para Illustrator", logs.TIPOS_LOG.INFO);
+        
+        // Configurar callback de sucesso
+        bt.onResult = function(resObj) {
+            logs.adicionarLog("BridgeTalk retornou resultado", logs.TIPOS_LOG.INFO);
+            logs.adicionarLog("Resultado bruto: " + resObj.body, logs.TIPOS_LOG.INFO);
+            
+            var resultado = resObj.body.split("|");
+            var contagem, combinacoes;
+            
+            // Processar resultado
+            for (var i = 0; i < resultado.length; i++) {
+                var parte = resultado[i].split(":");
+                if (parte[0] === "contagem") {
+                    contagem = parseInt(parte[1]);
+                } else if (parte[0] === "combinacoes") {
+                    combinacoes = parte.slice(1).join(":");
+                }
+            }
+            
+            logs.adicionarLog("Contagem extraída: " + contagem, logs.TIPOS_LOG.INFO);
+            logs.adicionarLog("Combinações extraídas: " + (combinacoes ? combinacoes.substring(0, 100) + "..." : "nenhuma"), logs.TIPOS_LOG.INFO);
+            
+            var textoCompleto = processarResultadoContagem(contagem, combinacoes);
+            
+            // Atualizar interface
+            if (textoResultado) {
+                textoResultado.text = textoCompleto;
+                textoResultado.notify("onChange");
+            }
+            
+            logs.adicionarLog("Resultado da contagem finalizado e exibido", logs.TIPOS_LOG.INFO);
+            
+            if (callback) callback(null, textoCompleto);
+            alert("Resultado atualizado na janela de contagem");
+        };
+        
+        // Configurar callback de erro
+        bt.onError = function(err) {
+            var mensagemErro = "Erro no BridgeTalk: " + err.body;
+            logs.adicionarLog(mensagemErro, logs.TIPOS_LOG.ERROR);
+            
+            if (textoResultado) {
+                textoResultado.text = mensagemErro;
+                textoResultado.notify("onChange");
+            }
+            
+            if (callback) callback(mensagemErro, null);
+            alert(mensagemErro);
+        };
+        
+        logs.adicionarLog("Enviando requisição BridgeTalk", logs.TIPOS_LOG.INFO);
+        bt.send();
+        
+    } catch (e) {
+        var mensagemErro = "Erro ao iniciar contagem: " + (e.message || "Erro desconhecido") + "\nTipo de erro: " + (e.name || "Tipo de erro desconhecido");
+        logs.adicionarLog("Exceção capturada: " + mensagemErro, logs.TIPOS_LOG.ERROR);
+        
+        if (textoResultado) {
+            textoResultado.text = mensagemErro;
+            textoResultado.notify("onChange");
+        }
+        
+        if (callback) callback(mensagemErro, null);
+        alert(mensagemErro);
+    }
+}
+
+// Função para processar resultado da contagem de bolas
+function processarResultadoContagem(contagem, combinacoes) {
+    logs.adicionarLog("Processando resultado da contagem: " + contagem + " bolas", logs.TIPOS_LOG.FUNCTION);
+    
+    var textoCompleto = "";
+    
+    if (contagem !== undefined) {
+        if (contagem === 0) {
+            textoCompleto = "Resultado: " + (combinacoes || "Nenhum objeto selecionado") + "\n\n";
+            logs.adicionarLog("Nenhuma bola encontrada", logs.TIPOS_LOG.INFO);
+        } else {
+            var textoBoule = contagem === 1 ? "boule" : "boules";
+            textoCompleto = "Total de " + contagem + " " + textoBoule + " :\n";
+            logs.adicionarLog("Processando " + contagem + " " + textoBoule, logs.TIPOS_LOG.INFO);
+            
+            if (combinacoes && combinacoes !== "Nenhum objeto selecionado") {
+                var combArray = combinacoes.split(",");
+                logs.adicionarLog("Processando " + (combArray.length - 1) + " combinações", logs.TIPOS_LOG.INFO);
+                
+                // Processar cada combinação
+                for (var i = 1; i < combArray.length; i++) {
+                    var combInfo = combArray[i].split("=");
+                    if (combInfo.length === 3) {
+                        var cor = decodeURIComponent(combInfo[0]);
+                        var tamanho = combInfo[1];
+                        var quantidade = combInfo[2];
+                        textoCompleto += "boule " + cor + " ⌀ " + tamanho + " m: " + quantidade + "\n";
+                        logs.adicionarLog("Combinação processada: " + cor + " ⌀ " + tamanho + " m: " + quantidade, logs.TIPOS_LOG.INFO);
+                    } else {
+                        textoCompleto += combArray[i] + "\n";
+                        logs.adicionarLog("Combinação malformada: " + combArray[i], logs.TIPOS_LOG.WARNING);
+                    }
+                }
+            } else {
+                textoCompleto += "Nenhuma informação de combinação disponível\n";
+                logs.adicionarLog("Nenhuma informação de combinação disponível", logs.TIPOS_LOG.WARNING);
+            }
+        }
+    } else {
+        textoCompleto = "Erro: Resultado inválido";
+        logs.adicionarLog("Erro ao processar resultado: resultado inválido", logs.TIPOS_LOG.ERROR);
+    }
+    
+    logs.adicionarLog("Processamento do resultado concluído", logs.TIPOS_LOG.INFO);
+    return textoCompleto;
+}
+
+// Função para adicionar legenda via BridgeTalk
+function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, palavraDigitada, tamanhoGXSelecionado, t, janela, callback) {
+    logs.adicionarLog("Iniciando adição de legenda via BridgeTalk", logs.TIPOS_LOG.FUNCTION);
+    logs.adicionarLog("Designer: " + nomeDesigner + ", Tamanho GX: " + tamanhoGXSelecionado, logs.TIPOS_LOG.INFO);
+    
+    try {
+        // Função que será executada no contexto do Illustrator
+        var scriptIllustrator = function(nomeDesigner, conteudoLegenda, texturasString, palavraDigitada, tamanhoGX) {
+            logs.adicionarLog("Script executando no Illustrator", logs.TIPOS_LOG.INFO);
+            
+            // Função gerarNomeArquivoAlfabeto local para o BridgeTalk
+            function gerarNomeArquivoAlfabeto(caractere, sufixoTamanho) {
+                var mapeamento = {
+                    "A": "GX214LW_" + sufixoTamanho + ".ai", "B": "GX215LW_" + sufixoTamanho + ".ai",
+                    "C": "GX216LW_" + sufixoTamanho + ".ai", "D": "GX217LW_" + sufixoTamanho + ".ai",
+                    "E": "GX218LW_" + sufixoTamanho + ".ai", "F": "GX219LW_" + sufixoTamanho + ".ai",
+                    "G": "GX220LW_" + sufixoTamanho + ".ai", "H": "GX221LW_" + sufixoTamanho + ".ai",
+                    "I": "GX222LW_" + sufixoTamanho + ".ai", "J": "GX223LW_" + sufixoTamanho + ".ai",
+                    "K": "GX224LW_" + sufixoTamanho + ".ai", "L": "GX225LW_" + sufixoTamanho + ".ai",
+                    "M": "GX226LW_" + sufixoTamanho + ".ai", "N": "GX227LW_" + sufixoTamanho + ".ai",
+                    "O": "GX228LW_" + sufixoTamanho + ".ai", "P": "GX229LW_" + sufixoTamanho + ".ai",
+                    "Q": "GX230LW_" + sufixoTamanho + ".ai", "R": "GX231LW_" + sufixoTamanho + ".ai",
+                    "S": "GX232LW_" + sufixoTamanho + ".ai", "T": "GX233LW_" + sufixoTamanho + ".ai",
+                    "U": "GX234LW_" + sufixoTamanho + ".ai", "V": "GX235LW_" + sufixoTamanho + ".ai",
+                    "W": "GX236LW_" + sufixoTamanho + ".ai", "X": "GX237LW_" + sufixoTamanho + ".ai",
+                    "Y": "GX238LW_" + sufixoTamanho + ".ai", "Z": "GX239LW_" + sufixoTamanho + ".ai",
+                    "<3": "GX240LW_" + sufixoTamanho + ".ai", " ": "GX241LW_" + sufixoTamanho + ".ai"
+                };
+                return mapeamento[caractere] || "";
+            }
+
+            // Script de criação da legenda no Illustrator
+            if (app.documents.length === 0) {
+                app.documents.add();
+            }
+            
+            var doc = app.activeDocument;
+            var novaLayer = doc.layers.add();
+            novaLayer.name = "Legenda";
+            
+            var artboardBounds = doc.artboards[0].artboardRect;
+            
+            // Processar texturas se existirem
+            if (texturasString && texturasString !== "") {
+                try {
+                    var texturas = texturasString.split(',');
+                    for (var t = 0; t < texturas.length; t++) {
+                        if (texturas[t] && texturas[t] !== "") {
+                            var numeroTextura = texturas[t].replace(/\D/g, '');
+                            if (numeroTextura) {
+                                var caminhoTextura = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/svg/texture" + numeroTextura + ".ai";
+                                var arquivoTextura = new File(caminhoTextura);
+                                if (arquivoTextura.exists) {
+                                    var texturaItem = novaLayer.placedItems.add();
+                                    texturaItem.file = arquivoTextura;
+                                    texturaItem.position = [artboardBounds[0] + 400 + (t * 150), artboardBounds[1] - 100];
+                                    texturaItem.embed();
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    // Continua mesmo se houver erro com texturas
+                }
+            }
+
+            // Processar alfabeto se existir palavra digitada
+            var alturaLetras = 200; // valor padrão
+            try {
+                if (palavraDigitada && palavraDigitada !== "") {
+                    var caminhoAlfabeto = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/alfabeto/";
+                    
+                    // Configurar espaçamento e tamanho baseado no tamanho GX
+                    var espacamentoHorizontal = (tamanhoGX === "1,40 m") ? 150 : 220;
+                    var sufixoTamanho = (tamanhoGX === "1,40 m") ? "140" : "200";
+                    alturaLetras = (tamanhoGX === "1,40 m") ? 200 : 300;
+                    
+                    var posicaoX = artboardBounds[0] + 50;
+                    
+                    // Processar cada caractere da palavra
+                    for (var i = 0; i < palavraDigitada.length; i++) {
+                        var caractere = palavraDigitada[i].toUpperCase();
+                        
+                        // Tratar caractere especial <3
+                        if (caractere === '<' && palavraDigitada[i+1] === '3') {
+                            caractere = '<3';
+                            i++; // Pula o próximo caractere
+                        }
+                        
+                        var nomeArquivoAI = gerarNomeArquivoAlfabeto(caractere, sufixoTamanho);
+                        if (nomeArquivoAI !== "") {
+                            var caminhoAI = caminhoAlfabeto + nomeArquivoAI;
+                            var arquivoAI = new File(caminhoAI);
+                            
+                            if (arquivoAI.exists) {
+                                var placedItem = novaLayer.placedItems.add();
+                                placedItem.file = arquivoAI;
+                                placedItem.position = [posicaoX, artboardBounds[1] - 100];
+                                placedItem.embed();
+                                posicaoX += espacamentoHorizontal;
+                            }
+                        }
+                    }
+                }
+            } catch (alfabetoError) {
+                // Continua mesmo se houver erro com alfabeto
+            }
+            
+            // Criar texto da legenda
+            var textoLegenda = novaLayer.textFrames.add();
+            var posicaoYLegenda = artboardBounds[1] - (palavraDigitada ? alturaLetras + 150 : 100);
+            textoLegenda.position = [artboardBounds[0] + 50, posicaoYLegenda];
+            
+            var tamanhoFontePrincipal = 40;
+            var tamanhoFonteBids = 30;
+            
+            // Configurar fonte e cor
+            textoLegenda.textRange.characterAttributes.size = tamanhoFontePrincipal;
+            textoLegenda.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
+            
+            try {
+                textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
+            } catch (e) {
+                textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
+            }
+            
+            // Adicionar linha Bids
+            var textoBids = "Bids - " + nomeDesigner;
+            var paragBids = textoLegenda.paragraphs.add(textoBids);
+            paragBids.characterAttributes.size = tamanhoFonteBids;
+            try {
+                paragBids.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
+            } catch (e) {
+                paragBids.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
+            }
+            paragBids.paragraphAttributes.spaceBefore = 0;
+            paragBids.paragraphAttributes.spaceAfter = 0;
+
+            // Processar linhas do conteúdo da legenda
+            var linhas = conteudoLegenda.split('\n');
+            for (var i = 0; i < linhas.length; i++) {
+                var linha = linhas[i];
+                
+                // Correção específica para moquette blanc -> moquette blanche
+                if (linha.indexOf("Logo") === 0 && linha.toLowerCase().indexOf("moquette blanc") !== -1) {
+                    linha = linha.replace(/moquette blanc/i, "moquette blanche");
+                }
+                
+                linha = decodeURI(linha);
+                var novoParag = textoLegenda.paragraphs.add(linha);
+                novoParag.characterAttributes.size = tamanhoFontePrincipal;
+                
+                // Formatação especial para linha "Composants:"
+                if (linha.indexOf("Composants:") === 0) {
+                    var textoComposants = novoParag.characters[0];
+                    textoComposants.length = "Composants:".length;
+                    
+                    try {
+                        textoComposants.characterAttributes.textFont = app.textFonts.getByName("Apercu-Bold");
+                    } catch (e) {
+                        textoComposants.characterAttributes.textFont = app.textFonts.getByName("Arial-BoldMT");
+                    }
+                    
+                    if (novoParag.characters.length > "Composants:".length) {
+                        var textoRestante = novoParag.characters["Composants:".length];
+                        textoRestante.length = novoParag.characters.length - "Composants:".length;
+                        try {
+                            textoRestante.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
+                        } catch (e) {
+                            textoRestante.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
+                        }
+                    }
+                } else {
+                    try {
+                        novoParag.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
+                    } catch (e) {
+                        novoParag.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
+                    }
+                }
+                
+                novoParag.paragraphAttributes.spaceBefore = 0;
+                novoParag.paragraphAttributes.spaceAfter = 0;
+            }
+
+            // Ajustar limites geométricos
+            textoLegenda.geometricBounds = [
+                textoLegenda.geometricBounds[0],
+                textoLegenda.geometricBounds[1],
+                textoLegenda.geometricBounds[2],
+                textoLegenda.geometricBounds[1] + 400
+            ];
+
+            return "success";
+        };
+
+        // Preparar string do script com escape adequado para BridgeTalk
+        function escaparParaBridgeTalk(str) {
+            if (!str) return "";
+            return str.replace(/\\/g, "\\\\")   // Escape de barras invertidas
+                     .replace(/'/g, "\\'")      // Escape de aspas simples  
+                     .replace(/\n/g, "\\n")     // Escape de quebras de linha
+                     .replace(/\r/g, "\\r");    // Escape de retorno de carro
+        }
+        
+        var scriptString = "(" + scriptIllustrator.toString() + ")";
+        scriptString += "('" + escaparParaBridgeTalk(nomeDesigner) + "', '" + 
+                       escaparParaBridgeTalk(legendaConteudo) + "', '" + 
+                       texturas.join(',') + "', '" + 
+                       escaparParaBridgeTalk(palavraDigitada) + "', '" +
+                       escaparParaBridgeTalk(tamanhoGXSelecionado) + "');";
+        
+        // Configurar BridgeTalk
+        var bt = new BridgeTalk();
+        bt.target = "illustrator";
+        bt.body = scriptString;
+        
+        logs.adicionarLog("Script BridgeTalk preparado, enviando para Illustrator", logs.TIPOS_LOG.INFO);
+        
+        // Configurar callback de sucesso
+        bt.onResult = function(resObj) {
+            logs.adicionarLog("BridgeTalk retornou: " + resObj.body, logs.TIPOS_LOG.INFO);
+            
+            if (resObj.body === "success") {
+                logs.adicionarLog("Legenda adicionada com sucesso", logs.TIPOS_LOG.INFO);
+                alert(t("legendaAdicionada"));
+                if (janela) {
+                    janela.close();
+                    janela = null;
+                }
+                if (callback) callback(null, "success");
+            } else {
+                var mensagemErro = "Ocorreu um problema ao adicionar a legenda: " + resObj.body;
+                logs.adicionarLog(mensagemErro, logs.TIPOS_LOG.ERROR);
+                alert(mensagemErro);
+                if (callback) callback(mensagemErro, null);
+            }
+        };
+        
+        // Configurar callback de erro
+        bt.onError = function(err) {
+            var mensagemErro = "Erro ao adicionar legenda: " + err.body;
+            logs.adicionarLog(mensagemErro, logs.TIPOS_LOG.ERROR);
+            alert(mensagemErro);
+            if (callback) callback(mensagemErro, null);
+        };
+        
+        bt.send();
+        
+    } catch (e) {
+        var mensagemErro = "Erro ao adicionar legenda: " + e + "\nLinha: " + e.line;
+        logs.adicionarLog("Exceção capturada: " + mensagemErro, logs.TIPOS_LOG.ERROR);
+        alert(mensagemErro);
+        if (callback) callback(mensagemErro, null);
+    }
+}
+
+// Função para escapar strings para uso em BridgeTalk
+function escaparStringParaBridge(str) {
+    logs.adicionarLog("Escapando string para BridgeTalk: " + (str ? str.substring(0, 50) + "..." : "null"), logs.TIPOS_LOG.INFO);
+    
+    if (!str) return "";
+    
+    return str.replace(/\\/g, "\\\\")
+              .replace(/'/g, "\\'")
+              .replace(/"/g, '\\"')
+              .replace(/\n/g, "\\n")
+              .replace(/\r/g, "\\r")
+              .replace(/\t/g, "\\t");
+}
+
+// Função para validar ambiente BridgeTalk
+function validarAmbienteBridge() {
+    logs.adicionarLog("Validando ambiente BridgeTalk", logs.TIPOS_LOG.FUNCTION);
+    
+    try {
+        if (typeof BridgeTalk === "undefined") {
+            logs.adicionarLog("BridgeTalk não está disponível", logs.TIPOS_LOG.ERROR);
+            return false;
+        }
+        
+        logs.adicionarLog("Ambiente BridgeTalk validado com sucesso", logs.TIPOS_LOG.INFO);
+        return true;
+    } catch (e) {
+        logs.adicionarLog("Erro ao validar ambiente BridgeTalk: " + e.message, logs.TIPOS_LOG.ERROR);
+        return false;
+    }
+}
+
+// Exportar funções para o escopo global
+$.global.bridge = {
+    executarContagemBolas: executarContagemBolas,
+    processarResultadoContagem: processarResultadoContagem,
+    adicionarLegendaViaBridge: adicionarLegendaViaBridge,
+    escaparStringParaBridge: escaparStringParaBridge,
+    validarAmbienteBridge: validarAmbienteBridge
+}; 

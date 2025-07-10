@@ -314,107 +314,15 @@ function criarInterfaceContadorBolas(grupoContar, dados, itensLegenda, atualizar
 
     botaoContar.onClick = function() {
         logs.logEvento("click", "botaoContar - Iniciando contagem de bolas");
-        logs.adicionarLog("Iniciando contagem de bolas via BridgeTalk", logs.TIPOS_LOG.FUNCTION);
         
-        try {
-            if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.componentes)) {
-                logs.adicionarLog("Erro: Base de dados não acessível ou formato inválido", logs.TIPOS_LOG.ERROR);
-                alert("Erro: A base de dados não está acessível ou está em um formato inválido.");
-                return;
+        // Usar módulo bridge para executar contagem
+        bridge.executarContagemBolas(dados, textoResultado, function(erro, resultado) {
+            if (erro) {
+                logs.adicionarLog("Erro na contagem via bridge: " + erro, logs.TIPOS_LOG.ERROR);
+            } else {
+                logs.adicionarLog("Contagem via bridge concluída com sucesso", logs.TIPOS_LOG.INFO);
             }
-            
-            logs.adicionarLog("Base de dados validada, preparando BridgeTalk", logs.TIPOS_LOG.INFO);
-            var pastaScripts = File($.fileName).parent.fsName.replace(/\\/g, '/');
-            logs.adicionarLog("Pasta de scripts: " + pastaScripts, logs.TIPOS_LOG.INFO);
-            
-            var bt = new BridgeTalk();
-            bt.target = "illustrator";
-            var btCode = ''
-                + '$.evalFile("' + pastaScripts + '/json2.js");'
-                + '$.evalFile("' + pastaScripts + '/logs.jsx");'
-                + '$.evalFile("' + pastaScripts + '/funcoes.jsx");'
-                + '$.evalFile("' + pastaScripts + '/database.jsx");'
-                + '(' + contarBolasNaArtboard.toString() + ')();';
-            bt.body = btCode;
-            
-            logs.adicionarLog("Código BridgeTalk preparado, enviando para Illustrator", logs.TIPOS_LOG.INFO);
-            bt.onResult = function(resObj) {
-                logs.adicionarLog("BridgeTalk retornou resultado", logs.TIPOS_LOG.INFO);
-                logs.adicionarLog("Resultado bruto: " + resObj.body, logs.TIPOS_LOG.INFO);
-                
-                var resultado = resObj.body.split("|");
-                var contagem, combinacoes;
-                for (var i = 0; i < resultado.length; i++) {
-                    var parte = resultado[i].split(":");
-                    if (parte[0] === "contagem") {
-                        contagem = parseInt(parte[1]);
-                    } else if (parte[0] === "combinacoes") {
-                        combinacoes = parte.slice(1).join(":");
-                    }
-                }
-                
-                logs.adicionarLog("Contagem extraída: " + contagem, logs.TIPOS_LOG.INFO);
-                logs.adicionarLog("Combinações extraídas: " + (combinacoes ? combinacoes.substring(0, 100) + "..." : "nenhuma"), logs.TIPOS_LOG.INFO);
-                
-                var textoCompleto = "";
-                if (contagem !== undefined) {
-                    if (contagem === 0) {
-                        textoCompleto = "Resultado: " + (combinacoes || "Nenhum objeto selecionado") + "\n\n";
-                        logs.adicionarLog("Nenhuma bola encontrada", logs.TIPOS_LOG.INFO);
-                    } else {
-                        var textoBoule = contagem === 1 ? "boule" : "boules";
-                        textoCompleto = "Total de " + contagem + " " + textoBoule + " :\n";
-                        logs.adicionarLog("Processando " + contagem + " " + textoBoule, logs.TIPOS_LOG.INFO);
-                        
-                        if (combinacoes && combinacoes !== "Nenhum objeto selecionado") {
-                            var combArray = combinacoes.split(",");
-                            logs.adicionarLog("Processando " + (combArray.length - 1) + " combinações", logs.TIPOS_LOG.INFO);
-                            
-                            for (var i = 1; i < combArray.length; i++) {
-                                var combInfo = combArray[i].split("=");
-                                if (combInfo.length === 3) {
-                                    var cor = decodeURIComponent(combInfo[0]);
-                                    var tamanho = combInfo[1];
-                                    var quantidade = combInfo[2];
-                                    textoCompleto += "boule " + cor + " ⌀ " + tamanho + " m: " + quantidade + "\n";
-                                    logs.adicionarLog("Combinação processada: " + cor + " ⌀ " + tamanho + " m: " + quantidade, logs.TIPOS_LOG.INFO);
-                                } else {
-                                    textoCompleto += combArray[i] + "\n";
-                                    logs.adicionarLog("Combinação malformada: " + combArray[i], logs.TIPOS_LOG.WARNING);
-                                }
-                            }
-                        } else {
-                            textoCompleto += "Nenhuma informação de combinação disponível\n";
-                            logs.adicionarLog("Nenhuma informação de combinação disponível", logs.TIPOS_LOG.WARNING);
-                        }
-                    }
-                } else {
-                    textoCompleto = "Erro: " + resObj.body;
-                    logs.adicionarLog("Erro ao processar resultado: " + resObj.body, logs.TIPOS_LOG.ERROR);
-                }
-                
-                textoResultado.text = textoCompleto;
-                textoResultado.notify("onChange");
-                logs.adicionarLog("Resultado da contagem finalizado e exibido", logs.TIPOS_LOG.INFO);
-                alert("Resultado atualizado na janela de contagem");
-            };
-            bt.onError = function(err) {
-                logs.adicionarLog("Erro no BridgeTalk: " + err.body, logs.TIPOS_LOG.ERROR);
-                alert("Erro no BridgeTalk: " + err.body);
-                textoResultado.text = "Erro no BridgeTalk: " + err.body;
-                textoResultado.notify("onChange");
-            };
-            
-            logs.adicionarLog("Enviando requisição BridgeTalk", logs.TIPOS_LOG.INFO);
-            bt.send();
-            
-        } catch (e) {
-            var mensagemErro = "Erro ao iniciar contagem: " + (e.message || "Erro desconhecido") + "\nTipo de erro: " + (e.name || "Tipo de erro desconhecido");
-            logs.adicionarLog("Exceção capturada: " + mensagemErro, logs.TIPOS_LOG.ERROR);
-            alert(mensagemErro);
-            textoResultado.text = mensagemErro;
-            textoResultado.notify("onChange");
-        }
+        });
     };
 
     return {

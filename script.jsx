@@ -8,6 +8,7 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
 $.evalFile(File($.fileName).path + "/database.jsx");
 $.evalFile(File($.fileName).path + "/logs.jsx");
 $.evalFile(File($.fileName).path + "/config.jsx");
+$.evalFile(File($.fileName).path + "/bridge.jsx");
 $.evalFile(File($.fileName).path + "/ui.jsx");
 $.evalFile(File($.fileName).path + "/translations.js");
 $.evalFile(File($.fileName).path + "/update.jsx");
@@ -1109,258 +1110,28 @@ function atualizarListaItens() {
                 // Encontrar o tamanho do alfabeto nos itens da legenda
                 var tamanhoGXSelecionado = obterTamanhoAlfabeto(itensLegenda);
 
-                var scriptIllustrator = function(nomeDesigner, conteudoLegenda, texturas, palavraDigitada, tamanhoGX) {
-                    // Função gerarNomeArquivoAlfabeto local para o BridgeTalk
-                    function gerarNomeArquivoAlfabeto(caractere, sufixoTamanho) {
-                        var nomeArquivoAI = "";
-                        if (caractere >= 'A' && caractere <= 'Z') {
-                            var numeroLetra = 214 + (caractere.charCodeAt(0) - 'A'.charCodeAt(0));
-                            nomeArquivoAI = "GX" + numeroLetra + "LW_" + sufixoTamanho + ".ai";
-                        } else if (caractere === '<3') {
-                            nomeArquivoAI = "GX240LW_" + sufixoTamanho + ".ai";
-                        } else if (caractere === '#') {
-                            nomeArquivoAI = "GX241LW_" + sufixoTamanho + ".ai";
-                        }
-                        return nomeArquivoAI;
-                    }
-                    // Usar função gerarNomeArquivoAlfabeto do arquivo alfabeto.jsx
-                    var doc = app.activeDocument;
-    
-                    if (!doc) {
-                        return "Nenhum documento ativo. Por favor, abra um documento no Illustrator.";
-                    }
-    
-                    if (doc.artboards.length === 0) {
-                        return "Erro: O documento não tem artboards. Por favor, crie uma artboard antes de adicionar a legenda.";
-                    }
-    
-                    var novaLayer = doc.layers.add();
-                    novaLayer.name = "Legenda";
-    
-                    var artboard = doc.artboards[doc.artboards.getActiveArtboardIndex()];
-                    var artboardBounds = artboard.artboardRect;
-                    
-                    // Dentro da função scriptIllustrator, na parte que processa as texturas
-                    if (texturas && texturas !== "") {
-                        try {
-                            var caminhoBase = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/svg/";
-                            // Converter para string e remover espaços manualmente
-                            var texturasString = String(texturas);
-                            var texturasArray = texturasString.split(',');
-                            var larguraTextura = 300;
-                            var alturaTextura = 400;
-                            var espacamentoHorizontal = 20;
-                            
-                            // Calcular posição Y inicial para as texturas
-                            var posicaoYTexturas = artboardBounds[1] - (palavraDigitada ? alturaLetras + 600 : 500);
-                            
-                            for (var i = 0; i < texturasArray.length; i++) {
-                                // Remover espaços manualmente
-                                var numeroTextura = String(texturasArray[i]);
-                                numeroTextura = numeroTextura.replace(/^\s+/, '').replace(/\s+$/, '');
-                                
-                                if (numeroTextura === '') continue;
-                                
-                                var caminhoAI = caminhoBase + "texture" + numeroTextura + ".ai";
-                                var arquivoAI = new File(caminhoAI);
-                                
-                                if (arquivoAI.exists) {
-                                    try {
-                                        var placedItem = novaLayer.placedItems.add();
-                                        placedItem.file = arquivoAI;
-                                        
-                                        var posX = artboardBounds[0] + (i * (larguraTextura + espacamentoHorizontal));
-                                        placedItem.position = [posX, posicaoYTexturas];
-                                        
-                                        placedItem.width = larguraTextura;
-                                        placedItem.height = alturaTextura;
-                                        placedItem.embed();
-                                        
-                                        app.redraw();
-                                    } catch (texError) {
-                                        alert("Erro ao adicionar textura " + numeroTextura + ": " + texError);
-                                    }
-                                } else {
-                                    alert("Arquivo não encontrado: texture" + numeroTextura + ".ai");
-                                }
-                            }
-                        } catch (e) {
-                            alert("Erro ao processar texturas: " + e);
-                        }
-                    }
-    
-                    // Dentro da função scriptIllustrator, após o processamento das texturas:
-                    try {
-                        
-                        if (palavraDigitada && palavraDigitada !== "") {
-                            var caminhoAlfabeto = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/alfabeto/";
-                            
-                            // Usar o tamanhoGX passado como parâmetro
-                            var espacamentoHorizontal = (tamanhoGX === "1,40 m") ? 150 : 220;
-                            var sufixoTamanho = (tamanhoGX === "1,40 m") ? "140" : "200";
-                            
-                            // Ajustar altura das letras baseado no tamanho
-                            var alturaLetras = (tamanhoGX === "1,40 m") ? 200 : 300;
-                            
-                            // Definir posição inicial X
-                            var posicaoX = artboardBounds[0] + 50;
-                            
-                            for (var i = 0; i < palavraDigitada.length; i++) {
-                                var caractere = palavraDigitada[i].toUpperCase();
-                                
-                                if (caractere === '<' && palavraDigitada[i+1] === '3') {
-                                    caractere = '<3';
-                                    i++; // Pula o próximo caractere, pois já foi processado
-                                }
-                                
-                                var nomeArquivoAI = gerarNomeArquivoAlfabeto(caractere, sufixoTamanho);
-                                if (nomeArquivoAI !== "") {
-                                    var caminhoAI = caminhoAlfabeto + nomeArquivoAI;
-                                    var arquivoAI = new File(caminhoAI);
-                                    
-                                    if (arquivoAI.exists) {
-                                        var placedItem = novaLayer.placedItems.add();
-                                        placedItem.file = arquivoAI;
-                                        placedItem.position = [posicaoX, artboardBounds[1] - 100]; // Usar posicaoX aqui
-                                        placedItem.embed();
-                                        
-                                        posicaoX += espacamentoHorizontal; // Incrementar posicaoX para a próxima letra
-                                    } else {
-                                        alert("Arquivo não encontrado: " + nomeArquivoAI);
-                                    }
-                                }
-                            }
-                        }
-                    } catch (alfabetoError) {
-                        alert("Erro ao processar alfabeto: " + alfabetoError + "\nTamanho: " + tamanhoGX);
-                    }
-                    
-                    // Posicionar o texto da legenda (sempre será executado)
-                    var textoLegenda = novaLayer.textFrames.add();
-                    var posicaoYLegenda = artboardBounds[1] - (palavraDigitada ? alturaLetras + 150 : 100);
-                    textoLegenda.position = [artboardBounds[0] + 50, posicaoYLegenda];
-                    
-                    var tamanhoFontePrincipal = 40;
-                    var tamanhoFonteBids = 30;
-                    
-                    // Configurar fonte e cor
-                    textoLegenda.textRange.characterAttributes.size = tamanhoFontePrincipal;
-                    textoLegenda.textRange.characterAttributes.fillColor = new RGBColor(0, 0, 0);
-                    
-                    try {
-                        textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
-                    } catch (e) {
-                        textoLegenda.textRange.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
-                    }
-                    
-                    var textoBids = "Bids - " + nomeDesigner;
-                    var linhas = conteudoLegenda.split('\n');
-                    
-                    // Dentro da função scriptIllustrator, modifique a parte onde as linhas são processadas:
-                    var textoBids = "Bids - " + nomeDesigner;
-                    var paragBids = textoLegenda.paragraphs.add(textoBids);
-                    paragBids.characterAttributes.size = tamanhoFonteBids;
-                    try {
-                        paragBids.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
-                    } catch (e) {
-                        paragBids.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
-                    }
-                    paragBids.paragraphAttributes.spaceBefore = 0;
-                    paragBids.paragraphAttributes.spaceAfter = 0;
-
-                    for (var i = 0; i < linhas.length; i++) {
-                        var linha = linhas[i];
-                        
-                        // Substituir "moquette blanc" por "moquette blanche" apenas na linha do Logo
-                        if (linha.indexOf("Logo") === 0 && linha.toLowerCase().indexOf("moquette blanc") !== -1) {
-                            linha = linha.replace(/moquette blanc/i, "moquette blanche");
-                        }
-                        linha = decodeURI(linha);
-                        if (linha.indexOf("Logo") === 0) {
-                            var novoParag = textoLegenda.paragraphs.add(linha);
-                            novoParag.characterAttributes.size = tamanhoFontePrincipal;
-                            try {
-                                novoParag.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
-                            } catch (e) {
-                                novoParag.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
-                            }
-                            novoParag.paragraphAttributes.spaceBefore = 0;
-                            novoParag.paragraphAttributes.spaceAfter = 0;
-                        } else if (linha.indexOf("Composants:") === 0) {
-                            var novoParag = textoLegenda.paragraphs.add(linha);
-                            novoParag.characterAttributes.size = tamanhoFontePrincipal;
-                            
-                            var textoComposants = novoParag.characters[0];
-                            textoComposants.length = "Composants:".length;
-                            
-                            try {
-                                textoComposants.characterAttributes.textFont = app.textFonts.getByName("Apercu-Bold");
-                            } catch (e) {
-                                textoComposants.characterAttributes.textFont = app.textFonts.getByName("Arial-BoldMT");
-                            }
-                            
-                            if (novoParag.characters.length > "Composants:".length) {
-                                var textoRestante = novoParag.characters["Composants:".length];
-                                textoRestante.length = novoParag.characters.length - "Composants:".length;
-                                try {
-                                    textoRestante.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
-                                } catch (e) {
-                                    textoRestante.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
-                                }
-                            }
-                            
-                            novoParag.paragraphAttributes.spaceBefore = 0;
-                            novoParag.paragraphAttributes.spaceAfter = 0;
-                        } else {
-                            var novoParag = textoLegenda.paragraphs.add(linha);
-                            novoParag.characterAttributes.size = tamanhoFontePrincipal;
-                            try {
-                                novoParag.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
-                            } catch (e) {
-                                novoParag.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
-                            }
-                            novoParag.paragraphAttributes.spaceBefore = 0;
-                            novoParag.paragraphAttributes.spaceAfter = 0;
-                        }
-                    }
-    
-                    // Ajustar limites geométricos
-                    textoLegenda.geometricBounds = [
-                        textoLegenda.geometricBounds[0],
-                        textoLegenda.geometricBounds[1],
-                        textoLegenda.geometricBounds[2],
-                        textoLegenda.geometricBounds[1] + 400
-                    ];
-    
-                    return "success";
-                };
+                // Função scriptIllustrator movida para bridge.jsx
     
                 // Capturar a palavra digitada do campo alfabeto
                 var palavraDigitada = obterPalavraDigitadaAlfabeto(itensLegenda);
-    
-                var scriptString = "(" + scriptIllustrator.toString() + ")";
-                scriptString += "('" + escapeString(nomeDesigner) + "', '" + 
-                               escapeString(legendaConteudo) + "', '" + 
-                               legendaInfo.texturas.join(',') + "', '" + 
-                               escapeString(palavraDigitada) + "', '" +
-                               escapeString(tamanhoGXSelecionado) + "');";
                 
-                var bt = new BridgeTalk();
-                bt.target = "illustrator";
-                bt.body = scriptString;
-                bt.onResult = function(resObj) {
-                    if (resObj.body === "success") {
-                        alert(t("legendaAdicionada"));
-                        janela.close();
-                        janela = null;
-                    } else {
-                        alert("Ocorreu um problema ao adicionar a legenda: " + resObj.body);
+                // Usar módulo bridge para adicionar legenda
+                bridge.adicionarLegendaViaBridge(
+                    nomeDesigner,
+                    legendaConteudo,
+                    legendaInfo.texturas,
+                    palavraDigitada,
+                    tamanhoGXSelecionado,
+                    t,
+                    janela,
+                    function(erro, resultado) {
+                        if (erro) {
+                            logs.adicionarLog("Erro ao adicionar legenda via bridge: " + erro, logs.TIPOS_LOG.ERROR);
+                        } else {
+                            logs.adicionarLog("Legenda adicionada via bridge com sucesso", logs.TIPOS_LOG.INFO);
+                        }
                     }
-                };
-                bt.onError = function(err) {
-                    alert("Erro ao adicionar legenda: " + err.body);
-                };
-                bt.send();
+                );
     
             } catch (e) {
                 alert("Erro ao adicionar legenda: " + e + "\nLinha: " + e.line);

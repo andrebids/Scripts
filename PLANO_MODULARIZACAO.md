@@ -176,6 +176,31 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
 
 ---
 
+## 5.5 Tratamento de Caracteres Especiais nas Observações (OBS)
+
+**Objetivo:**  
+Garantir que qualquer texto inserido nas observações (OBS) seja corretamente tratado, escapando caracteres especiais (como aspas, barras, quebras de linha, etc.), evitando erros de execução no script e no Illustrator.
+
+#### 5.5.1 Levantamento e Análise
+- [ ] Identificar todos os pontos do código onde o texto das observações é processado, salvo ou inserido em campos/textos do Illustrator.
+- [ ] Listar os caracteres problemáticos (ex: ", ', \, \n, etc.).
+
+#### 5.5.2 Implementação da Solução
+- [ ] Criar uma função utilitária (ex: sanitizarObservacao(texto)) para tratar e escapar corretamente os caracteres especiais.
+- [ ] Garantir que essa função seja chamada sempre que o texto das observações for manipulado ou inserido.
+- [ ] Adicionar logs detalhados sempre que a sanitização for aplicada, para facilitar o debug.
+
+#### 5.5.3 Testes Manuais
+- [ ] Testar manualmente a inserção de observações com diferentes caracteres especiais (aspas, barras, quebras de linha, etc.).
+- [ ] Verificar se o texto aparece corretamente no Illustrator e se não há mais erros de execução.
+- [ ] Registrar logs de sucesso/erro durante o teste.
+
+#### 5.5.4 Documentação
+- [ ] Documentar a função de sanitização e os pontos do código onde ela deve ser usada.
+- [ ] Atualizar o checklist de testes manuais para incluir casos de caracteres especiais nas observações.
+
+---
+
 ## 6. Modularização de Configuração
 - **6.1** Mover lógica de configuração inicial (nome do designer, idioma) para `config.jsx`.
 - **6.2** Atualizar os imports no `script.jsx`.

@@ -1,8 +1,5 @@
 # Plano de Modularização do Projeto Legenda
 
-## Diretriz de Logging Obrigatório
-Sempre que for criada, alterada ou removida qualquer funcionalidade, componente, bola, item de lista ou ação relevante no sistema, **deve ser registrado um log detalhado na janela de logs**. O log deve conter informações completas sobre a ação (tipo, dados envolvidos, resultado, etc.), para facilitar a verificação manual e o debug. Nenhuma ação importante deve passar sem registro no sistema de logs.
-
 ## ⚠️ IMPORTANTE: Configuração Obrigatória do Adobe Illustrator
 **NUNCA REMOVER** as seguintes diretivas do cabeçalho do `script.jsx`:
 ```javascript
@@ -20,7 +17,234 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
 
 **Nota:** O linter JavaScript pode mostrar erros nessas linhas, mas são **normais e devem ser ignorados** - essas diretivas são específicas do Adobe Illustrator e necessárias para o funcionamento do script.
 
-## Correções Aplicadas
+## 📋 DIRETRIZ DE LOGGING OBRIGATÓRIO
+Sempre que for criada, alterada ou removida qualquer funcionalidade, componente, bola, item de lista ou ação relevante no sistema, **deve ser registrado um log detalhado na janela de logs**. O log deve conter informações completas sobre a ação (tipo, dados envolvidos, resultado, etc.), para facilitar a verificação manual e o debug. Nenhuma ação importante deve passar sem registro no sistema de logs.
+
+---
+
+# 🗺️ MAPA ORGANIZACIONAL DOS ARQUIVOS
+
+## 📁 ESTRUTURA ATUAL DO PROJETO
+
+### **🎯 ARQUIVO PRINCIPAL**
+- **`script.jsx`** - Script principal que inicializa e coordena todo o sistema
+  - Imports de todos os módulos
+  - Criação da interface principal
+  - Coordenação entre módulos
+  - Eventos principais da UI
+
+### **🔧 MÓDULOS FUNCIONAIS**
+
+#### **`funcoes.jsx`** - Funções Utilitárias Gerais
+- **Domínio:** Utilidades genéricas e funções auxiliares
+- **Responsabilidades:**
+  - Manipulação de arrays (removerDuplicatas, arrayContains, etc.)
+  - Validação de dados (apenasNumerosEVirgula, formatarDimensao)
+  - Parsing JSON (parseJSON, stringifyJSON)
+  - Funções de arquivo (selecionarArquivo, getPastaDocumentos)
+  - Formatação de unidades e números
+  - Sanitização de strings (sanitizarObservacao, escaparParaScript)
+
+#### **`funcoesComponentes.jsx`** - Gestão de Componentes
+- **Domínio:** Tudo relacionado a componentes normais da legenda
+- **Responsabilidades:**
+  - Atualização de cores (atualizarCores)
+  - Atualização de unidades (atualizarUnidades)
+  - Verificação CMYK (verificarCMYK)
+  - Gestão de seleções (salvarSelecaoAtual, restaurarUltimaSelecao)
+  - Adição de componentes (adicionarComponente)
+
+#### **`funcoesBolas.jsx`** - Gestão de Bolas
+- **Domínio:** Tudo relacionado a bolas da legenda
+- **Responsabilidades:**
+  - Atualização de acabamentos (atualizarAcabamentos)
+  - Atualização de tamanhos (atualizarTamanhos)
+  - Processamento de texto de bolas (atualizarTextoBola)
+  - Adição de bolas (adicionarBola)
+
+#### **`funcoesLegenda.jsx`** - Processamento e Geração de Legenda
+- **Domínio:** Criação e formatação do conteúdo final da legenda
+- **Responsabilidades:**
+  - Atualização do preview (atualizarPreview)
+  - Geração da frase principal (gerarFrasePrincipal)
+  - Processamento de componentes (processarComponentes)
+  - Processamento de bolas (processarBolas)
+  - Processamento de extras (processarComponentesExtras)
+  - Processamento de observações (processarObservacoes)
+  - Processamento de dimensões (processarDimensoes)
+  - Processamento de campos opcionais (processarCamposOpcionais)
+
+#### **`alfabeto.jsx`** - Sistema de Alfabeto GX
+- **Domínio:** Funcionalidades específicas do alfabeto GX
+- **Responsabilidades:**
+  - Processamento do alfabeto (processarAlfabeto)
+  - Adição de palavras-chave (adicionarPalavraChaveAlfabeto)
+  - Geração de preview do alfabeto (gerarPreviewAlfabeto)
+  - Geração de nomes de arquivo (gerarNomeArquivoAlfabeto)
+  - Obtenção de tamanho e palavra digitada
+
+### **🔌 MÓDULOS DE INFRAESTRUTURA**
+
+#### **`database.jsx`** - Gestão de Dados
+- **Domínio:** Leitura/escrita de arquivos e base de dados
+- **Responsabilidades:**
+  - Leitura/escrita de JSON (lerArquivoJSON, escreverArquivoJSON)
+  - Verificação de arquivos (arquivoExiste)
+  - Carregamento da base de dados (carregarDadosBase)
+
+#### **`logs.jsx`** - Sistema de Logs
+- **Domínio:** Registo e gestão de logs do sistema
+- **Responsabilidades:**
+  - Adição de logs (adicionarLog)
+  - Limpeza de logs (limparLogs)
+  - Logs de eventos (logEvento, logFuncao, logArquivo)
+  - Interface de logs (atualizarInterfaceLogs)
+  - Configuração de logs (configurarNivelLog, alternarLogs)
+
+#### **`bridge.jsx`** - Comunicação BridgeTalk
+- **Domínio:** Comunicação entre aplicações via BridgeTalk
+- **Responsabilidades:**
+  - Execução de contagem de bolas (executarContagemBolas)
+  - Adição de legenda via BridgeTalk (adicionarLegendaViaBridge)
+  - Processamento de resultados (processarResultadoContagem)
+  - Escape de strings para BridgeTalk (escaparStringParaBridge)
+  - Validação do ambiente BridgeTalk
+
+#### **`config.jsx`** - Configuração de Usuário
+- **Domínio:** Gestão de configurações e preferências do usuário
+- **Responsabilidades:**
+  - Configuração inicial (mostrarJanelaConfigInicial)
+  - Carregamento/salvamento de configurações
+  - Alteração de idioma (alterarIdioma)
+  - Inicialização do sistema (inicializarConfiguracao)
+  - Validação de configurações
+
+### **🎨 MÓDULOS DE INTERFACE**
+
+#### **`ui.jsx`** - Interface de Usuário
+- **Domínio:** Criação e gestão de elementos de interface
+- **Responsabilidades:**
+  - Criação de interfaces específicas
+  - Gestão de componentes UI complexos
+  - Funcionalidades visuais especializadas
+
+### **📋 MÓDULOS DE REGRAS E TRADUÇÕES**
+
+#### **`regras.jsx`** - Regras de Negócio
+- **Domínio:** Lógicas específicas e regras de formatação
+- **Responsabilidades:**
+  - Formatação de dimensões (formatarDimensao)
+  - Classificação 2D/3D (classificar2Dou3D)
+  - Regras de validação específicas
+  - Lógicas de negócio complexas
+
+#### **`translations.js`** - Sistema de Traduções
+- **Domínio:** Gestão de idiomas e traduções
+- **Responsabilidades:**
+  - Definição de textos em múltiplos idiomas
+  - Função de tradução (t)
+
+### **🔄 MÓDULOS DE MANUTENÇÃO**
+
+#### **`update.jsx`** - Sistema de Atualizações
+- **Domínio:** Gestão de versões e atualizações
+- **Responsabilidades:**
+  - Verificação de versões
+  - Download de atualizações
+  - Gestão de versioning
+
+---
+
+# 🚧 SEÇÕES PENDENTES DE IMPLEMENTAÇÃO
+
+## 9. Criação de Componente GP (Paille Synthétique)
+**Objetivo:** Criar componente especial "GP" que aparece como "Paille synthétique" na legenda.
+- [ ] **9.1** Aguardar especificações detalhadas do utilizador
+- [ ] **9.2** Implementar conforme instruções fornecidas (cor, grossura, LEDs, etc.)
+- [ ] **9.3** Testar funcionalidade
+- [ ] **Arquivo de destino:** `funcoesComponentes.jsx` ou novo arquivo `funcoesPaille.jsx`
+
+## 10. Inclusão de Rideaux e Stalactite na Base de Dados
+**Objetivo:** Adicionar componentes "rideaux" e "stalactite" na base de dados.
+- [ ] **10.1** Aguardar dados específicos (tamanhos, cores, referências)
+- [ ] **10.2** Atualizar base de dados JSON
+- [ ] **10.3** Testar integração com sistema existente
+- [ ] **Arquivo de destino:** `database2.json` e possivelmente `funcoesComponentes.jsx`
+
+## 13. Refino Final e Otimização
+**Objetivo:** Limpeza final e otimização do código modularizado.
+- [ ] **13.1** Revisão completa de todos os módulos
+- [ ] **13.2** Otimização de performance
+- [ ] **13.3** Documentação final de cada arquivo
+- [ ] **13.4** Testes de regressão completos
+
+---
+
+# 📝 GUIA DE BOAS PRÁTICAS PARA IMPLEMENTAÇÕES FUTURAS
+
+## 🎯 Onde Adicionar Novas Funcionalidades
+
+### **Para Componentes Normais:**
+- **Arquivo:** `funcoesComponentes.jsx`
+- **Padrão:** Função `adicionarNovoComponente()` seguindo exemplo de `adicionarComponente()`
+- **Logs:** Sempre adicionar logs detalhados
+
+### **Para Bolas:**
+- **Arquivo:** `funcoesBolas.jsx`
+- **Padrão:** Função `adicionarNovaBola()` seguindo exemplo de `adicionarBola()`
+- **Logs:** Sempre adicionar logs detalhados
+
+### **Para Funcionalidades de Interface:**
+- **Arquivo:** `ui.jsx`
+- **Padrão:** Função `criarNovaInterface()` com gestão completa de eventos
+- **Logs:** Logs de eventos UI
+
+### **Para Processamento de Legenda:**
+- **Arquivo:** `funcoesLegenda.jsx`
+- **Padrão:** Função `processarNovoTipo()` integrada em `atualizarPreview()`
+- **Logs:** Logs de processamento
+
+### **Para Regras de Negócio:**
+- **Arquivo:** `regras.jsx`
+- **Padrão:** Função `novaRegra()` exportada no objeto global `regras`
+- **Logs:** Logs de aplicação de regras
+
+### **Para Comunicação BridgeTalk:**
+- **Arquivo:** `bridge.jsx`
+- **Padrão:** Função `novaOperacaoBridge()` com tratamento de erros
+- **Logs:** Logs de comunicação BridgeTalk
+
+## 🔧 Padrões de Exportação
+
+### **Módulos Funcionais:**
+```javascript
+// Sempre exportar no final do arquivo
+$.global.nomeModulo = {
+    funcao1: funcao1,
+    funcao2: funcao2,
+    // ...
+};
+```
+
+### **Imports no script.jsx:**
+```javascript
+// Adicionar na seção de imports em ordem alfabética
+$.evalFile(File($.fileName).path + "/novoModulo.jsx");
+```
+
+## 📋 Checklist para Novas Implementações
+
+- [ ] Função adicionada no arquivo correto conforme mapa organizacional
+- [ ] Logs detalhados adicionados conforme diretriz obrigatória
+- [ ] Função exportada no objeto global do módulo
+- [ ] Import adicionado no `script.jsx` se necessário
+- [ ] Testes manuais realizados
+- [ ] Documentação atualizada no cabeçalho do arquivo
+- [ ] Verificação de que não quebra funcionalidades existentes
+
+---
+
+**📚 Este mapa deve ser consultado antes de qualquer nova implementação para garantir organização e consistência do projeto.**
 - ✅ **Problema de duplicação de unidades no dropdown corrigido**
   - Removida linha duplicada do evento `listaCores.onChange`
   - Inicialização do dropdown de unidades apenas com "Selecione uma unidade"

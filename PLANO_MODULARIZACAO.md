@@ -308,6 +308,11 @@ Mover a função `atualizarPreview()` e funções relacionadas para um arquivo t
     - [ ] Preparar estrutura de exportação global
 - [ ] **5.7.2.2** Implementar funções auxiliares extraídas
     - [ ] Implementar `gerarFrasePrincipal()` com parâmetros necessários
+        - [ ] **Regra 2D/3D:** Após o nome/tipo, inserir "2D" ou "3D" na frase principal da legenda, conforme as medidas informadas:
+            - Se as medidas forem apenas H (altura) e L (largura), inserir "2D".
+            - Se houver H, L e P (profundidade) ou diâmetro, inserir "3D".
+        - [ ] Adicionar logs detalhados indicando qual classificação (2D ou 3D) foi aplicada e quais medidas foram consideradas.
+        - [ ] **Mover a lógica da regra 2D/3D para o arquivo `regras.jsx`, criando a função `classificar2Dou3D` e exportando-a no objeto global de regras.**
     - [ ] Implementar `processarComponentes()` com lógica de agrupamento e ordenação
     - [ ] Implementar `processarBolas()` com lógica de contagem e processamento
     - [ ] Implementar `processarTexturas()` com lógica de extração de números
@@ -318,6 +323,7 @@ Mover a função `atualizarPreview()` e funções relacionadas para um arquivo t
     - [ ] Manter lógica de processamento existente
     - [ ] Adicionar logs detalhados conforme diretriz de logging
     - [ ] Implementar tratamento de erros robusto
+    - [ ] **Incluir chamada da regra 2D/3D na geração da frase principal**
 - [ ] **5.7.2.4** Adicionar funções de validação e utilitárias
     - [ ] `validarParametrosPreview()` - validar parâmetros de entrada
     - [ ] `formatarTextoLegenda()` - formatação final do texto

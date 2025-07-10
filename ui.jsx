@@ -511,73 +511,12 @@ function criarInterfaceExtra(janela) {
     
     // Tab Logs
     var tabLogs = tabsExtra.add("tab", undefined, "Logs");
-    tabLogs.alignChildren = ["fill", "top"];
-    tabLogs.spacing = 10;
+    tabLogs.alignChildren = ["fill", "fill"];
     
-    // Área de logs com barra de rolagem
-    var grupoLogs = tabLogs.add("group");
-    grupoLogs.orientation = "column";
-    grupoLogs.alignChildren = ["fill", "fill"];
-    var areaLogs = grupoLogs.add("edittext", undefined, "", {multiline: true, scrollable: true, readonly: true});
+    // Área de logs com barra de rolagem (ocupa toda a aba)
+    var areaLogs = tabLogs.add("edittext", undefined, "", {multiline: true, scrollable: true, readonly: true});
     areaLogs.preferredSize.width = 500;
-    areaLogs.preferredSize.height = 300;
-    
-    // Grupo de controles dos logs
-    var grupoControlesLogs = tabLogs.add("group");
-    grupoControlesLogs.orientation = "row";
-    grupoControlesLogs.alignChildren = ["left", "center"];
-    grupoControlesLogs.spacing = 10;
-    
-    // Checkbox para habilitar/desabilitar logs
-    var checkHabilitarLogs = grupoControlesLogs.add("checkbox", undefined, "Habilitar Logs");
-    checkHabilitarLogs.value = true; // Ativado por padrão
-    
-    // Botão de controle
-    var botaoLimparLogs = grupoControlesLogs.add("button", undefined, "Limpar Logs");
-    
-    // Checkbox para auto-scroll
-    var checkAutoScroll = grupoControlesLogs.add("checkbox", undefined, "Auto-scroll");
-    checkAutoScroll.value = true; // Ativado por padrão
-    
-    // Segundo grupo para controles de nível
-    var grupoNivelLogs = tabLogs.add("group");
-    grupoNivelLogs.orientation = "row";
-    grupoNivelLogs.alignChildren = ["left", "center"];
-    grupoNivelLogs.spacing = 5;
-    
-    // Label e dropdown para nível de verbosidade
-    grupoNivelLogs.add("statictext", undefined, "Nível:");
-    var dropdownNivelLogs = grupoNivelLogs.add("dropdownlist", undefined, ["Básico", "Detalhado", "Debug"]);
-    dropdownNivelLogs.selection = 0; // Básico por padrão
-    
-    // Botão para limpar cache
-    var botaoLimparCache = grupoNivelLogs.add("button", undefined, "Limpar Cache");
-    
-    // Evento para habilitar/desabilitar logs
-    checkHabilitarLogs.onClick = function() {
-        logs.alternarLogs();
-        logs.atualizarInterfaceLogs();
-        if (!this.value) {
-            areaLogs.text = "Logs desabilitados";
-        }
-    };
-    
-    // Evento para mudança de nível
-    dropdownNivelLogs.onChange = function() {
-        var niveisTexto = ["basico", "detalhado", "debug"];
-        var nomesExibicao = ["Básico", "Detalhado", "Debug"];
-        
-        logs.alterarNivelDetalhe(niveisTexto[this.selection.index]);
-        logs.adicionarLog("Nível alterado para: " + nomesExibicao[this.selection.index], logs.TIPOS_LOG.INFO);
-        logs.atualizarInterfaceLogs();
-    };
-    
-    // Evento para limpar cache
-    botaoLimparCache.onClick = function() {
-        logs.limparCacheOperacoes();
-        logs.adicionarLog("Cache de operações foi limpo", logs.TIPOS_LOG.INFO);
-        logs.atualizarInterfaceLogs();
-    };
+    areaLogs.preferredSize.height = 350;
     
     // Eventos dos checkboxes
     checkObservacoes.onClick = function() {
@@ -607,12 +546,8 @@ function criarInterfaceExtra(janela) {
         grupoObservacoes: grupoObservacoes,
         grupoContador: grupoContador,
         grupoTexturas: grupoTexturas,
-        // Retornos para a interface de logs
-        areaLogs: areaLogs,
-        botaoLimparLogs: botaoLimparLogs,
-        checkAutoScroll: checkAutoScroll,
-        checkHabilitarLogs: checkHabilitarLogs,
-        dropdownNivelLogs: dropdownNivelLogs
+        // Retorno para a interface de logs simplificada
+        areaLogs: areaLogs
     };
 }
 

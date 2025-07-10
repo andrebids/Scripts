@@ -56,8 +56,23 @@ function gerarFrasePrincipal(parametros) {
         var preposicao = parametros.alfabetoUsado ? "en" : "avec";
         var decorTexto = "décor";
 
+        // Aplicar regra 2D/3D se as dimensões estiverem disponíveis
+        var classificacao2D3D = "";
+        if (parametros.dimensoes && typeof regras !== 'undefined' && regras.classificar2Dou3D) {
+            var resultado2D3D = regras.classificar2Dou3D(parametros.dimensoes);
+            if (resultado2D3D.classificacao) {
+                classificacao2D3D = " " + resultado2D3D.classificacao;
+                logLegenda("Classificação 2D/3D aplicada: " + resultado2D3D.classificacao + " (" + resultado2D3D.motivo + ")", "info");
+                logLegenda("Dimensões encontradas: " + resultado2D3D.dimensoesEncontradas.join(", "), "info");
+            } else {
+                logLegenda("Nenhuma classificação 2D/3D aplicada: " + resultado2D3D.motivo, "info");
+            }
+        } else {
+            logLegenda("Regra 2D/3D não aplicada: dimensões ou função não disponíveis", "info");
+        }
+
         var frasePrincipal = "Logo " + (parametros.listaL || "") + ": " + 
-                             decorTexto + " " + prefixoNomeTipo + "\"" + nomeTipo + "\" " + preposicao;
+                             decorTexto + " " + prefixoNomeTipo + "\"" + nomeTipo + "\"" + classificacao2D3D + " " + preposicao;
 
         if (parametros.alfabetoUsado) {
             frasePrincipal += " bioprint " + (parametros.corBioprint || "");
@@ -572,6 +587,37 @@ function atualizarPreview(parametros) {
         var primeiroComponenteExtra = resultadoExtras.primeiroComponenteExtra;
         var componentesExtras = resultadoExtras.componentesExtras;
 
+        // Preparar dimensões para a regra 2D/3D
+        var dimensoesProcessadas = null;
+        if (parametros.dimensoes && parametros.grupoDimensoes) {
+            dimensoesProcessadas = {
+                H: "",
+                L: "",
+                P: "",
+                diametro: ""
+            };
+            
+            // Mapear dimensões dos campos da interface
+            for (var i = 0; i < parametros.dimensoes.length; i++) {
+                var valorDimensao = parametros.grupoDimensoes.children[i*2 + 1].text;
+                var tipoDimensao = parametros.dimensoes[i];
+                
+                if (tipoDimensao === "H") {
+                    dimensoesProcessadas.H = valorDimensao;
+                } else if (tipoDimensao === "L") {
+                    dimensoesProcessadas.L = valorDimensao;
+                } else if (tipoDimensao === "P") {
+                    dimensoesProcessadas.P = valorDimensao;
+                } else if (tipoDimensao === "⌀") {
+                    dimensoesProcessadas.diametro = valorDimensao;
+                }
+            }
+            
+            logLegenda("Dimensões processadas para regra 2D/3D: H=" + dimensoesProcessadas.H + 
+                      ", L=" + dimensoesProcessadas.L + ", P=" + dimensoesProcessadas.P + 
+                      ", ⌀=" + dimensoesProcessadas.diametro, "info");
+        }
+
         // Gerar frase principal
         var parametrosFrase = {
             palavraDigitada: palavraDigitada,
@@ -587,7 +633,8 @@ function atualizarPreview(parametros) {
             bolasCompostas: bolasCompostas,
             totalBolas: totalBolas,
             checkStructure: parametros.checkStructure ? parametros.checkStructure.value : false,
-            corStructure: parametros.corStructure ? parametros.corStructure.selection.text : ""
+            corStructure: parametros.corStructure ? parametros.corStructure.selection.text : "",
+            dimensoes: dimensoesProcessadas  // Adicionar dimensões processadas
         };
 
         var frasePrincipal = gerarFrasePrincipal(parametrosFrase);

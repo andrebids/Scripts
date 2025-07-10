@@ -104,7 +104,12 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
 - [x] **5.1.4** Repetir o processo para cada função do alfabeto, uma de cada vez
     - [x] Atualizar imports e testar manualmente após cada mudança
     - [x] Modularização da função gerarNomeArquivoAlfabeto concluída e testada
-- [ ] **5.1.5** Revisar dependências e testar o fluxo completo do alfabeto
+- [x] **5.1.5** Revisar dependências e testar o fluxo completo do alfabeto ✅ CONCLUÍDO
+    - [x] Identificada e corrigida duplicação da função `gerarNomeArquivoAlfabeto` entre `script.jsx` e `alfabeto.jsx`
+    - [x] Removida função duplicada do `script.jsx`, mantendo apenas a versão em `alfabeto.jsx`
+    - [x] Testado manualmente no Illustrator - funcionamento correto
+    - [x] Verificada importação correta do `alfabeto.jsx` no `script.jsx`
+    - [x] Todas as dependências do alfabeto estão funcionando corretamente
 
 > **Lembrete:** Toda ação de criação, alteração ou remoção neste módulo deve registrar um log detalhado na janela de logs, incluindo dados relevantes da operação.
 
@@ -121,17 +126,17 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
 - [x] **5.1A.1.3** Criar função `logFuncao(nomeFuncao, parametros, resultado)` para registrar execução de funções
 - [x] **5.1A.1.4** Testar manualmente: verificar se as funções de log funcionam corretamente
 
-#### 5.1A.2 Interface de Logs
+#### 5.1A.2 Interface de Logs ✅ SIMPLIFICADA
 - [x] **5.1A.2.1** Adicionar nova aba "Logs" no grupo Extra (script.jsx)
     - [x] Modificar função `criarInterfaceExtra()` para incluir nova aba
-    - [x] Criar área de texto multilinha para exibir logs
-    - [x] Adicionar botões: "Limpar Logs", "Exportar Logs", "Atualizar"
-    - [x] Adicionar checkbox "Auto-scroll" para rolagem automática
-- [x] **5.1A.2.2** Implementar funcionalidade dos botões da aba Logs
-    - [x] Botão "Limpar Logs" chama `limparLogs()` e atualiza interface
-    - [x] Botão "Exportar Logs" chama `exportarLogs()` e salva arquivo
-    - [x] Botão "Atualizar" atualiza a exibição dos logs
-    - [x] Checkbox "Auto-scroll" controla rolagem automática
+    - [x] Criar área de texto multilinha para exibir logs (ocupa toda a aba)
+    - [x] **SIMPLIFICADO:** Removidos todos os controles (botões, checkboxes, dropdowns)
+    - [x] **DECISÃO:** Interface apenas para visualização, sem controles complexos
+- [x] **5.1A.2.2** ~~Implementar funcionalidade dos botões da aba Logs~~ **REMOVIDO**
+    - ~~Botão "Limpar Logs" chama `limparLogs()` e atualiza interface~~ **REMOVIDO**
+    - ~~Botão "Exportar Logs" chama `exportarLogs()` e salva arquivo~~ **REMOVIDO**
+    - ~~Botão "Atualizar" atualiza a exibição dos logs~~ **REMOVIDO**
+    - ~~Checkbox "Auto-scroll" controla rolagem automática~~ **REMOVIDO - Auto-scroll sempre ativo**
 - [x] **5.1A.2.3** Testar manualmente: abrir aba Logs, verificar se interface é criada corretamente
 
 #### 5.1A.3 Integração do Sistema de Logs ✅ CONCLUÍDA
@@ -153,18 +158,18 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
     - [x] Adicionada interface de controle de verbosidade
     - [x] Melhorada performance de atualização da interface
 
-#### 5.1A.4 Configuração e Persistência ✅ CONCLUÍDA
-- [x] **5.1A.4.1** Adicionar configurações de log no arquivo de configuração ✅ CONCLUÍDO
-    - [x] Opção para habilitar/desabilitar logs
-    - [x] Opção para nível de detalhamento (básico, detalhado, debug)
-    - [x] Interface de controle adicionada na aba Logs
-    - [x] Sincronização da interface com configurações carregadas
-    - [x] Persistência das configurações no arquivo settings.json
+#### 5.1A.4 Configuração e Persistência ✅ SIMPLIFICADA
+- [x] **5.1A.4.1** ~~Adicionar configurações de log no arquivo de configuração~~ **REMOVIDO**
+    - ~~Opção para habilitar/desabilitar logs~~ **REMOVIDO - Sempre habilitados**
+    - ~~Opção para nível de detalhamento (básico, detalhado, debug)~~ **REMOVIDO - Nível fixo**
+    - ~~Interface de controle adicionada na aba Logs~~ **REMOVIDO - Interface simplificada**
+    - ~~Sincronização da interface com configurações carregadas~~ **REMOVIDO**
+    - ~~Persistência das configurações no arquivo settings.json~~ **REMOVIDO**
 - [x] **5.1A.4.2** ~~Implementar persistência de logs~~ **REMOVIDO**
     - ~~Salvar logs em arquivo temporário~~ **REMOVIDO por solicitação do usuário**
     - ~~Carregar logs ao abrir o script~~ **REMOVIDO por solicitação do usuário**
     - ~~Limitar tamanho do arquivo de logs~~ **REMOVIDO por solicitação do usuário**
-- [x] **5.1A.4.3** Testar manualmente: verificar se configurações são salvas e funcionam corretamente ✅ CONCLUÍDO
+- [x] **5.1A.4.3** Interface de logs funciona apenas para visualização ✅ SIMPLIFICADO
 
 #### 5.1A.5 Testes Manuais Incrementais ✅ CONCLUÍDA
 - [x] **5.1A.5.1** Após cada etapa, testar manualmente a funcionalidade correspondente ✅ CONCLUÍDO
@@ -203,18 +208,32 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
 
 
 
-#### 5.2.4 Testes manuais incrementais
-- [ ] Após cada função movida, atualizar o import/chamada e testar manualmente a funcionalidade correspondente antes de seguir para a próxima.
+#### 5.2.4 Testes manuais incrementais ✅ CONCLUÍDO
+- [x] Após cada função movida, atualizar o import/chamada e testar manualmente a funcionalidade correspondente antes de seguir para a próxima.
+    - [x] Verificadas todas as funções migradas para `funcoesComponentes.jsx`: atualizarUnidades, verificarCMYK, salvarSelecaoAtual, restaurarUltimaSelecao, adicionarComponente
+    - [x] Verificadas todas as funções migradas para `funcoesBolas.jsx`: atualizarAcabamentos, atualizarTamanhos, atualizarTextoBola, adicionarBola
+    - [x] Confirmados exports globais funcionando corretamente em ambos os arquivos
+    - [x] Testado manualmente no Illustrator - funcionamento correto
+    - [x] Todas as dependências e imports estão funcionando corretamente
 
-### 5.3 Atualização de Imports
+### 5.3 Atualização de Imports ✅ CONCLUÍDA
 
-- [ ] **5.3.1** Após cada função movida, atualizar o import correspondente no `script.jsx`
-- [ ] **5.3.2** Testar a funcionalidade relacionada imediatamente após cada alteração
+- [x] **5.3.1** Após cada função movida, atualizar o import correspondente no `script.jsx`
+    - [x] Verificados todos os imports no `script.jsx` - ordem correta mantida
+    - [x] Todas as chamadas de funções migradas atualizadas para usar módulos corretos
+    - [x] `funcoesComponentes.atualizarUnidades()`, `funcoesComponentes.adicionarComponente()`, etc.
+    - [x] `funcoesBolas.atualizarAcabamentos()`, `funcoesBolas.adicionarBola()`, etc.
+- [x] **5.3.2** Testar a funcionalidade relacionada imediatamente após cada alteração
+    - [x] Testado manualmente no Illustrator - funcionamento correto
+    - [x] Verificação completa de módulos: funcoes, database, logs, funcoesComponentes, funcoesBolas, regras
+    - [x] Verificação de todas as funções exportadas em cada módulo
+    - [x] Teste de integração completa entre todos os módulos
+    - [x] Confirmado que todos os imports e exports estão funcionando corretamente
 
 ### 5.4 Testes Manuais Incrementais
 
-- [ ] **5.4.1** Após cada função movida, rodar o teste manual correspondente
-- [ ] **5.4.2** Corrigir eventuais erros antes de seguir para a próxima função
+- [x] **5.4.1** Após cada função movida, testar manualmente no Illustrator
+- [x] **5.4.2** Corrigir eventuais erros antes de seguir para a próxima função
 
 ---
 
@@ -330,11 +349,16 @@ Mover a função `atualizarPreview()` e funções relacionadas para um arquivo t
     - [x] Preparar estrutura de exportação global
 - [x] **5.7.2.2** Implementar funções auxiliares extraídas
     - [x] Implementar `gerarFrasePrincipal()` com parâmetros necessários
-        - [ ] **Regra 2D/3D:** Após o nome/tipo, inserir "2D" ou "3D" na frase principal da legenda, conforme as medidas informadas:
-            - Se as medidas forem apenas H (altura) e L (largura), inserir "2D".
-            - Se houver H, L e P (profundidade) ou diâmetro, inserir "3D".
-        - [ ] Adicionar logs detalhados indicando qual classificação (2D ou 3D) foi aplicada e quais medidas foram consideradas.
-        - [ ] **Mover a lógica da regra 2D/3D para o arquivo `regras.jsx`, criando a função `classificar2Dou3D` e exportando-a no objeto global de regras.**
+        - [x] **Regra 2D/3D:** Após o nome/tipo, inserir "2D" ou "3D" na frase principal da legenda, conforme as medidas informadas: ✅ CONCLUÍDO
+            - [x] Se as medidas forem apenas H (altura) e L (largura), inserir "2D".
+            - [x] Se houver H, L e P (profundidade) ou diâmetro, inserir "3D".
+            - [x] Casos especiais: apenas P = 3D, apenas uma dimensão = 2D, diâmetro sempre = 3D
+        - [x] Adicionar logs detalhados indicando qual classificação (2D ou 3D) foi aplicada e quais medidas foram consideradas.
+            - [x] Logs mostram classificação aplicada, motivo da decisão e dimensões encontradas
+        - [x] **Mover a lógica da regra 2D/3D para o arquivo `regras.jsx`, criando a função `classificar2Dou3D` e exportando-a no objeto global de regras.**
+            - [x] Função `classificar2Dou3D` criada em `regras.jsx` com validação robusta
+            - [x] Função exportada no objeto global `regras`
+            - [x] Tratamento de erros e validação de entrada implementados
     - [x] Implementar `processarComponentes()` com lógica de agrupamento e ordenação
     - [x] Implementar `processarBolas()` com lógica de contagem e processamento
     - [x] Implementar `processarTexturas()` com lógica de extração de números
@@ -345,7 +369,12 @@ Mover a função `atualizarPreview()` e funções relacionadas para um arquivo t
     - [x] Manter lógica de processamento existente
     - [x] Adicionar logs detalhados conforme diretriz de logging
     - [x] Implementar tratamento de erros robusto
-    - [ ] **Incluir chamada da regra 2D/3D na geração da frase principal**
+    - [x] **Incluir chamada da regra 2D/3D na geração da frase principal** ✅ CONCLUÍDO
+        - [x] Integração na função `gerarFrasePrincipal()` em `funcoesLegenda.jsx`
+        - [x] Processamento de dimensões da interface para formato esperado pela regra
+        - [x] Classificação inserida após nome/tipo na frase principal
+        - [x] Logs detalhados do processo de classificação
+        - [x] Testado manualmente no Illustrator - funcionamento correto
 - [x] **5.7.2.4** Adicionar funções de validação e utilitárias
     - [x] `validarParametrosPreview()` - validar parâmetros de entrada (implementado como validação inline)
     - [x] `formatarTextoLegenda()` - formatação final do texto (implementado como return do objeto)

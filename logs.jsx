@@ -227,29 +227,13 @@ function atualizarInterfaceLogs() {
         if (typeof areaLogs !== 'undefined' && areaLogs) {
             var textoLogs = obterLogsFormatados();
             areaLogs.text = textoLogs;
-
-            if (typeof checkAutoScroll !== 'undefined' && checkAutoScroll && checkAutoScroll.value) {
-                areaLogs.active = true;
-                areaLogs.selection = areaLogs.text.length;
-            }
+            
+            // Auto-scroll sempre ativo (rolar para o final)
+            areaLogs.active = true;
+            areaLogs.selection = areaLogs.text.length;
         }
     } catch (e) {
         // Se areaLogs estiver inválido, ignora o erro para evitar que o script pare.
-    }
-}
-
-// Função para configurar eventos dos botões da interface
-function configurarEventosLogs() {
-    if (typeof botaoLimparLogs !== 'undefined' && botaoLimparLogs) {
-        botaoLimparLogs.onClick = function() {
-            limparLogs();
-        };
-    }
-    
-    if (typeof checkAutoScroll !== 'undefined' && checkAutoScroll) {
-        checkAutoScroll.onClick = function() {
-            adicionarLog("Auto-scroll " + (this.value ? "ativado" : "desativado"), TIPOS_LOG.INFO);
-        };
     }
 }
 
@@ -294,11 +278,10 @@ function inicializarSistemaLogs() {
     adicionarLog("Sistema de logs inicializado (nível: " + 
                 (nivelAtual === NIVEIS_LOG.BASIC ? "BASIC" : 
                  nivelAtual === NIVEIS_LOG.DETAILED ? "DETAILED" : "DEBUG") + ")", TIPOS_LOG.INFO);
-    configurarEventosLogs();
     atualizarInterfaceLogs();
     
     // Adicionar um log de boas-vindas para o usuário ver que funciona
-    adicionarLog("Logs prontos! Use o dropdown 'Nível' para controlar verbosidade", TIPOS_LOG.INFO);
+    adicionarLog("Logs prontos para visualização!", TIPOS_LOG.INFO);
 }
 
 // Função para obter estatísticas dos logs

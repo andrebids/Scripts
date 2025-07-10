@@ -145,4 +145,15 @@ function gerarNomeArquivoAlfabeto(caractere, sufixoTamanho) {
         nomeArquivoAI = "GX241LW_" + sufixoTamanho + ".ai";
     }
     return nomeArquivoAI;
-} 
+}
+
+// Exportar as funções globalmente
+if (typeof $.global === 'undefined') {
+    $.global = {};
+}
+$.global.processarAlfabeto = processarAlfabeto;
+$.global.adicionarPalavraChaveAlfabeto = adicionarPalavraChaveAlfabeto;
+$.global.gerarPreviewAlfabeto = gerarPreviewAlfabeto;
+$.global.obterTamanhoAlfabeto = obterTamanhoAlfabeto;
+$.global.obterPalavraDigitadaAlfabeto = obterPalavraDigitadaAlfabeto;
+$.global.gerarNomeArquivoAlfabeto = gerarNomeArquivoAlfabeto; 

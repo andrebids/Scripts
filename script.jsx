@@ -523,94 +523,11 @@ var areaLogs = grupoLogs.add("edittext", undefined, "", {multiline: true, scroll
 areaLogs.preferredSize.width = 500;
 areaLogs.preferredSize.height = 80;
 
-// Grupo de controles dos logs
-var grupoControlesLogs = abaLogs.add("group");
-grupoControlesLogs.orientation = "row";
-grupoControlesLogs.alignChildren = ["left", "center"];
-grupoControlesLogs.spacing = 10;
-
-// Checkbox para habilitar/desabilitar logs
-var checkHabilitarLogs = grupoControlesLogs.add("checkbox", undefined, "Habilitar Logs");
-checkHabilitarLogs.value = true; // Ativado por padrão
-
-// Botão de controle
-var botaoLimparLogs = grupoControlesLogs.add("button", undefined, "Limpar Logs");
-
-// Checkbox para auto-scroll
-var checkAutoScroll = grupoControlesLogs.add("checkbox", undefined, "Auto-scroll");
-checkAutoScroll.value = true; // Ativado por padrão
-
-// Segundo grupo para controles de nível
-var grupoNivelLogs = abaLogs.add("group");
-grupoNivelLogs.orientation = "row";
-grupoNivelLogs.alignChildren = ["left", "center"];
-grupoNivelLogs.spacing = 5;
-
-// Label e dropdown para nível de verbosidade
-grupoNivelLogs.add("statictext", undefined, "Nível:");
-var dropdownNivelLogs = grupoNivelLogs.add("dropdownlist", undefined, ["Básico", "Detalhado", "Debug"]);
-dropdownNivelLogs.selection = 0; // Básico por padrão
-
-// Botão para limpar cache
-var botaoLimparCache = grupoNivelLogs.add("button", undefined, "Limpar Cache");
-
-// Eventos dos controles de logs
-checkHabilitarLogs.onClick = function() {
-    logs.alternarLogs();
-    logs.atualizarInterfaceLogs();
-    if (!this.value) {
-        areaLogs.text = "Logs desabilitados";
-    }
-};
-
-dropdownNivelLogs.onChange = function() {
-    var niveisTexto = ["basico", "detalhado", "debug"];
-    var nomesExibicao = ["Básico", "Detalhado", "Debug"];
-    
-    logs.alterarNivelDetalhe(niveisTexto[this.selection.index]);
-    logs.adicionarLog("Nível alterado para: " + nomesExibicao[this.selection.index], logs.TIPOS_LOG.INFO);
-    logs.atualizarInterfaceLogs();
-};
-
-botaoLimparCache.onClick = function() {
-    logs.limparCacheOperacoes();
-    logs.adicionarLog("Cache de operações foi limpo", logs.TIPOS_LOG.INFO);
-    logs.atualizarInterfaceLogs();
-};
-
-// Torna as variáveis globais
+// Torna a área de logs global para acesso
 $.global.areaLogs = areaLogs;
-$.global.botaoLimparLogs = botaoLimparLogs;
-$.global.checkAutoScroll = checkAutoScroll;
-
-// Função para sincronizar interface com configurações carregadas
-function sincronizarInterfaceConfigLogs() {
-    var config = logs.obterConfiguracoesLog();
-    
-    // Atualizar checkbox de habilitar logs
-    checkHabilitarLogs.value = config.habilitados;
-    
-    // Atualizar dropdown de nível
-    var niveisTexto = ["basico", "detalhado", "debug"];
-    var indice = -1;
-    for (var i = 0; i < niveisTexto.length; i++) {
-        if (niveisTexto[i] === config.nivelDetalhe) {
-            indice = i;
-            break;
-        }
-    }
-    if (indice !== -1) {
-        dropdownNivelLogs.selection = indice;
-    }
-    
-    logs.adicionarLog("Interface de configuração sincronizada", logs.TIPOS_LOG.INFO);
-}
 
 // Inicializar sistema de logs
 logs.inicializarSistemaLogs();
-
-// Sincronizar interface após inicialização
-sincronizarInterfaceConfigLogs();
 
 // Selecionar a primeira aba por padrão
 abasExtra.selection = abaGeral;
@@ -1207,6 +1124,7 @@ function atualizarListaItens() {
                 var tamanhoGXSelecionado = obterTamanhoAlfabeto(itensLegenda);
 
                 var scriptIllustrator = function(nomeDesigner, conteudoLegenda, texturas, palavraDigitada, tamanhoGX) {
+                    // Função gerarNomeArquivoAlfabeto local para o BridgeTalk
                     function gerarNomeArquivoAlfabeto(caractere, sufixoTamanho) {
                         var nomeArquivoAI = "";
                         if (caractere >= 'A' && caractere <= 'Z') {
@@ -1219,6 +1137,7 @@ function atualizarListaItens() {
                         }
                         return nomeArquivoAI;
                     }
+                    // Usar função gerarNomeArquivoAlfabeto do arquivo alfabeto.jsx
                     var doc = app.activeDocument;
     
                     if (!doc) {

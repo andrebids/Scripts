@@ -85,6 +85,83 @@ function criarGrupoStructure(parentGroup) {
     };
 }
 
+// Função para classificar se é 2D ou 3D baseado nas dimensões
+function classificar2Dou3D(dimensoes) {
+    // Função para verificar se uma dimensão está preenchida (não vazia e maior que 0)
+    function dimensaoPreenchida(valor) {
+        if (!valor || valor === "") return false;
+        var numero = parseFloat(valor.replace(',', '.'));
+        return !isNaN(numero) && numero > 0;
+    }
+    
+    try {
+        // Verificar quais dimensões estão preenchidas
+        var temH = dimensaoPreenchida(dimensoes.H);
+        var temL = dimensaoPreenchida(dimensoes.L);
+        var temP = dimensaoPreenchida(dimensoes.P);
+        var temDiametro = dimensaoPreenchida(dimensoes.diametro);
+        
+        // Log das dimensões encontradas
+        var dimensoesEncontradas = [];
+        if (temH) dimensoesEncontradas.push("H");
+        if (temL) dimensoesEncontradas.push("L");
+        if (temP) dimensoesEncontradas.push("P");
+        if (temDiametro) dimensoesEncontradas.push("⌀");
+        
+        // Aplicar regras de classificação
+        var classificacao = "";
+        var motivo = "";
+        
+        if (temDiametro) {
+            // Se há diâmetro, sempre é 3D
+            classificacao = "3D";
+            motivo = "Presença de diâmetro (⌀)";
+        } else if (temH && temL && temP) {
+            // Se há H, L e P, é 3D
+            classificacao = "3D";
+            motivo = "Presença de H, L e P";
+        } else if (temH && temL && !temP) {
+            // Se há apenas H e L (sem P), é 2D
+            classificacao = "2D";
+            motivo = "Apenas H e L presentes (sem P)";
+        } else if ((temH || temL || temP) && dimensoesEncontradas.length < 2) {
+            // Se há apenas uma dimensão, considerar como 2D
+            classificacao = "2D";
+            motivo = "Apenas uma dimensão presente";
+        } else if (temP && !temH && !temL) {
+            // Caso especial: apenas profundidade
+            classificacao = "3D";
+            motivo = "Apenas profundidade (P) presente";
+        } else {
+            // Nenhuma dimensão válida ou caso não coberto
+            classificacao = "";
+            motivo = "Nenhuma dimensão válida encontrada";
+        }
+        
+        return {
+            classificacao: classificacao,
+            motivo: motivo,
+            dimensoesEncontradas: dimensoesEncontradas,
+            temH: temH,
+            temL: temL,
+            temP: temP,
+            temDiametro: temDiametro
+        };
+        
+    } catch (e) {
+        // Em caso de erro, retornar resultado vazio
+        return {
+            classificacao: "",
+            motivo: "Erro ao processar dimensões: " + e.message,
+            dimensoesEncontradas: [],
+            temH: false,
+            temL: false,
+            temP: false,
+            temDiametro: false
+        };
+    }
+}
+
 // Exportar as funções para uso em outros scripts
 $.global.regras = {
     arredondarParaDecima: arredondarParaDecima,
@@ -93,5 +170,6 @@ $.global.regras = {
     apenasNumerosEVirgula: apenasNumerosEVirgula,
     formatarDimensao: formatarDimensao,
     coresStructure: coresStructure,
-    criarGrupoStructure: criarGrupoStructure
+    criarGrupoStructure: criarGrupoStructure,
+    classificar2Dou3D: classificar2Dou3D
 };

@@ -202,11 +202,173 @@ function restaurarUltimaSelecao(listaComponentes, listaCores, listaUnidades, cam
     }
 }
 
+// Função para adicionar componente (migrada de script.jsx)
+function adicionarComponente(listaComponentes, listaCores, listaUnidades, campoQuantidade, campoMultiplicador, ultimaSelecao, dados, itensLegenda, atualizarListaItens, t, logs, funcoes, encontrarIndicePorNome) {
+    logs.logFuncao("adicionarComponente", {
+        quantidade: campoQuantidade.text,
+        multiplicador: campoMultiplicador.text
+    }, "Iniciando adição de componente");
+    
+    try {
+        // Verificar se a quantidade foi preenchida
+        var quantidade = campoQuantidade.text;
+        if (!quantidade || quantidade.replace(/\s/g, "") === "") {
+            alert(t("quantidadeNaoInformada")); // "Por favor, informe a quantidade"
+            campoQuantidade.active = true; // Foca no campo
+            return;
+        }
+
+        // Verificações iniciais
+        if (!dados || typeof dados !== 'object') {
+            alert("Erro: dados não está definido ou não é um objeto");
+            return;
+        }
+
+        if (!dados.componentes || !dados.cores) {
+            alert("Erro: dados.componentes ou dados.cores não estão definidos");
+            return;
+        }
+
+        if (!listaComponentes || !listaCores || !listaUnidades) {
+            alert("Erro: Uma ou mais listas não estão definidas\nComponentes: " + 
+                  (listaComponentes ? "OK" : "Não definido") + 
+                  "\nCores: " + (listaCores ? "OK" : "Não definido") + 
+                  "\nUnidades: " + (listaUnidades ? "OK" : "Não definido"));
+            return;
+        }
+
+        if (!listaComponentes.selection || !listaCores.selection || !listaUnidades.selection) {
+            alert(t("selecionarComponenteCompleto"));
+            return;
+        }
+
+        if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0 || listaUnidades.selection.index === 0) {
+            alert(t("selecionarComponenteCompleto"));
+            return;
+        }
+
+        // Salvar seleção atual antes de qualquer operação
+        salvarSelecaoAtual(listaComponentes, listaCores, listaUnidades, campoMultiplicador, ultimaSelecao);
+
+        // Obter dados selecionados
+        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
+        var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
+        var unidadeSelecionada = listaUnidades.selection.text;
+
+        // Verificar se os dados foram obtidos corretamente
+        if (!componenteSelecionado || !corSelecionada) {
+            alert("Erro ao obter componente ou cor selecionada:\nComponente: " + 
+                  (componenteSelecionado ? "OK" : "Não encontrado") + 
+                  "\nCor: " + (corSelecionada ? "OK" : "Não encontrada"));
+            return;
+        }
+
+        // Processar quantidade e multiplicador
+        var quantidade = parseFloat(campoQuantidade.text.replace(',', '.'));
+        var multiplicador = parseFloat(campoMultiplicador.text.replace(',', '.'));
+
+        if (isNaN(quantidade) || quantidade <= 0) {
+            alert(t("quantidadeInvalida") + "\nValor inserido: " + campoQuantidade.text);
+            return;
+        }
+
+        if (isNaN(multiplicador) || multiplicador <= 0) {
+            alert("Multiplicador inválido, usando valor padrão 1\nValor inserido: " + campoMultiplicador.text);
+            multiplicador = 1;
+        }
+
+        // Encontrar combinação
+        var combinacaoSelecionada = null;
+        for (var i = 0; i < dados.combinacoes.length; i++) {
+            if (dados.combinacoes[i].componenteId === componenteSelecionado.id &&
+                dados.combinacoes[i].corId === corSelecionada.id &&
+                dados.combinacoes[i].unidade === unidadeSelecionada) {
+                combinacaoSelecionada = dados.combinacoes[i];
+                break;
+            }
+        }
+
+        if (!combinacaoSelecionada) {
+            alert("Combinação não encontrada:\nComponente: " + componenteSelecionado.nome + 
+                  "\nCor: " + corSelecionada.nome + 
+                  "\nUnidade: " + unidadeSelecionada);
+            return;
+        }
+
+        // Processar o componente
+        var nomeComponente = componenteSelecionado.nome + " " + corSelecionada.nome;
+        quantidade = funcoes.arredondarComponente(quantidade, unidadeSelecionada, nomeComponente);
+
+        // Verificar se o item já existe
+        var itemExistente = null;
+        for (var i = 0; i < itensLegenda.length; i++) {
+            if (itensLegenda[i].tipo === "componente" && 
+                itensLegenda[i].nome === nomeComponente &&
+                itensLegenda[i].unidade === unidadeSelecionada) {
+                itemExistente = itensLegenda[i];
+                break;
+            }
+        }
+
+        // Atualizar ou adicionar item
+        if (itemExistente) {
+            itemExistente.quantidade = quantidade;
+            itemExistente.multiplicador = multiplicador;
+            itemExistente.texto = funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidade, multiplicador);
+            logs.adicionarLog("Componente atualizado: " + nomeComponente + " - Qtd: " + quantidade + "x" + multiplicador, logs.TIPOS_LOG.INFO);
+        } else {
+            itensLegenda.push({
+                tipo: "componente",
+                nome: nomeComponente,
+                texto: funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidade, multiplicador),
+                referencia: combinacaoSelecionada.referencia,
+                quantidade: quantidade,
+                multiplicador: multiplicador,
+                unidade: unidadeSelecionada,
+                componenteId: componenteSelecionado.id
+            });
+            logs.adicionarLog("Componente adicionado: " + nomeComponente + " - Qtd: " + quantidade + "x" + multiplicador, logs.TIPOS_LOG.INFO);
+        }
+
+        // Atualizar interface
+        atualizarListaItens();
+
+        try {
+            // Restaurar a última seleção
+            restaurarUltimaSelecao(listaComponentes, listaCores, listaUnidades, campoQuantidade, campoMultiplicador, ultimaSelecao, dados, t);
+        } catch (e) {
+            alert("Erro ao restaurar seleção: " + e.message + "\nUsando reset padrão");
+            // Reset padrão em caso de erro
+            campoQuantidade.text = "1";
+            campoMultiplicador.text = "1";
+            listaComponentes.selection = 0;
+            listaCores.removeAll();
+            listaCores.add("item", t("selecioneCor"));
+            listaCores.selection = 0;
+            listaUnidades.removeAll();
+            listaUnidades.add("item", t("selecioneUnidade"));
+            listaUnidades.selection = 0;
+        }
+
+        logs.logFuncao("adicionarComponente", {
+            componente: nomeComponente,
+            quantidade: quantidade,
+            multiplicador: multiplicador,
+            unidade: unidadeSelecionada
+        }, "Componente adicionado com sucesso");
+
+    } catch (e) {
+        logs.adicionarLog("Erro ao adicionar componente: " + e.message + " (Linha: " + e.line + ")", logs.TIPOS_LOG.ERROR);
+        alert("Erro geral ao adicionar componente:\n" + e.message + "\nLinha: " + e.line);
+    }
+}
+
 // Exportação global
 $.global.funcoesComponentes = {
     atualizarUnidades: atualizarUnidades,
     verificarCMYK: verificarCMYK,
     salvarSelecaoAtual: salvarSelecaoAtual,
-    restaurarUltimaSelecao: restaurarUltimaSelecao
+    restaurarUltimaSelecao: restaurarUltimaSelecao,
+    adicionarComponente: adicionarComponente
     // Adicione outras funções aqui
 }; 

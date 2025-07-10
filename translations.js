@@ -128,7 +128,7 @@ var TRANSLATIONS = {
         "quantidadeNaoInformada": "Por favor, informe a quantidade",
         "procurarLabel": "procurar:",
         "selecioneTipoFixacao": "Selecione o tipo de fixação",
-        "selecionarTipoFixacao": "Por favor, selecione o tipo de fixação antes de gerar a legenda."
+        "selecionarTipoFixacao": "Selecione o tipo de fixação!"
     },
     "Français": {
         "nomeDesigner": "Nom du Designer",

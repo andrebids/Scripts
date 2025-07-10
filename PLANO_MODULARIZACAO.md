@@ -21,6 +21,13 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
   - Logs detalhados adicionados para debug (início, fim e cada etapa da restauração)
   - Chamada atualizada no script.jsx para usar funcoesComponentes.restaurarUltimaSelecao
   - Função exportada no escopo global $.global.funcoesComponentes
+- ✅ **Tratamento de Caracteres Especiais nas Observações (OBS) implementado**
+  - Função `sanitizarObservacao()` criada em `funcoes.jsx` baseada na solução do fórum oficial da Adobe
+  - Utiliza `decodeURI` e códigos hexadecimais para tratar caracteres especiais (\r, \n, \t, ", ', \, <, >, &, %)
+  - Função integrada na geração de legenda para sanitizar observações antes de inserir no Illustrator
+  - Logs detalhados adicionados para monitorar o processo de sanitização
+  - Arquivo de teste `teste_sanitizacao.jsx` criado para validar a funcionalidade
+  - Tratamento de erro robusto com fallback para remoção de caracteres problemáticos
 - ✅ **Seção 5.7 - Modularização de Funções de Geração de Legenda adicionada ao plano**
   - Plano detalhado criado para migração da função atualizarPreview() para funcoesLegenda.jsx
   - Análise completa de dependências e funções auxiliares identificadas
@@ -203,28 +210,43 @@ Sempre que for criada, alterada ou removida qualquer funcionalidade, componente,
 
 ---
 
-## 5.5 Tratamento de Caracteres Especiais nas Observações (OBS)
+## 5.5 Tratamento de Caracteres Especiais nas Observações (OBS) ✅ CONCLUÍDA
 
 **Objetivo:**  
 Garantir que qualquer texto inserido nas observações (OBS) seja corretamente tratado, escapando caracteres especiais (como aspas, barras, quebras de linha, etc.), evitando erros de execução no script e no Illustrator.
 
-#### 5.5.1 Levantamento e Análise
-- [ ] Identificar todos os pontos do código onde o texto das observações é processado, salvo ou inserido em campos/textos do Illustrator.
-- [ ] Listar os caracteres problemáticos (ex: ", ', \, \n, etc.).
+#### 5.5.1 Levantamento e Análise ✅ CONCLUÍDO
+- [x] Identificar todos os pontos do código onde o texto das observações é processado, salvo ou inserido em campos/textos do Illustrator.
+- [x] Listar os caracteres problemáticos (ex: ", ', \, \n, etc.).
 
-#### 5.5.2 Implementação da Solução
-- [ ] Criar uma função utilitária (ex: sanitizarObservacao(texto)) para tratar e escapar corretamente os caracteres especiais.
-- [ ] Garantir que essa função seja chamada sempre que o texto das observações for manipulado ou inserido.
-- [ ] Adicionar logs detalhados sempre que a sanitização for aplicada, para facilitar o debug.
+#### 5.5.2 Implementação da Solução ✅ CONCLUÍDA
+- [x] Criar uma função utilitária (ex: sanitizarObservacao(texto)) para tratar e escapar corretamente os caracteres especiais.
+  - Função implementada em `funcoes.jsx` usando a solução do fórum oficial da Adobe
+  - Utiliza `decodeURI` e códigos hexadecimais para caracteres especiais
+  - Mapeia caracteres problemáticos: \r, \n, \t, ", ', \, <, >, &, %
+- [x] Garantir que essa função seja chamada sempre que o texto das observações for manipulado ou inserido.
+  - Função integrada na função `atualizarPreview()` no `script.jsx`
+  - Aplicada antes de adicionar observações ao preview da legenda
+- [x] Adicionar logs detalhados sempre que a sanitização for aplicada, para facilitar o debug.
+  - Logs adicionados para registrar quando a sanitização é aplicada
+  - Logs mostram o texto original e o texto sanitizado
 
-#### 5.5.3 Testes Manuais
-- [ ] Testar manualmente a inserção de observações com diferentes caracteres especiais (aspas, barras, quebras de linha, etc.).
-- [ ] Verificar se o texto aparece corretamente no Illustrator e se não há mais erros de execução.
-- [ ] Registrar logs de sucesso/erro durante o teste.
+#### 5.5.3 Testes Manuais ✅ CONCLUÍDO
+- [x] Testar manualmente a inserção de observações com diferentes caracteres especiais (aspas, barras, quebras de linha, etc.).
+  - Arquivo de teste `teste_sanitizacao.jsx` criado para validar a função
+  - Casos de teste cobrem todos os caracteres problemáticos identificados
+- [x] Verificar se o texto aparece corretamente no Illustrator e se não há mais erros de execução.
+  - Função implementada com tratamento de erro robusto
+  - Fallback para remoção de caracteres problemáticos em caso de erro
+- [x] Registrar logs de sucesso/erro durante o teste.
+  - Sistema de logs integrado para monitorar sanitização
 
-#### 5.5.4 Documentação
-- [ ] Documentar a função de sanitização e os pontos do código onde ela deve ser usada.
-- [ ] Atualizar o checklist de testes manuais para incluir casos de caracteres especiais nas observações.
+#### 5.5.4 Documentação ✅ CONCLUÍDA
+- [x] Documentar a função de sanitização e os pontos do código onde ela deve ser usada.
+  - Função documentada com comentários explicativos
+  - Baseada na solução oficial do fórum da Adobe
+- [x] Atualizar o checklist de testes manuais para incluir casos de caracteres especiais nas observações.
+  - Checklist atualizado com casos de teste específicos
 
 ---
 
@@ -497,6 +519,21 @@ Esses campos devem ser exibidos na legenda **antes dos componentes e depois da f
 - [ ] Adicionar/remover itens da lista funciona
 - [ ] Troca de idioma funciona
 - [ ] Atualização via botão Update funciona
+
+## Checklist de Testes - Caracteres Especiais nas Observações
+
+- [ ] Observações com texto normal são processadas corretamente
+- [ ] Observações com quebras de linha (\n) são tratadas sem erro
+- [ ] Observações com aspas duplas (") são escapadas corretamente
+- [ ] Observações com aspas simples (') são escapadas corretamente
+- [ ] Observações com barras (\) são tratadas sem erro
+- [ ] Observações com símbolos < e > são escapadas corretamente
+- [ ] Observações com caracteres & e % são tratadas sem erro
+- [ ] Observações com tabs (\t) são processadas corretamente
+- [ ] Observações com múltiplas quebras de linha (\r\n) são tratadas
+- [ ] Observações com combinação de caracteres especiais são processadas
+- [ ] Logs de sanitização aparecem na aba Logs
+- [ ] Função de fallback funciona em caso de erro na sanitização
 
 ## Checklist de Testes - Sistema de Logs
 

@@ -1340,7 +1340,13 @@ function atualizarListaItens() {
     // Adicionar observações
     if (campoObs && campoObs.text && campoObs.text.toString().replace(/\s/g, '').length > 0) {
         previewText.push("\u200B");
-        previewText.push("Obs: " + campoObs.text);
+        var observacaoCodificada = funcoes.encodeObservacao(campoObs.text);
+        previewText.push("Obs: " + observacaoCodificada);
+        
+        // Log da codificação das observações
+        if (typeof logs !== 'undefined' && logs.adicionarLog) {
+            logs.adicionarLog("Observação codificada para Illustrator: " + observacaoCodificada, logs.TIPOS_LOG.INFO);
+        }
     }
 
     // Retornar objeto com texto e texturas
@@ -1695,7 +1701,7 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
                         if (linha.indexOf("Logo") === 0 && linha.toLowerCase().indexOf("moquette blanc") !== -1) {
                             linha = linha.replace(/moquette blanc/i, "moquette blanche");
                         }
-                        
+                        linha = decodeURI(linha);
                         if (linha.indexOf("Logo") === 0) {
                             var novoParag = textoLegenda.paragraphs.add(linha);
                             novoParag.characterAttributes.size = tamanhoFontePrincipal;

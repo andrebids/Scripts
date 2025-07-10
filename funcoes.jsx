@@ -211,6 +211,93 @@ function lerVersao() {
                           .replace(/\r/g, '\\r');
             }
 
+// Função para sanitizar observações usando encode hexadecimal e decodeURI
+// Corrigida para garantir que caracteres especiais apareçam corretamente na legenda
+function sanitizarObservacao(texto) {
+    if (!texto || typeof texto !== 'string') {
+        return "";
+    }
+    try {
+        var textoSanitizado = "";
+        for (var i = 0; i < texto.length; i++) {
+            var c = texto.charAt(i);
+            if (c === '\r') {
+                textoSanitizado += "%0d";
+            } else if (c === '\n') {
+                textoSanitizado += "%0a";
+            } else if (c === '\t') {
+                textoSanitizado += "%09";
+            } else if (c === '"') {
+                textoSanitizado += "%22";
+            } else if (c === "'") {
+                textoSanitizado += "%27";
+            } else if (c === '\\') {
+                textoSanitizado += "%5c";
+            } else if (c === '<') {
+                textoSanitizado += "%3c";
+            } else if (c === '>') {
+                textoSanitizado += "%3e";
+            } else if (c === '&') {
+                textoSanitizado += "%26";
+            } else if (c === '%') {
+                textoSanitizado += "%25";
+            } else {
+                textoSanitizado += c;
+            }
+        }
+        return decodeURI(textoSanitizado);
+    } catch (e) {
+        return texto.replace(/[\r\n\t"\\<>%]/g, '');
+    }
+}
+
+// Função para escapar aspas duplas e barras invertidas para uso seguro em scripts
+function escaparParaScript(texto) {
+    if (!texto || typeof texto !== 'string') {
+        return "";
+    }
+    // Primeiro, sanitiza normalmente
+    var limpo = sanitizarObservacao(texto);
+    // Agora, escapa barra invertida e aspas duplas
+    limpo = limpo.replace(/\\/g, "\\\\"); // barra invertida
+    limpo = limpo.replace(/"/g, "\\\"");  // aspas duplas
+    return limpo;
+}
+
+// Função para garantir string segura para uso em scripts (usando JSON.stringify do json2.js)
+function stringSeguraParaScript(texto) {
+    if (!texto || typeof texto !== 'string') {
+        return '""';
+    }
+    return JSON.stringify(texto);
+}
+
+// Função para codificar observações em formato seguro (%xx para caracteres especiais)
+function encodeObservacao(texto) {
+    if (!texto || typeof texto !== 'string') {
+        return "";
+    }
+    var resultado = "";
+    for (var i = 0; i < texto.length; i++) {
+        var c = texto.charAt(i);
+        var code = texto.charCodeAt(i);
+        // Codifica tudo que não for letra, número ou espaço
+        if (
+            (code >= 48 && code <= 57) || // 0-9
+            (code >= 65 && code <= 90) || // A-Z
+            (code >= 97 && code <= 122) || // a-z
+            c === " "
+        ) {
+            resultado += c;
+        } else {
+            var hex = code.toString(16).toUpperCase();
+            if (hex.length < 2) hex = "0" + hex;
+            resultado += "%" + hex;
+        }
+    }
+    return resultado;
+}
+
 // Certifique-se de que esta linha está presente no final do arquivo funcoes.jsx
 $.global.funcoes = $.global.funcoes || {};
 $.global.funcoes.lerVersao = lerVersao;
@@ -240,7 +327,11 @@ $.global.funcoes = {
     criarTextoComponente: criarTextoComponente,
     criarLinhaReferencia: criarLinhaReferencia,
     selecionarUnidadeMetrica: selecionarUnidadeMetrica,
-    atualizarCores: atualizarCores
+    atualizarCores: atualizarCores,
+    sanitizarObservacao: sanitizarObservacao,
+    escaparParaScript: escaparParaScript,
+    stringSeguraParaScript: stringSeguraParaScript,
+    encodeObservacao: encodeObservacao
 };
 
 // Adicione estas funções no arquivo funcoes.jsx

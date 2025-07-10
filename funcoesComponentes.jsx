@@ -72,13 +72,8 @@ function atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, s
 }
 
 // Função para verificar CMYK (migrada de script.jsx)
+// Função preparada para uso futuro - não gera logs para evitar ruído
 function verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, encontrarIndicePorNome) {
-    logs.logFuncao("verificarCMYK", {
-        componente: listaComponentes.selection ? listaComponentes.selection.text : "Nenhum",
-        cor: listaCores.selection ? listaCores.selection.text : "Nenhuma",
-        unidade: listaUnidades.selection ? listaUnidades.selection.text : "Nenhuma"
-    }, "Iniciando verificação CMYK");
-    
     if (listaComponentes.selection && listaComponentes.selection.index > 0 &&
         listaCores.selection && listaCores.selection.index > 0 &&
         listaUnidades.selection && listaUnidades.selection.index > 0) {
@@ -98,16 +93,11 @@ function verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, encon
                     // Por exemplo, você poderia armazenar o CMYK em uma variável global
                     // ou atualizar algum elemento da interface
                     // cmykAtual = dados.combinacoes[i].cmyk;
-                    logs.logFuncao("verificarCMYK", {
-                        cmyk: dados.combinacoes[i].cmyk
-                    }, "CMYK encontrado para a combinação");
                 }
                 break;
             }
         }
     }
-    
-    logs.logFuncao("verificarCMYK", {}, "Verificação CMYK concluída");
 }
 
 // Função para salvar a seleção atual (migrada de script.jsx)

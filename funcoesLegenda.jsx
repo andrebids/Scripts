@@ -583,7 +583,7 @@ function processarCamposOpcionais(campoUsage, campoQuantitePrevu, campoPreco) {
             var textoLimpoPreco = textoPreco.replace(/^\s+/, '').replace(/\s+$/, '');
             
             if (textoLimpoPreco !== "") {
-                var precoTexto = "Prix: " + textoLimpoPreco;
+                var precoTexto = "Prix: " + textoLimpoPreco + "€";
                 camposOpcionaisTexto.push(precoTexto);
                 logLegenda("Campo Preço processado: " + precoTexto, "info");
             }

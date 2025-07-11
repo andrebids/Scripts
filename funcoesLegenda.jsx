@@ -82,16 +82,43 @@ function gerarFrasePrincipal(parametros) {
             logLegenda("Regra 2D/3D não aplicada: dimensões ou função não disponíveis", "info");
         }
 
-        var frasePrincipal = "Logo " + (parametros.listaL || "") + ": " + 
-                             decorTexto + " " + prefixoNomeTipo + "\"" + nomeTipo + "\"" + textoFixacao + classificacao2D3D + " " + preposicao;
-
-        if (parametros.alfabetoUsado) {
-            frasePrincipal += " bioprint " + (parametros.corBioprint || "");
+        // Processar componentes para aplicar regra do bioprint
+        var componentesBioprint = [];
+        var outrosComponentes = [];
+        var temBioprint = false;
+        
+        if (parametros.componentesTexto && parametros.componentesTexto.length > 0) {
+            for (var i = 0; i < parametros.componentesTexto.length; i++) {
+                var componente = parametros.componentesTexto[i];
+                if (componente.toLowerCase().indexOf("bioprint") === 0) {
+                    componentesBioprint.push(componente);
+                    temBioprint = true;
+                } else {
+                    outrosComponentes.push(componente);
+                }
+            }
         }
 
-        // Adicionar componentes
-        if (parametros.componentesTexto && parametros.componentesTexto.length > 0) {
-            frasePrincipal += " " + parametros.componentesTexto.join(", ");
+        // Construir a frase com a regra do bioprint
+        var frasePrincipal = "Logo " + (parametros.listaL || "") + ": " + 
+                             decorTexto + " " + prefixoNomeTipo + "\"" + nomeTipo + "\"" + textoFixacao + classificacao2D3D;
+
+        if (parametros.alfabetoUsado) {
+            frasePrincipal += " en bioprint " + (parametros.corBioprint || "");
+        } else if (temBioprint) {
+            // Se há bioprint nos componentes, usar "en" para bioprint
+            frasePrincipal += " en " + componentesBioprint.join(", ");
+            
+            // Se há outros componentes, adicionar "avec"
+            if (outrosComponentes.length > 0) {
+                frasePrincipal += " avec " + outrosComponentes.join(", ");
+            }
+        } else {
+            // Se não há bioprint, usar "avec" normalmente
+            frasePrincipal += " " + preposicao;
+            if (outrosComponentes.length > 0) {
+                frasePrincipal += " " + outrosComponentes.join(", ");
+            }
         }
 
         // Adicionar todos os componentes extras

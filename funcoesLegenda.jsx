@@ -237,7 +237,7 @@ function processarComponentes(itensLegenda) {
             return unidadeA - unidadeB;
         });
 
-        // Ordenar componentes agrupados
+        // Ordenar componentes agrupados usando a mesma lógica para a frase principal
         var componentesOrdenados = [];
         for (var nomeComponente in componentesAgrupados) {
             if (componentesAgrupados.hasOwnProperty(nomeComponente)) {
@@ -245,15 +245,16 @@ function processarComponentes(itensLegenda) {
             }
         }
         
+        // Aplicar a mesma ordenação por ordemComponentes
         componentesOrdenados.sort(function(a, b) {
             var posA = 999;
             var posB = 999;
             
             for (var i = 0; i < ordemComponentes.length; i++) {
-                if (a === ordemComponentes[i]) {
+                if (a.toUpperCase() === ordemComponentes[i]) {
                     posA = i;
                 }
-                if (b === ordemComponentes[i]) {
+                if (b.toUpperCase() === ordemComponentes[i]) {
                     posB = i;
                 }
             }
@@ -261,11 +262,18 @@ function processarComponentes(itensLegenda) {
             return posA - posB;
         });
         
-        // Construir componentesTexto usando a ordem correta
+        // Construir componentesTexto usando a ordem correta (MESMA LÓGICA PARA FRASE PRINCIPAL)
         var componentesTexto = [];
         for (var i = 0; i < componentesOrdenados.length; i++) {
             var nomeComponente = componentesOrdenados[i];
-            componentesTexto.push(nomeComponente + " " + componentesAgrupados[nomeComponente].join(", "));
+            
+            // Ordenar as cores dentro de cada componente também
+            var coresOrdenadas = componentesAgrupados[nomeComponente].slice(); // cópia do array
+            coresOrdenadas.sort(function(a, b) {
+                return a.localeCompare(b);
+            });
+            
+            componentesTexto.push(nomeComponente.toLowerCase() + " " + coresOrdenadas.join(", "));
         }
 
         logLegenda("Processamento de componentes concluído: " + componentesTexto.length + " componentes", "info");

@@ -45,6 +45,7 @@ function logLegenda(mensagem, tipo) {
  * @param {number} parametros.totalBolas - Total de bolas
  * @param {boolean} parametros.checkStructure - Se estrutura está marcada
  * @param {string} parametros.corStructure - Cor da estrutura
+ * @param {string} parametros.tipoFixacao - Tipo de fixação selecionado
  * @returns {string} Frase principal formatada
  */
 function gerarFrasePrincipal(parametros) {
@@ -55,6 +56,16 @@ function gerarFrasePrincipal(parametros) {
         var prefixoNomeTipo = parametros.escolhaNomeTipo === "Tipo" ? "type " : "";
         var preposicao = parametros.alfabetoUsado ? "en" : "avec";
         var decorTexto = "décor";
+
+        // Adicionar tipo de fixação se fornecido
+        var textoFixacao = "";
+        if (parametros.tipoFixacao && parametros.tipoFixacao !== "") {
+            // Verificar se não é a opção padrão de seleção
+            if (parametros.tipoFixacao.indexOf("Selec") === -1 && parametros.tipoFixacao.indexOf("selec") === -1) {
+                textoFixacao = " " + parametros.tipoFixacao.toLowerCase();
+                logLegenda("Tipo de fixação adicionado: " + parametros.tipoFixacao, "info");
+            }
+        }
 
         // Aplicar regra 2D/3D se as dimensões estiverem disponíveis
         var classificacao2D3D = "";
@@ -72,7 +83,7 @@ function gerarFrasePrincipal(parametros) {
         }
 
         var frasePrincipal = "Logo " + (parametros.listaL || "") + ": " + 
-                             decorTexto + " " + prefixoNomeTipo + "\"" + nomeTipo + "\"" + classificacao2D3D + " " + preposicao;
+                             decorTexto + " " + prefixoNomeTipo + "\"" + nomeTipo + "\"" + textoFixacao + classificacao2D3D + " " + preposicao;
 
         if (parametros.alfabetoUsado) {
             frasePrincipal += " bioprint " + (parametros.corBioprint || "");
@@ -634,7 +645,8 @@ function atualizarPreview(parametros) {
             totalBolas: totalBolas,
             checkStructure: parametros.checkStructure ? parametros.checkStructure.value : false,
             corStructure: parametros.corStructure ? parametros.corStructure.selection.text : "",
-            dimensoes: dimensoesProcessadas  // Adicionar dimensões processadas
+            dimensoes: dimensoesProcessadas,  // Adicionar dimensões processadas
+            tipoFixacao: parametros.listaFixacao && parametros.listaFixacao.selection ? parametros.listaFixacao.selection.text : ""
         };
 
         var frasePrincipal = gerarFrasePrincipal(parametrosFrase);

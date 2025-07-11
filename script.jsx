@@ -259,7 +259,7 @@ grupoCamposOpcionais.spacing = 5; // Reduzir espaçamento de 10 para 5
 
 // Campo Usage (dropdown mais compacto)
 grupoCamposOpcionais.add("statictext", undefined, t("usage"));
-var campoUsage = grupoCamposOpcionais.add("dropdownlist", undefined, ["Sélectionner usage", "Intérieur", "Extérieur"]);
+var campoUsage = grupoCamposOpcionais.add("dropdownlist", undefined, [t("selecioneUsage"), t("usageInterieur"), t("usageExterieur")]);
 campoUsage.selection = 0;
 campoUsage.preferredSize.width = 100; // Reduzir de 120 para 100
 

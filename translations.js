@@ -37,12 +37,12 @@ var TRANSLATIONS = {
         "structureLaqueada": "Structure laquée",
         "painelComponentes": "Componentes",
         "procurar": "procurar:",
-        "selecioneComponente": "Selecione um componente",
+        "selecioneComponente": "Componente",
         "botaoAdicionar": "Adicionar",
         "painelBolas": "Bolas",
-        "selecioneCor": "Selecione a cor",
-        "selecioneAcabamento": "Selecione um acabamento",
-        "selecioneTamanho": "Selecione um tamanho",
+        "selecioneCor": "Cor",
+        "selecioneAcabamento": "Acabamento",
+        "selecioneTamanho": "Tamanho",
         "adicionarBola": "Adicionar Bola",
         "painelExtra": "Extra",
         "geral": "Geral",
@@ -118,7 +118,7 @@ var TRANSLATIONS = {
             "aucune": "aucune"
         },
         "Tipo": "Tipo",
-        "selecioneUnidade": "Selecione uma unidade",
+        "selecioneUnidade": "Unidade",
         "confirmacaoSemTamanho": "Não foi inserido nenhum tamanho. Pretende continuar mesmo assim?",
         "confirmarRemoverTodos": "Tem certeza que deseja remover todos os itens?",
         "selecionarComponenteCompleto": "Por favor, selecione um componente, uma cor e uma unidade.",
@@ -132,7 +132,10 @@ var TRANSLATIONS = {
         "procurarLabel": "procurar:",
         "selecioneTipoFixacao": "Selecione o tipo de fixação",
         "selecioneFixacao": "Selecione fixação",
-        "selecionarTipoFixacao": "Selecione o tipo de fixação!"
+        "selecionarTipoFixacao": "Selecione o tipo de fixação!",
+        "selecioneUsage": "Selecione uso",
+        "usageInterieur": "Interior",
+        "usageExterieur": "Exterior"
     },
     "Français": {
         "nomeDesigner": "Nom du Designer",
@@ -247,6 +250,9 @@ var TRANSLATIONS = {
         "procurarLabel": "rechercher:",
         "selecioneTipoFixacao": "Sélectionnez le type de fixation",
         "selecioneFixacao": "Sélectionnez fixation",
-        "selecionarTipoFixacao": "Veuillez sélectionner le type de fixation avant de générer la légende."
+        "selecionarTipoFixacao": "Veuillez sélectionner le type de fixation avant de générer la légende.",
+        "selecioneUsage": "Sélectionner usage",
+        "usageInterieur": "Intérieur",
+        "usageExterieur": "Extérieur"
     }
 };

@@ -550,7 +550,7 @@ function processarContagemElementos(itensLegenda) {
  * @param {Object} campoQuantitePrevu - Campo de Quantité prévue
  * @returns {Array} Array com texto dos campos opcionais formatado
  */
-function processarCamposOpcionais(campoUsage, campoQuantitePrevu) {
+function processarCamposOpcionais(campoUsage, campoQuantitePrevu, campoPreco) {
     logLegenda("Iniciando processamento de campos opcionais", "function");
     
     try {
@@ -573,6 +573,19 @@ function processarCamposOpcionais(campoUsage, campoQuantitePrevu) {
                 var quantiteTexto = "Quantité prévue: " + textoLimpo;
                 camposOpcionaisTexto.push(quantiteTexto);
                 logLegenda("Campo Quantité prévue processado: " + quantiteTexto, "info");
+            }
+        }
+
+        // Processar campo Preço
+        if (campoPreco && campoPreco.text !== undefined) {
+            // Converter para string e remover espaços manualmente
+            var textoPreco = String(campoPreco.text);
+            var textoLimpoPreco = textoPreco.replace(/^\s+/, '').replace(/\s+$/, '');
+            
+            if (textoLimpoPreco !== "") {
+                var precoTexto = "Prix: " + textoLimpoPreco;
+                camposOpcionaisTexto.push(precoTexto);
+                logLegenda("Campo Preço processado: " + precoTexto, "info");
             }
         }
 
@@ -701,8 +714,8 @@ function atualizarPreview(parametros) {
             previewText.push(t("fixacao") + " " + parametros.listaFixacao.selection.text);
         }
 
-        // Adicionar campos opcionais (Usage e Quantité prévue) após fixação
-        var camposOpcionaisTexto = processarCamposOpcionais(parametros.campoUsage, parametros.campoQuantitePrevu);
+        // Adicionar campos opcionais (Usage, Quantité prévue e Preço) após fixação
+        var camposOpcionaisTexto = processarCamposOpcionais(parametros.campoUsage, parametros.campoQuantitePrevu, parametros.campoPreco);
         if (camposOpcionaisTexto.length > 0) {
             previewText.push("\u200B"); // Linha de separação antes dos campos opcionais
             for (var i = 0; i < camposOpcionaisTexto.length; i++) {

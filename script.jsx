@@ -285,6 +285,20 @@ campoQuantitePrevu.onChanging = function() {
     }
 };
 
+// Campo Preço (input numérico mais compacto)
+grupoCamposOpcionais.add("statictext", undefined, t("preco"));
+var campoPreco = grupoCamposOpcionais.add("edittext", undefined, "");
+campoPreco.characters = 6; // Mesmo tamanho que o campo quantidade
+campoPreco.preferredSize.width = 50; // Definir largura fixa menor
+funcoes.apenasNumerosEVirgula(campoPreco);
+
+// Adicionar evento para logs
+campoPreco.onChanging = function() {
+    if (logs && logs.logEvento) {
+        logs.logEvento("change", "campoPreco - " + this.text);
+    }
+};
+
 var coresStructure = [
     "Blanc RAL 9010",
     "Or PANTONE 131C",
@@ -980,7 +994,8 @@ function atualizarListaItens() {
                     corStructure: corStructure,
                     campoObs: campoObs,
                     campoUsage: campoUsage,
-                    campoQuantitePrevu: campoQuantitePrevu
+                    campoQuantitePrevu: campoQuantitePrevu,
+                    campoPreco: campoPreco
                 };
                 
                 var legendaInfo = funcoesLegenda.atualizarPreview(parametrosPreview);

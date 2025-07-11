@@ -2,12 +2,7 @@
 // Funções relacionadas a componentes do sistema de legendas
 // A partir da etapa 5.2.2.5, funções deste domínio devem ser adicionadas aqui.
 
-// Exemplo de função (stub)
 function atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, selecionarUnidadeMetrica, arrayContains) {
-    logs.logFuncao("atualizarUnidades", {
-        componente: listaComponentes.selection ? listaComponentes.selection.text : "Nenhum",
-        cor: listaCores.selection ? listaCores.selection.text : "Nenhuma"
-    }, "Iniciando atualização de unidades");
     if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0) {
         // Limpar unidades se não há seleção válida
         listaUnidades.removeAll();
@@ -46,14 +41,6 @@ function atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, s
     for (var i = 0; i < unidadesDisponiveis.length; i++) {
         listaUnidades.add("item", unidadesDisponiveis[i]);
     }
-    
-    // Log para debug
-    logs.adicionarLog("Unidades atualizadas: " + unidadesDisponiveis.join(", "), logs.TIPOS_LOG.INFO);
-    
-    logs.logFuncao("atualizarUnidades", {
-        unidadesEncontradas: unidadesDisponiveis.length - 1,
-        unidades: unidadesDisponiveis.slice(1) // Remove "Selecione uma unidade"
-    }, "Atualização de unidades concluída");
 
     // Selecionar unidade métrica automaticamente
     var unidadeParaSelecionar = funcoes.selecionarUnidadeMetrica(unidadesDisponiveis);
@@ -71,8 +58,6 @@ function atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, s
     }
 }
 
-// Função para verificar CMYK (migrada de script.jsx)
-// Função preparada para uso futuro - não gera logs para evitar ruído
 function verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, encontrarIndicePorNome) {
     if (listaComponentes.selection && listaComponentes.selection.index > 0 &&
         listaCores.selection && listaCores.selection.index > 0 &&
@@ -87,8 +72,6 @@ function verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, encon
                 dados.combinacoes[i].corId === corSelecionada.id &&
                 dados.combinacoes[i].unidade === unidadeSelecionada) {
                 
-                // Aqui você pode adicionar qualquer lógica adicional que queira executar
-                // quando um CMYK é encontrado, sem exibir alertas
                 if (dados.combinacoes[i].cmyk) {
                     // Por exemplo, você poderia armazenar o CMYK em uma variável global
                     // ou atualizar algum elemento da interface
@@ -100,7 +83,6 @@ function verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, encon
     }
 }
 
-// Função para salvar a seleção atual (migrada de script.jsx)
 function salvarSelecaoAtual(listaComponentes, listaCores, listaUnidades, campoMultiplicador, ultimaSelecao) {
     try {
         if (listaComponentes && listaComponentes.selection) {
@@ -115,33 +97,17 @@ function salvarSelecaoAtual(listaComponentes, listaCores, listaUnidades, campoMu
         if (campoMultiplicador) {
             ultimaSelecao.multiplicador = campoMultiplicador.text;
         }
-        logs.logFuncao("salvarSelecaoAtual", {
-            componente: ultimaSelecao.componente,
-            cor: ultimaSelecao.cor,
-            unidade: ultimaSelecao.unidade,
-            multiplicador: ultimaSelecao.multiplicador
-        }, "Seleção salva");
     } catch (e) {
         alert("Erro ao salvar seleção: " + e.message);
-        logs.adicionarLog("Erro ao salvar seleção: " + e.message, logs.TIPOS_LOG.ERROR);
     }
 }
 
-// Função para restaurar a última seleção (migrada de script.jsx)
 function restaurarUltimaSelecao(listaComponentes, listaCores, listaUnidades, campoQuantidade, campoMultiplicador, ultimaSelecao, dados, t) {
-    logs.logFuncao("restaurarUltimaSelecao", {
-        componente: ultimaSelecao.componente,
-        cor: ultimaSelecao.cor,
-        unidade: ultimaSelecao.unidade,
-        multiplicador: ultimaSelecao.multiplicador
-    }, "Iniciando restauração da última seleção");
-    
     try {
         if (ultimaSelecao.componente && listaComponentes && listaComponentes.items && listaComponentes.items.length) {
             for (var i = 0; i < listaComponentes.items.length; i++) {
                 if (listaComponentes.items[i].text === ultimaSelecao.componente) {
                     listaComponentes.selection = i;
-                    logs.adicionarLog("Componente restaurado: " + ultimaSelecao.componente, logs.TIPOS_LOG.INFO);
                     break;
                 }
             }
@@ -160,7 +126,6 @@ function restaurarUltimaSelecao(listaComponentes, listaCores, listaUnidades, cam
             for (var i = 0; i < listaCores.items.length; i++) {
                 if (listaCores.items[i].text === ultimaSelecao.cor) {
                     listaCores.selection = i;
-                    logs.adicionarLog("Cor restaurada: " + ultimaSelecao.cor, logs.TIPOS_LOG.INFO);
                     break;
                 }
             }
@@ -175,7 +140,6 @@ function restaurarUltimaSelecao(listaComponentes, listaCores, listaUnidades, cam
             for (var i = 0; i < listaUnidades.items.length; i++) {
                 if (listaUnidades.items[i].text === ultimaSelecao.unidade) {
                     listaUnidades.selection = i;
-                    logs.adicionarLog("Unidade restaurada: " + ultimaSelecao.unidade, logs.TIPOS_LOG.INFO);
                     break;
                 }
             }
@@ -189,26 +153,22 @@ function restaurarUltimaSelecao(listaComponentes, listaCores, listaUnidades, cam
             campoMultiplicador.text = ultimaSelecao.multiplicador;
         }
         
-        logs.logFuncao("restaurarUltimaSelecao", {
-            componente: ultimaSelecao.componente,
-            cor: ultimaSelecao.cor,
-            unidade: ultimaSelecao.unidade,
-            multiplicador: ultimaSelecao.multiplicador
-        }, "Restauração da última seleção concluída com sucesso");
-        
     } catch (e) {
-        logs.adicionarLog("Erro ao restaurar seleção: " + e.message, logs.TIPOS_LOG.ERROR);
-        alert("Erro ao restaurar seleção: " + e.message);
+        alert("Erro ao restaurar seleção: " + e.message + "\nUsando reset padrão");
+        // Reset padrão em caso de erro
+        campoQuantidade.text = "1";
+        campoMultiplicador.text = "1";
+        listaComponentes.selection = 0;
+        listaCores.removeAll();
+        listaCores.add("item", t("selecioneCor"));
+        listaCores.selection = 0;
+        listaUnidades.removeAll();
+        listaUnidades.add("item", t("selecioneUnidade"));
+        listaUnidades.selection = 0;
     }
 }
 
-// Função para adicionar componente (migrada de script.jsx)
 function adicionarComponente(listaComponentes, listaCores, listaUnidades, campoQuantidade, campoMultiplicador, ultimaSelecao, dados, itensLegenda, atualizarListaItens, t, logs, funcoes, encontrarIndicePorNome) {
-    logs.logFuncao("adicionarComponente", {
-        quantidade: campoQuantidade.text,
-        multiplicador: campoMultiplicador.text
-    }, "Iniciando adição de componente");
-    
     try {
         // Verificar se a quantidade foi preenchida
         var quantidade = campoQuantidade.text;
@@ -310,31 +270,41 @@ function adicionarComponente(listaComponentes, listaCores, listaUnidades, campoQ
             }
         }
 
-        // Atualizar ou adicionar item
         if (itemExistente) {
-            itemExistente.quantidade = quantidade;
-            itemExistente.multiplicador = multiplicador;
-            itemExistente.texto = funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidade, multiplicador);
-            logs.adicionarLog("Componente atualizado: " + nomeComponente + " - Qtd: " + quantidade + "x" + multiplicador, logs.TIPOS_LOG.INFO);
+            // Atualizar quantidade do item existente
+            var quantidadeAtual = parseFloat(itemExistente.quantidade.toString().replace(',', '.'));
+            var novaQuantidade = quantidadeAtual + (quantidade * multiplicador);
+            novaQuantidade = funcoes.arredondarComponente(novaQuantidade, unidadeSelecionada, nomeComponente);
+            
+            itemExistente.quantidade = novaQuantidade;
+            itemExistente.multiplicador = 1; // Reset multiplicador 
+            itemExistente.texto = funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, novaQuantidade, 1);
         } else {
-            itensLegenda.push({
+            // Adicionar novo item
+            var quantidadeFinal = quantidade * multiplicador;
+            quantidadeFinal = funcoes.arredondarComponente(quantidadeFinal, unidadeSelecionada, nomeComponente);
+            
+            var novoItem = {
                 tipo: "componente",
                 nome: nomeComponente,
-                texto: funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidade, multiplicador),
-                referencia: combinacaoSelecionada.referencia,
-                quantidade: quantidade,
-                multiplicador: multiplicador,
+                quantidade: quantidadeFinal,
+                multiplicador: 1,
                 unidade: unidadeSelecionada,
-                componenteId: componenteSelecionado.id
-            });
-            logs.adicionarLog("Componente adicionado: " + nomeComponente + " - Qtd: " + quantidade + "x" + multiplicador, logs.TIPOS_LOG.INFO);
+                referencia: combinacaoSelecionada.referencia,
+                componenteId: componenteSelecionado.id,
+                texto: funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidadeFinal, 1)
+            };
+            
+            itensLegenda.push(novoItem);
         }
 
-        // Atualizar interface
-        atualizarListaItens();
+        // Atualizar a lista de itens
+        if (typeof atualizarListaItens === 'function') {
+            atualizarListaItens();
+        }
 
+        // Restaurar a última seleção
         try {
-            // Restaurar a última seleção
             restaurarUltimaSelecao(listaComponentes, listaCores, listaUnidades, campoQuantidade, campoMultiplicador, ultimaSelecao, dados, t);
         } catch (e) {
             alert("Erro ao restaurar seleção: " + e.message + "\nUsando reset padrão");
@@ -350,15 +320,7 @@ function adicionarComponente(listaComponentes, listaCores, listaUnidades, campoQ
             listaUnidades.selection = 0;
         }
 
-        logs.logFuncao("adicionarComponente", {
-            componente: nomeComponente,
-            quantidade: quantidade,
-            multiplicador: multiplicador,
-            unidade: unidadeSelecionada
-        }, "Componente adicionado com sucesso");
-
     } catch (e) {
-        logs.adicionarLog("Erro ao adicionar componente: " + e.message + " (Linha: " + e.line + ")", logs.TIPOS_LOG.ERROR);
         alert("Erro geral ao adicionar componente:\n" + e.message + "\nLinha: " + e.line);
     }
 }
@@ -370,5 +332,4 @@ $.global.funcoesComponentes = {
     salvarSelecaoAtual: salvarSelecaoAtual,
     restaurarUltimaSelecao: restaurarUltimaSelecao,
     adicionarComponente: adicionarComponente
-    // Adicione outras funções aqui
 }; 

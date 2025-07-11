@@ -13,9 +13,16 @@
  * - alterarIdioma(): Altera idioma e salva configuração
  */
 
+// Função auxiliar para logs protegidos
+function logProtegido(mensagem, tipo) {
+    if (typeof logs !== 'undefined' && logs.adicionarLog) {
+        logs.adicionarLog(mensagem, tipo);
+    }
+}
+
 // Função para mostrar janela de configuração inicial
 function mostrarJanelaConfigInicial() {
-    logs.adicionarLog("Exibindo janela de configuração inicial", "function");
+    logProtegido("Exibindo janela de configuração inicial", "function");
     
     var janelaConfig = new Window("dialog", "Configuração Inicial / Configuration Initiale");
     janelaConfig.orientation = "column";
@@ -38,7 +45,7 @@ function mostrarJanelaConfigInicial() {
     
     botaoOK.onClick = function() {
         if (campoNome.text.length > 0) {
-            logs.adicionarLog("Salvando configuração inicial - Nome: " + campoNome.text + ", Idioma: " + listaIdiomas.selection.text, "info");
+            logProtegido("Salvando configuração inicial - Nome: " + campoNome.text + ", Idioma: " + listaIdiomas.selection.text, "info");
             
             nomeDesigner = campoNome.text;
             idiomaUsuario = listaIdiomas.selection.text;
@@ -51,25 +58,25 @@ function mostrarJanelaConfigInicial() {
             
             try {
                 database.escreverArquivoJSON(caminhoConfig, config);
-                logs.adicionarLog("Configuração inicial salva com sucesso", "info");
+                logProtegido("Configuração inicial salva com sucesso", "info");
                 janelaConfig.close();
             } catch(e) {
-                logs.adicionarLog("Erro ao salvar configuração inicial: " + e.message, "error");
+                logProtegido("Erro ao salvar configuração inicial: " + e.message, "error");
                 alert("Erro ao salvar configuração / Erreur lors de l'enregistrement de la configuration: " + e.message);
             }
         } else {
-            logs.adicionarLog("Erro: Nome vazio na configuração inicial", "warning");
+            logProtegido("Erro: Nome vazio na configuração inicial", "warning");
             alert("Por favor, insira seu nome / S'il vous plaît, entrez votre nom");
         }
     };
     
-    logs.adicionarLog("Janela de configuração inicial criada", "info");
+    logProtegido("Janela de configuração inicial criada", "info");
     janelaConfig.show();
 }
 
 // Função para carregar configuração do usuário
 function carregarConfiguracaoUsuario() {
-    logs.adicionarLog("Carregando configuração do usuário", "function");
+    logProtegido("Carregando configuração do usuário", "function");
     
     try {
         if (database.arquivoExiste(caminhoConfig)) {
@@ -79,20 +86,20 @@ function carregarConfiguracaoUsuario() {
                 idiomaUsuario = config.idioma;
                 IDIOMA_ATUAL = config.idioma;
                 
-                logs.adicionarLog("Configuração carregada - Designer: " + nomeDesigner + ", Idioma: " + idiomaUsuario, "info");
+                logProtegido("Configuração carregada - Designer: " + nomeDesigner + ", Idioma: " + idiomaUsuario, "info");
                 return true;
             } else {
-                logs.adicionarLog("Configuração incompleta encontrada, exibindo janela inicial", "warning");
+                logProtegido("Configuração incompleta encontrada, exibindo janela inicial", "warning");
                 mostrarJanelaConfigInicial();
                 return false;
             }
         } else {
-            logs.adicionarLog("Arquivo de configuração não encontrado, exibindo janela inicial", "info");
+            logProtegido("Arquivo de configuração não encontrado, exibindo janela inicial", "info");
             mostrarJanelaConfigInicial();
             return false;
         }
     } catch(e) {
-        logs.adicionarLog("Erro ao carregar configuração: " + e.message, "error");
+        logProtegido("Erro ao carregar configuração: " + e.message, "error");
         mostrarJanelaConfigInicial();
         return false;
     }
@@ -100,7 +107,7 @@ function carregarConfiguracaoUsuario() {
 
 // Função para salvar configuração do usuário
 function salvarConfiguracaoUsuario(nome, idioma) {
-    logs.adicionarLog("Salvando configuração - Nome: " + nome + ", Idioma: " + idioma, "function");
+    logProtegido("Salvando configuração - Nome: " + nome + ", Idioma: " + idioma, "function");
     
     try {
         var config = {
@@ -109,17 +116,17 @@ function salvarConfiguracaoUsuario(nome, idioma) {
         };
         
         database.escreverArquivoJSON(caminhoConfig, config);
-        logs.adicionarLog("Configuração salva com sucesso", "info");
+        logProtegido("Configuração salva com sucesso", "info");
         return true;
     } catch(e) {
-        logs.adicionarLog("Erro ao salvar configuração: " + e.message, "error");
+        logProtegido("Erro ao salvar configuração: " + e.message, "error");
         return false;
     }
 }
 
 // Função para alterar idioma e salvar
 function alterarIdioma(novoIdioma) {
-    logs.adicionarLog("Alterando idioma para: " + novoIdioma, "function");
+    logProtegido("Alterando idioma para: " + novoIdioma, "function");
     
     try {
         // Carregar configuração atual
@@ -133,25 +140,25 @@ function alterarIdioma(novoIdioma) {
         idiomaUsuario = novoIdioma;
         IDIOMA_ATUAL = novoIdioma;
         
-        logs.adicionarLog("Idioma alterado e salvo com sucesso", "info");
+        logProtegido("Idioma alterado e salvo com sucesso", "info");
         return true;
     } catch(e) {
-        logs.adicionarLog("Erro ao alterar idioma: " + e.message, "error");
+        logProtegido("Erro ao alterar idioma: " + e.message, "error");
         return false;
     }
 }
 
 // Função para inicializar sistema de configuração
 function inicializarConfiguracao() {
-    logs.adicionarLog("Inicializando sistema de configuração", "function");
+    logProtegido("Inicializando sistema de configuração", "function");
     
     // Verificar se existe arquivo de configuração
     var configuracaoCarregada = carregarConfiguracaoUsuario();
     
     if (configuracaoCarregada) {
-        logs.adicionarLog("Sistema de configuração inicializado com sucesso", "info");
+        logProtegido("Sistema de configuração inicializado com sucesso", "info");
     } else {
-        logs.adicionarLog("Sistema de configuração inicializado - aguardando entrada do usuário", "info");
+        logProtegido("Sistema de configuração inicializado - aguardando entrada do usuário", "info");
     }
     
     return configuracaoCarregada;
@@ -199,4 +206,4 @@ $.global.config = {
     validarConfiguracao: validarConfiguracao
 };
 
-logs.adicionarLog("Módulo config.jsx carregado com sucesso", "info"); 
+logProtegido("Módulo config.jsx carregado com sucesso", "info"); 

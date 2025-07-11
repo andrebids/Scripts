@@ -13,22 +13,29 @@
  * - configurarBridgeTalk(): Configura comunicação BridgeTalk
  */
 
+// Função auxiliar para logs protegidos
+function logProtegido(mensagem, tipo) {
+    if (typeof logs !== 'undefined' && logs.adicionarLog && logs.TIPOS_LOG) {
+        logs.adicionarLog(mensagem, tipo);
+    }
+}
+
 // Função para executar contagem de bolas via BridgeTalk
 function executarContagemBolas(dados, textoResultado, callback) {
-    logs.adicionarLog("Iniciando contagem de bolas via BridgeTalk", logs.TIPOS_LOG.FUNCTION);
+    logProtegido("Iniciando contagem de bolas via BridgeTalk", logs.TIPOS_LOG.FUNCTION);
     
     try {
         // Validar dados
         if (!dados || typeof dados !== 'object' || !dados.componentes || !funcoes.isArray(dados.componentes)) {
-            logs.adicionarLog("Erro: Base de dados não acessível ou formato inválido", logs.TIPOS_LOG.ERROR);
+            logProtegido("Erro: Base de dados não acessível ou formato inválido", logs.TIPOS_LOG.ERROR);
             var mensagemErro = "Erro: A base de dados não está acessível ou está em um formato inválido.";
             if (callback) callback(mensagemErro, null);
             return;
         }
         
-        logs.adicionarLog("Base de dados validada, preparando BridgeTalk", logs.TIPOS_LOG.INFO);
+        logProtegido("Base de dados validada, preparando BridgeTalk", logs.TIPOS_LOG.INFO);
         var pastaScripts = File($.fileName).parent.fsName.replace(/\\/g, '/');
-        logs.adicionarLog("Pasta de scripts: " + pastaScripts, logs.TIPOS_LOG.INFO);
+        logProtegido("Pasta de scripts: " + pastaScripts, logs.TIPOS_LOG.INFO);
         
         // Configurar BridgeTalk
         var bt = new BridgeTalk();
@@ -44,12 +51,12 @@ function executarContagemBolas(dados, textoResultado, callback) {
         
         bt.body = btCode;
         
-        logs.adicionarLog("Código BridgeTalk preparado, enviando para Illustrator", logs.TIPOS_LOG.INFO);
+        logProtegido("Código BridgeTalk preparado, enviando para Illustrator", logs.TIPOS_LOG.INFO);
         
         // Configurar callback de sucesso
         bt.onResult = function(resObj) {
-            logs.adicionarLog("BridgeTalk retornou resultado", logs.TIPOS_LOG.INFO);
-            logs.adicionarLog("Resultado bruto: " + resObj.body, logs.TIPOS_LOG.INFO);
+            logProtegido("BridgeTalk retornou resultado", logs.TIPOS_LOG.INFO);
+            logProtegido("Resultado bruto: " + resObj.body, logs.TIPOS_LOG.INFO);
             
             var resultado = resObj.body.split("|");
             var contagem, combinacoes;
@@ -64,8 +71,8 @@ function executarContagemBolas(dados, textoResultado, callback) {
                 }
             }
             
-            logs.adicionarLog("Contagem extraída: " + contagem, logs.TIPOS_LOG.INFO);
-            logs.adicionarLog("Combinações extraídas: " + (combinacoes ? combinacoes.substring(0, 100) + "..." : "nenhuma"), logs.TIPOS_LOG.INFO);
+            logProtegido("Contagem extraída: " + contagem, logs.TIPOS_LOG.INFO);
+            logProtegido("Combinações extraídas: " + (combinacoes ? combinacoes.substring(0, 100) + "..." : "nenhuma"), logs.TIPOS_LOG.INFO);
             
             var textoCompleto = processarResultadoContagem(contagem, combinacoes);
             
@@ -75,7 +82,7 @@ function executarContagemBolas(dados, textoResultado, callback) {
                 textoResultado.notify("onChange");
             }
             
-            logs.adicionarLog("Resultado da contagem finalizado e exibido", logs.TIPOS_LOG.INFO);
+            logProtegido("Resultado da contagem finalizado e exibido", logs.TIPOS_LOG.INFO);
             
             if (callback) callback(null, textoCompleto);
             alert("Resultado atualizado na janela de contagem");
@@ -84,7 +91,7 @@ function executarContagemBolas(dados, textoResultado, callback) {
         // Configurar callback de erro
         bt.onError = function(err) {
             var mensagemErro = "Erro no BridgeTalk: " + err.body;
-            logs.adicionarLog(mensagemErro, logs.TIPOS_LOG.ERROR);
+            logProtegido(mensagemErro, logs.TIPOS_LOG.ERROR);
             
             if (textoResultado) {
                 textoResultado.text = mensagemErro;
@@ -95,12 +102,12 @@ function executarContagemBolas(dados, textoResultado, callback) {
             alert(mensagemErro);
         };
         
-        logs.adicionarLog("Enviando requisição BridgeTalk", logs.TIPOS_LOG.INFO);
+        logProtegido("Enviando requisição BridgeTalk", logs.TIPOS_LOG.INFO);
         bt.send();
         
     } catch (e) {
         var mensagemErro = "Erro ao iniciar contagem: " + (e.message || "Erro desconhecido") + "\nTipo de erro: " + (e.name || "Tipo de erro desconhecido");
-        logs.adicionarLog("Exceção capturada: " + mensagemErro, logs.TIPOS_LOG.ERROR);
+        logProtegido("Exceção capturada: " + mensagemErro, logs.TIPOS_LOG.ERROR);
         
         if (textoResultado) {
             textoResultado.text = mensagemErro;
@@ -114,22 +121,22 @@ function executarContagemBolas(dados, textoResultado, callback) {
 
 // Função para processar resultado da contagem de bolas
 function processarResultadoContagem(contagem, combinacoes) {
-    logs.adicionarLog("Processando resultado da contagem: " + contagem + " bolas", logs.TIPOS_LOG.FUNCTION);
+    logProtegido("Processando resultado da contagem: " + contagem + " bolas", logs.TIPOS_LOG.FUNCTION);
     
     var textoCompleto = "";
     
     if (contagem !== undefined) {
         if (contagem === 0) {
             textoCompleto = "Resultado: " + (combinacoes || "Nenhum objeto selecionado") + "\n\n";
-            logs.adicionarLog("Nenhuma bola encontrada", logs.TIPOS_LOG.INFO);
+            logProtegido("Nenhuma bola encontrada", logs.TIPOS_LOG.INFO);
         } else {
             var textoBoule = contagem === 1 ? "boule" : "boules";
             textoCompleto = "Total de " + contagem + " " + textoBoule + " :\n";
-            logs.adicionarLog("Processando " + contagem + " " + textoBoule, logs.TIPOS_LOG.INFO);
+            logProtegido("Processando " + contagem + " " + textoBoule, logs.TIPOS_LOG.INFO);
             
             if (combinacoes && combinacoes !== "Nenhum objeto selecionado") {
                 var combArray = combinacoes.split(",");
-                logs.adicionarLog("Processando " + (combArray.length - 1) + " combinações", logs.TIPOS_LOG.INFO);
+                logProtegido("Processando " + (combArray.length - 1) + " combinações", logs.TIPOS_LOG.INFO);
                 
                 // Processar cada combinação
                 for (var i = 1; i < combArray.length; i++) {
@@ -139,35 +146,41 @@ function processarResultadoContagem(contagem, combinacoes) {
                         var tamanho = combInfo[1];
                         var quantidade = combInfo[2];
                         textoCompleto += "boule " + cor + " ⌀ " + tamanho + " m: " + quantidade + "\n";
-                        logs.adicionarLog("Combinação processada: " + cor + " ⌀ " + tamanho + " m: " + quantidade, logs.TIPOS_LOG.INFO);
+                        logProtegido("Combinação processada: " + cor + " ⌀ " + tamanho + " m: " + quantidade, logs.TIPOS_LOG.INFO);
                     } else {
                         textoCompleto += combArray[i] + "\n";
-                        logs.adicionarLog("Combinação malformada: " + combArray[i], logs.TIPOS_LOG.WARNING);
+                        logProtegido("Combinação malformada: " + combArray[i], logs.TIPOS_LOG.WARNING);
                     }
                 }
             } else {
                 textoCompleto += "Nenhuma informação de combinação disponível\n";
-                logs.adicionarLog("Nenhuma informação de combinação disponível", logs.TIPOS_LOG.WARNING);
+                logProtegido("Nenhuma informação de combinação disponível", logs.TIPOS_LOG.WARNING);
             }
         }
     } else {
         textoCompleto = "Erro: Resultado inválido";
-        logs.adicionarLog("Erro ao processar resultado: resultado inválido", logs.TIPOS_LOG.ERROR);
+        logProtegido("Erro ao processar resultado: resultado inválido", logs.TIPOS_LOG.ERROR);
     }
     
-    logs.adicionarLog("Processamento do resultado concluído", logs.TIPOS_LOG.INFO);
+    logProtegido("Processamento do resultado concluído", logs.TIPOS_LOG.INFO);
     return textoCompleto;
 }
 
 // Função para adicionar legenda via BridgeTalk
 function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, palavraDigitada, tamanhoGXSelecionado, t, janela, callback) {
-    logs.adicionarLog("Iniciando adição de legenda via BridgeTalk", logs.TIPOS_LOG.FUNCTION);
-    logs.adicionarLog("Designer: " + nomeDesigner + ", Tamanho GX: " + tamanhoGXSelecionado, logs.TIPOS_LOG.INFO);
+    if (typeof logs !== 'undefined' && logs.adicionarLog && logs.TIPOS_LOG) {
+        logProtegido("Iniciando adição de legenda via BridgeTalk", logs.TIPOS_LOG.FUNCTION);
+    }
+    if (typeof logs !== 'undefined' && logs.adicionarLog && logs.TIPOS_LOG) {
+        logProtegido("Designer: " + nomeDesigner + ", Tamanho GX: " + tamanhoGXSelecionado, logs.TIPOS_LOG.INFO);
+    }
     
     try {
         // Função que será executada no contexto do Illustrator
         var scriptIllustrator = function(nomeDesigner, conteudoLegenda, texturasString, palavraDigitada, tamanhoGX) {
-            logs.adicionarLog("Script executando no Illustrator", logs.TIPOS_LOG.INFO);
+            if (typeof logs !== 'undefined' && logs.adicionarLog && logs.TIPOS_LOG) {
+                logProtegido("Script executando no Illustrator", logs.TIPOS_LOG.INFO);
+            }
             
             // Função gerarNomeArquivoAlfabeto local para o BridgeTalk
             function gerarNomeArquivoAlfabeto(caractere, sufixoTamanho) {
@@ -375,14 +388,14 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
         bt.target = "illustrator";
         bt.body = scriptString;
         
-        logs.adicionarLog("Script BridgeTalk preparado, enviando para Illustrator", logs.TIPOS_LOG.INFO);
+        logProtegido("Script BridgeTalk preparado, enviando para Illustrator", logs.TIPOS_LOG.INFO);
         
         // Configurar callback de sucesso
         bt.onResult = function(resObj) {
-            logs.adicionarLog("BridgeTalk retornou: " + resObj.body, logs.TIPOS_LOG.INFO);
+            logProtegido("BridgeTalk retornou: " + resObj.body, logs.TIPOS_LOG.INFO);
             
             if (resObj.body === "success") {
-                logs.adicionarLog("Legenda adicionada com sucesso", logs.TIPOS_LOG.INFO);
+                logProtegido("Legenda adicionada com sucesso", logs.TIPOS_LOG.INFO);
                 alert(t("legendaAdicionada"));
                 if (janela) {
                     janela.close();
@@ -391,7 +404,7 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
                 if (callback) callback(null, "success");
             } else {
                 var mensagemErro = "Ocorreu um problema ao adicionar a legenda: " + resObj.body;
-                logs.adicionarLog(mensagemErro, logs.TIPOS_LOG.ERROR);
+                logProtegido(mensagemErro, logs.TIPOS_LOG.ERROR);
                 alert(mensagemErro);
                 if (callback) callback(mensagemErro, null);
             }
@@ -400,7 +413,7 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
         // Configurar callback de erro
         bt.onError = function(err) {
             var mensagemErro = "Erro ao adicionar legenda: " + err.body;
-            logs.adicionarLog(mensagemErro, logs.TIPOS_LOG.ERROR);
+            logProtegido(mensagemErro, logs.TIPOS_LOG.ERROR);
             alert(mensagemErro);
             if (callback) callback(mensagemErro, null);
         };
@@ -409,7 +422,7 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
         
     } catch (e) {
         var mensagemErro = "Erro ao adicionar legenda: " + e + "\nLinha: " + e.line;
-        logs.adicionarLog("Exceção capturada: " + mensagemErro, logs.TIPOS_LOG.ERROR);
+        logProtegido("Exceção capturada: " + mensagemErro, logs.TIPOS_LOG.ERROR);
         alert(mensagemErro);
         if (callback) callback(mensagemErro, null);
     }
@@ -417,7 +430,7 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
 
 // Função para escapar strings para uso em BridgeTalk
 function escaparStringParaBridge(str) {
-    logs.adicionarLog("Escapando string para BridgeTalk: " + (str ? str.substring(0, 50) + "..." : "null"), logs.TIPOS_LOG.INFO);
+    logProtegido("Escapando string para BridgeTalk: " + (str ? str.substring(0, 50) + "..." : "null"), logs.TIPOS_LOG.INFO);
     
     if (!str) return "";
     
@@ -431,18 +444,18 @@ function escaparStringParaBridge(str) {
 
 // Função para validar ambiente BridgeTalk
 function validarAmbienteBridge() {
-    logs.adicionarLog("Validando ambiente BridgeTalk", logs.TIPOS_LOG.FUNCTION);
+    logProtegido("Validando ambiente BridgeTalk", logs.TIPOS_LOG.FUNCTION);
     
     try {
         if (typeof BridgeTalk === "undefined") {
-            logs.adicionarLog("BridgeTalk não está disponível", logs.TIPOS_LOG.ERROR);
+            logProtegido("BridgeTalk não está disponível", logs.TIPOS_LOG.ERROR);
             return false;
         }
         
-        logs.adicionarLog("Ambiente BridgeTalk validado com sucesso", logs.TIPOS_LOG.INFO);
+        logProtegido("Ambiente BridgeTalk validado com sucesso", logs.TIPOS_LOG.INFO);
         return true;
     } catch (e) {
-        logs.adicionarLog("Erro ao validar ambiente BridgeTalk: " + e.message, logs.TIPOS_LOG.ERROR);
+        logProtegido("Erro ao validar ambiente BridgeTalk: " + e.message, logs.TIPOS_LOG.ERROR);
         return false;
     }
 }

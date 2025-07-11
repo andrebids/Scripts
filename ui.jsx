@@ -313,14 +313,20 @@ function criarInterfaceContadorBolas(grupoContar, dados, itensLegenda, atualizar
     };
 
     botaoContar.onClick = function() {
-        logs.logEvento("click", "botaoContar - Iniciando contagem de bolas");
+                    if (logs && logs.logEvento) {
+                logs.logEvento("click", "botaoContar - Iniciando contagem de bolas");
+            }
         
         // Usar módulo bridge para executar contagem
         bridge.executarContagemBolas(dados, textoResultado, function(erro, resultado) {
             if (erro) {
-                logs.adicionarLog("Erro na contagem via bridge: " + erro, logs.TIPOS_LOG.ERROR);
+                if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
+                    logs.adicionarLog("Erro na contagem via bridge: " + erro, logs.TIPOS_LOG.ERROR);
+                }
             } else {
-                logs.adicionarLog("Contagem via bridge concluída com sucesso", logs.TIPOS_LOG.INFO);
+                if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
+                    logs.adicionarLog("Contagem via bridge concluída com sucesso", logs.TIPOS_LOG.INFO);
+                }
             }
         });
     };

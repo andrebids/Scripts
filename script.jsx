@@ -15,6 +15,7 @@ $.evalFile(File($.fileName).path + "/update.jsx");
 $.evalFile(File($.fileName).path + "/funcoesComponentes.jsx");
 $.evalFile(File($.fileName).path + "/funcoesBolas.jsx");    
 $.evalFile(File($.fileName).path + "/funcoesLegenda.jsx");
+$.evalFile(File($.fileName).path + "/funcoesFiltragem.jsx");
 
 // Adicionar no início do arquivo, após os outros $.evalFile
 $.evalFile(File($.fileName).path + "/alfabeto.jsx");
@@ -322,81 +323,33 @@ grupoPesquisa.alignChildren = "center";
 
 
 var labelPesquisa = grupoPesquisa.add("statictext", undefined, t("procurar"));
-    
-// Campo de pesquisa (otimizado)
-var campoPesquisa = grupoPesquisa.add("edittext", undefined, "");
-campoPesquisa.characters = 15; // Reduzir de 20 para 15
-campoPesquisa.preferredSize.width = 120; // Definir largura fixa
-campoPesquisa.onChanging = function() {
-    filtrarComponentes(campoPesquisa.text);
-};
-
-// Função para filtrar componentes
-function filtrarComponentes(termo) {
-    var componentesFiltrados = [t("selecioneComponente")];
-    
-    if (termo.length > 0) {
-        for (var i = 1; i < componentesNomes.length; i++) {
-            if (componentesNomes[i].toLowerCase().indexOf(termo.toLowerCase()) !== -1) {
-                componentesFiltrados.push(componentesNomes[i]);
-            }
-        }
-    } else {
-        componentesFiltrados = [t("selecioneComponente")].concat(componentesNomes.slice(1));
-    }
-
-    // Salvar a seleção atual
-    var selecaoAtual = listaComponentes.selection;
-
-    // Limpar e repopular a lista
-    listaComponentes.removeAll();
-    for (var i = 0; i < componentesFiltrados.length; i++) {
-        listaComponentes.add("item", componentesFiltrados[i]);
-    }
-
-    // Restaurar a seleção se possível, ou selecionar o primeiro item filtrado
-    if (componentesFiltrados.length > 1) {
-        if (selecaoAtual && componentesFiltrados.indexOf(selecaoAtual.text) !== -1) {
-            listaComponentes.selection = componentesFiltrados.indexOf(selecaoAtual.text);
-        } else {
-            listaComponentes.selection = 1; // Seleciona o primeiro componente filtrado
-        }
-    } else {
-        listaComponentes.selection = 0; // Seleciona "Selecione um componente" se não houver resultados
-    }
-
-    // Atualizar cores e unidades
-    funcoes.atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, function() {
-        if (funcoesComponentes && funcoesComponentes.verificarCMYK) {
-            funcoesComponentes.verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, funcoes.encontrarIndicePorNome);
-        }
-    });
-}
 
 var grupo2 = grupoComponentes.add("group");
 grupo2.orientation = "row";
 
-// Função para obter componentes com combinações
-function getComponentesComCombinacoes() {
-    var componentesDisponiveis = [t("selecioneComponente")]; // Usar t() aqui
-    var componentesIds = [];
-    for (var i = 0; i < dados.combinacoes.length; i++) {
-        var componenteId = dados.combinacoes[i].componenteId;
-        if (!arrayContains(componentesIds, componenteId)) {
-            var componente = encontrarPorId(dados.componentes, componenteId);
-            if (componente) {
-                componentesDisponiveis.push(componente.nome);
-                componentesIds.push(componenteId);
-            }
-        }
-    }
-    return componentesDisponiveis;
-}
+// Função getComponentesComCombinacoes movida para funcoesFiltragem.jsx
 
 // Atualizar a criação da lista de componentes
-var componentesNomes = getComponentesComCombinacoes();
+var componentesNomes = funcoesFiltragem.getComponentesComCombinacoes(dados, t, funcoes.arrayContains, funcoes.encontrarPorId);
 var listaComponentes = grupo2.add("dropdownlist", undefined, componentesNomes);
 listaComponentes.selection = 0;
+
+// Lista de cores
+var coresNomes = [t("selecioneCor")].concat(extrairNomes(dados.cores));
+var listaCores = grupo2.add("dropdownlist", undefined, coresNomes);
+listaCores.selection = 0;
+
+// Lista de unidades
+var listaUnidades = grupo2.add("dropdownlist", undefined, [t("selecioneUnidade")]);
+listaUnidades.selection = 0;
+
+// Campo de pesquisa (otimizado) - CRIADO APÓS TODAS AS LISTAS
+var campoPesquisa = grupoPesquisa.add("edittext", undefined, "");
+campoPesquisa.characters = 15; // Reduzir de 20 para 15
+campoPesquisa.preferredSize.width = 120; // Definir largura fixa
+campoPesquisa.onChanging = function() {
+    funcoesFiltragem.filtrarComponentes(campoPesquisa.text, componentesNomes, listaComponentes, listaCores, listaUnidades, dados, t, funcoes, funcoesComponentes);
+};
 
 // Evento para atualizar cores e unidades ao selecionar um componente
 listaComponentes.onChange = function() {
@@ -407,20 +360,12 @@ listaComponentes.onChange = function() {
     });
 };
 
-// Lista de cores
-var coresNomes = [t("selecioneCor")].concat(extrairNomes(dados.cores));
-var listaCores = grupo2.add("dropdownlist", undefined, coresNomes);
-listaCores.selection = 0;
-
 // Evento para atualizar unidades ao selecionar uma cor
 listaCores.onChange = function() {
     if (funcoesComponentes && funcoesComponentes.atualizarUnidades) {
         funcoesComponentes.atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, funcoes.selecionarUnidadeMetrica, funcoes.arrayContains);
     }
 };
-// Lista de unidades
-var listaUnidades = grupo2.add("dropdownlist", undefined, [t("selecioneUnidade")]);
-listaUnidades.selection = 0;
 
 // Campo de quantidade (otimizado)
 var campoQuantidade = grupo2.add("edittext", undefined, "");
@@ -439,7 +384,9 @@ var botaoAdicionarComponente = grupo2.add("button", undefined, t("botaoAdicionar
 
 // Evento para adicionar componente ao clicar no botão
 botaoAdicionarComponente.onClick = function() {
-    logs.logEvento("click", "botaoAdicionarComponente");
+    if (logs && logs.logEvento) {
+        logs.logEvento("click", "botaoAdicionarComponente");
+    }
     funcoesComponentes.adicionarComponente(
         listaComponentes,
         listaCores,
@@ -514,7 +461,9 @@ areaLogs.preferredSize.height = 80;
 $.global.areaLogs = areaLogs;
 
 // Inicializar sistema de logs
-logs.inicializarSistemaLogs();
+if (logs && logs.inicializarSistemaLogs) {
+    logs.inicializarSistemaLogs();
+}
 
 // Selecionar a primeira aba por padrão
 abasExtra.selection = abaGeral;
@@ -522,25 +471,10 @@ abasExtra.selection = abaGeral;
 var grupoBolasSelecao = grupoBolas.add("group");
 grupoBolasSelecao.orientation = "row";
 
-// Função para obter cores disponíveis para bolas
-function getCoresDisponiveisBolas() {
-    var coresDisponiveis = [t("selecioneCor")];  // Já inclui o item inicial aqui
-    var coresIds = [];
-    for (var i = 0; i < dados.bolas.length; i++) {
-        var corId = dados.bolas[i].corId;
-        if (!arrayContains(coresIds, corId)) {
-            var cor = encontrarPorId(dados.cores, corId);
-            if (cor) {
-                coresDisponiveis.push(cor.nome);
-                coresIds.push(corId);
-            }
-        }
-    }
-    return coresDisponiveis;
-}
+// Função getCoresDisponiveisBolas movida para funcoesFiltragem.jsx
 
 // Lista de cores para bolas
-var coresBolasDisponiveis = getCoresDisponiveisBolas(); // Remover a concatenação extra
+var coresBolasDisponiveis = funcoesFiltragem.getCoresDisponiveisBolas(dados, t, funcoes.arrayContains, funcoes.encontrarPorId);
 var listaCoresBolas = grupoBolasSelecao.add("dropdownlist", undefined, coresBolasDisponiveis);
 listaCoresBolas.selection = 0;
 
@@ -564,13 +498,17 @@ var botaoAdicionarBola = grupoBolasSelecao.add("button", undefined, t("adicionar
 
 // Adicionar eventos de mudança
 listaCoresBolas.onChange = function() {
-    logs.logEvento("change", "listaCoresBolas - " + (this.selection ? this.selection.text : "nenhuma seleção"));
+    if (logs && logs.logEvento) {
+        logs.logEvento("change", "listaCoresBolas - " + (this.selection ? this.selection.text : "nenhuma seleção"));
+    }
     funcoesBolas.atualizarAcabamentos(listaCoresBolas, listaAcabamentos, dados, t, funcoes, function() {
         funcoesBolas.atualizarTamanhos(listaCoresBolas, listaAcabamentos, listaTamanhos, dados, t, funcoes);
     });
 };
 listaAcabamentos.onChange = function() {
-    logs.logEvento("change", "listaAcabamentos - " + (this.selection ? this.selection.text : "nenhuma seleção"));
+    if (logs && logs.logEvento) {
+        logs.logEvento("change", "listaAcabamentos - " + (this.selection ? this.selection.text : "nenhuma seleção"));
+    }
     funcoesBolas.atualizarTamanhos(listaCoresBolas, listaAcabamentos, listaTamanhos, dados, t, funcoes);
 };
 
@@ -698,53 +636,10 @@ checkboxMostrarAlfabeto.onClick = function() {
         grupoAlfabeto.add("statictext", undefined, t("instrucaoAlfabeto"));
 
         // Função para preencher o dropdown de cores do bioprint
-        function preencherCoresBioprint() {
-            dropdownCorBioprint.removeAll();
-            
-            var componenteBioprint = null;
-            for (var i = 0; i < dados.componentes.length; i++) {
-                if (dados.componentes[i].nome.toLowerCase() === "bioprint") {
-                    componenteBioprint = dados.componentes[i];
-                    break;
-                }
-            }
-            
-            if (componenteBioprint) {
-                var coresBioprint = [];
-                var indexOr = -1;
-                for (var i = 0; i < dados.combinacoes.length; i++) {
-                    if (dados.combinacoes[i].componenteId === componenteBioprint.id) {
-                        var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
-                        if (cor && !arrayContains(coresBioprint, cor)) {
-                            coresBioprint.push(cor);
-                            if (cor.nome.toLowerCase() === "or") {
-                                indexOr = coresBioprint.length - 1;
-                            }
-                        }
-                    }
-                }
-            
-                for (var i = 0; i < coresBioprint.length; i++) {
-                    dropdownCorBioprint.add("item", coresBioprint[i].nome);
-                }
-            
-                // Pré-selecionar "or" se existir, caso contrário, selecionar o primeiro item
-                if (indexOr !== -1) {
-                    dropdownCorBioprint.selection = indexOr;
-                } else if (coresBioprint.length > 0) {
-                    dropdownCorBioprint.selection = 0;
-                }
-            }
-            
-            // Se não houver cores disponíveis, adicionar um item padrão
-            if (dropdownCorBioprint.items.length === 0) {
-                dropdownCorBioprint.add("item", "Sem cores disponíveis");
-                dropdownCorBioprint.selection = 0;
-            }
-        }
+        // Função preencherCoresBioprint movida para funcoesFiltragem.jsx
 
         // Chamar a função para preencher as cores do bioprint
-        preencherCoresBioprint();
+        funcoesFiltragem.preencherCoresBioprint(dropdownCorBioprint, dados, funcoes.arrayContains, funcoes.encontrarPorId);
 
         // Substituir a função processarAlfabeto() existente por:
         botaoAdicionarPalavraChave.onClick = function() {
@@ -795,20 +690,7 @@ checkboxMostrarTexturas.onClick = function() {
       grupoLista.alignChildren = ["left", "top"];
       grupoLista.spacing = 5;
 
-      // Função auxiliar para obter o número da textura (colocar ANTES dos eventos)
-      function obterNumeroTextura(texturaNome) {
-          if (texturaNome.indexOf("Texture") === 0) {
-              return parseInt(texturaNome.replace("Texture ", ""));
-          }
-          // Para texturas Flexi, manter a numeração original
-          switch(texturaNome) {
-              case "Flexi Triangle": return 17;
-              case "Flexi Boucle": return 18;
-              case "Flexi Losange": return 19;
-              case "Flexi Meli Melo": return 20;
-              default: return 1;
-          }
-      }
+      // Função obterNumeroTextura movida para funcoesFiltragem.jsx
 
       // Lista de texturas no subgrupo
       listaTexturas = grupoLista.add("dropdownlist", undefined, [
@@ -849,7 +731,7 @@ checkboxMostrarTexturas.onClick = function() {
                 listaTexturas.selection.index > 0 && 
                 listaTexturas.selection.text.indexOf("---") === -1) {
                 
-                var texturaNumero = obterNumeroTextura(listaTexturas.selection.text);
+                var texturaNumero = funcoesFiltragem.obterNumeroTextura(listaTexturas.selection.text);
                 var texturaNome = listaTexturas.selection.text;
                 
                 // Adicionar a textura à lista de itens
@@ -885,7 +767,7 @@ checkboxMostrarTexturas.onClick = function() {
         
         if (this.selection.index > 0 && this.selection.text.indexOf("---") === -1) {
             try {
-                var numeroTextura = obterNumeroTextura(this.selection.text);
+                var numeroTextura = funcoesFiltragem.obterNumeroTextura(this.selection.text);
                 var nomeArquivo = "texture" + numeroTextura + ".png";
                 var caminhoImagem = File($.fileName).parent + "/png/" + nomeArquivo;
                 var arquivoImagem = new File(caminhoImagem);
@@ -1010,7 +892,9 @@ botaoGerar.graphics.foregroundColor = botaoGerar.graphics.newPen(botaoGerar.grap
 
   
 function atualizarListaItens() {
-    logs.logFuncao("atualizarListaItens", {totalItens: itensLegenda.length}, "Lista atualizada");
+    if (logs && logs.logFuncao) {
+        logs.logFuncao("atualizarListaItens", {totalItens: itensLegenda.length}, "Lista atualizada");
+    }
     listaItens.removeAll();
     var componentesNaoBolas = [];
     var bolas = [];
@@ -1055,7 +939,9 @@ function atualizarListaItens() {
 
   // Evento de clique no botão gerar
   botaoGerar.onClick = function() {
+    if (logs && logs.logEvento) {
         logs.logEvento("click", "botaoGerar");
+    }
         // Verificar se o tipo de fixação foi selecionado
         if (!listaFixacao.selection || listaFixacao.selection.index === 0) {
             alert(t("selecionarTipoFixacao"));
@@ -1126,9 +1012,13 @@ function atualizarListaItens() {
                     janela,
                     function(erro, resultado) {
                         if (erro) {
-                            logs.adicionarLog("Erro ao adicionar legenda via bridge: " + erro, logs.TIPOS_LOG.ERROR);
+                            if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
+                                logs.adicionarLog("Erro ao adicionar legenda via bridge: " + erro, logs.TIPOS_LOG.ERROR);
+                            }
                         } else {
-                            logs.adicionarLog("Legenda adicionada via bridge com sucesso", logs.TIPOS_LOG.INFO);
+                            if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
+                                logs.adicionarLog("Legenda adicionada via bridge com sucesso", logs.TIPOS_LOG.INFO);
+                            }
                         }
                     }
                 );

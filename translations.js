@@ -115,7 +115,7 @@ var TRANSLATIONS = {
             "transversal": "transversal",
             "murale": "murale",
             "sansFixation": "sans fixation",
-            "auSol": "au sol",
+            "auSol": "posé au sol",
             "speciale": "spéciale",
             "aucune": "aucune"
         },
@@ -234,7 +234,7 @@ var TRANSLATIONS = {
             "transversal": "transversal",
             "murale": "murale",
             "sansFixation": "sans fixation",
-            "auSol": "au sol",
+            "auSol": "posé au sol",
             "speciale": "spéciale",
             "aucune": "aucune"
         },

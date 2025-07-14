@@ -554,7 +554,231 @@ function exemploComLogs(parametros) {
 - [ ] **10.2** Implementar conforme padrões de base de dados estabelecidos
 - [ ] **10.3** Testar integração seguindo checklist obrigatório
 
-## 11. Refino Final e Otimização
+## 11. Reorganização Estrutural em Pastas - **NOVA TAREFA ⭐**
+- **Domínio:** Organização física dos arquivos em estrutura hierárquica funcional
+- **Objetivo:** Reorganizar todos os módulos em pastas temáticas para melhor manutenibilidade
+- **Duração estimada:** 60-90 minutos (incluindo testes completos)
+- **Responsabilidades esperadas:**
+  - Criar estrutura de pastas baseada na arquitetura funcional validada
+  - Mover arquivos respeitando agrupamentos por domínio
+  - Atualizar todos os paths de imports no script.jsx
+  - Validar funcionamento após cada etapa de reorganização
+  - Manter compatibilidade total com funcionalidades existentes
+  - Logs detalhados de todas as operações de reorganização
+
+### **📁 ESTRUTURA ALVO PROPOSTA:**
+```
+Legenda/
+├── script.jsx                    (PRINCIPAL - Permanece na raiz)
+├── installer.bat
+├── PLANO_MODULARIZACAO.md
+├── core/                         (MÓDULOS FUNDAMENTAIS)
+│   ├── funcoes.jsx
+│   ├── database.jsx  
+│   ├── logs.jsx
+│   ├── regras.jsx
+│   └── inicializacao.jsx
+├── modules/                      (MÓDULOS FUNCIONAIS)
+│   ├── funcoesComponentes.jsx
+│   ├── funcoesBolas.jsx
+│   ├── funcoesLegenda.jsx
+│   ├── funcoesFiltragem.jsx
+│   └── alfabeto.jsx
+├── infrastructure/               (INFRAESTRUTURA E COMUNICAÇÃO)
+│   ├── bridge.jsx
+│   ├── config.jsx
+│   └── update.jsx
+├── ui/                          (INTERFACE E GESTÃO)
+│   ├── ui.jsx
+│   └── gestaoLista.jsx
+├── assets/                      (RECURSOS E BIBLIOTECAS)
+│   ├── json2.js
+│   ├── translations.js
+│   ├── data.json
+│   ├── database2.json
+│   ├── Legendadata.json
+│   ├── settings.json
+│   └── version.json
+└── resources/                   (RECURSOS VISUAIS)
+    ├── svg/
+    ├── png/
+    └── alfabeto/
+```
+
+### **📋 TAREFAS DETALHADAS - EXECUÇÃO INCREMENTAL:**
+
+#### **11.1 FASE 1: Preparação e Estrutura Base**
+- **Duração:** 10-15 minutos
+- **Objetivo:** Criar pastas e preparar reorganização
+- **Testes:** Verificação de estrutura criada
+
+**Tarefas específicas:**
+- [ ] **11.1.1** Fazer backup completo do projeto
+- [ ] **11.1.2** Criar pasta `/core/` na raiz do projeto
+- [ ] **11.1.3** Criar pasta `/modules/` na raiz do projeto
+- [ ] **11.1.4** Criar pasta `/infrastructure/` na raiz do projeto
+- [ ] **11.1.5** Criar pasta `/ui/` na raiz do projeto
+- [ ] **11.1.6** Criar pasta `/assets/` na raiz do projeto
+- [ ] **11.1.7** **TESTE VISUAL:** Verificar se todas as pastas foram criadas corretamente
+
+#### **11.2 FASE 2: Módulos Fundamentais → /core/**
+- **Duração:** 10-15 minutos
+- **Objetivo:** Mover módulos fundamentais e atualizar imports
+- **Testes:** Verificação de funcionamento após cada módulo movido
+
+**Tarefas específicas:**
+- [ ] **11.2.1** Mover `funcoes.jsx` para `/core/funcoes.jsx`
+- [ ] **11.2.2** Atualizar import no script.jsx: `"/core/funcoes.jsx"`
+- [ ] **11.2.3** **TESTE MANUAL:** Abrir script no Illustrator → verificar se carrega sem erro
+- [ ] **11.2.4** Mover `database.jsx` para `/core/database.jsx`
+- [ ] **11.2.5** Atualizar import no script.jsx: `"/core/database.jsx"`
+- [ ] **11.2.6** **TESTE MANUAL:** Verificar carregamento da base de dados
+- [ ] **11.2.7** Mover `logs.jsx` para `/core/logs.jsx`
+- [ ] **11.2.8** Atualizar import no script.jsx: `"/core/logs.jsx"`
+- [ ] **11.2.9** **TESTE MANUAL:** Verificar aba Logs funciona
+- [ ] **11.2.10** Mover `regras.jsx` para `/core/regras.jsx`
+- [ ] **11.2.11** Atualizar import no script.jsx: `"/core/regras.jsx"`
+- [ ] **11.2.12** Mover `inicializacao.jsx` para `/core/inicializacao.jsx`
+- [ ] **11.2.13** Atualizar import no script.jsx: `"/core/inicializacao.jsx"`
+- [ ] **11.2.14** **TESTE COMPLETO:** Executar checklist básico completo
+
+#### **11.3 FASE 3: Módulos Funcionais → /modules/**
+- **Duração:** 15-20 minutos
+- **Objetivo:** Mover módulos de lógica de negócio
+- **Testes:** Verificação de funcionalidades específicas
+
+**Tarefas específicas:**
+- [ ] **11.3.1** Mover `funcoesComponentes.jsx` para `/modules/funcoesComponentes.jsx`
+- [ ] **11.3.2** Atualizar import no script.jsx: `"/modules/funcoesComponentes.jsx"`
+- [ ] **11.3.3** **TESTE MANUAL:** Adicionar componente → verificar funcionamento
+- [ ] **11.3.4** Mover `funcoesBolas.jsx` para `/modules/funcoesBolas.jsx`
+- [ ] **11.3.5** Atualizar import no script.jsx: `"/modules/funcoesBolas.jsx"`
+- [ ] **11.3.6** **TESTE MANUAL:** Adicionar bola → verificar funcionamento
+- [ ] **11.3.7** Mover `funcoesLegenda.jsx` para `/modules/funcoesLegenda.jsx`
+- [ ] **11.3.8** Atualizar import no script.jsx: `"/modules/funcoesLegenda.jsx"`
+- [ ] **11.3.9** **TESTE MANUAL:** Gerar legenda → verificar texto completo
+- [ ] **11.3.10** Mover `funcoesFiltragem.jsx` para `/modules/funcoesFiltragem.jsx`
+- [ ] **11.3.11** Atualizar import no script.jsx: `"/modules/funcoesFiltragem.jsx"`
+- [ ] **11.3.12** **TESTE MANUAL:** Pesquisar componente → verificar filtros
+- [ ] **11.3.13** Mover `alfabeto.jsx` para `/modules/alfabeto.jsx`
+- [ ] **11.3.14** Atualizar import no script.jsx: `"/modules/alfabeto.jsx"`
+- [ ] **11.3.15** **TESTE MANUAL:** Ativar checkbox GX → verificar interface
+
+#### **11.4 FASE 4: Infraestrutura → /infrastructure/**
+- **Duração:** 10-15 minutos
+- **Objetivo:** Mover módulos de comunicação e configuração
+- **Testes:** Verificação de funcionalidades de sistema
+
+**Tarefas específicas:**
+- [ ] **11.4.1** Mover `bridge.jsx` para `/infrastructure/bridge.jsx`
+- [ ] **11.4.2** Atualizar import no script.jsx: `"/infrastructure/bridge.jsx"`
+- [ ] **11.4.3** **TESTE MANUAL:** Contador de bolas → verificar BridgeTalk
+- [ ] **11.4.4** Mover `config.jsx` para `/infrastructure/config.jsx`
+- [ ] **11.4.5** Atualizar import no script.jsx: `"/infrastructure/config.jsx"`
+- [ ] **11.4.6** **TESTE MANUAL:** Mudar idioma → verificar funcionamento
+- [ ] **11.4.7** Mover `update.jsx` para `/infrastructure/update.jsx`
+- [ ] **11.4.8** Atualizar import no script.jsx: `"/infrastructure/update.jsx"`
+- [ ] **11.4.9** **TESTE MANUAL:** Botão Update → verificar funcionamento
+
+#### **11.5 FASE 5: Interface → /ui/**
+- **Duração:** 10 minutos
+- **Objetivo:** Mover módulos de interface
+- **Testes:** Verificação de elementos UI específicos
+
+**Tarefas específicas:**
+- [ ] **11.5.1** Mover `ui.jsx` para `/ui/ui.jsx`
+- [ ] **11.5.2** Atualizar import no script.jsx: `"/ui/ui.jsx"`
+- [ ] **11.5.3** **TESTE MANUAL:** Checkbox texturas → verificar interface
+- [ ] **11.5.4** **TESTE MANUAL:** Checkbox observações → verificar campo
+- [ ] **11.5.5** Mover `gestaoLista.jsx` para `/ui/gestaoLista.jsx`
+- [ ] **11.5.6** Atualizar import no script.jsx: `"/ui/gestaoLista.jsx"`
+- [ ] **11.5.7** **TESTE MANUAL:** Remover item lista → verificar funcionamento
+- [ ] **11.5.8** **TESTE MANUAL:** Remover todos → verificar confirmação
+
+#### **11.6 FASE 6: Recursos → /assets/**
+- **Duração:** 5-10 minutos
+- **Objetivo:** Mover bibliotecas e dados
+- **Testes:** Verificação de carregamento de recursos
+
+**Tarefas específicas:**
+- [ ] **11.6.1** Mover `json2.js` para `/assets/json2.js`
+- [ ] **11.6.2** Atualizar import no script.jsx: `"/assets/json2.js"`
+- [ ] **11.6.3** Mover `translations.js` para `/assets/translations.js`
+- [ ] **11.6.4** Atualizar import no script.jsx: `"/assets/translations.js"`
+- [ ] **11.6.5** **TESTE MANUAL:** Verificar traduções funcionam
+- [ ] **11.6.6** Mover arquivos JSON para `/assets/`:
+  - `data.json` → `/assets/data.json`
+  - `database2.json` → `/assets/database2.json`
+  - `Legendadata.json` → `/assets/Legendadata.json`
+  - `settings.json` → `/assets/settings.json`
+  - `version.json` → `/assets/version.json`
+- [ ] **11.6.7** **IMPORTANTE:** Verificar se inicializacao.jsx precisa de path atualizado para database2.json
+- [ ] **11.6.8** **TESTE MANUAL:** Verificar carregamento da base de dados
+
+#### **11.7 FASE 7: Recursos Visuais → /resources/**
+- **Duração:** 5 minutos
+- **Objetivo:** Mover recursos visuais
+- **Testes:** Verificação de paths de recursos
+
+**Tarefas específicas:**
+- [ ] **11.7.1** Mover pasta `svg/` para `/resources/svg/`
+- [ ] **11.7.2** Mover pasta `png/` para `/resources/png/`
+- [ ] **11.7.3** Mover pasta `alfabeto/` para `/resources/alfabeto/`
+- [ ] **11.7.4** **VERIFICAÇÃO:** Identificar módulos que referenciam estas pastas
+- [ ] **11.7.5** **ATUALIZAÇÃO:** Ajustar paths nos módulos que usam recursos visuais
+- [ ] **11.7.6** **TESTE MANUAL:** Verificar texturas aparecem corretamente
+
+#### **11.8 FASE 8: Validação Final e Limpeza**
+- **Duração:** 10-15 minutos
+- **Objetivo:** Verificação completa e limpeza
+- **Testes:** Checklist completo de todas as funcionalidades
+
+**Tarefas específicas:**
+- [ ] **11.8.1** **TESTE COMPLETO:** Executar checklist básico completo
+- [ ] **11.8.2** **TESTE ESPECÍFICO:** Verificar todas as funcionalidades específicas
+- [ ] **11.8.3** **VERIFICAÇÃO:** Confirmar que não há arquivos duplicados na raiz
+- [ ] **11.8.4** **LIMPEZA:** Remover arquivos antigos da raiz (se existirem)
+- [ ] **11.8.5** **LOGS:** Verificar sistema de logs registra todas as operações
+- [ ] **11.8.6** **PERFORMANCE:** Verificar se tempo de carregamento não aumentou
+- [ ] **11.8.7** **DOCUMENTAÇÃO:** Atualizar este plano com estrutura final implementada
+
+### **🧪 CHECKLIST DE TESTES MANUAL ESPECÍFICO DA REORGANIZAÇÃO:**
+
+#### **Testes Após Cada Fase:**
+- [ ] **Carregamento:** Script abre sem erros
+- [ ] **Interface:** Todos os elementos aparecem corretamente
+- [ ] **Traduções:** Textos aparecem no idioma correto
+- [ ] **Logs:** Sistema registra operações na aba Logs
+
+#### **Testes Finais Completos:**
+- [ ] **Funcionalidade básica:** Adicionar componente + bola + gerar legenda
+- [ ] **Funcionalidades especiais:** Alfabeto + texturas + observações
+- [ ] **Sistema:** Contador bolas + mudança idioma + botão update
+- [ ] **Gestão:** Remover itens + remover todos
+- [ ] **Logs:** Verificar registros detalhados de todas as operações
+
+### **⚠️ PONTOS CRÍTICOS DE ATENÇÃO:**
+
+#### **Paths Absolutos vs Relativos:**
+- **Verificar:** Se algum módulo usa paths absolutos que precisam ser atualizados
+- **Especial atenção:** `inicializacao.jsx` com path do `database2.json`
+- **Bridge.jsx:** Verificar referências a arquivos de recursos
+
+#### **Compatibilidade com BridgeTalk:**
+- **Verificar:** Se bridge.jsx consegue encontrar arquivos nas novas pastas
+- **Testar:** Contagem de bolas e geração de legenda via BridgeTalk
+
+#### **Recursos Visuais:**
+- **Verificar:** Se módulos de texturas/alfabeto encontram arquivos em `/resources/`
+- **Ajustar:** Paths relativos nos módulos que carregam recursos visuais
+
+### **📊 BENEFÍCIOS ESPERADOS:**
+- **Organização:** Estrutura clara e lógica por domínios funcionais
+- **Manutenibilidade:** Fácil localização de arquivos por categoria
+- **Escalabilidade:** Base para crescimento futuro organizado
+- **Profissionalismo:** Projeto com aparência mais profissional e organizada
+
+## 12. Refino Final e Otimização
 - **Domínio:** Limpeza e otimização do sistema modularizado
 - **Objetivo:** Limpeza final e otimização do código modularizado
 - **Responsabilidades esperadas:**
@@ -564,10 +788,10 @@ function exemploComLogs(parametros) {
   - Testes de regressão seguindo checklist completo
   - Validação da arquitetura modular
 
-- [ ] **11.1** Revisão completa de todos os módulos
-- [ ] **11.2** Otimização de performance
-- [ ] **11.3** Documentação final de cada arquivo
-- [ ] **11.4** Testes de regressão completos
+- [ ] **12.1** Revisão completa de todos os módulos
+- [ ] **12.2** Otimização de performance
+- [ ] **12.3** Documentação final de cada arquivo
+- [ ] **12.4** Testes de regressão completos
 
 ---
 

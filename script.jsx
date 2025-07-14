@@ -2,33 +2,33 @@
 #targetengine maintarget
 
 // Importar bibliotecas base
-$.evalFile(File($.fileName).path + "/json2.js");
-$.evalFile(File($.fileName).path + "/translations.js");
+$.evalFile(File($.fileName).path + "/assets/json2.js");
+$.evalFile(File($.fileName).path + "/assets/translations.js");
 
 // Importar módulos fundamentais
-$.evalFile(File($.fileName).path + "/funcoes.jsx");
-$.evalFile(File($.fileName).path + "/database.jsx");
-$.evalFile(File($.fileName).path + "/logs.jsx");
-$.evalFile(File($.fileName).path + "/regras.jsx");
+$.evalFile(File($.fileName).path + "/core/funcoes.jsx");
+$.evalFile(File($.fileName).path + "/core/database.jsx");
+$.evalFile(File($.fileName).path + "/core/logs.jsx");
+$.evalFile(File($.fileName).path + "/core/regras.jsx");
 
 // Importar módulos funcionais
-$.evalFile(File($.fileName).path + "/funcoesComponentes.jsx");
-$.evalFile(File($.fileName).path + "/funcoesBolas.jsx");
-$.evalFile(File($.fileName).path + "/funcoesLegenda.jsx");
-$.evalFile(File($.fileName).path + "/funcoesFiltragem.jsx");
-$.evalFile(File($.fileName).path + "/alfabeto.jsx");
+$.evalFile(File($.fileName).path + "/modules/funcoesComponentes.jsx");
+$.evalFile(File($.fileName).path + "/modules/funcoesBolas.jsx");
+$.evalFile(File($.fileName).path + "/modules/funcoesLegenda.jsx");
+$.evalFile(File($.fileName).path + "/modules/funcoesFiltragem.jsx");
+$.evalFile(File($.fileName).path + "/modules/alfabeto.jsx");
 
 // Importar módulos de infraestrutura
-$.evalFile(File($.fileName).path + "/bridge.jsx");
-$.evalFile(File($.fileName).path + "/config.jsx");
-$.evalFile(File($.fileName).path + "/inicializacao.jsx");
+$.evalFile(File($.fileName).path + "/infrastructure/bridge.jsx");
+$.evalFile(File($.fileName).path + "/infrastructure/config.jsx");
+$.evalFile(File($.fileName).path + "/core/inicializacao.jsx");
 
 // Importar módulos de interface e gestão
-$.evalFile(File($.fileName).path + "/ui.jsx");
-$.evalFile(File($.fileName).path + "/gestaoLista.jsx");
+$.evalFile(File($.fileName).path + "/ui/ui.jsx");
+$.evalFile(File($.fileName).path + "/ui/gestaoLista.jsx");
 
 // Importar módulos de manutenção
-$.evalFile(File($.fileName).path + "/update.jsx");
+$.evalFile(File($.fileName).path + "/infrastructure/update.jsx");
 
 // Definir variáveis no escopo global
 var caminhoConfig = Folder.myDocuments.fsName + "/cartouche_config.json";

@@ -222,7 +222,7 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
                         if (texturas[t] && texturas[t] !== "") {
                             var numeroTextura = texturas[t].replace(/\D/g, '');
                             if (numeroTextura) {
-                                var caminhoTextura = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/svg/texture" + numeroTextura + ".ai";
+                                var caminhoTextura = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/resources/svg/texture" + numeroTextura + ".ai";
                                 var arquivoTextura = new File(caminhoTextura);
                                 if (arquivoTextura.exists) {
                                     var texturaItem = novaLayer.placedItems.add();
@@ -242,7 +242,7 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
             var alturaLetras = 200; // valor padrão
             try {
                 if (palavraDigitada && palavraDigitada !== "") {
-                    var caminhoAlfabeto = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/alfabeto/";
+                    var caminhoAlfabeto = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/resources/alfabeto/";
                     
                     // Configurar espaçamento e tamanho baseado no tamanho GX
                     var espacamentoHorizontal = (tamanhoGX === "1,40 m") ? 150 : 220;

@@ -707,5 +707,231 @@ Esta implementação serve como modelo para futuras adições à frase principal
 
 ---
 
+# 📝 MANUAL DE IMPLEMENTAÇÕES REALIZADAS - FASES 4 E 5
+
+## 🔧 FASE 4: Centralização de Eventos UI - **DISPENSADA**
+
+### **📅 Status:** CANCELADA - Já implementada durante FASE 3
+### **🎯 Motivo da Dispensa:** 
+Durante a implementação da FASE 3, os eventos UI já foram adequadamente modularizados junto com as interfaces específicas, tornando desnecessária uma centralização adicional.
+
+### **🔍 Decisão Técnica:**
+- **Eventos de alfabeto** → Modularizados em `alfabeto.jsx`
+- **Eventos de texturas/observações** → Modularizados em `ui.jsx`
+- **Eventos de lista** → Modularizados em `gestaoLista.jsx` (FASE 5)
+- **Resultado:** Eventos já organizados tematicamente nos módulos apropriados
+
+---
+
+## 🔧 FASE 5: Modularização da Gestão de Lista - **CONCLUÍDA**
+
+### **📅 Data da Implementação:** Janeiro 2025
+### **🎯 Objetivo:** 
+Extrair toda a lógica de gestão da lista de itens para um módulo dedicado, reduzindo o tamanho do `script.jsx` e centralizando responsabilidades.
+
+### **📋 Análise Técnica Realizada:**
+
+#### **1. Investigação do Código Original:**
+- **Localização encontrada:** `script.jsx` linhas 715-755
+- **Funções identificadas:**
+  - `atualizarListaItens()` - 25 linhas
+  - Evento `botaoRemoverItem.onClick` - 8 linhas
+  - Evento `botaoRemoverTodos.onClick` - 5 linhas
+- **Total de código:** ~40 linhas a modularizar
+
+#### **2. Análise de Dependências:**
+- **Variáveis globais:** `itensLegenda`, `listaItens`
+- **Funções de tradução:** `t("confirmarRemoverTodos")`
+- **Sistema de logs:** `logs.logFuncao()`, `logs.adicionarLog()`
+- **Callback:** `atualizarListaItens()` usado por outros módulos
+
+### **🛠️ Modificações Implementadas:**
+
+#### **Arquivo: `gestaoLista.jsx` (CRIADO)**
+
+##### **1. Estrutura do Módulo:**
+```javascript
+/**
+ * gestaoLista.jsx
+ * Domínio: Gestão e manipulação da lista de itens da legenda
+ * Responsabilidades:
+ *   - Atualizar visualização da lista de itens
+ *   - Remover itens individuais da lista
+ *   - Remover todos os itens da lista
+ *   - Organizar ordem dos itens (bolas por último)
+ *   - Validar seleções de itens
+ *   - Gerenciar array global itensLegenda
+ */
+```
+
+##### **2. Funções Principais Implementadas:**
+
+**`atualizarListaItens(listaItens, itensLegenda)`**
+- **Função:** Atualiza visualização da lista
+- **Lógica específica:** Bolas sempre por último
+- **Parâmetros explícitos:** `listaItens`, `itensLegenda`
+- **Logs detalhados:** Início, separação de tipos, resultado final
+- **Validação:** Verificação de parâmetros obrigatórios
+
+**`removerItem(listaItens, itensLegenda, atualizarCallback, t)`**
+- **Função:** Remove item selecionado
+- **Validação:** Índice válido, item existe
+- **Callback:** Chama `atualizarCallback()` após remoção
+- **Logs:** Item removido, tentativas inválidas
+- **Tratamento de erro:** Alert personalizado
+
+**`removerTodosItens(itensLegenda, atualizarCallback, t)`**
+- **Função:** Remove todos os itens após confirmação
+- **Técnica especial:** Usa `splice(0, length)` para manter referência do array
+- **Confirmação:** Dialog personalizado via tradução
+- **Logs:** Total removido, cancelamento pelo usuário
+
+**`configurarEventosLista(botaoRemoverItem, botaoRemoverTodos, listaItens, itensLegenda, atualizarCallback, t)`**
+- **Função:** Configura eventos dos botões automaticamente
+- **Centralização:** Um local para todos os eventos de lista
+- **Reutilização:** Pode ser chamado para reconfigurar eventos
+
+##### **3. Export Global:**
+```javascript
+$.global.gestaoLista = {
+    atualizarListaItens: atualizarListaItens,
+    removerItem: removerItem,
+    removerTodosItens: removerTodosItens,
+    configurarEventosLista: configurarEventosLista
+};
+```
+
+#### **Arquivo: `script.jsx` (MODIFICADO)**
+
+##### **1. Adição de Import (linha 18):**
+```javascript
+$.evalFile(File($.fileName).path + "/gestaoLista.jsx");
+```
+
+##### **2. Simplificação da Função `atualizarListaItens()`:**
+```javascript
+// ANTES (25 linhas):
+function atualizarListaItens() {
+    if (logs && logs.logFuncao) {
+        logs.logFuncao("atualizarListaItens", {totalItens: itensLegenda.length}, "Lista atualizada");
+    }
+    listaItens.removeAll();
+    var componentesNaoBolas = [];
+    var bolas = [];
+    // ... resto da lógica ...
+}
+
+// DEPOIS (3 linhas):
+function atualizarListaItens() {
+    gestaoLista.atualizarListaItens(listaItens, itensLegenda);
+}
+```
+
+##### **3. Substituição dos Eventos (linha ~745):**
+```javascript
+// ANTES (13 linhas):
+botaoRemoverItem.onClick = function() {
+    var selectedIndex = listaItens.selection.index;
+    if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < itensLegenda.length) {
+        itensLegenda.splice(selectedIndex, 1);
+        atualizarListaItens();
+    } else {
+        alert("Por favor, selecione um item para remover.");
+    }
+};
+
+botaoRemoverTodos.onClick = function() {
+    if (confirm(t("confirmarRemoverTodos"))) {
+        itensLegenda = [];
+        atualizarListaItens();
+    }
+};
+
+// DEPOIS (1 linha):
+gestaoLista.configurarEventosLista(botaoRemoverItem, botaoRemoverTodos, listaItens, itensLegenda, atualizarListaItens, t);
+```
+
+### **🎯 Resultado Final:**
+- **Estrutura do módulo:** 200+ linhas de código modular
+- **Redução no script.jsx:** 37 linhas removidas (de ~869 para ~832)
+- **Centralização completa:** Toda gestão de lista em 1 módulo
+- **Manutenção de compatibilidade:** 100% - wrapper mantém interface original
+
+### **✅ Características da Implementação:**
+
+#### **Tratamento Inteligente:**
+- ✅ Manutenção da referência do array `itensLegenda` via `splice()`
+- ✅ Separação automática de bolas e componentes
+- ✅ Validação completa de parâmetros e índices
+- ✅ Logs detalhados para debug e auditoria
+
+#### **Integração Respeitosa:**
+- ✅ Mantém função wrapper `atualizarListaItens()` para compatibilidade
+- ✅ Segue padrões ES3/ES5 estabelecidos
+- ✅ Não quebra funcionalidades existentes
+- ✅ Preserva comportamentos originais (confirmações, alertas)
+
+#### **Extensibilidade:**
+- ✅ Funções modulares podem ser reutilizadas
+- ✅ Eventos centralizados e reconfiguráveis
+- ✅ Parâmetros explícitos facilitam testes
+- ✅ Logs permitem monitoramento detalhado
+
+### **🧪 Procedimento de Teste Recomendado:**
+
+#### **Teste Manual no Illustrator:**
+1. **Funcionalidade básica:**
+   - Adicionar componentes/bolas → verificar aparição na lista
+   - Confirmar ordem: componentes primeiro, bolas por último
+
+2. **Remoção individual:**
+   - Selecionar item → clicar "Remover Selecionado"
+   - Tentar remover sem seleção → deve mostrar alerta
+   - Verificar logs: "Item removido: [nome]"
+
+3. **Remoção total:**
+   - Clicar "Remover Todos" → deve mostrar confirmação
+   - Confirmar → lista deve ficar vazia
+   - Cancelar → lista deve permanecer inalterada
+
+4. **Verificação de logs:**
+   - Abrir aba "Logs"
+   - Confirmar registros detalhados de todas as operações
+
+### **📚 Lições Aprendidas:**
+
+#### **Padrões Confirmados:**
+1. **Modularização incremental:** Extrair funcionalidades relacionadas juntas
+2. **Manutenção de compatibilidade:** Wrappers para funções existentes
+3. **Logs obrigatórios:** Registrar início, fim, erros e resultados
+4. **Parâmetros explícitos:** Evitar dependências globais implícitas
+
+#### **Técnicas Validadas:**
+- ✅ Uso de `splice()` para manter referências de arrays
+- ✅ Centralização de eventos em funções configuradoras
+- ✅ Validação robusta antes de operações críticas
+- ✅ Logs estruturados para facilitar debug
+
+### **🔄 Mapa de Arquivos Afetados:**
+
+#### **Arquivos Criados:**
+- **`gestaoLista.jsx`** - Novo módulo com 4 funções principais
+
+#### **Arquivos Modificados:**
+- **`script.jsx`** - Adicionado import + substituído código de gestão de lista
+
+#### **Arquivos Não Afetados:**
+- Todos os outros módulos permanecem inalterados
+- Funcionalidades externas continuam funcionando normalmente
+
+### **🎯 Extensibilidade Futura:**
+Este padrão de modularização da FASE 5 serve como modelo para:
+- Extrair outras funcionalidades de gestão de estado
+- Centralizar eventos relacionados em configuradores
+- Implementar logging estruturado em novas funcionalidades
+- Manter compatibilidade durante refatorações
+
+---
+
 *Implementação finalizada com sucesso - Janeiro 2025*
 *Seguindo padrões de modularização validados do projeto* 

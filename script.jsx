@@ -17,6 +17,7 @@ $.evalFile(File($.fileName).path + "/funcoesComponentes.jsx");
 $.evalFile(File($.fileName).path + "/funcoesBolas.jsx");    
 $.evalFile(File($.fileName).path + "/funcoesLegenda.jsx");
 $.evalFile(File($.fileName).path + "/funcoesFiltragem.jsx");
+$.evalFile(File($.fileName).path + "/gestaoLista.jsx");
 
 // Adicionar no início do arquivo, após os outros $.evalFile
 $.evalFile(File($.fileName).path + "/alfabeto.jsx");
@@ -713,51 +714,13 @@ var botaoGerar = grupoBotoesPrincipais.add("button", undefined, t("adicionarLege
 botaoGerar.graphics.foregroundColor = botaoGerar.graphics.newPen(botaoGerar.graphics.PenType.SOLID_COLOR, [0, 0, 0], 2);
 
   
+// Função atualizarListaItens movida para gestaoLista.jsx
 function atualizarListaItens() {
-    if (logs && logs.logFuncao) {
-        logs.logFuncao("atualizarListaItens", {totalItens: itensLegenda.length}, "Lista atualizada");
-    }
-    listaItens.removeAll();
-    var componentesNaoBolas = [];
-    var bolas = [];
-    
-    for (var i = 0; i < itensLegenda.length; i++) {
-        if (itensLegenda[i].tipo === "bola") {
-            bolas.push(itensLegenda[i]);
-        } else {
-            componentesNaoBolas.push(itensLegenda[i]);
-        }
-    }
-    
-    // Adicionar primeiro os componentes que não são bolas
-    for (var i = 0; i < componentesNaoBolas.length; i++) {
-        listaItens.add("item", componentesNaoBolas[i].texto);
-    }
-    
-    // Adicionar as bolas por último
-    for (var i = 0; i < bolas.length; i++) {
-        listaItens.add("item", bolas[i].texto);
-    }
+    gestaoLista.atualizarListaItens(listaItens, itensLegenda);
 }
   
-  // Evento de clique no botão remover
-  botaoRemoverItem.onClick = function() {
-      var selectedIndex = listaItens.selection.index;
-      if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < itensLegenda.length) {
-          itensLegenda.splice(selectedIndex, 1);
-          atualizarListaItens();
-      } else {
-          alert("Por favor, selecione um item para remover.");
-      }
-  };
-  
-  // Evento de clique no botão remover todos
-  botaoRemoverTodos.onClick = function() {
-    if (confirm(t("confirmarRemoverTodos"))) {
-        itensLegenda = [];
-        atualizarListaItens();
-    }
-};
+  // Configurar eventos da lista usando o módulo gestaoLista.jsx
+  gestaoLista.configurarEventosLista(botaoRemoverItem, botaoRemoverTodos, listaItens, itensLegenda, atualizarListaItens, t);
 
   // Evento de clique no botão gerar
   botaoGerar.onClick = function() {

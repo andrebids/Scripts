@@ -512,14 +512,31 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
                 try {
                     var numeroTextura = funcoesFiltragem.obterNumeroTextura(this.selection.text);
                     var nomeArquivo = "texture" + numeroTextura + ".png";
-                    var caminhoImagem = File($.fileName).parent + "/png/" + nomeArquivo;
+                    // Usar caminho absoluto baseado na estrutura conhecida
+                    var pastaScript = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda";
+                    var caminhoImagem = pastaScript + "/resources/png/" + nomeArquivo;
                     var arquivoImagem = new File(caminhoImagem);
+                    
+                    // Debug: logs detalhados para identificar o problema
+                    if (typeof logs !== 'undefined' && logs.adicionarLog) {
+                        logs.adicionarLog("Textura selecionada: " + this.selection.text, "info");
+                        logs.adicionarLog("Número extraído: " + numeroTextura, "info");
+                        logs.adicionarLog("Nome do arquivo: " + nomeArquivo, "info");
+                        logs.adicionarLog("Caminho completo: " + caminhoImagem, "info");
+                        logs.adicionarLog("Arquivo existe: " + arquivoImagem.exists, "info");
+                    }
                     
                     if (arquivoImagem.exists) {
                         var imagem = grupoPreview.add("image", undefined, arquivoImagem);
                         imagem.preferredSize = [100, 100];
+                        if (typeof logs !== 'undefined' && logs.adicionarLog) {
+                            logs.adicionarLog("SUCESSO: Imagem carregada: " + nomeArquivo, "info");
+                        }
                     } else {
                         var textoErro = grupoPreview.add("statictext", undefined, "Imagem não encontrada");
+                        if (typeof logs !== 'undefined' && logs.adicionarLog) {
+                            logs.adicionarLog("ERRO: Arquivo não encontrado em: " + caminhoImagem, "error");
+                        }
                     }
                 } catch (e) {
                     alert(t("erroCarregarImagem") + e.message);

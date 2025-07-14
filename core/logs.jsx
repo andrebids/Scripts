@@ -334,7 +334,7 @@ function buscarLogs(texto) {
 function carregarConfiguracoesLog() {
     try {
         var pastaProjeto = File($.fileName).path;
-        var arquivoSettings = new File(pastaProjeto + "/settings.json");
+        var arquivoSettings = new File(pastaProjeto + "/assets/settings.json");
         
         if (arquivoSettings.exists) {
             arquivoSettings.open('r');
@@ -377,7 +377,7 @@ function carregarConfiguracoesLog() {
 function salvarConfiguracoesLog() {
     try {
         var pastaProjeto = File($.fileName).path;
-        var arquivoSettings = new File(pastaProjeto + "/settings.json");
+        var arquivoSettings = new File(pastaProjeto + "/assets/settings.json");
         
         var settings = {};
         

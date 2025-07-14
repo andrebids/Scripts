@@ -176,7 +176,7 @@ function encontrarIndice(array, valor) {
 
 // Função para ler a versão do arquivo version.json
 function lerVersao() {
-    var arquivoVersao = new File(File($.fileName).path + "/version.json");
+    var arquivoVersao = new File(File($.fileName).path + "/assets/version.json");
     if (arquivoVersao.exists) {
         arquivoVersao.open('r');
         var conteudo = arquivoVersao.read();

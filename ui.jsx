@@ -423,8 +423,247 @@ function criarInterfaceExtra(janela) {
 }
 
 
+/**
+ * Cria interface de texturas quando checkbox é marcado
+ */
+function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLegenda, atualizarListaItens) {
+    if (logs && logs.logFuncao) {
+        logs.logFuncao("criarInterfaceTexturas", "Criando interface de texturas");
+    }
+    
+    try {
+        // Validação de parâmetros
+        if (!grupoExtra || !janela || !t) {
+            throw new Error("Parâmetros obrigatórios não fornecidos");
+        }
+        
+        // Criar o grupo de texturas
+        var grupoTexturas = grupoExtra.add("panel", undefined, t("texturas"));
+        grupoTexturas.orientation = "row";
+        grupoTexturas.alignChildren = ["left", "top"];
+        grupoTexturas.spacing = 10;
+        grupoTexturas.margins = 10;
+
+        // Subgrupo para lista e botão
+        var grupoLista = grupoTexturas.add("group");
+        grupoLista.orientation = "column";
+        grupoLista.alignChildren = ["left", "top"];
+        grupoLista.spacing = 5;
+
+        // Lista de texturas no subgrupo
+        var listaTexturas = grupoLista.add("dropdownlist", undefined, [
+            t("selecioneTextura"),
+            "--- SIMPLE TRAIT ---",
+            "Texture 01", "Texture 02", "Texture 03", "Texture 04",
+            "Texture 05", "Texture 06", "Texture 07", "Texture 08",
+            "--- DOUBLE TRAIT ---",
+            "Texture 09", "Texture 10", "Texture 11", "Texture 12",
+            "Texture 13", "Texture 14", "Texture 15", "Texture 16",
+            "--- FLEXI ---",
+            "Flexi Triangle", "Flexi Boucle", "Flexi Losange", "Flexi Meli Melo"
+        ]);
+        listaTexturas.selection = 0;
+        listaTexturas.preferredSize.width = 200;
+
+        // Botão no subgrupo
+        var botaoInserirTextura = grupoLista.add("button", undefined, t("inserirTextura"));
+
+        // Grupo para preview da imagem
+        var grupoPreview = grupoTexturas.add("group");
+        grupoPreview.orientation = "column";
+        grupoPreview.alignChildren = ["left", "top"];
+        grupoPreview.spacing = 5;
+
+        // Adicionar o evento onClick para o botão
+        botaoInserirTextura.onClick = function() {
+            if (listaTexturas.selection && 
+                listaTexturas.selection.index > 0 && 
+                listaTexturas.selection.text.indexOf("---") === -1) {
+                
+                var texturaNumero = funcoesFiltragem.obterNumeroTextura(listaTexturas.selection.text);
+                var texturaNome = listaTexturas.selection.text;
+                
+                // Adicionar a textura à lista de itens
+                itensLegenda.push({
+                    tipo: "textura",
+                    nome: texturaNome,
+                    texto: texturaNome,
+                    referencia: "texture" + texturaNumero
+                });
+                
+                // Atualizar a lista de itens
+                atualizarListaItens();
+                
+                // Resetar a seleção
+                listaTexturas.selection = 0;
+            } else {
+                alert(t("selecioneTexturaAlerta"));
+            }
+        };
+
+        // Evento de mudança na lista para preview
+        listaTexturas.onChange = function() {
+            // Limpar preview anterior
+            while(grupoPreview.children.length > 0) {
+                grupoPreview.remove(grupoPreview.children[0]);
+            }
+            
+            if (this.selection.index > 0 && this.selection.text.indexOf("---") === -1) {
+                try {
+                    var numeroTextura = funcoesFiltragem.obterNumeroTextura(this.selection.text);
+                    var nomeArquivo = "texture" + numeroTextura + ".png";
+                    var caminhoImagem = File($.fileName).parent + "/png/" + nomeArquivo;
+                    var arquivoImagem = new File(caminhoImagem);
+                    
+                    if (arquivoImagem.exists) {
+                        var imagem = grupoPreview.add("image", undefined, arquivoImagem);
+                        imagem.preferredSize = [100, 100];
+                    } else {
+                        var textoErro = grupoPreview.add("statictext", undefined, "Imagem não encontrada");
+                    }
+                } catch (e) {
+                    alert(t("erroCarregarImagem") + e.message);
+                }
+            }
+            
+            janela.layout.layout(true);
+            janela.layout.resize();
+        };
+
+        // Texto de informação
+        var infoTexto = grupoLista.add("statictext", undefined, 
+            t("instrucaoTextura"), 
+            {multiline: true});
+        infoTexto.preferredSize.width = 200;
+
+        // Atualizar layout da janela
+        janela.layout.layout(true);
+        janela.preferredSize.height += 100;
+        
+        if (logs && logs.logFuncao) {
+            logs.logFuncao("criarInterfaceTexturas", "Interface de texturas criada com sucesso");
+        }
+        
+        return {
+            grupoTexturas: grupoTexturas,
+            listaTexturas: listaTexturas,
+            botaoInserirTextura: botaoInserirTextura,
+            grupoPreview: grupoPreview
+        };
+        
+    } catch (erro) {
+        if (logs && logs.adicionarLog) {
+            logs.adicionarLog("Erro ao criar interface de texturas: " + erro.message, "error");
+        }
+        return null;
+    }
+}
+
+/**
+ * Remove interface de texturas quando checkbox é desmarcado
+ */
+function removerInterfaceTexturas(componentes, janela) {
+    if (logs && logs.logFuncao) {
+        logs.logFuncao("removerInterfaceTexturas", "Removendo interface de texturas");
+    }
+    
+    try {
+        if (componentes && componentes.grupoTexturas) {
+            componentes.grupoTexturas.parent.remove(componentes.grupoTexturas);
+            janela.layout.layout(true);
+            janela.preferredSize.height -= 100;
+            
+            if (logs && logs.logFuncao) {
+                logs.logFuncao("removerInterfaceTexturas", "Interface de texturas removida com sucesso");
+            }
+        }
+    } catch (erro) {
+        if (logs && logs.adicionarLog) {
+            logs.adicionarLog("Erro ao remover interface de texturas: " + erro.message, "error");
+        }
+    }
+}
+
+/**
+ * Cria interface de observações quando checkbox é marcado
+ */
+function criarInterfaceObservacoes(grupoExtra, janela, t) {
+    if (logs && logs.logFuncao) {
+        logs.logFuncao("criarInterfaceObservacoes", "Criando interface de observações");
+    }
+    
+    try {
+        // Validação de parâmetros
+        if (!grupoExtra || !janela || !t) {
+            throw new Error("Parâmetros obrigatórios não fornecidos");
+        }
+        
+        // Adicionar o grupo de observações
+        var grupoObs = grupoExtra.add("panel", undefined, t("observacoes"));
+        grupoObs.orientation = "row";
+        grupoObs.alignChildren = ["fill", "top"];
+        grupoObs.spacing = 0;
+
+        grupoObs.add("statictext", undefined, t("obs"));
+
+        // Adicionar uma caixa de texto para observações
+        var campoObs = grupoObs.add("edittext", undefined, "", {multiline: true, scrollable: true});
+        campoObs.characters = 60;
+        campoObs.preferredSize.height = 100;
+        campoObs.alignment = ["fill", "fill"];
+
+        // Atualizar layout da janela
+        janela.layout.layout(true);
+        janela.preferredSize.height += 100;
+        
+        if (logs && logs.logFuncao) {
+            logs.logFuncao("criarInterfaceObservacoes", "Interface de observações criada com sucesso");
+        }
+        
+        return {
+            grupoObs: grupoObs,
+            campoObs: campoObs
+        };
+        
+    } catch (erro) {
+        if (logs && logs.adicionarLog) {
+            logs.adicionarLog("Erro ao criar interface de observações: " + erro.message, "error");
+        }
+        return null;
+    }
+}
+
+/**
+ * Remove interface de observações quando checkbox é desmarcado
+ */
+function removerInterfaceObservacoes(componentes, janela) {
+    if (logs && logs.logFuncao) {
+        logs.logFuncao("removerInterfaceObservacoes", "Removendo interface de observações");
+    }
+    
+    try {
+        if (componentes && componentes.grupoObs) {
+            componentes.grupoObs.parent.remove(componentes.grupoObs);
+            janela.layout.layout(true);
+            janela.preferredSize.height -= 100;
+            
+            if (logs && logs.logFuncao) {
+                logs.logFuncao("removerInterfaceObservacoes", "Interface de observações removida com sucesso");
+            }
+        }
+    } catch (erro) {
+        if (logs && logs.adicionarLog) {
+            logs.adicionarLog("Erro ao remover interface de observações: " + erro.message, "error");
+        }
+    }
+}
+
 // Make functions available globally
 $.global.ui = {
     criarInterfaceGerenciamento: criarInterfaceGerenciamento,
-    criarInterfaceGerenciamentoComponentes: criarInterfaceGerenciamentoComponentes
+    criarInterfaceGerenciamentoComponentes: criarInterfaceGerenciamentoComponentes,
+    criarInterfaceTexturas: criarInterfaceTexturas,
+    removerInterfaceTexturas: removerInterfaceTexturas,
+    criarInterfaceObservacoes: criarInterfaceObservacoes,
+    removerInterfaceObservacoes: removerInterfaceObservacoes
 };

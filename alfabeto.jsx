@@ -147,13 +147,133 @@ function gerarNomeArquivoAlfabeto(caractere, sufixoTamanho) {
     return nomeArquivoAI;
 }
 
-// Exportar as funções globalmente
-if (typeof $.global === 'undefined') {
-    $.global = {};
+/**
+ * Cria interface de alfabeto quando checkbox é marcado
+ */
+function criarInterfaceAlfabeto(grupoExtra, dados, janela, t, funcoesFiltragem, funcoes, itensLegenda, atualizarListaItens, campoNomeTipo, grupoDimensoes) {
+    if (logs && logs.logFuncao) {
+        logs.logFuncao("criarInterfaceAlfabeto", "Criando interface de alfabeto");
+    }
+    
+    try {
+        // Validação de parâmetros
+        if (!grupoExtra || !dados || !janela || !t) {
+            throw new Error("Parâmetros obrigatórios não fornecidos");
+        }
+        
+        // Adicionar o grupo de alfabeto
+        var grupoAlfabeto = grupoExtra.add("panel", undefined, t("alfabeto"));
+        grupoAlfabeto.orientation = "column";
+        grupoAlfabeto.alignChildren = ["fill", "top"];
+        grupoAlfabeto.spacing = 10;
+
+        var subGrupoAlfabeto = grupoAlfabeto.add("group");
+        subGrupoAlfabeto.orientation = "row";
+        subGrupoAlfabeto.alignChildren = ["fill", "top"];
+        subGrupoAlfabeto.spacing = 10;
+
+        subGrupoAlfabeto.add("statictext", undefined, t("alfabetoLabel"));
+        var campoPalavraChave = subGrupoAlfabeto.add("edittext", undefined, "");
+        campoPalavraChave.characters = 20;
+
+        // Adicionar texto estático para bioprint
+        subGrupoAlfabeto.add("statictext", undefined, t("bioprint"));
+
+        // Adicionar dropdown para cor do bioprint
+        subGrupoAlfabeto.add("statictext", undefined, t("cor"));
+        var dropdownCorBioprint = subGrupoAlfabeto.add("dropdownlist", undefined, ["Selecione a cor"]);
+
+        // Manter o dropdown de tamanho existente
+        subGrupoAlfabeto.add("statictext", undefined, t("tamanho"));
+        var tamanhoAlfabeto = subGrupoAlfabeto.add("dropdownlist", undefined, ["1,40 m", "2,00 m"]);
+        tamanhoAlfabeto.selection = 0;
+
+        var botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, t("adicionar"));
+
+        // Adicionar linha separadora
+        var linhaSeparadora = grupoAlfabeto.add("panel");
+        linhaSeparadora.preferredSize = [-1, 2];
+        linhaSeparadora.graphics.backgroundColor = linhaSeparadora.graphics.newBrush(linhaSeparadora.graphics.BrushType.SOLID_COLOR, [0, 0, 0, 1]);
+
+        // Adicionar texto de informação
+        grupoAlfabeto.add("statictext", undefined, t("instrucaoAlfabeto"));
+
+        // Chamar a função para preencher as cores do bioprint
+        if (funcoesFiltragem && funcoesFiltragem.preencherCoresBioprint) {
+            funcoesFiltragem.preencherCoresBioprint(dropdownCorBioprint, dados, funcoes.arrayContains, funcoes.encontrarPorId);
+        }
+
+        // Configurar evento do botão
+        botaoAdicionarPalavraChave.onClick = function() {
+            adicionarPalavraChaveAlfabeto(
+                campoPalavraChave,
+                dropdownCorBioprint,
+                tamanhoAlfabeto,
+                grupoDimensoes,
+                itensLegenda,
+                atualizarListaItens,
+                campoNomeTipo,
+                t
+            );
+        };
+
+        // Atualizar layout da janela
+        janela.layout.layout(true);
+        janela.preferredSize.height += 100;
+        
+        if (logs && logs.logFuncao) {
+            logs.logFuncao("criarInterfaceAlfabeto", "Interface de alfabeto criada com sucesso");
+        }
+        
+        return {
+            grupoAlfabeto: grupoAlfabeto,
+            campoPalavraChave: campoPalavraChave,
+            dropdownCorBioprint: dropdownCorBioprint,
+            tamanhoAlfabeto: tamanhoAlfabeto,
+            botaoAdicionarPalavraChave: botaoAdicionarPalavraChave
+        };
+        
+    } catch (erro) {
+        if (logs && logs.adicionarLog) {
+            logs.adicionarLog("Erro ao criar interface de alfabeto: " + erro.message, "error");
+        }
+        return null;
+    }
 }
-$.global.processarAlfabeto = processarAlfabeto;
-$.global.adicionarPalavraChaveAlfabeto = adicionarPalavraChaveAlfabeto;
-$.global.gerarPreviewAlfabeto = gerarPreviewAlfabeto;
-$.global.obterTamanhoAlfabeto = obterTamanhoAlfabeto;
-$.global.obterPalavraDigitadaAlfabeto = obterPalavraDigitadaAlfabeto;
-$.global.gerarNomeArquivoAlfabeto = gerarNomeArquivoAlfabeto; 
+
+/**
+ * Remove interface de alfabeto quando checkbox é desmarcado
+ */
+function removerInterfaceAlfabeto(componentes, janela) {
+    if (logs && logs.logFuncao) {
+        logs.logFuncao("removerInterfaceAlfabeto", "Removendo interface de alfabeto");
+    }
+    
+    try {
+        if (componentes && componentes.grupoAlfabeto) {
+            componentes.grupoAlfabeto.parent.remove(componentes.grupoAlfabeto);
+            janela.layout.layout(true);
+            janela.preferredSize.height -= 100;
+            
+            if (logs && logs.logFuncao) {
+                logs.logFuncao("removerInterfaceAlfabeto", "Interface de alfabeto removida com sucesso");
+            }
+        }
+    } catch (erro) {
+        if (logs && logs.adicionarLog) {
+            logs.adicionarLog("Erro ao remover interface de alfabeto: " + erro.message, "error");
+        }
+    }
+}
+
+// Export global
+$.global.alfabeto = {
+    processarAlfabeto: processarAlfabeto,
+    adicionarPalavraChaveAlfabeto: adicionarPalavraChaveAlfabeto,
+    gerarPreviewAlfabeto: gerarPreviewAlfabeto,
+    obterTamanhoAlfabeto: obterTamanhoAlfabeto,
+    obterPalavraDigitadaAlfabeto: obterPalavraDigitadaAlfabeto,
+    gerarNomeArquivoAlfabeto: gerarNomeArquivoAlfabeto,
+    criarInterfaceAlfabeto: criarInterfaceAlfabeto,
+    removerInterfaceAlfabeto: removerInterfaceAlfabeto
+}; 

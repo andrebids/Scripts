@@ -8,6 +8,7 @@ $.evalFile(File($.fileName).path + "/funcoes.jsx");
 $.evalFile(File($.fileName).path + "/database.jsx");
 $.evalFile(File($.fileName).path + "/logs.jsx");
 $.evalFile(File($.fileName).path + "/config.jsx");
+$.evalFile(File($.fileName).path + "/inicializacao.jsx");
 $.evalFile(File($.fileName).path + "/bridge.jsx");
 $.evalFile(File($.fileName).path + "/ui.jsx");
 $.evalFile(File($.fileName).path + "/translations.js");
@@ -38,38 +39,12 @@ var ultimaSelecao = {
 // Função para mostrar janela de configuração inicial movida para ui.jsx
 
 (function() {
-    // Inicializar sistema de configuração usando o módulo config.jsx
-    config.inicializarConfiguracao();
-    var caminhoBaseDadosHardcoded = "\\\\192.168.2.22\\Olimpo\\DS\\_BASE DE DADOS\\07. TOOLS\\ILLUSTRATOR\\basededados\\database2.json";
-
-    // Adicionar verificação antes de tentar ler o arquivo
-    try {
-        if (database.arquivoExiste(caminhoBaseDadosHardcoded)) {
-            var dadosBase = database.lerArquivoJSON(caminhoBaseDadosHardcoded);
-            if (dadosBase) {
-                // Processar os dados...
-            } else {
-                alert("Base de dados vazia ou inválida");
-            }
-        } else {
-            alert("Arquivo da base de dados não encontrado. Por favor, verifique o caminho: " + caminhoBaseDadosHardcoded);
-        }
-    } catch(e) {
-        alert("Erro ao ler o arquivo da base de dados: " + e.message);
-    }
-// Função criarInterfaceContadorBolas movida para ui.jsx
-// Carregar dados do arquivo database2.json
+// Inicializar sistema usando o módulo inicializacao.jsx
 var dados;
 try {
-    dados = lerArquivoJSON(caminhoBaseDadosHardcoded);
+    dados = inicializacao.inicializarSistema();
 } catch (e) {
-    alert("Erro ao ler o arquivo da base de dados: " + e.message + "\nO script será encerrado.");
-    return;
-}
-
-// Verificar se os dados foram carregados corretamente
-if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.componentes)) {
-    alert("Erro: Os dados não foram carregados corretamente ou estão em um formato inválido.");
+    // Erro já foi tratado pelo módulo de inicialização
     return;
 }
 
@@ -610,76 +585,28 @@ checkboxMostrarComponenteExtra.onClick = function() {
     janela.layout.resize();
 };
 
+// Variável para armazenar componentes da interface de alfabeto
+var componentesAlfabeto = null;
+
 checkboxMostrarAlfabeto.onClick = function() {
     if (this.value) {
-        // Adicionar o grupo de alfabeto
-        grupoAlfabeto = grupoExtra.add("panel", undefined, t("alfabeto"));
-        grupoAlfabeto.orientation = "column"; // Alterar para "column" para alinhar verticalmente
-        grupoAlfabeto.alignChildren = ["fill", "top"]; // Preencher a largura
-        grupoAlfabeto.spacing = 10; // Adicionar espaçamento entre os elementos
-
-        var subGrupoAlfabeto = grupoAlfabeto.add("group");
-        subGrupoAlfabeto.orientation = "row";
-        subGrupoAlfabeto.alignChildren = ["fill", "top"];
-        subGrupoAlfabeto.spacing = 10;
-
-        subGrupoAlfabeto.add("statictext", undefined, t("alfabetoLabel"));
-        campoPalavraChave = subGrupoAlfabeto.add("edittext", undefined, "");
-        campoPalavraChave.characters = 20;
-
-        // Adicionar texto estático para bioprint
-        subGrupoAlfabeto.add("statictext", undefined, t("bioprint"));
-
-        // Adicionar dropdown para cor do bioprint
-        subGrupoAlfabeto.add("statictext", undefined, t("cor"));
-        dropdownCorBioprint = subGrupoAlfabeto.add("dropdownlist", undefined, ["Selecione a cor"]);
-
-        // Manter o dropdown de tamanho existente
-        subGrupoAlfabeto.add("statictext", undefined, t("tamanho"));
-        tamanhoAlfabeto = subGrupoAlfabeto.add("dropdownlist", undefined, ["1,40 m", "2,00 m"]);
-        tamanhoAlfabeto.selection = 0;
-
-        botaoAdicionarPalavraChave = grupoAlfabeto.add("button", undefined, t("adicionar"));
-
-        // Adicionar linha separadora
-        var linhaSeparadora = grupoAlfabeto.add("panel");
-        linhaSeparadora.preferredSize = [-1, 2]; // Ajustar a largura para preencher e altura para 2px
-        linhaSeparadora.graphics.backgroundColor = linhaSeparadora.graphics.newBrush(linhaSeparadora.graphics.BrushType.SOLID_COLOR, [0, 0, 0, 1]);
-
-        // Adicionar texto de informação
-        grupoAlfabeto.add("statictext", undefined, t("instrucaoAlfabeto"));
-
-        // Função para preencher o dropdown de cores do bioprint
-        // Função preencherCoresBioprint movida para funcoesFiltragem.jsx
-
-        // Chamar a função para preencher as cores do bioprint
-        funcoesFiltragem.preencherCoresBioprint(dropdownCorBioprint, dados, funcoes.arrayContains, funcoes.encontrarPorId);
-
-        // Substituir a função processarAlfabeto() existente por:
-        botaoAdicionarPalavraChave.onClick = function() {
-            adicionarPalavraChaveAlfabeto(
-                campoPalavraChave,
-                dropdownCorBioprint,
-                tamanhoAlfabeto,
-                grupoDimensoes,
-                itensLegenda,
-                atualizarListaItens,
-                campoNomeTipo,
-                t
-            );
-        };
-
-        janela.layout.layout(true); // Forçar atualização do layout
-        janela.preferredSize.height += 100; // Aumentar a altura da janela
+        // Criar interface de alfabeto usando módulo
+        componentesAlfabeto = alfabeto.criarInterfaceAlfabeto(
+            grupoExtra,
+            dados,
+            janela,
+            t,
+            funcoesFiltragem,
+            funcoes,
+            itensLegenda,
+            atualizarListaItens,
+            campoNomeTipo,
+            grupoDimensoes
+        );
     } else {
-        // Remover o grupo de alfabeto
-        grupoAlfabeto.parent.remove(grupoAlfabeto);
-        campoPalavraChave = null; // Definir campoPalavraChave como null quando o grupo é removido
-        dropdownCorBioprint = null; // Definir dropdownCorBioprint como null quando o grupo é removido
-        tamanhoAlfabeto = null; // Definir tamanhoAlfabeto como null quando o grupo é removido
-        botaoAdicionarPalavraChave = null; // Definir botaoAdicionarPalavraChave como null quando o grupo é removido
-        janela.layout.layout(true); // Forçar atualização do layout
-        janela.preferredSize.height -= 100; // Diminuir a altura da janela
+        // Remover interface de alfabeto usando módulo
+        alfabeto.removerInterfaceAlfabeto(componentesAlfabeto, janela);
+        componentesAlfabeto = null;
     }
     janela.layout.resize();
 };
@@ -688,134 +615,26 @@ checkboxMostrarAlfabeto.onClick = function() {
 // Adicionar evento para o checkbox de texturas
 var grupoTexturas;
 
-// Modificar a parte onde o checkbox de texturas é criado
+// Variável para armazenar componentes da interface de texturas
+var componentesTexturas = null;
+
 checkboxMostrarTexturas.onClick = function() {
-  if (this.value) {
-      // Criar o grupo de texturas
-      grupoTexturas = grupoExtra.add("panel", undefined,  t("texturas"));
-      grupoTexturas.orientation = "row"; // Mudado para row para elementos lado a lado
-      grupoTexturas.alignChildren = ["left", "top"];
-      grupoTexturas.spacing = 10;
-      grupoTexturas.margins = 10;
-
-      // Subgrupo para lista e botão
-      var grupoLista = grupoTexturas.add("group");
-      grupoLista.orientation = "column";
-      grupoLista.alignChildren = ["left", "top"];
-      grupoLista.spacing = 5;
-
-      // Função obterNumeroTextura movida para funcoesFiltragem.jsx
-
-      // Lista de texturas no subgrupo
-      listaTexturas = grupoLista.add("dropdownlist", undefined, [
-          t("selecioneTextura"),
-          "--- SIMPLE TRAIT ---",
-          "Texture 01",
-          "Texture 02",
-          "Texture 03",
-          "Texture 04",
-          "Texture 05",
-          "Texture 06",
-          "Texture 07",
-          "Texture 08",
-          "--- DOUBLE TRAIT ---",
-          "Texture 09",
-          "Texture 10",
-          "Texture 11",
-          "Texture 12",
-          "Texture 13",
-          "Texture 14",
-          "Texture 15",
-          "Texture 16",
-          "--- FLEXI ---",
-          "Flexi Triangle",
-          "Flexi Boucle",
-          "Flexi Losange",
-          "Flexi Meli Melo"
-      ]);
-      listaTexturas.selection = 0;
-      listaTexturas.preferredSize.width = 200;
-
-      // Botão no subgrupo
-      botaoInserirTextura = grupoLista.add("button", undefined, t("inserirTextura"));
-
-        // Adicionar o evento onClick para o botão
-        botaoInserirTextura.onClick = function() {
-            if (listaTexturas.selection && 
-                listaTexturas.selection.index > 0 && 
-                listaTexturas.selection.text.indexOf("---") === -1) {
-                
-                var texturaNumero = funcoesFiltragem.obterNumeroTextura(listaTexturas.selection.text);
-                var texturaNome = listaTexturas.selection.text;
-                
-                // Adicionar a textura à lista de itens
-                itensLegenda.push({
-                    tipo: "textura",
-                    nome: texturaNome,
-                    texto: texturaNome,
-                    referencia: "texture" + texturaNumero
-                });
-                
-                // Atualizar a lista de itens
-                atualizarListaItens();
-                
-                // Resetar a seleção
-                listaTexturas.selection = 0;
-            } else {
-                alert(t("selecioneTexturaAlerta"));
-            }
-        };
-
-      // Grupo para preview da imagem
-      var grupoPreview = grupoTexturas.add("group");
-      grupoPreview.orientation = "column";
-      grupoPreview.alignChildren = ["left", "top"];
-      grupoPreview.spacing = 5;
-
-      // Evento de mudança na lista
-      listaTexturas.onChange = function() {
-        // Limpar preview anterior
-        while(grupoPreview.children.length > 0) {
-            grupoPreview.remove(grupoPreview.children[0]);
-        }
-        
-        if (this.selection.index > 0 && this.selection.text.indexOf("---") === -1) {
-            try {
-                var numeroTextura = funcoesFiltragem.obterNumeroTextura(this.selection.text);
-                var nomeArquivo = "texture" + numeroTextura + ".png";
-                var caminhoImagem = File($.fileName).parent + "/png/" + nomeArquivo;
-                var arquivoImagem = new File(caminhoImagem);
-                
-                if (arquivoImagem.exists) {
-                    var imagem = grupoPreview.add("image", undefined, arquivoImagem);
-                    imagem.preferredSize = [100, 100];
-                } else {
-                    var textoErro = grupoPreview.add("statictext", undefined, "Imagem não encontrada");
-                }
-            } catch (e) {
-              alert(t("erroCarregarImagem") + e.message);
-            }
-        }
-        
-        janela.layout.layout(true);
-        janela.layout.resize();
-    };
-
-      // Texto de informação
-      var infoTexto = grupoLista.add("statictext", undefined, 
-        t("instrucaoTextura"), 
-          {multiline: true});
-      infoTexto.preferredSize.width = 200;
-
-      janela.layout.layout(true);
-      janela.preferredSize.height += 100;
-  } else {
-      // Remover o grupo de texturas
-      grupoTexturas.parent.remove(grupoTexturas);
-      janela.layout.layout(true);
-      janela.preferredSize.height -= 100;
-  }
-  janela.layout.resize();
+    if (this.value) {
+        // Criar interface de texturas usando módulo
+        componentesTexturas = ui.criarInterfaceTexturas(
+            grupoExtra,
+            janela,
+            t,
+            funcoesFiltragem,
+            itensLegenda,
+            atualizarListaItens
+        );
+    } else {
+        // Remover interface de texturas usando módulo
+        ui.removerInterfaceTexturas(componentesTexturas, janela);
+        componentesTexturas = null;
+    }
+    janela.layout.resize();
 };
 
 
@@ -842,34 +661,23 @@ checkboxMostrarContar.onClick = function() {
   janela.layout.resize();
 };
 
-// Adicionar evento para o checkbox de observações
-var grupoObs, campoObs; // Declarar as variáveis no escopo adequado
+// Variável para armazenar componentes da interface de observações
+var componentesObservacoes = null;
+
 checkboxMostrarObs.onClick = function() {
-  if (this.value) {
-      // Adicionar o grupo de observações
-      grupoObs = grupoExtra.add("panel", undefined, t("observacoes"));
-      grupoObs.orientation = "row";
-      grupoObs.alignChildren = ["fill", "top"]; // Preencher a largura
-      grupoObs.spacing = 0;
-
-      grupoObs.add("statictext", undefined, t("obs"));
-
-      // Adicionar uma caixa de texto para observações
-      campoObs = grupoObs.add("edittext", undefined, "", {multiline: true, scrollable: true});
-      campoObs.characters = 60;
-      campoObs.preferredSize.height = 100; // Aumentar a altura da caixa de texto
-      campoObs.alignment = ["fill", "fill"]; // Preencher a largura
-
-      janela.layout.layout(true); // Forçar atualização do layout
-      janela.preferredSize.height += 100; // Aumentar a altura da janela
-  } else {
-      // Remover o grupo de observações
-      grupoObs.parent.remove(grupoObs);
-      campoObs = null; // Definir campoObs como null quando o grupo é removido
-      janela.layout.layout(true); // Forçar atualização do layout
-      janela.preferredSize.height -= 100; // Diminuir a altura da janela
-  }
-  janela.layout.resize();
+    if (this.value) {
+        // Criar interface de observações usando módulo
+        componentesObservacoes = ui.criarInterfaceObservacoes(
+            grupoExtra,
+            janela,
+            t
+        );
+    } else {
+        // Remover interface de observações usando módulo
+        ui.removerInterfaceObservacoes(componentesObservacoes, janela);
+        componentesObservacoes = null;
+    }
+    janela.layout.resize();
 };
 
 // Função removerDuplicatas movida para funcoes.jsx
@@ -992,7 +800,7 @@ function atualizarListaItens() {
                     listaFixacao: listaFixacao,
                     checkStructure: checkStructure,
                     corStructure: corStructure,
-                    campoObs: campoObs,
+                    campoObs: componentesObservacoes ? componentesObservacoes.campoObs : null,
                     campoUsage: campoUsage,
                     campoQuantitePrevu: campoQuantitePrevu,
                     campoPreco: campoPreco

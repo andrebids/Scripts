@@ -219,7 +219,7 @@ grupoLFixacao.add("statictext", undefined, t("fixacao"));
 
 // Tipos de fixação
 var tiposFixacao = [];
-var tiposFixacaoKeys = ["poteau", "suspendue", "murale", "sansFixation", "auSol", "speciale", "aucune"];
+var tiposFixacaoKeys = ["poteau", "suspendue", "transversal", "murale", "sansFixation", "auSol", "speciale", "aucune"];
 
 // Preencher o array com as traduções
 for (var i = 0; i < tiposFixacaoKeys.length; i++) {

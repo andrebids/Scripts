@@ -111,7 +111,8 @@ var TRANSLATIONS = {
         "tituloJanela": "Cartouche by Bids",
         "tiposFixacao": {
             "poteau": "poteau",
-            "suspendue": "suspendue/transversal",
+            "suspendue": "suspendue",
+            "transversal": "transversal",
             "murale": "murale",
             "sansFixation": "sans fixation",
             "auSol": "au sol",
@@ -229,7 +230,8 @@ var TRANSLATIONS = {
         "tituloJanela": "Cartouche",
         "tiposFixacao": {
             "poteau": "poteau",
-            "suspendue": "suspendue/transversale",
+            "suspendue": "suspendue",
+            "transversal": "transversal",
             "murale": "murale",
             "sansFixation": "sans fixation",
             "auSol": "au sol",

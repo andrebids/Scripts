@@ -1,7 +1,15 @@
 // regras.jsx
 
+// Função auxiliar para logs protegidos
+function logProtegidoRegras(mensagem, tipo) {
+    if (typeof logs !== 'undefined' && logs.adicionarLog && logs.TIPOS_LOG) {
+        logs.adicionarLog(mensagem, tipo);
+    }
+}
+
 // Função para arredondar para a décima
 function arredondarParaDecima(valor) {
+    logProtegidoRegras("Arredondando para décima: " + valor, logs.TIPOS_LOG.FUNCTION);
     return Math.ceil(valor * 10) / 10;
 }
 
@@ -87,6 +95,8 @@ function criarGrupoStructure(parentGroup) {
 
 // Função para classificar se é 2D ou 3D baseado nas dimensões
 function classificar2Dou3D(dimensoes) {
+    logProtegidoRegras("Classificando dimensões 2D/3D", logs.TIPOS_LOG.FUNCTION);
+    
     // Função para verificar se uma dimensão está preenchida (não vazia e maior que 0)
     function dimensaoPreenchida(valor) {
         if (!valor || valor === "") return false;
@@ -138,6 +148,7 @@ function classificar2Dou3D(dimensoes) {
             motivo = "Nenhuma dimensão válida encontrada";
         }
         
+        logProtegidoRegras("Classificação concluída: " + classificacao + " - " + motivo, logs.TIPOS_LOG.INFO);
         return {
             classificacao: classificacao,
             motivo: motivo,
@@ -149,6 +160,7 @@ function classificar2Dou3D(dimensoes) {
         };
         
     } catch (e) {
+        logProtegidoRegras("Erro ao classificar dimensões: " + e.message, logs.TIPOS_LOG.ERROR);
         // Em caso de erro, retornar resultado vazio
         return {
             classificacao: "",

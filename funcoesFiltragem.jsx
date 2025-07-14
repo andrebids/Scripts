@@ -13,10 +13,18 @@
  *   - Processar e organizar dados para dropdowns
  */
 
+// Função auxiliar para logs protegidos
+function logProtegidoFiltragem(mensagem, tipo) {
+    if (typeof logs !== 'undefined' && logs.adicionarLog && logs.TIPOS_LOG) {
+        logs.adicionarLog(mensagem, tipo);
+    }
+}
+
 /**
  * Filtra componentes baseado em termo de pesquisa
  */
 function filtrarComponentes(termo, componentesNomes, listaComponentes, listaCores, listaUnidades, dados, t, funcoes, funcoesComponentes) {
+    logProtegidoFiltragem("Iniciando filtro de componentes - termo: '" + (termo || "") + "'", logs.TIPOS_LOG.FUNCTION);
     try {
         if (!termo || typeof termo !== 'string') {
             termo = "";
@@ -46,8 +54,10 @@ function filtrarComponentes(termo, componentesNomes, listaComponentes, listaCore
         // Sempre selecionar o primeiro item filtrado se houver resultados
         if (componentesFiltrados.length > 1) {
             listaComponentes.selection = 1; // Seleciona o primeiro componente filtrado
+            logProtegidoFiltragem("Filtro aplicado: " + (componentesFiltrados.length - 1) + " componentes encontrados", logs.TIPOS_LOG.INFO);
         } else {
             listaComponentes.selection = 0; // Seleciona "Selecione um componente" se não houver resultados
+            logProtegidoFiltragem("Nenhum componente encontrado para o termo: '" + termo + "'", logs.TIPOS_LOG.WARNING);
         }
 
         // Atualizar cores e unidades
@@ -57,7 +67,10 @@ function filtrarComponentes(termo, componentesNomes, listaComponentes, listaCore
             }
         });
 
+        logProtegidoFiltragem("Filtro de componentes concluído com sucesso", logs.TIPOS_LOG.INFO);
+
     } catch (erro) {
+        logProtegidoFiltragem("Erro ao filtrar componentes: " + erro.message, logs.TIPOS_LOG.ERROR);
         // Em caso de erro, restaurar lista completa
         listaComponentes.removeAll();
         for (var i = 0; i < componentesNomes.length; i++) {
@@ -71,9 +84,11 @@ function filtrarComponentes(termo, componentesNomes, listaComponentes, listaCore
  * Obtém componentes que possuem combinações disponíveis
  */
 function getComponentesComCombinacoes(dados, t, arrayContains, encontrarPorId) {
+    logProtegidoFiltragem("Obtendo componentes com combinações disponíveis", logs.TIPOS_LOG.FUNCTION);
     try {
         // Validação de entrada
         if (!dados || !dados.combinacoes || !dados.componentes) {
+            logProtegidoFiltragem("Dados inválidos para obter componentes com combinações", logs.TIPOS_LOG.WARNING);
             return [t("selecioneComponente")];
         }
         
@@ -91,9 +106,11 @@ function getComponentesComCombinacoes(dados, t, arrayContains, encontrarPorId) {
             }
         }
         
+        logProtegidoFiltragem("Componentes com combinações obtidos: " + (componentesDisponiveis.length - 1) + " componentes", logs.TIPOS_LOG.INFO);
         return componentesDisponiveis;
         
     } catch (erro) {
+        logProtegidoFiltragem("Erro ao obter componentes com combinações: " + erro.message, logs.TIPOS_LOG.ERROR);
         return [t("selecioneComponente")];
     }
 }
@@ -102,6 +119,7 @@ function getComponentesComCombinacoes(dados, t, arrayContains, encontrarPorId) {
  * Obtém cores disponíveis para bolas
  */
 function getCoresDisponiveisBolas(dados, t, arrayContains, encontrarPorId) {
+    logProtegidoFiltragem("Obtendo cores disponíveis para bolas", logs.TIPOS_LOG.FUNCTION);
     try {
         // Validação de entrada
         if (!dados || !dados.bolas || !dados.cores) {

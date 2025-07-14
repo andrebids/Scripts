@@ -1,5 +1,4 @@
 // funcoes.jsx
-// Função lerArquivoJSON movida para database.jsx
 // Função para analisar JSON
 function parseJSON(str) {
     if (!str || typeof str !== 'string') {
@@ -53,11 +52,8 @@ function stringifyJSON(obj) {
     function getPastaDocumentos() {
         return Folder.myDocuments.fsName;
     }
- // Função arquivoExiste movida para database.jsx
 
-// Função escreverArquivoJSON movida para database.jsx
-
-// Funo para verificar se um objeto é um array
+// Função para verificar se um objeto é um array
 function isArray(obj) {
     return obj && typeof obj === 'object' && obj.constructor === Array;
 }

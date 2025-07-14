@@ -1,26 +1,34 @@
 #target illustrator
 #targetengine maintarget
 
-// Importar o arquivo de regras
+// Importar bibliotecas base
 $.evalFile(File($.fileName).path + "/json2.js");
-$.evalFile(File($.fileName).path + "/regras.jsx");
+$.evalFile(File($.fileName).path + "/translations.js");
+
+// Importar módulos fundamentais
 $.evalFile(File($.fileName).path + "/funcoes.jsx");
 $.evalFile(File($.fileName).path + "/database.jsx");
 $.evalFile(File($.fileName).path + "/logs.jsx");
-$.evalFile(File($.fileName).path + "/config.jsx");
-$.evalFile(File($.fileName).path + "/inicializacao.jsx");
-$.evalFile(File($.fileName).path + "/bridge.jsx");
-$.evalFile(File($.fileName).path + "/ui.jsx");
-$.evalFile(File($.fileName).path + "/translations.js");
-$.evalFile(File($.fileName).path + "/update.jsx");
+$.evalFile(File($.fileName).path + "/regras.jsx");
+
+// Importar módulos funcionais
 $.evalFile(File($.fileName).path + "/funcoesComponentes.jsx");
-$.evalFile(File($.fileName).path + "/funcoesBolas.jsx");    
+$.evalFile(File($.fileName).path + "/funcoesBolas.jsx");
 $.evalFile(File($.fileName).path + "/funcoesLegenda.jsx");
 $.evalFile(File($.fileName).path + "/funcoesFiltragem.jsx");
+$.evalFile(File($.fileName).path + "/alfabeto.jsx");
+
+// Importar módulos de infraestrutura
+$.evalFile(File($.fileName).path + "/bridge.jsx");
+$.evalFile(File($.fileName).path + "/config.jsx");
+$.evalFile(File($.fileName).path + "/inicializacao.jsx");
+
+// Importar módulos de interface e gestão
+$.evalFile(File($.fileName).path + "/ui.jsx");
 $.evalFile(File($.fileName).path + "/gestaoLista.jsx");
 
-// Adicionar no início do arquivo, após os outros $.evalFile
-$.evalFile(File($.fileName).path + "/alfabeto.jsx");
+// Importar módulos de manutenção
+$.evalFile(File($.fileName).path + "/update.jsx");
 
 // Definir variáveis no escopo global
 var caminhoConfig = Folder.myDocuments.fsName + "/cartouche_config.json";
@@ -37,7 +45,6 @@ var ultimaSelecao = {
     unidade: null,
     multiplicador: "1"
 };
-// Função para mostrar janela de configuração inicial movida para ui.jsx
 
 (function() {
 // Inicializar sistema usando o módulo inicializacao.jsx
@@ -48,8 +55,6 @@ try {
     // Erro já foi tratado pelo módulo de inicialização
     return;
 }
-
-// Função contarBolasNaArtboard movida para funcoes.jsx
 
 // Criar a janela principal
 var janela = new Window("palette", t("tituloJanela"), undefined);
@@ -297,10 +302,6 @@ checkStructure.onClick = function() {
     corStructure.visible = this.value;
 };
 
-// Função apenasNumerosEVirgula movida para funcoes.jsx
-
-
-
 // Segundo grupo (Componentes)
 var grupoComponentes = conteudoLegenda.add("panel", undefined, t("painelComponentes"));
 grupoComponentes.orientation = "column";
@@ -316,8 +317,6 @@ var labelPesquisa = grupoPesquisa.add("statictext", undefined, t("procurar"));
 
 var grupo2 = grupoComponentes.add("group");
 grupo2.orientation = "row";
-
-// Função getComponentesComCombinacoes movida para funcoesFiltragem.jsx
 
 // Atualizar a criação da lista de componentes
 var componentesNomes = funcoesFiltragem.getComponentesComCombinacoes(dados, t, funcoes.arrayContains, funcoes.encontrarPorId);
@@ -460,8 +459,6 @@ abasExtra.selection = abaGeral;
 
 var grupoBolasSelecao = grupoBolas.add("group");
 grupoBolasSelecao.orientation = "row";
-
-// Função getCoresDisponiveisBolas movida para funcoesFiltragem.jsx
 
 // Lista de cores para bolas
 var coresBolasDisponiveis = funcoesFiltragem.getCoresDisponiveisBolas(dados, t, funcoes.arrayContains, funcoes.encontrarPorId);
@@ -681,9 +678,6 @@ checkboxMostrarObs.onClick = function() {
     janela.layout.resize();
 };
 
-// Função removerDuplicatas movida para funcoes.jsx
-
-
 // Manter apenas este código para a lista única
 var grupoPreviewBotoes = conteudoLegenda.add("group");
 grupoPreviewBotoes.orientation = "column";
@@ -714,7 +708,6 @@ var botaoGerar = grupoBotoesPrincipais.add("button", undefined, t("adicionarLege
 botaoGerar.graphics.foregroundColor = botaoGerar.graphics.newPen(botaoGerar.graphics.PenType.SOLID_COLOR, [0, 0, 0], 2);
 
   
-// Função atualizarListaItens movida para gestaoLista.jsx
 function atualizarListaItens() {
     gestaoLista.atualizarListaItens(listaItens, itensLegenda);
 }
@@ -781,8 +774,6 @@ function atualizarListaItens() {
     
                 // Encontrar o tamanho do alfabeto nos itens da legenda
                 var tamanhoGXSelecionado = obterTamanhoAlfabeto(itensLegenda);
-
-                // Função scriptIllustrator movida para bridge.jsx
     
                 // Capturar a palavra digitada do campo alfabeto
                 var palavraDigitada = obterPalavraDigitadaAlfabeto(itensLegenda);
@@ -825,7 +816,5 @@ function atualizarListaItens() {
             janela = null;
         }
     }
-
-    // Função criarInterfaceExtra movida para ui.jsx
 })();
 

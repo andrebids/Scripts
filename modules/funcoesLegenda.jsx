@@ -30,6 +30,25 @@ function logLegenda(mensagem, tipo) {
 }
 
 /**
+ * Função para ajustar o texto dos fil lumière para sempre incluir 'LED'
+ * @param {string} texto - Texto a ser ajustado
+ * @returns {string} Texto ajustado
+ */
+function ajustarFilLumiereLED(texto) {
+    // Função manual para remover espaços do início e fim
+    function trimManual(str) {
+        return str.replace(/^\s+/, '').replace(/\s+$/, '');
+    }
+    // Expressão regular para encontrar 'fil lumière' seguido de qualquer cor
+    var regex = /fil lumière(\s+)([a-zA-Zéèêàçûîôùâäëïöüÿœæ\-\s]+)/gi;
+    // Substitui por 'fil lumière led <cor>' (led minúsculo)
+    texto = texto.replace(regex, function(match, espaco, cor) {
+        return "fil lumière led" + espaco + trimManual(cor);
+    });
+    return texto;
+}
+
+/**
  * Gera a frase principal da legenda
  * @param {Object} parametros - Objeto com parâmetros necessários
  * @param {string} parametros.palavraDigitada - Palavra digitada do alfabeto
@@ -698,6 +717,7 @@ function atualizarPreview(parametros) {
         };
 
         var frasePrincipal = gerarFrasePrincipal(parametrosFrase);
+        frasePrincipal = ajustarFilLumiereLED(frasePrincipal);
         previewText.push(frasePrincipal);
 
         // Adicionar dimensões

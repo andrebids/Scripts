@@ -92,7 +92,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v2.0.2");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v2.0.3");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -394,9 +394,9 @@ botaoAdicionarComponente.onClick = function() {
 };
 
 // Grupo para bolas
-var grupoBolas = conteudoLegenda.add("panel", undefined, t("painelBolas"));
-grupoBolas.orientation = "column";
-grupoBolas.alignChildren = "left";
+// var grupoBolas = conteudoLegenda.add("panel", undefined, t("painelBolas"));
+// grupoBolas.orientation = "column";
+// grupoBolas.alignChildren = "left";
 // ADICIONAR ESTE NOVO CÓDIGO
 
 // Modificar as propriedades de altura do grupo Extra e do painel de abas
@@ -416,6 +416,83 @@ var abaGeral = abasExtra.add("tab", undefined, t("geral"));
 abaGeral.alignChildren = ["fill", "top"];
 var checkboxMostrarObs = abaGeral.add("checkbox", undefined, t("adicionarObservacoes"));
 var checkboxMostrarComponenteExtra = abaGeral.add("checkbox", undefined, t("adicionarComponenteExtra"));
+var checkboxMostrarBolas = abaGeral.add("checkbox", undefined, t("adicionarBolas"));
+
+// Variável para armazenar o grupo de bolas extra
+var grupoBolasExtra = null;
+
+checkboxMostrarBolas.onClick = function() {
+    if (this.value) {
+        grupoBolasExtra = grupoExtra.add("panel", undefined, t("painelBolas"));
+        grupoBolasExtra.orientation = "column";
+        grupoBolasExtra.alignChildren = "left";
+
+        // Grupo de seleção de bolas
+        var grupoBolasSelecao = grupoBolasExtra.add("group");
+        grupoBolasSelecao.orientation = "row";
+
+        // Lista de cores para bolas
+        var coresBolasDisponiveis = funcoesFiltragem.getCoresDisponiveisBolas(dados, t, funcoes.arrayContains, funcoes.encontrarPorId);
+        var listaCoresBolas = grupoBolasSelecao.add("dropdownlist", undefined, coresBolasDisponiveis);
+        listaCoresBolas.selection = 0;
+
+        // Lista de acabamentos (inicialmente vazia)
+        var listaAcabamentos = grupoBolasSelecao.add("dropdownlist", undefined, [t("selecioneAcabamento")]);
+        listaAcabamentos.selection = 0;
+
+        // Lista de tamanhos (inicialmente vazia)
+        var listaTamanhos = grupoBolasSelecao.add("dropdownlist", undefined, [t("selecioneTamanho")]);
+        listaTamanhos.selection = 0;
+
+        // Campo para quantidade de bolas
+        var campoQuantidadeBolas = grupoBolasSelecao.add("edittext", undefined, "1");
+        campoQuantidadeBolas.characters = 5;
+        funcoes.apenasNumerosEVirgula(campoQuantidadeBolas);
+
+        // Botão adicionar bola
+        var botaoAdicionarBola = grupoBolasSelecao.add("button", undefined, t("adicionarBola"));
+
+        // Eventos de mudança
+        listaCoresBolas.onChange = function() {
+            if (logs && logs.logEvento) {
+                logs.logEvento("change", "listaCoresBolas - " + (this.selection ? this.selection.text : "nenhuma seleção"));
+            }
+            funcoesBolas.atualizarAcabamentos(listaCoresBolas, listaAcabamentos, dados, t, funcoes, function() {
+                funcoesBolas.atualizarTamanhos(listaCoresBolas, listaAcabamentos, listaTamanhos, dados, t, funcoes);
+            });
+        };
+        listaAcabamentos.onChange = function() {
+            if (logs && logs.logEvento) {
+                logs.logEvento("change", "listaAcabamentos - " + (this.selection ? this.selection.text : "nenhuma seleção"));
+            }
+            funcoesBolas.atualizarTamanhos(listaCoresBolas, listaAcabamentos, listaTamanhos, dados, t, funcoes);
+        };
+
+        botaoAdicionarBola.onClick = function() {
+            funcoesBolas.adicionarBola(
+                listaCoresBolas,
+                listaAcabamentos,
+                listaTamanhos,
+                campoQuantidadeBolas,
+                dados,
+                itensLegenda,
+                atualizarListaItens,
+                t,
+                logs,
+                funcoes
+            );
+        };
+
+        janela.layout.layout(true);
+    } else {
+        if (grupoBolasExtra) {
+            grupoBolasExtra.parent.remove(grupoBolasExtra);
+            grupoBolasExtra = null;
+            janela.layout.layout(true);
+        }
+    }
+    janela.layout.resize();
+};
 
 // Aba 2: Criar
 var abaCriar = abasExtra.add("tab", undefined, t("criar"));
@@ -456,208 +533,6 @@ if (logs && logs.inicializarSistemaLogs) {
 
 // Selecionar a primeira aba por padrão
 abasExtra.selection = abaGeral;
-
-var grupoBolasSelecao = grupoBolas.add("group");
-grupoBolasSelecao.orientation = "row";
-
-// Lista de cores para bolas
-var coresBolasDisponiveis = funcoesFiltragem.getCoresDisponiveisBolas(dados, t, funcoes.arrayContains, funcoes.encontrarPorId);
-var listaCoresBolas = grupoBolasSelecao.add("dropdownlist", undefined, coresBolasDisponiveis);
-listaCoresBolas.selection = 0;
-
-// Lista de acabamentos (inicialmente vazia)
-var listaAcabamentos = grupoBolasSelecao.add("dropdownlist", undefined, [t("selecioneAcabamento")]);
-listaAcabamentos.selection = 0;
-
-// Lista de tamanhos (inicialmente vazia)
-var listaTamanhos = grupoBolasSelecao.add("dropdownlist", undefined, [t("selecioneTamanho")]);
-listaTamanhos.selection = 0;
-
-// Campo para quantidade de bolas
-var campoQuantidadeBolas = grupoBolasSelecao.add("edittext", undefined, "1");
-campoQuantidadeBolas.characters = 5;
-funcoes.apenasNumerosEVirgula(campoQuantidadeBolas);
-
-// Botão adicionar bola
-var botaoAdicionarBola = grupoBolasSelecao.add("button", undefined, t("adicionarBola"));
-
-// Funções de bolas migradas para funcoesBolas.jsx
-
-// Adicionar eventos de mudança
-listaCoresBolas.onChange = function() {
-    if (logs && logs.logEvento) {
-        logs.logEvento("change", "listaCoresBolas - " + (this.selection ? this.selection.text : "nenhuma seleção"));
-    }
-    funcoesBolas.atualizarAcabamentos(listaCoresBolas, listaAcabamentos, dados, t, funcoes, function() {
-        funcoesBolas.atualizarTamanhos(listaCoresBolas, listaAcabamentos, listaTamanhos, dados, t, funcoes);
-    });
-};
-listaAcabamentos.onChange = function() {
-    if (logs && logs.logEvento) {
-        logs.logEvento("change", "listaAcabamentos - " + (this.selection ? this.selection.text : "nenhuma seleção"));
-    }
-    funcoesBolas.atualizarTamanhos(listaCoresBolas, listaAcabamentos, listaTamanhos, dados, t, funcoes);
-};
-
-botaoAdicionarBola.onClick = function() {
-    funcoesBolas.adicionarBola(
-        listaCoresBolas,
-        listaAcabamentos,
-        listaTamanhos,
-        campoQuantidadeBolas,
-        dados,
-        itensLegenda,
-        atualizarListaItens,
-        t,
-        logs,
-        funcoes
-    );
-};
-
-// Função atualizarTextoBola migrada para funcoesBolas.jsx
-
-
-// Adicionar evento para o checkbox de alfabeto
-var grupoAlfabeto, campoPalavraChave, dropdownCorBioprint, tamanhoAlfabeto, botaoAdicionarPalavraChave;
-
-
-// Adicionar evento para o checkbox de componente extra
-var grupoComponenteExtra, campoNomeExtra, dropdownUnidadeExtra, campoQuantidadeExtra, botaoAdicionarExtra;
-checkboxMostrarComponenteExtra.onClick = function() {
-    if (this.value) {
-        // Adicionar o grupo de componente extra
-        grupoComponenteExtra = grupoExtra.add("panel", undefined, t("componenteExtra"));
-        grupoComponenteExtra.orientation = "row";
-        grupoComponenteExtra.alignChildren = ["left", "top"];
-        grupoComponenteExtra.spacing = 10;
-
-      // Campo de texto para o nome do componente
-      campoNomeExtra = grupoComponenteExtra.add("edittext", undefined, "");
-      campoNomeExtra.characters = 20;
-
-      // Dropdown para unidade
-      dropdownUnidadeExtra = grupoComponenteExtra.add("dropdownlist", undefined, ["m2", "ml", "unit"]);
-      dropdownUnidadeExtra.selection = 0;
-
-      // Campo para quantidade
-      campoQuantidadeExtra = grupoComponenteExtra.add("edittext", undefined, "");
-      campoQuantidadeExtra.characters = 5;
-      apenasNumerosEVirgula(campoQuantidadeExtra);
-
-      // Botão para adicionar à legenda
-      botaoAdicionarExtra = grupoComponenteExtra.add("button", undefined, t("adicionarALegenda"));
-
-      // Evento de clique para o botão adicionar extra
-      botaoAdicionarExtra.onClick = function() {
-          var nomeExtra = campoNomeExtra.text;
-          var unidadeExtra = dropdownUnidadeExtra.selection.text;
-          var quantidadeExtra = parseFloat(campoQuantidadeExtra.text.replace(',', '.'));
-
-          if (nomeExtra === "" || isNaN(quantidadeExtra) || quantidadeExtra <= 0) {
-            alert(t("preencherCampos"));
-              return;
-          }
-
-          var textoExtra = nomeExtra + " (" + unidadeExtra + "): " + quantidadeExtra.toFixed(2).replace('.', ',');
-
-          itensLegenda.push({
-              tipo: "extra",
-              nome: nomeExtra,
-              texto: textoExtra,
-              unidade: unidadeExtra,
-              quantidade: quantidadeExtra
-          });
-
-          atualizarListaItens();
-
-          // Limpar os campos após adicionar
-          campoNomeExtra.text = "";
-          campoQuantidadeExtra.text = "";
-      };
-
-      janela.layout.layout(true);
-    } else {
-        grupoComponenteExtra.parent.remove(grupoComponenteExtra);
-        janela.layout.layout(true);
-    }
-    janela.layout.resize();
-};
-
-// Variável para armazenar componentes da interface de alfabeto
-var componentesAlfabeto = null;
-
-checkboxMostrarAlfabeto.onClick = function() {
-    if (this.value) {
-        // Criar interface de alfabeto usando módulo
-        componentesAlfabeto = alfabeto.criarInterfaceAlfabeto(
-            grupoExtra,
-            dados,
-            janela,
-            t,
-            funcoesFiltragem,
-            funcoes,
-            itensLegenda,
-            atualizarListaItens,
-            campoNomeTipo,
-            grupoDimensoes
-        );
-    } else {
-        // Remover interface de alfabeto usando módulo
-        alfabeto.removerInterfaceAlfabeto(componentesAlfabeto, janela);
-        componentesAlfabeto = null;
-    }
-    janela.layout.resize();
-};
-
-
-// Adicionar evento para o checkbox de texturas
-var grupoTexturas;
-
-// Variável para armazenar componentes da interface de texturas
-var componentesTexturas = null;
-
-checkboxMostrarTexturas.onClick = function() {
-    if (this.value) {
-        // Criar interface de texturas usando módulo
-        componentesTexturas = ui.criarInterfaceTexturas(
-            grupoExtra,
-            janela,
-            t,
-            funcoesFiltragem,
-            itensLegenda,
-            atualizarListaItens
-        );
-    } else {
-        // Remover interface de texturas usando módulo
-        ui.removerInterfaceTexturas(componentesTexturas, janela);
-        componentesTexturas = null;
-    }
-    janela.layout.resize();
-};
-
-
-// Adicionar evento para o checkbox de contar elementos
-checkboxMostrarContar.onClick = function() {
-  if (this.value) {
-      // Adicionar o grupo de contar elementos
-      grupoContar = grupoExtra.add("panel", undefined, t("contarElementos"));
-      grupoContar.orientation = "column";
-      grupoContar.alignChildren = ["fill", "top"];
-      grupoContar.spacing = 10;
-
-      // Criar a interface do contador de bolas
-      var interfaceContador = criarInterfaceContadorBolas(grupoContar, dados, itensLegenda, atualizarListaItens);
-
-      janela.layout.layout(true);
-      janela.preferredSize.height += 200; // Aumentar a altura da janela
-  } else {
-      // Remover o grupo de contar elementos
-      grupoContar.parent.remove(grupoContar);
-      janela.layout.layout(true);
-      janela.preferredSize.height -= 200; // Diminuir a altura da janela
-  }
-  janela.layout.resize();
-};
 
 // Variável para armazenar componentes da interface de observações
 var componentesObservacoes = null;

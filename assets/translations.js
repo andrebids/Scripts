@@ -134,10 +134,11 @@ var TRANSLATIONS = {
         "procurarLabel": "procurar:",
         "selecioneTipoFixacao": "Selecione o tipo de fixação",
         "selecioneFixacao": "Selecione fixação",
-        "selecionarTipoFixacao": "Selecione o tipo de fixação!",
+        "selecionarTipoFixacao": "Não sejas Gabriel, seleciona o tipo de fixação!",
         "selecioneUsage": "Selecione uso",
         "usageInterieur": "Interior",
-        "usageExterieur": "Exterior"
+        "usageExterieur": "Exterior",
+        "adicionarBolas": "Adicionar Bolas"
     },
     "Français": {
         "nomeDesigner": "Nom du Designer",
@@ -257,6 +258,7 @@ var TRANSLATIONS = {
         "selecionarTipoFixacao": "Veuillez sélectionner le type de fixation avant de générer la légende.",
         "selecioneUsage": "Sélectionner usage",
         "usageInterieur": "Intérieur",
-        "usageExterieur": "Extérieur"
+        "usageExterieur": "Extérieur",
+        "adicionarBolas": "Ajouter Boules"
     }
 };

@@ -521,8 +521,8 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
                 try {
                     var numeroTextura = funcoesFiltragem.obterNumeroTextura(this.selection.text);
                     var nomeArquivo = "texture" + numeroTextura + ".png";
-                    // Caminho dinâmico relativo à pasta do script
-                    var pastaScript = File($.fileName).parent.fsName.replace(/\\/g, '/');
+                    // Caminho dinâmico relativo à pasta do projeto (Legenda)
+                    var pastaScript = File($.fileName).parent.parent.fsName.replace(/\\/g, '/');
                     var caminhoImagem = pastaScript + "/resources/png/" + nomeArquivo;
                     var arquivoImagem = new File(caminhoImagem);
                     

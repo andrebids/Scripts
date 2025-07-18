@@ -667,14 +667,20 @@ function atualizarListaItens() {
                 var palavraDigitada = obterPalavraDigitadaAlfabeto(itensLegenda);
                 
                 // Usar módulo bridge para adicionar legenda
+                if (logs && logs.adicionarLog) {
+                    logs.adicionarLog("Tipo de legendaInfo.texturas: " + Object.prototype.toString.call(legendaInfo.texturas), "info");
+                    logs.adicionarLog("Valor de legendaInfo.texturas: " + legendaInfo.texturas, "info");
+                }
+                var pastaBaseLegenda = File($.fileName).parent.fsName.replace(/\\/g, '/');
                 bridge.adicionarLegendaViaBridge(
                     nomeDesigner,
                     legendaConteudo,
-                    legendaInfo.texturas,
+                    (Object.prototype.toString.call(legendaInfo.texturas) === '[object Array]' ? legendaInfo.texturas.join(',') : ''),
                     palavraDigitada,
                     tamanhoGXSelecionado,
                     t,
                     janela,
+                    pastaBaseLegenda, // novo parâmetro
                     function(erro, resultado) {
                         if (erro) {
                             if (logs && logs.adicionarLog && logs.TIPOS_LOG) {

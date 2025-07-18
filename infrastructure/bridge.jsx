@@ -20,13 +20,18 @@ function logProtegido(mensagem, tipo) {
     }
 }
 
+// Função auxiliar para verificar se é array (compatível ExtendScript)
+function isArray(obj) {
+    return Object.prototype.toString.call(obj) === '[object Array]';
+}
+
 // Função para executar contagem de bolas via BridgeTalk
 function executarContagemBolas(dados, textoResultado, callback) {
     logProtegido("Iniciando contagem de bolas via BridgeTalk", logs.TIPOS_LOG.FUNCTION);
     
     try {
         // Validar dados
-        if (!dados || typeof dados !== 'object' || !dados.componentes || !funcoes.isArray(dados.componentes)) {
+        if (!dados || typeof dados !== 'object' || !dados.componentes || !isArray(dados.componentes)) {
             logProtegido("Erro: Base de dados não acessível ou formato inválido", logs.TIPOS_LOG.ERROR);
             var mensagemErro = "Erro: A base de dados não está acessível ou está em um formato inválido.";
             if (callback) callback(mensagemErro, null);
@@ -167,7 +172,7 @@ function processarResultadoContagem(contagem, combinacoes) {
 }
 
 // Função para adicionar legenda via BridgeTalk
-function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, palavraDigitada, tamanhoGXSelecionado, t, janela, callback) {
+function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, palavraDigitada, tamanhoGXSelecionado, t, janela, pastaBaseLegenda, callback) {
     if (typeof logs !== 'undefined' && logs.adicionarLog && logs.TIPOS_LOG) {
         logProtegido("Iniciando adição de legenda via BridgeTalk", logs.TIPOS_LOG.FUNCTION);
     }
@@ -177,7 +182,7 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
     
     try {
         // Função que será executada no contexto do Illustrator
-        var scriptIllustrator = function(nomeDesigner, conteudoLegenda, texturasString, palavraDigitada, tamanhoGX) {
+        var scriptIllustrator = function(nomeDesigner, conteudoLegenda, texturasString, palavraDigitada, tamanhoGX, pastaBaseLegenda) {
             if (typeof logs !== 'undefined' && logs.adicionarLog && logs.TIPOS_LOG) {
                 logProtegido("Script executando no Illustrator", logs.TIPOS_LOG.INFO);
             }
@@ -217,13 +222,23 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
             // Processar texturas se existirem
             if (texturasString && texturasString !== "") {
                 try {
-                    var texturas = texturasString.split(',');
+                    // Usar o caminho base passado como parâmetro
+                    var pastaScript = pastaBaseLegenda;
+                    var texturas = texturasString ? texturasString.split(',') : [];
                     for (var t = 0; t < texturas.length; t++) {
                         if (texturas[t] && texturas[t] !== "") {
-                            var numeroTextura = texturas[t].replace(/\D/g, '');
+                            var numeroTextura = String(texturas[t]).replace(/[^0-9]/g, '');
                             if (numeroTextura) {
-                                var caminhoTextura = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/resources/svg/texture" + numeroTextura + ".ai";
+                                var caminhoTextura = pastaScript + "/resources/svg/texture" + numeroTextura + ".ai";
                                 var arquivoTextura = new File(caminhoTextura);
+                                if (typeof logs !== 'undefined' && logs.adicionarLog) {
+                                    logs.adicionarLog("[BridgeTalk] Processando textura: " + numeroTextura, "info");
+                                    logs.adicionarLog("[BridgeTalk] Caminho do SVG: " + caminhoTextura, "info");
+                                    logs.adicionarLog("[BridgeTalk] Arquivo existe: " + arquivoTextura.exists, "info");
+                                }
+                                if (!arquivoTextura.exists) {
+                                    alert("[BridgeTalk] Arquivo SVG não encontrado: " + caminhoTextura);
+                                }
                                 if (arquivoTextura.exists) {
                                     var texturaItem = novaLayer.placedItems.add();
                                     texturaItem.file = arquivoTextura;
@@ -242,41 +257,35 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
             var alturaLetras = 200; // valor padrão
             try {
                 if (palavraDigitada && palavraDigitada !== "") {
-                    var caminhoAlfabeto = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda/resources/alfabeto/";
-                    
+                    // Caminho dinâmico relativo à pasta do projeto (Legenda)
+                    var pastaScript = File($.fileName).parent.parent.fsName.replace(/\\/g, '/');
+                    var caminhoAlfabeto = pastaScript + "/resources/alfabeto/";
                     // Configurar espaçamento e tamanho baseado no tamanho GX
                     var espacamentoHorizontal = (tamanhoGX === "1,40 m") ? 150 : 220;
                     var sufixoTamanho = (tamanhoGX === "1,40 m") ? "140" : "200";
                     alturaLetras = (tamanhoGX === "1,40 m") ? 200 : 300;
-                    
                     var posicaoX = artboardBounds[0] + 50;
-                    
                     // Processar cada caractere da palavra
                     for (var i = 0; i < palavraDigitada.length; i++) {
-                        var caractere = palavraDigitada[i].toUpperCase();
-                        
-                        // Tratar caractere especial <3
-                        if (caractere === '<' && palavraDigitada[i+1] === '3') {
-                            caractere = '<3';
-                            i++; // Pula o próximo caractere
+                        var caractere = palavraDigitada.charAt(i).toUpperCase();
+                        var nomeArquivo = gerarNomeArquivoAlfabeto(caractere, sufixoTamanho);
+                        var caminhoArquivo = caminhoAlfabeto + nomeArquivo;
+                        var arquivoAlfabeto = new File(caminhoArquivo);
+                        if (typeof logs !== 'undefined' && logs.adicionarLog) {
+                            logs.adicionarLog("Tentando carregar alfabeto: " + nomeArquivo, "info");
+                            logs.adicionarLog("Caminho: " + caminhoArquivo, "info");
+                            logs.adicionarLog("Arquivo existe: " + arquivoAlfabeto.exists, "info");
                         }
-                        
-                        var nomeArquivoAI = gerarNomeArquivoAlfabeto(caractere, sufixoTamanho);
-                        if (nomeArquivoAI !== "") {
-                            var caminhoAI = caminhoAlfabeto + nomeArquivoAI;
-                            var arquivoAI = new File(caminhoAI);
-                            
-                            if (arquivoAI.exists) {
-                                var placedItem = novaLayer.placedItems.add();
-                                placedItem.file = arquivoAI;
-                                placedItem.position = [posicaoX, artboardBounds[1] - 100];
-                                placedItem.embed();
-                                posicaoX += espacamentoHorizontal;
-                            }
+                        if (arquivoAlfabeto.exists) {
+                            var letraItem = novaLayer.placedItems.add();
+                            letraItem.file = arquivoAlfabeto;
+                            letraItem.position = [posicaoX, artboardBounds[1] - alturaLetras];
+                            letraItem.embed();
+                            posicaoX += espacamentoHorizontal;
                         }
                     }
                 }
-            } catch (alfabetoError) {
+            } catch (e) {
                 // Continua mesmo se houver erro com alfabeto
             }
             
@@ -379,9 +388,10 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
         var scriptString = "(" + scriptIllustrator.toString() + ")";
         scriptString += "('" + escaparParaBridgeTalk(nomeDesigner) + "', '" + 
                        escaparParaBridgeTalk(legendaConteudo) + "', '" + 
-                       texturas.join(',') + "', '" + 
+                       (isArray(texturas) ? texturas.join(',') : texturas) + "', '" + 
                        escaparParaBridgeTalk(palavraDigitada) + "', '" +
-                       escaparParaBridgeTalk(tamanhoGXSelecionado) + "');";
+                       escaparParaBridgeTalk(tamanhoGXSelecionado) + "', '" +
+                       escaparParaBridgeTalk(pastaBaseLegenda) + "');";
         
         // Configurar BridgeTalk
         var bt = new BridgeTalk();

@@ -118,6 +118,51 @@ function gerarFrasePrincipal(parametros) {
             }
         }
 
+        // NOVA REGRA: Agrupar componentes repetidos na frase principal
+        function agruparComponentes(componentesArray) {
+            var agrupados = {};
+            var ordem = [];
+            for (var i = 0; i < componentesArray.length; i++) {
+                var comp = componentesArray[i];
+                var partes = comp.split(' ');
+                var nome = partes[0];
+                var resto = partes.slice(1).join(' ');
+                if (!agrupados[nome]) {
+                    agrupados[nome] = [];
+                    ordem.push(nome);
+                }
+                if (resto !== "") {
+                    agrupados[nome].push(resto);
+                }
+            }
+            var resultado = [];
+            for (var j = 0; j < ordem.length; j++) {
+                var nome = ordem[j];
+                var variacoes = agrupados[nome];
+                if (nome === "fil" && variacoes.length > 0) {
+                    var prefixo = "fil lumière led ";
+                    var lista = [];
+                    for (var k = 0; k < variacoes.length; k++) {
+                        var cor = variacoes[k];
+                        cor = cor.replace(/\bled\b/gi, "");
+                        cor = cor.replace(/\blumi[èe]re\b/gi, "");
+                        cor = cor.replace(/\s+/g, " ").replace(/^\s+/, "").replace(/\s+$/, "");
+                        if (k === 0) {
+                            lista.push(prefixo + cor);
+                        } else {
+                            lista.push("led " + cor);
+                        }
+                    }
+                    resultado.push(lista.join(", "));
+                } else if (variacoes.length > 0) {
+                    resultado.push(nome + " " + variacoes[0] + (variacoes.length > 1 ? ", " + variacoes.slice(1).join(", ") : ""));
+                } else {
+                    resultado.push(nome);
+                }
+            }
+            return resultado;
+        }
+
         // Construir a frase com a regra do bioprint
         var frasePrincipal = "Logo " + (parametros.listaL || "") + ": " + 
                              decorTexto + " " + prefixoNomeTipo + "\"" + nomeTipo + "\"" + textoFixacao + classificacao2D3D;
@@ -130,13 +175,13 @@ function gerarFrasePrincipal(parametros) {
             
             // Se há outros componentes, adicionar "avec"
             if (outrosComponentes.length > 0) {
-                frasePrincipal += " avec " + outrosComponentes.join(", ");
+                frasePrincipal += " avec " + agruparComponentes(outrosComponentes).join(", ");
             }
         } else {
             // Se não há bioprint, usar "avec" normalmente
             frasePrincipal += " " + preposicao;
             if (outrosComponentes.length > 0) {
-                frasePrincipal += " " + outrosComponentes.join(", ");
+                frasePrincipal += " " + agruparComponentes(outrosComponentes).join(", ");
             }
         }
 
@@ -717,7 +762,6 @@ function atualizarPreview(parametros) {
         };
 
         var frasePrincipal = gerarFrasePrincipal(parametrosFrase);
-        frasePrincipal = ajustarFilLumiereLED(frasePrincipal);
         previewText.push(frasePrincipal);
 
         // Adicionar dimensões

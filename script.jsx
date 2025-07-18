@@ -509,6 +509,19 @@ var checkboxMostrarContar = abaContagem.add("checkbox", undefined, t("mostrarCon
 var abaTexturas = abasExtra.add("tab", undefined, t("texturas"));
 abaTexturas.alignChildren = ["fill", "top"];
 var checkboxMostrarTexturas = abaTexturas.add("checkbox", undefined, t("adicionarTexturas"));
+var grupoTexturas = abaTexturas.add("group");
+grupoTexturas.orientation = "column";
+grupoTexturas.alignChildren = ["fill", "top"];
+var componentesTextura = null;
+checkboxMostrarTexturas.onClick = function() {
+    if (this.value) {
+        componentesTextura = ui.criarInterfaceTexturas(grupoTexturas, janela, t, funcoesFiltragem, itensLegenda, atualizarListaItens);
+    } else {
+        ui.removerInterfaceTexturas(componentesTextura, janela);
+        componentesTextura = null;
+    }
+    janela.layout.resize();
+};
 
 // Aba 5: Logs
 var abaLogs = abasExtra.add("tab", undefined, "Logs");

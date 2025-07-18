@@ -379,6 +379,15 @@ function criarInterfaceExtra(janela) {
     grupoTexturas.orientation = "column";
     grupoTexturas.alignChildren = ["fill", "top"];
     // Adicionar conteúdo das texturas aqui
+    var componentesTextura = null;
+    checkTexturas.onClick = function() {
+        if (this.value) {
+            componentesTextura = ui.criarInterfaceTexturas(grupoTexturas, janela, t, funcoesFiltragem, itensLegenda, atualizarListaItens);
+        } else {
+            ui.removerInterfaceTexturas(componentesTextura, janela);
+            componentesTextura = null;
+        }
+    };
     
     // Tab Logs
     var tabLogs = tabsExtra.add("tab", undefined, "Logs");
@@ -512,8 +521,8 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
                 try {
                     var numeroTextura = funcoesFiltragem.obterNumeroTextura(this.selection.text);
                     var nomeArquivo = "texture" + numeroTextura + ".png";
-                    // Usar caminho absoluto baseado na estrutura conhecida
-                    var pastaScript = "C:/Program Files/Adobe/Adobe Illustrator 2025/Presets/en_GB/Scripts/Legenda";
+                    // Caminho dinâmico relativo à pasta do script
+                    var pastaScript = File($.fileName).parent.fsName.replace(/\\/g, '/');
                     var caminhoImagem = pastaScript + "/resources/png/" + nomeArquivo;
                     var arquivoImagem = new File(caminhoImagem);
                     

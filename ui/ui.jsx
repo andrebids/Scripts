@@ -313,10 +313,12 @@ function criarInterfaceContadorBolas(grupoContar, dados, itensLegenda, atualizar
     };
 
     botaoContar.onClick = function() {
-                    if (logs && logs.logEvento) {
-                logs.logEvento("click", "botaoContar - Iniciando contagem de bolas");
-            }
-        
+        if (logs && logs.logEvento) {
+            logs.logEvento("click", "botaoContar - Iniciando contagem de bolas");
+        }
+        if (logs && logs.adicionarLog) {
+            logs.adicionarLog("DEBUG: typeof dados=" + (typeof dados) + ", dados.componentes=" + (dados && dados.componentes ? 'ok' : 'undefined'), logs.TIPOS_LOG.INFO);
+        }
         // Usar módulo bridge para executar contagem
         bridge.executarContagemBolas(dados, textoResultado, function(erro, resultado) {
             if (erro) {
@@ -332,6 +334,7 @@ function criarInterfaceContadorBolas(grupoContar, dados, itensLegenda, atualizar
     };
 
     return {
+        grupo: grupo, // Adicionado para permitir remoção correta
         botaoContar: botaoContar,
         textoResultado: textoResultado
     };
@@ -691,5 +694,6 @@ $.global.ui = {
     criarInterfaceTexturas: criarInterfaceTexturas,
     removerInterfaceTexturas: removerInterfaceTexturas,
     criarInterfaceObservacoes: criarInterfaceObservacoes,
-    removerInterfaceObservacoes: removerInterfaceObservacoes
+    removerInterfaceObservacoes: removerInterfaceObservacoes,
+    criarInterfaceContadorBolas: criarInterfaceContadorBolas // Adicionado para exportação global
 };

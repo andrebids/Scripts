@@ -27,6 +27,7 @@ function isArray(obj) {
 
 // Função para executar contagem de bolas via BridgeTalk
 function executarContagemBolas(dados, textoResultado, callback) {
+    logProtegido("DEBUG: Entrou em executarContagemBolas. typeof dados=" + (typeof dados) + ", dados.componentes=" + (dados && dados.componentes ? 'ok' : 'undefined'), logs.TIPOS_LOG.INFO);
     logProtegido("Iniciando contagem de bolas via BridgeTalk", logs.TIPOS_LOG.FUNCTION);
     
     try {
@@ -258,7 +259,8 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
             try {
                 if (palavraDigitada && palavraDigitada !== "") {
                     // Caminho dinâmico relativo à pasta do projeto (Legenda)
-                    var pastaScript = File($.fileName).parent.parent.fsName.replace(/\\/g, '/');
+                    // Corrigir: usar pastaBaseLegenda para garantir consistência
+                    var pastaScript = pastaBaseLegenda;
                     var caminhoAlfabeto = pastaScript + "/resources/alfabeto/";
                     // Configurar espaçamento e tamanho baseado no tamanho GX
                     var espacamentoHorizontal = (tamanhoGX === "1,40 m") ? 150 : 220;
@@ -272,9 +274,14 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
                         var caminhoArquivo = caminhoAlfabeto + nomeArquivo;
                         var arquivoAlfabeto = new File(caminhoArquivo);
                         if (typeof logs !== 'undefined' && logs.adicionarLog) {
-                            logs.adicionarLog("Tentando carregar alfabeto: " + nomeArquivo, "info");
-                            logs.adicionarLog("Caminho: " + caminhoArquivo, "info");
-                            logs.adicionarLog("Arquivo existe: " + arquivoAlfabeto.exists, "info");
+                            logs.adicionarLog("[BridgeTalk] Tentando carregar alfabeto: " + nomeArquivo, "info");
+                            logs.adicionarLog("[BridgeTalk] Caminho do arquivo alfabeto: " + caminhoArquivo, "info");
+                            logs.adicionarLog("[BridgeTalk] Arquivo existe: " + arquivoAlfabeto.exists, "info");
+                        }
+                        if (!arquivoAlfabeto.exists) {
+                            if (typeof logs !== 'undefined' && logs.adicionarLog) {
+                                logs.adicionarLog("[BridgeTalk] Arquivo de letra NÃO encontrado: " + caminhoArquivo, "error");
+                            }
                         }
                         if (arquivoAlfabeto.exists) {
                             var letraItem = novaLayer.placedItems.add();
@@ -286,6 +293,9 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
                     }
                 }
             } catch (e) {
+                if (typeof logs !== 'undefined' && logs.adicionarLog) {
+                    logs.adicionarLog("[BridgeTalk] Erro ao processar alfabeto: " + e, "error");
+                }
                 // Continua mesmo se houver erro com alfabeto
             }
             

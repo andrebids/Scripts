@@ -498,13 +498,57 @@ checkboxMostrarBolas.onClick = function() {
 var abaCriar = abasExtra.add("tab", undefined, t("criar"));
 abaCriar.alignChildren = ["fill", "top"];
 var checkboxMostrarAlfabeto = abaCriar.add("checkbox", undefined, t("criarGX"));
+var componentesAlfabeto = null;
+checkboxMostrarAlfabeto.onClick = function() {
+    if (this.value) {
+        componentesAlfabeto = alfabeto.criarInterfaceAlfabeto(
+            abaCriar, dados, janela, t, funcoesFiltragem, funcoes, itensLegenda, atualizarListaItens, campoNomeTipo, grupoDimensoes
+        );
+    } else {
+        if (componentesAlfabeto) {
+            alfabeto.removerInterfaceAlfabeto(componentesAlfabeto, janela);
+            componentesAlfabeto = null;
+        }
+    }
+    janela.layout.layout(true);
+    janela.layout.resize();
+};
 var checkboxCriarPalavraAluminio = abaCriar.add("checkbox", undefined, t("criarPalavraAluminio"));
 
 // Aba 3: Contagem
 var abaContagem = abasExtra.add("tab", undefined, t("contador"));
 abaContagem.alignChildren = ["fill", "top"];
 var checkboxMostrarContar = abaContagem.add("checkbox", undefined, t("mostrarContarElementos"));
-
+// O grupo deve ser criado DEPOIS do checkbox, para ficar abaixo dele
+var grupoContador = abaContagem.add("group");
+grupoContador.orientation = "column";
+grupoContador.alignChildren = ["fill", "top"];
+var componentesContador = null;
+checkboxMostrarContar.onClick = function() {
+    if (logs && logs.logEvento) {
+        logs.logEvento("click", "checkboxMostrarContar - valor: " + this.value);
+    }
+    if (this.value) {
+        componentesContador = ui.criarInterfaceContadorBolas(
+            grupoContador, dados, itensLegenda, atualizarListaItens
+        );
+        if (logs && logs.adicionarLog) {
+            logs.adicionarLog("Interface do contador criada e layout será atualizado", logs.TIPOS_LOG.INFO);
+        }
+        janela.layout.layout(true);
+        janela.layout.resize();
+    } else {
+        if (componentesContador && componentesContador.grupo) {
+            componentesContador.grupo.parent.remove(componentesContador.grupo);
+            componentesContador = null;
+            if (logs && logs.adicionarLog) {
+                logs.adicionarLog("Interface do contador removida e layout será atualizado", logs.TIPOS_LOG.INFO);
+            }
+            janela.layout.layout(true);
+            janela.layout.resize();
+        }
+    }
+};
 // Aba 4: Texturas
 var abaTexturas = abasExtra.add("tab", undefined, t("texturas"));
 abaTexturas.alignChildren = ["fill", "top"];

@@ -271,9 +271,8 @@ function adicionarComponente(listaComponentes, listaCores, listaUnidades, campoQ
         }
 
         if (itemExistente) {
-            // Atualizar quantidade do item existente
-            var quantidadeAtual = parseFloat(itemExistente.quantidade.toString().replace(',', '.'));
-            var novaQuantidade = quantidadeAtual + (quantidade * multiplicador);
+            // Atualizar quantidade do item existente (substituir, não somar)
+            var novaQuantidade = quantidade * multiplicador;
             novaQuantidade = funcoes.arredondarComponente(novaQuantidade, unidadeSelecionada, nomeComponente);
             
             itemExistente.quantidade = novaQuantidade;

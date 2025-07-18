@@ -134,7 +134,7 @@ var TRANSLATIONS = {
         "procurarLabel": "procurar:",
         "selecioneTipoFixacao": "Selecione o tipo de fixação",
         "selecioneFixacao": "Selecione fixação",
-        "selecionarTipoFixacao": "Não sejas Gabriel, seleciona o tipo de fixação!",
+        "selecionarTipoFixacao": "Atenção Gabriel, falta a fixação!",
         "selecioneUsage": "Selecione uso",
         "usageInterieur": "Interior",
         "usageExterieur": "Exterior",

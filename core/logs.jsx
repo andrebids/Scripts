@@ -331,94 +331,14 @@ function buscarLogs(texto) {
 }
 
 // Função para carregar configurações de log do settings.json
-function carregarConfiguracoesLog() {
-    try {
-        var pastaProjeto = File($.fileName).path;
-        var arquivoSettings = new File(pastaProjeto + "/assets/settings.json");
-        
-        if (arquivoSettings.exists) {
-            arquivoSettings.open('r');
-            var conteudo = arquivoSettings.read();
-            arquivoSettings.close();
-            
-            var settings = JSON.parse(conteudo);
-            
-            if (settings && settings.logs) {
-                configLogs.habilitados = settings.logs.habilitados !== false; // padrão true
-                
-                // Validar e definir nível de detalhe
-                var nivelValido = ["basico", "detalhado", "debug"];
-                var nivelEncontrado = false;
-                for (var i = 0; i < nivelValido.length; i++) {
-                    if (nivelValido[i] === settings.logs.nivelDetalhe) {
-                        nivelEncontrado = true;
-                        break;
-                    }
-                }
-                if (nivelEncontrado) {
-                    configLogs.nivelDetalhe = settings.logs.nivelDetalhe;
-                } else {
-                    configLogs.nivelDetalhe = "basico"; // padrão
-                }
-                
-                adicionarLog("Configurações de log carregadas: " + 
-                            (configLogs.habilitados ? "habilitados" : "desabilitados") + 
-                            ", nível: " + configLogs.nivelDetalhe, TIPOS_LOG.INFO);
-            }
-        } else {
-            adicionarLog("Arquivo settings.json não encontrado, usando configurações padrão", TIPOS_LOG.WARNING);
-        }
-    } catch (e) {
-        adicionarLog("Erro ao carregar configurações de log: " + e.message, TIPOS_LOG.ERROR);
-    }
-}
+// REMOVIDO: carregarConfiguracoesLog()
 
 // Função para salvar configurações de log no settings.json
-function salvarConfiguracoesLog() {
-    try {
-        var pastaProjeto = File($.fileName).path;
-        var arquivoSettings = new File(pastaProjeto + "/assets/settings.json");
-        
-        var settings = {};
-        
-        // Carregar configurações existentes primeiro
-        if (arquivoSettings.exists) {
-            arquivoSettings.open('r');
-            var conteudo = arquivoSettings.read();
-            arquivoSettings.close();
-            
-            try {
-                settings = JSON.parse(conteudo);
-            } catch (e) {
-                settings = {};
-            }
-        }
-        
-        // Atualizar configurações de log
-        if (!settings.logs) {
-            settings.logs = {};
-        }
-        
-        settings.logs.habilitados = configLogs.habilitados;
-        settings.logs.nivelDetalhe = configLogs.nivelDetalhe;
-        
-        // Salvar arquivo
-        arquivoSettings.open('w');
-        arquivoSettings.write(JSON.stringify(settings, null, 4));
-        arquivoSettings.close();
-        
-        adicionarLog("Configurações de log salvas", TIPOS_LOG.INFO);
-        return true;
-    } catch (e) {
-        adicionarLog("Erro ao salvar configurações de log: " + e.message, TIPOS_LOG.ERROR);
-        return false;
-    }
-}
+// REMOVIDO: salvarConfiguracoesLog()
 
 // Função para alternar logs habilitados/desabilitados
 function alternarLogs() {
     configLogs.habilitados = !configLogs.habilitados;
-    salvarConfiguracoesLog();
     adicionarLog("Logs " + (configLogs.habilitados ? "habilitados" : "desabilitados"), TIPOS_LOG.INFO);
     return configLogs.habilitados;
 }
@@ -435,7 +355,6 @@ function alterarNivelDetalhe(novoNivel) {
     }
     if (nivelValido) {
         configLogs.nivelDetalhe = novoNivel;
-        salvarConfiguracoesLog();
         adicionarLog("Nível de detalhe alterado para: " + novoNivel, TIPOS_LOG.INFO);
         return true;
     }
@@ -466,8 +385,6 @@ $.global.logs = {
     obterEstatisticasLogs: obterEstatisticasLogs,
     filtrarLogsPorTipo: filtrarLogsPorTipo,
     buscarLogs: buscarLogs,
-    carregarConfiguracoesLog: carregarConfiguracoesLog,
-    salvarConfiguracoesLog: salvarConfiguracoesLog,
     alternarLogs: alternarLogs,
     alterarNivelDetalhe: alterarNivelDetalhe,
     obterConfiguracoesLog: obterConfiguracoesLog,
@@ -475,8 +392,9 @@ $.global.logs = {
     NIVEIS_LOG: NIVEIS_LOG
 };
 
-// Carregar configurações automaticamente
-carregarConfiguracoesLog();
+// Inicializar configurações padrão em memória
+configLogs.habilitados = true;
+configLogs.nivelDetalhe = "detalhado";
 
 // Log inicial sempre visível
 adicionarLog("Sistema de logs inicializado", TIPOS_LOG.INFO); 

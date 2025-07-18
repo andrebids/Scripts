@@ -132,7 +132,18 @@ function gerarFrasePrincipal(parametros) {
                     ordem.push(nome);
                 }
                 if (resto !== "") {
-                    agrupados[nome].push(resto);
+                    // Se for 'fil', separar as cores por vírgula e adicionar cada uma como item
+                    if (nome === "fil") {
+                        var coresSeparadas = resto.split(",");
+                        for (var c = 0; c < coresSeparadas.length; c++) {
+                            var cor = coresSeparadas[c].replace(/^\s+|\s+$/g, "");
+                            if (cor !== "") {
+                                agrupados[nome].push(cor);
+                            }
+                        }
+                    } else {
+                        agrupados[nome].push(resto);
+                    }
                 }
             }
             var resultado = [];

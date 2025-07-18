@@ -1260,3 +1260,34 @@ Este padrão de modularização da FASE 5 serve como modelo para:
 - ✅ **Manutenibilidade significativamente melhorada**
 
 **🚀 O projeto está pronto para desenvolvimento futuro seguindo os padrões estabelecidos e validados!** 
+
+## 13. Migração do Grupo de Bolas para o Painel Extra > Aba Geral
+- **Domínio:** Refatoração da interface para centralizar a gestão de bolas no painel Extra
+- **Objetivo:** Mover o grupo de Bolas da aba Legenda para o painel Extra, especificamente na aba Geral, tornando sua exibição opcional via checkbox
+- **Responsabilidades esperadas:**
+  - Manter toda a funcionalidade de adição, edição e remoção de bolas
+  - Seguir padrões de modularização, logging e testes manuais
+  - Garantir compatibilidade com o restante do sistema
+
+### **13.1 FASE 1: Análise e Planejamento**
+- [ ] **13.1.1** Analisar o código atual para identificar todas as dependências e interações do grupo de Bolas (variáveis, funções, eventos)
+- [ ] **13.1.2** Planejar a migração do grupo de Bolas para dentro do painel Extra > aba Geral, junto aos checkboxes já existentes
+
+### **13.2 FASE 2: Implementação da Nova Interface**
+- [ ] **13.2.1** Adicionar um novo checkbox "Adicionar Bolas" na aba Geral do painel Extra, seguindo o padrão dos outros checkboxes opcionais
+- [ ] **13.2.2** Implementar a lógica para exibir ou ocultar o grupo de Bolas conforme o estado do checkbox "Adicionar Bolas"
+- [ ] **13.2.3** Atualizar a criação e exibição do grupo de Bolas para que ele seja renderizado apenas quando o novo checkbox estiver marcado
+
+### **13.3 FASE 3: Refatoração e Limpeza**
+- [ ] **13.3.1** Remover o grupo de Bolas da posição original na aba Legenda
+- [ ] **13.3.2** Garantir que todos os eventos, variáveis e funções associadas sejam migrados corretamente para o novo local
+- [ ] **13.3.3** Atualizar logs para registrar todas as operações relevantes na nova localização
+
+### **13.4 FASE 4: Testes Manuais e Validação**
+- [ ] **13.4.1** Testar manualmente a nova interface para garantir que a funcionalidade de Bolas permanece íntegra após a migração
+- [ ] **13.4.2** Validar que a exibição condicional via checkbox funciona corretamente
+- [ ] **13.4.3** Verificar integração com o sistema de logs e lista de itens
+
+---
+
+</rewritten_file>

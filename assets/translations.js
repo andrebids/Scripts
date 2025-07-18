@@ -138,7 +138,10 @@ var TRANSLATIONS = {
         "selecioneUsage": "Selecione uso",
         "usageInterieur": "Interior",
         "usageExterieur": "Exterior",
-        "adicionarBolas": "Adicionar Bolas"
+        "adicionarBolas": "Adicionar Bolas",
+        "nomeComponenteExtra": "Nome",
+        "unidadeComponenteExtra": "Unidade",
+        "quantidadeComponenteExtra": "Qtd"
     },
     "Français": {
         "nomeDesigner": "Nom du Designer",
@@ -259,6 +262,9 @@ var TRANSLATIONS = {
         "selecioneUsage": "Sélectionner usage",
         "usageInterieur": "Intérieur",
         "usageExterieur": "Extérieur",
-        "adicionarBolas": "Ajouter Boules"
+        "adicionarBolas": "Ajouter Boules",
+        "nomeComponenteExtra": "Nom",
+        "unidadeComponenteExtra": "Unité",
+        "quantidadeComponenteExtra": "Qté"
     }
 };

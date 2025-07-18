@@ -566,6 +566,63 @@ checkboxMostrarObs.onClick = function() {
     janela.layout.resize();
 };
 
+// Variável para armazenar o grupo de componente extra
+var grupoComponenteExtra = null;
+checkboxMostrarComponenteExtra.onClick = function() {
+    if (this.value) {
+        if (logs && logs.logEvento) {
+            logs.logEvento("click", "checkboxMostrarComponenteExtra - criando campo de componente extra");
+        }
+        grupoComponenteExtra = abaGeral.add("group");
+        grupoComponenteExtra.orientation = "row";
+        grupoComponenteExtra.alignChildren = ["left", "center"];
+        grupoComponenteExtra.spacing = 5;
+        grupoComponenteExtra.add("statictext", undefined, t("nomeComponenteExtra"));
+        var campoNomeExtra = grupoComponenteExtra.add("edittext", undefined, "");
+        campoNomeExtra.characters = 12;
+        grupoComponenteExtra.add("statictext", undefined, t("unidadeComponenteExtra"));
+        var opcoesUnidadeExtra = ["m2", "ml", "unit"];
+        var campoUnidadeExtra = grupoComponenteExtra.add("dropdownlist", undefined, opcoesUnidadeExtra);
+        campoUnidadeExtra.selection = 0;
+        grupoComponenteExtra.add("statictext", undefined, t("quantidadeComponenteExtra"));
+        var campoQuantidadeExtra = grupoComponenteExtra.add("edittext", undefined, "1");
+        campoQuantidadeExtra.characters = 4;
+        var botaoAdicionarExtra = grupoComponenteExtra.add("button", undefined, t("adicionarComponenteExtra"));
+        botaoAdicionarExtra.onClick = function() {
+            var nomeExtra = campoNomeExtra.text;
+            var unidadeExtra = campoUnidadeExtra.selection ? campoUnidadeExtra.selection.text : "";
+            var quantidadeExtra = parseFloat(campoQuantidadeExtra.text.replace(',', '.'));
+            if (nomeExtra === "" || isNaN(quantidadeExtra) || quantidadeExtra <= 0) {
+                alert(t("preencherCampos"));
+                return;
+            }
+            var textoExtra = nomeExtra + " (" + unidadeExtra + "): " + quantidadeExtra.toFixed(2).replace('.', ',');
+            itensLegenda.push({
+                tipo: "extra",
+                nome: nomeExtra,
+                texto: textoExtra,
+                unidade: unidadeExtra,
+                quantidade: quantidadeExtra
+            });
+            atualizarListaItens();
+            campoNomeExtra.text = "";
+            campoQuantidadeExtra.text = "";
+        };
+        janela.layout.layout(true);
+        janela.layout.resize();
+    } else {
+        if (grupoComponenteExtra) {
+            if (logs && logs.logEvento) {
+                logs.logEvento("click", "checkboxMostrarComponenteExtra - removendo campo de componente extra");
+            }
+            grupoComponenteExtra.parent.remove(grupoComponenteExtra);
+            grupoComponenteExtra = null;
+            janela.layout.layout(true);
+            janela.layout.resize();
+        }
+    }
+};
+
 // Manter apenas este código para a lista única
 var grupoPreviewBotoes = conteudoLegenda.add("group");
 grupoPreviewBotoes.orientation = "column";

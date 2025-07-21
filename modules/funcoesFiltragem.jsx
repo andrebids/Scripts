@@ -94,18 +94,51 @@ function getComponentesComCombinacoes(dados, t, arrayContains, encontrarPorId) {
         
         var componentesDisponiveis = [t("selecioneComponente")];
         var componentesIds = [];
-        
+        var especiais = [
+            "BIOPRINT",
+            "RECYPRINT",
+            "IMPRESSION IGNIFUGE",
+            "FLEXIPRINT",
+            "FLEXIPRINT IGNIFUGE",
+            "PRINT IGNIFUGE"
+        ];
+        var componentesNormais = [];
+        var componentesEspeciais = [];
         for (var i = 0; i < dados.combinacoes.length; i++) {
             var componenteId = dados.combinacoes[i].componenteId;
             if (!arrayContains(componentesIds, componenteId)) {
                 var componente = encontrarPorId(dados.componentes, componenteId);
                 if (componente) {
-                    componentesDisponiveis.push(componente.nome);
+                    var ehEspecial = false;
+                    for (var j = 0; j < especiais.length; j++) {
+                        if (componente.nome.toUpperCase() === especiais[j]) {
+                            ehEspecial = true;
+                            break;
+                        }
+                    }
+                    if (ehEspecial) {
+                        componentesEspeciais.push(componente.nome);
+                    } else {
+                        componentesNormais.push(componente.nome);
+                    }
                     componentesIds.push(componenteId);
                 }
             }
         }
-        
+        // Adiciona separador e especiais no início
+        if (componentesEspeciais.length > 0) {
+            componentesDisponiveis.push("---- PRINT ----");
+            for (var i = 0; i < componentesEspeciais.length; i++) {
+                componentesDisponiveis.push(componentesEspeciais[i]);
+            }
+        }
+        // Adiciona separador e normais
+        if (componentesNormais.length > 0) {
+            componentesDisponiveis.push("---- COMPONENTS ----");
+            for (var i = 0; i < componentesNormais.length; i++) {
+                componentesDisponiveis.push(componentesNormais[i]);
+            }
+        }
         logProtegidoFiltragem("Componentes com combinações obtidos: " + (componentesDisponiveis.length - 1) + " componentes", logs.TIPOS_LOG.INFO);
         return componentesDisponiveis;
         

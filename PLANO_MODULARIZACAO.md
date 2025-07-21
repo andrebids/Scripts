@@ -1338,4 +1338,61 @@ Esta tarefa é opcional e recomendada para ser feita após todas as etapas princ
 
 ---
 
+## 15. Separação Visual dos Componentes Especiais na Lista de Componentes
+
+### Objetivo
+Isolar visualmente os componentes especiais (BIOPRINT, RECYPRINT, IMPRESSION IGNIFUGE, FLEXIPRINT, FLEXIPRINT IGNIFUGE) na lista de componentes, facilitando a identificação e seleção destes itens sem duplicar funcionalidades.
+
+### Justificativa
+- Melhorar a usabilidade, evitando confusão entre componentes normais e especiais.
+- Permitir regras e fluxos distintos para estes componentes, se necessário.
+- Facilitar futuras expansões e manutenções.
+
+---
+
+### Implementação: Separadores Visuais
+- Manter uma única lista de componentes, mas inserir separadores visuais (ex: "---- COMPONENTES ESPECIAIS ----") para isolar os componentes especiais dos demais.
+- Os componentes especiais aparecem agrupados após o separador, facilitando a identificação.
+- A lógica de adição pode ser adaptada para tratar os dois grupos de forma diferenciada, se necessário.
+
+---
+
+### Tarefas Detalhadas
+
+#### 15.1 Análise e Planejamento
+- [ ] Listar todos os componentes especiais a serem isolados:
+  - BIOPRINT
+  - RECYPRINT
+  - IMPRESSION IGNIFUGE
+  - FLEXIPRINT
+  - FLEXIPRINT IGNIFUGE
+- [ ] Identificar todos os pontos do código onde a lista de componentes é gerada, exibida ou processada.
+
+#### 15.2 Implementação da Separação Visual
+- [ ] Adaptar a função de geração da lista de componentes para inserir um separador visual antes dos componentes especiais.
+- [ ] Garantir que os componentes especiais aparecem agrupados após o separador.
+- [ ] Atualizar a lógica de seleção e adição para ignorar o separador visual (não selecionável).
+- [ ] Atualizar a lógica de validação, logs e preview para tratar corretamente os dois grupos.
+
+#### 15.3 Refino e Integração
+- [ ] Atualizar traduções e textos da interface, se necessário.
+- [ ] Adicionar logs detalhados para todas as operações envolvendo os componentes especiais.
+
+#### 15.4 Testes Manuais e Validação
+- [ ] Testar a seleção e adição de componentes normais e especiais separadamente.
+- [ ] Validar que o separador visual aparece corretamente na lista.
+- [ ] Verificar se os logs registram corretamente as operações dos dois grupos.
+- [ ] Testar geração de legenda e preview com ambos os tipos de componentes.
+
+---
+
+### Checklist de Implementação
+- [ ] Localização correta das funções e lógica nos módulos temáticos (`funcoesComponentes.jsx` ou similar)
+- [ ] Estrutura padrão de validação, logs e exportação global
+- [ ] Compatibilidade com o sistema de logs e preview
+- [ ] Testes manuais incrementais após cada etapa
+- [ ] Documentação atualizada no plano e nos arquivos afetados
+
+---
+
 </rewritten_file>

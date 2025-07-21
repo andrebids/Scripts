@@ -345,8 +345,29 @@ function executarScript() {
             grupoCMYK.add("statictext", undefined, "K:");
             var campoBlack = grupoCMYK.add("edittext", undefined, "");
             campoBlack.preferredSize.width = 40;
-    
-                   // Modificar a função de atualizar lista para incluir os valores CMYK
+
+            // Grupo para editar nome e CMYK
+            var grupoEditarCor = aba.add("group");
+            grupoEditarCor.orientation = "row";
+            grupoEditarCor.alignChildren = ["left", "center"];
+            grupoEditarCor.add("statictext", undefined, "Editar Nome:");
+            var campoEditarNomeCor = grupoEditarCor.add("edittext", undefined, "");
+            campoEditarNomeCor.preferredSize.width = 120;
+            grupoEditarCor.add("statictext", undefined, "C:");
+            var campoEditarCyan = grupoEditarCor.add("edittext", undefined, "");
+            campoEditarCyan.preferredSize.width = 40;
+            grupoEditarCor.add("statictext", undefined, "M:");
+            var campoEditarMagenta = grupoEditarCor.add("edittext", undefined, "");
+            campoEditarMagenta.preferredSize.width = 40;
+            grupoEditarCor.add("statictext", undefined, "Y:");
+            var campoEditarYellow = grupoEditarCor.add("edittext", undefined, "");
+            campoEditarYellow.preferredSize.width = 40;
+            grupoEditarCor.add("statictext", undefined, "K:");
+            var campoEditarBlack = grupoEditarCor.add("edittext", undefined, "");
+            campoEditarBlack.preferredSize.width = 40;
+            var botaoSalvarEdicaoCor = grupoEditarCor.add("button", undefined, "Salvar Edição");
+
+            // Modificar a função de atualizar lista para incluir os valores CMYK
         function atualizarLista(filtro) {
             lista.removeAll();
             var itens = database[tipo].sort(function(a, b) {
@@ -358,7 +379,8 @@ function executarScript() {
                     if (itens[i].cmyk) {
                         displayText += " (CMYK: " + itens[i].cmyk.join(",") + ")";
                     }
-                    lista.add("item", displayText);
+                    var item = lista.add("item", displayText);
+                    item.correspondingId = itens[i].id;
                 }
             }
         }
@@ -425,9 +447,9 @@ function executarScript() {
 
         // Atualizar os campos CMYK quando uma cor é selecionada
         lista.onChange = function() {
-            var selectedIndex = lista.selection.index;
-            if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < database[tipo].length) {
-                var corSelecionada = database[tipo][selectedIndex];
+            var selectedItem = lista.selection;
+            if (selectedItem && selectedItem.correspondingId !== undefined) {
+                var corSelecionada = findById(database[tipo], selectedItem.correspondingId);
                 if (corSelecionada.cmyk) {
                     campoCyan.text = corSelecionada.cmyk[0] || "";
                     campoMagenta.text = corSelecionada.cmyk[1] || "";
@@ -439,8 +461,59 @@ function executarScript() {
                     campoYellow.text = "";
                     campoBlack.text = "";
                 }
+                // Preencher campos de edição
+                campoEditarNomeCor.text = corSelecionada.nome || "";
+                if (corSelecionada.cmyk) {
+                    campoEditarCyan.text = corSelecionada.cmyk[0] || "";
+                    campoEditarMagenta.text = corSelecionada.cmyk[1] || "";
+                    campoEditarYellow.text = corSelecionada.cmyk[2] || "";
+                    campoEditarBlack.text = corSelecionada.cmyk[3] || "";
+                } else {
+                    campoEditarCyan.text = "";
+                    campoEditarMagenta.text = "";
+                    campoEditarYellow.text = "";
+                    campoEditarBlack.text = "";
+                }
             }
         };
+
+            // Função para salvar edição da cor
+            botaoSalvarEdicaoCor.onClick = function() {
+                var selectedItem = lista.selection;
+                if (selectedItem && selectedItem.correspondingId !== undefined) {
+                    var corSelecionada = findById(database[tipo], selectedItem.correspondingId);
+                    var novoNome = campoEditarNomeCor.text;
+                    var novoCMYK = [
+                        parseInt(campoEditarCyan.text) || 0,
+                        parseInt(campoEditarMagenta.text) || 0,
+                        parseInt(campoEditarYellow.text) || 0,
+                        parseInt(campoEditarBlack.text) || 0
+                    ];
+                    if (!novoNome) {
+                        alert("Por favor, insira um nome para a cor.");
+                        return;
+                    }
+                    // Verificar duplicidade de nome (exceto para a cor atual)
+                    var existe = false;
+                    for (var i = 0; i < database[tipo].length; i++) {
+                        if (database[tipo][i].id !== corSelecionada.id && database[tipo][i].nome.toLowerCase() === novoNome.toLowerCase()) {
+                            existe = true;
+                            break;
+                        }
+                    }
+                    if (existe) {
+                        alert("Já existe uma cor com este nome.");
+                        return;
+                    }
+                    corSelecionada.nome = novoNome;
+                    corSelecionada.cmyk = novoCMYK;
+                    salvarJSON(caminhoDatabase, database);
+                    atualizarLista();
+                    alert("Cor editada com sucesso!");
+                } else {
+                    alert("Por favor, selecione uma cor para editar.");
+                }
+            };
     }
         // Botão para remover item selecionado
         var botaoRemover = aba.add("button", undefined, "Remover Selecionado");

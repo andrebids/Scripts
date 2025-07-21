@@ -271,29 +271,22 @@ function adicionarComponente(listaComponentes, listaCores, listaUnidades, campoQ
         }
 
         if (itemExistente) {
-            // Atualizar quantidade do item existente (substituir, não somar)
-            var novaQuantidade = quantidade * multiplicador;
-            novaQuantidade = funcoes.arredondarComponente(novaQuantidade, unidadeSelecionada, nomeComponente);
-            
-            itemExistente.quantidade = novaQuantidade;
-            itemExistente.multiplicador = 1; // Reset multiplicador 
-            itemExistente.texto = funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, novaQuantidade, 1);
+            // Atualizar quantidade e multiplicador do item existente
+            itemExistente.quantidade = quantidade;
+            itemExistente.multiplicador = multiplicador;
+            itemExistente.texto = funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidade, multiplicador);
         } else {
             // Adicionar novo item
-            var quantidadeFinal = quantidade * multiplicador;
-            quantidadeFinal = funcoes.arredondarComponente(quantidadeFinal, unidadeSelecionada, nomeComponente);
-            
             var novoItem = {
                 tipo: "componente",
                 nome: nomeComponente,
-                quantidade: quantidadeFinal,
-                multiplicador: 1,
+                quantidade: quantidade,
+                multiplicador: multiplicador,
                 unidade: unidadeSelecionada,
                 referencia: combinacaoSelecionada.referencia,
                 componenteId: componenteSelecionado.id,
-                texto: funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidadeFinal, 1)
+                texto: funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidade, multiplicador)
             };
-            
             itensLegenda.push(novoItem);
         }
 

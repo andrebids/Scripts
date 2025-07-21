@@ -1290,4 +1290,52 @@ Este padrão de modularização da FASE 5 serve como modelo para:
 
 ---
 
+# 14. Automação do Número de Versão no script.jsx (Opcional/Futuro)
+
+## Objetivo
+Automatizar a exibição do número de versão na interface do script, para que seja sempre sincronizado com o repositório GitHub, sem necessidade de edição manual do código.
+
+## Justificativa
+Atualmente, o número de versão mostrado no script.jsx (ex: "v2.0.3") é fixo e precisa ser alterado manualmente a cada release. Isso pode causar inconsistências e esquecimentos.
+
+## Proposta de Solução
+- **Manter o número de versão em um arquivo externo:** `/assets/version.json`.
+- **Atualizar esse arquivo automaticamente** no fluxo de CI/CD (ex: GitHub Actions) a cada push/tag/release.
+- **No script.jsx:**
+  - Ler o valor de `/assets/version.json` ao inicializar a interface.
+  - Exibir o número de versão lido, em vez de um valor fixo.
+
+### Exemplo de leitura dinâmica no script.jsx
+```javascript
+var versao = "v2.0.0";
+try {
+    var arquivoVersao = new File(File($.fileName).path + "/assets/version.json");
+    if (arquivoVersao.exists) {
+        arquivoVersao.open('r');
+        var conteudo = arquivoVersao.read();
+        arquivoVersao.close();
+        var objVersao = JSON.parse(conteudo);
+        if (objVersao && objVersao.version) {
+            versao = "v" + objVersao.version;
+        }
+    }
+} catch (e) {
+    // fallback para versão padrão
+}
+var textoVersao = grupoUpdate.add("statictext", undefined, versao);
+```
+
+### No CI/CD (GitHub Actions ou similar)
+- Adicionar etapa para atualizar `/assets/version.json` com o novo número de versão a cada release.
+
+## Checklist da Tarefa
+- [ ] Gerar/atualizar `/assets/version.json` automaticamente no CI/CD
+- [ ] Implementar leitura dinâmica do número de versão no `script.jsx`
+- [ ] Testar se a versão exibida corresponde ao release do GitHub
+
+**Observação:**
+Esta tarefa é opcional e recomendada para ser feita após todas as etapas principais de modularização, refino e validação do sistema.
+
+---
+
 </rewritten_file>

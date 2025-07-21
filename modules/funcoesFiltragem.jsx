@@ -102,22 +102,44 @@ function getComponentesComCombinacoes(dados, t, arrayContains, encontrarPorId) {
             "FLEXIPRINT IGNIFUGE",
             "PRINT IGNIFUGE"
         ];
+        var lucioles = [
+            "LUCIOLE BLANCHE",
+            "LUCIOLE BLEUE",
+            "LUCIOLE ORANGE",
+            "LUCIOLE ROUGE",
+            "LUCIOLE VERTE"
+        ];
         var componentesNormais = [];
         var componentesEspeciais = [];
+        var componentesLeds = [];
         for (var i = 0; i < dados.combinacoes.length; i++) {
             var componenteId = dados.combinacoes[i].componenteId;
             if (!arrayContains(componentesIds, componenteId)) {
                 var componente = encontrarPorId(dados.componentes, componenteId);
                 if (componente) {
                     var ehEspecial = false;
+                    var ehLed = false;
+                    var nomeComp = componente.nome.toLowerCase();
                     for (var j = 0; j < especiais.length; j++) {
                         if (componente.nome.toUpperCase() === especiais[j]) {
                             ehEspecial = true;
                             break;
                         }
                     }
+                    if (!ehEspecial) {
+                        if (
+                            nomeComp.indexOf("luciole") !== -1 ||
+                            nomeComp.indexOf("lucioles") !== -1 ||
+                            nomeComp.indexOf("rideaux") !== -1 ||
+                            nomeComp.indexOf("stalactits") !== -1
+                        ) {
+                            ehLed = true;
+                        }
+                    }
                     if (ehEspecial) {
                         componentesEspeciais.push(componente.nome);
+                    } else if (ehLed) {
+                        componentesLeds.push(componente.nome);
                     } else {
                         componentesNormais.push(componente.nome);
                     }
@@ -130,6 +152,13 @@ function getComponentesComCombinacoes(dados, t, arrayContains, encontrarPorId) {
             componentesDisponiveis.push("---- PRINT ----");
             for (var i = 0; i < componentesEspeciais.length; i++) {
                 componentesDisponiveis.push(componentesEspeciais[i]);
+            }
+        }
+        // Adiciona separador e leds
+        if (componentesLeds.length > 0) {
+            componentesDisponiveis.push("---- LEDS ----");
+            for (var i = 0; i < componentesLeds.length; i++) {
+                componentesDisponiveis.push(componentesLeds[i]);
             }
         }
         // Adiciona separador e normais

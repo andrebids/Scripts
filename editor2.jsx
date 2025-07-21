@@ -749,8 +749,9 @@ primeiraLinha.add("statictext", undefined, "Cor:");
 var dropdownCores = primeiraLinha.add("dropdownlist");
 dropdownCores.preferredSize.width = 150;
 primeiraLinha.add("statictext", undefined, "Unidade:");
-var dropdownUnidades = primeiraLinha.add("dropdownlist");
-dropdownUnidades.preferredSize.width = 100;
+var listboxUnidades = primeiraLinha.add("listbox", undefined, [], {multiselect: true});
+listboxUnidades.preferredSize.width = 100;
+listboxUnidades.preferredSize.height = 60;
 
 // Segunda linha (CMYK)
 var segundaLinha = grupoAdicionarCombinacao.add("group");
@@ -849,14 +850,19 @@ botaoAdicionarCombinacao.onClick = function() {
             alert("Por favor, selecione uma cor.");
             return;
         }
-        if (!dropdownUnidades.selection) {
-            alert("Por favor, selecione uma unidade.");
+        // Obter todas as unidades selecionadas
+        var unidadesSelecionadas = [];
+        for (var i = 0; i < listboxUnidades.items.length; i++) {
+            if (listboxUnidades.items[i].selected) {
+                unidadesSelecionadas.push(listboxUnidades.items[i].text);
+            }
+        }
+        if (unidadesSelecionadas.length === 0) {
+            alert("Por favor, selecione pelo menos uma unidade.");
             return;
         }
-
         var componenteId = database.componentes[dropdownComponentes.selection.index].id;
         var corId = database.cores[dropdownCores.selection.index].id;
-        var unidade = dropdownUnidades.selection.text;
         var referencia = campoReferenciaCombinacao.text;
         var cmyk = [
             parseInt(campoCyan.text) || 0,
@@ -864,30 +870,31 @@ botaoAdicionarCombinacao.onClick = function() {
             parseInt(campoYellow.text) || 0,
             parseInt(campoBlack.text) || 0
         ];
-
-        $.writeln("Adicionando combinação: Componente ID: " + componenteId + ", Cor ID: " + corId + ", Unidade: " + unidade + ", Referência: " + referencia + ", CMYK: " + cmyk.join(","));
-
-        var existe = false;
-        for (var i = 0; i < database.combinacoes.length; i++) {
-            var c = database.combinacoes[i];
-            if (c.componenteId === componenteId && c.corId === corId && c.unidade === unidade) {
-                existe = true;
-                break;
+        var criadas = 0;
+        for (var u = 0; u < unidadesSelecionadas.length; u++) {
+            var unidade = unidadesSelecionadas[u];
+            var existe = false;
+            for (var i = 0; i < database.combinacoes.length; i++) {
+                var c = database.combinacoes[i];
+                if (c.componenteId === componenteId && c.corId === corId && c.unidade === unidade) {
+                    existe = true;
+                    break;
+                }
+            }
+            if (!existe) {
+                var novaCombinacao = {
+                    "id": getNextId(database.combinacoes),
+                    "componenteId": componenteId,
+                    "corId": corId,
+                    "unidade": unidade,
+                    "referencia": referencia,
+                    "cmyk": cmyk
+                };
+                database.combinacoes.push(novaCombinacao);
+                criadas++;
             }
         }
-
-        if (!existe) {
-            var novaCombinacao = {
-                "id": getNextId(database.combinacoes),
-                "componenteId": componenteId,
-                "corId": corId,
-                "unidade": unidade,
-                "referencia": referencia,
-                "cmyk": cmyk
-            };
-            $.writeln("Nova combinação: " + stringifyJSON(novaCombinacao));
-
-            database.combinacoes.push(novaCombinacao);
+        if (criadas > 0) {
             salvarJSON(caminhoDatabase, database);
             atualizarListaCombinacoes();
             campoReferenciaCombinacao.text = "";
@@ -895,9 +902,9 @@ botaoAdicionarCombinacao.onClick = function() {
             campoMagenta.text = "";
             campoYellow.text = "";
             campoBlack.text = "";
-            alert("Combinação adicionada com sucesso!");
+            alert("Foram criadas " + criadas + " combinações!");
         } else {
-            alert("Esta combinação já existe.");
+            alert("Todas as combinações já existem.");
         }
     } catch (e) {
         alert("Erro ao adicionar combinação: " + e.toString());
@@ -972,10 +979,10 @@ listaCombinacoes.onChange = function() {
                 dropdownCores.add("item", database.cores[i].nome);
             }
 
-            // Atualizar dropdown de unidades
-            dropdownUnidades.removeAll();
+            // Atualizar listbox de unidades
+            listboxUnidades.removeAll();
             for (var i = 0; i < unidadesMedida.length; i++) {
-                dropdownUnidades.add("item", unidadesMedida[i]);
+                listboxUnidades.add("item", unidadesMedida[i]);
             }
         }
         // Atualizar listas e dropdowns iniciais

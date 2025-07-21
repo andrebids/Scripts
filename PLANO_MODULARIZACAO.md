@@ -1395,4 +1395,38 @@ Isolar visualmente os componentes especiais (BIOPRINT, RECYPRINT, IMPRESSION IGN
 
 ---
 
+### 15.1 Implementação: Separação Visual e Filtragem Avançada de Componentes
+
+- **Função afetada:** `getComponentesComCombinacoes()` (`modules/funcoesFiltragem.jsx`)
+- **Resumo:**  
+  - Implementada lógica para agrupar componentes em três grupos visuais na lista:  
+    - `---- PRINT ----` (componentes especiais)
+    - `---- LEDS ----` (componentes LEDS)
+    - `---- COMPONENTS ----` (componentes normais)
+  - O grupo **LEDS** inclui todos os componentes cujo nome contenha `"luciole"`, `"lucioles"`, `"rideaux"` ou `"stalactits"` (case insensitive).
+  - A lógica de agrupamento é feita por comparação de substring, garantindo flexibilidade para novos nomes.
+  - O separador visual é adicionado apenas se houver componentes no grupo correspondente.
+  - O sistema de logs registra a contagem de cada grupo e possíveis erros.
+  - A filtragem e agrupamento seguem as regras de compatibilidade ES3/ES5 e padrões do projeto.
+
+- **Exemplo de resultado visual na lista de componentes:**
+  ```
+  ---- PRINT ----
+  bioprint
+  flexiprint
+  ...
+  ---- LEDS ----
+  lucioles
+  rideaux
+  stalactits
+  ---- COMPONENTS ----
+  [demais componentes]
+  ```
+
+- **Testes manuais realizados:**
+  - Verificação visual dos separadores e agrupamento correto.
+  - Inclusão incremental de novos termos no grupo LEDS conforme solicitado.
+  - Garantia de que a filtragem não afeta a seleção ou funcionamento dos outros grupos.
+
+
 </rewritten_file>

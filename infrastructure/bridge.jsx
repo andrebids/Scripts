@@ -305,7 +305,7 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
             textoLegenda.position = [artboardBounds[0] + 50, posicaoYLegenda];
             
             var tamanhoFontePrincipal = 40;
-            var tamanhoFonteBids = 30;
+            var tamanhoFonteBids = 40;
             
             // Configurar fonte e cor
             textoLegenda.textRange.characterAttributes.size = tamanhoFontePrincipal;
@@ -322,9 +322,9 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
             var paragBids = textoLegenda.paragraphs.add(textoBids);
             paragBids.characterAttributes.size = tamanhoFonteBids;
             try {
-                paragBids.characterAttributes.textFont = app.textFonts.getByName("Apercu-Regular");
+                paragBids.characterAttributes.textFont = app.textFonts.getByName("Apercu-Bold");
             } catch (e) {
-                paragBids.characterAttributes.textFont = app.textFonts.getByName("ArialMT");
+                paragBids.characterAttributes.textFont = app.textFonts.getByName("Arial-BoldMT");
             }
             paragBids.paragraphAttributes.spaceBefore = 0;
             paragBids.paragraphAttributes.spaceAfter = 0;

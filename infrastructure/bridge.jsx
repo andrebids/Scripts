@@ -417,10 +417,10 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
             if (resObj.body === "success") {
                 logProtegido("Legenda adicionada com sucesso", logs.TIPOS_LOG.INFO);
                 alert(t("legendaAdicionada"));
-                if (janela) {
-                    janela.close();
-                    janela = null;
-                }
+                // if (janela) {
+                //     janela.close();
+                //     janela = null;
+                // }
                 if (callback) callback(null, "success");
             } else {
                 var mensagemErro = "Ocorreu um problema ao adicionar a legenda: " + resObj.body;

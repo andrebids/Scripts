@@ -176,7 +176,7 @@ function gerarFrasePrincipal(parametros) {
 
         // Construir a frase com a regra do bioprint
         var frasePrincipal = "Logo " + (parametros.listaL || "") + ": " + 
-                             decorTexto + " " + prefixoNomeTipo + "\"" + nomeTipo + "\"" + textoFixacao + classificacao2D3D;
+                             decorTexto + " " + prefixoNomeTipo + "\"" + nomeTipo + "\"," + (textoFixacao !== "" ? textoFixacao + "," : "") + classificacao2D3D;
 
         if (parametros.alfabetoUsado) {
             frasePrincipal += " en bioprint " + (parametros.corBioprint || "");

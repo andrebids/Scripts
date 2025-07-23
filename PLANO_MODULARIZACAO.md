@@ -1440,148 +1440,122 @@ Ajustar a geração da frase principal da legenda para que, ao listar múltiplas
 - Atender à solicitação do usuário para formatação mais natural em francês.
 - Manter compatibilidade total com as regras e funcionalidades atuais.
 
-### Status: **CONCLUÍDO ✅**
+### Plano de Execução Incremental (Atualizado)
 
-#### Resumo da Implementação:
-- Função auxiliar `juntarComEt(arr)` criada e documentada em `funcoesLegenda.jsx`.
-- Integração feita apenas em listas de variações de cor na frase principal.
-- Logs detalhados implementados para depuração e validação.
-- Testes manuais realizados e aprovados no Illustrator (casos com 1, 2 e 3+ cores).
-- Lógica de agrupamento ajustada para garantir que todas as variações de cor de um mesmo componente sejam agrupadas corretamente.
-- Documentação do código e do plano atualizada.
+#### 16.1 Análise e Localização
+- [x] Identificar o ponto exato onde as listas de cores são montadas na frase principal (função `agruparComponentes` em `funcoesLegenda.jsx`).
+- [x] Verificar todos os usos de `.join(", ")` para listas de variações de cor.
+- [x] Analisar se o agrupamento de variações de cor está correto: todas as cores de um mesmo componente devem estar em um único array de variações.
+
+#### 16.2 Implementação da Função Auxiliar
+- [x] Criar função auxiliar `juntarComEt(arr)` no início de `funcoesLegenda.jsx`:
+  - Retorna string com vírgulas e "et" antes da última entrada.
+  - Compatível com ES3/ES5 (sem métodos modernos).
+
+#### 16.3 Integração na Lógica de Agrupamento
+- [x] Substituir todas as ocorrências de `.join(", ")` por `juntarComEt(...)` dentro de `agruparComponentes`.
+- [x] Garantir que a função é usada apenas para listas de variações (cores), não para outros agrupamentos.
+- [ ] Se o agrupamento não estiver correto (cada cor como componente separado), ajustar a lógica para garantir que todas as variações de cor de um mesmo componente sejam agrupadas corretamente.
+
+#### 16.4 Logging, Depuração e Compatibilidade
+- [x] Adicionar logs detalhados na geração da frase principal para registrar:
+  - Quando a regra do "et" é aplicada.
+  - O resultado final da lista de cores.
+- [ ] Adicionar logs temporários para inspecionar o conteúdo de `componentesTexto` e dos arrays de variações dentro de `agruparComponentes`.
+- [ ] Garantir que a alteração não afeta outros pontos do sistema.
+
+#### 16.5 Testes Manuais Incrementais
+- [ ] Testar manualmente no Illustrator:
+  - Caso com uma cor (não deve adicionar "et").
+  - Caso com duas cores (deve adicionar "et" entre elas).
+  - Caso com três ou mais cores (apenas a última precedida de "et").
+- [ ] Validar logs e resultado visual da legenda.
+- [ ] Confirmar que todas as funcionalidades anteriores permanecem intactas.
+
+#### 16.6 Documentação e Finalização
+- [x] Documentar a função auxiliar e a regra no cabeçalho de `funcoesLegenda.jsx`.
+- [ ] Atualizar este plano com observações de teste e eventuais ajustes.
+
+### Observações sobre o problema identificado
+- O "et" não aparece porque, em alguns casos, cada cor está sendo tratada como um componente separado, e não como variações do mesmo componente.
+- É necessário garantir que o agrupamento de variações de cor por componente esteja correto antes de aplicar o `juntarComEt`.
+- Próximos passos: depurar o agrupamento, corrigir se necessário, e validar o funcionamento da regra do "et".
+
+### Checklist de Implementação
+- [x] Função auxiliar criada e documentada
+- [x] Integração feita apenas em listas de variações de cor
+- [x] Logs detalhados implementados
+- [ ] Testes manuais realizados e aprovados
+- [ ] Lógica de agrupamento ajustada se necessário
+- [ ] Documentação atualizada
 
 ---
 
-## 17. Divisão da Lista de Componentes em 3 Dropdowns
+## 17. Adição de Múltiplos Campos de Quantidade com Botão "+"
 
 ### Objetivo
-Dividir a lista de componentes em três dropdowns separados (PRINT, LEDS, COMPONENTS), mantendo todas as regras, modularização e compatibilidade com o sistema de pesquisa.
+Permitir ao usuário adicionar múltiplos campos de quantidade para cada item (componente, LED, etc.), através de um pequeno botão "+" ao lado do campo de quantidade. Antes de adicionar o item à lista, o sistema deve somar automaticamente todos os valores inseridos nos campos de quantidade, utilizando o total como a quantidade final do item.
 
-### Tarefas Detalhadas
-
-#### 17.1 FASE 1: Análise e Planejamento
-- [ ] 17.1.1 Analisar lógica de seleção, adição e pesquisa de componentes no `script.jsx`
-- [ ] 17.1.2 Mapear dependências e eventos ligados ao dropdown único
-
-#### 17.2 FASE 2: Refatoração da Interface
-- [ ] 17.2.1 Substituir dropdown único por três dropdowns: PRINT, LEDS, COMPONENTS
-- [ ] 17.2.2 Adicionar labels claros para cada dropdown
-- [ ] 17.2.3 Garantir seleção única entre os três dropdowns
-
-#### 17.3 FASE 3: Adaptação das Funções de Filtragem
-- [ ] 17.3.1 Refatorar `getComponentesComCombinacoes()` para retornar três arrays
-- [ ] 17.3.2 Adaptar `filtrarComponentes()` para atuar sobre os três grupos
-- [ ] 17.3.3 Garantir logs detalhados para cada operação
-
-#### 17.4 FASE 4: Adaptação da Lógica de Adição de Componentes
-- [ ] 17.4.1 Adaptar `adicionarComponente()` para identificar o dropdown de origem
-- [ ] 17.4.2 Garantir funcionamento e logs para os três grupos
-
-#### 17.5 FASE 5: Integração com Pesquisa
-- [ ] 17.5.1 Adaptar campo de pesquisa para filtrar nos três grupos
-- [ ] 17.5.2 Garantir seleção e adição após filtragem
-
-#### 17.6 FASE 6: Testes Manuais e Validação
-- [ ] 17.6.1 Testar seleção, adição e pesquisa em cada dropdown
-- [ ] 17.6.2 Validar logs, preview e geração de legenda
-- [ ] 17.6.3 Garantir compatibilidade com regras e modularização
-
-#### 17.7 FASE 7: Documentação e Atualização do Plano
-- [ ] 17.7.1 Atualizar documentação no `PLANO_MODULARIZACAO.md` e cabeçalhos dos módulos afetados
-
-### Observações
-- O sistema de logs deve registrar todas as operações de seleção, filtragem e adição em cada grupo.
-- A modularização e os padrões validados devem ser mantidos em todas as alterações.
-- O campo de pesquisa deve funcionar de forma integrada para os três dropdowns.
+### Justificativa
+- Facilitar o registro de quantidades provenientes de diferentes fontes ou usos, sem necessidade de somar manualmente.
+- Tornar o preenchimento mais flexível e rápido para o usuário.
+- Evitar erros de soma manual e garantir precisão no registro.
 
 ---
 
-## 17.8 FASE 8: Interface Independente por Grupo (Linha)
+### Plano de Execução Incremental
 
-### Objetivo
-Refatorar a interface para que cada grupo (PRINT, LEDS, COMPONENTS) fique em uma linha separada, cada uma com seus próprios campos de seleção de cor, unidade, quantidade, multiplicador e botão de adicionar, tornando-os totalmente independentes.
+#### 17.1 Análise e Planejamento
+- [ ] Identificar todos os pontos da interface onde existe campo de quantidade (componentes, LEDs, etc.).
+- [ ] Analisar a estrutura atual do campo de quantidade e seu evento de adição.
+- [ ] Definir o layout do botão "+" e o comportamento visual dos novos campos.
 
-### Arquivos/Funções a Alterar
-- `script.jsx`: Interface, eventos, chamadas de adição e atualização de campos.
-- `modules/funcoesFiltragem.jsx`: Garantir filtragem para múltiplos conjuntos de campos.
-- `modules/funcoesComponentes.jsx`: Garantir compatibilidade com múltiplos campos e botões.
-- (Opcional) `assets/translations.js`: Novos textos para labels, se necessário.
+#### 17.2 Implementação da Interface
+- [ ] Adicionar um botão "+" ao lado do campo de quantidade em cada linha de item.
+- [ ] Ao clicar no "+", criar dinamicamente um novo campo de quantidade logo abaixo ou ao lado do(s) existente(s).
+- [ ] Permitir adicionar quantos campos o usuário desejar (sem limite fixo).
+- [ ] Garantir que todos os campos aceitam apenas valores numéricos válidos.
+- [ ] Adicionar um botão "-" (opcional) para remover campos extras, exceto o primeiro.
 
-### Tarefas Detalhadas
-- [ ] 17.8.1 Refatorar interface no `script.jsx` para criar três linhas independentes, cada uma com:
-    - Label do grupo
-    - Dropdown de componentes
-    - Dropdown de cor
-    - Dropdown de unidade
-    - Campo de quantidade
-    - Campo de multiplicador
-    - Botão de adicionar
-- [ ] 17.8.2 Adaptar eventos de seleção de componente, cor e unidade para cada linha funcionar de forma independente
-- [ ] 17.8.3 Adaptar cada botão "Adicionar" para usar apenas os campos da sua linha
-- [ ] 17.8.4 Adaptar função de filtragem para atualizar corretamente os três conjuntos de campos
-- [ ] 17.8.5 Garantir logs detalhados para cada operação em cada linha
-- [ ] 17.8.6 Testar manualmente seleção, adição e filtragem em cada linha
-- [ ] 17.8.7 Atualizar documentação e comentários nos arquivos alterados
+#### 17.3 Lógica de Soma e Validação
+- [ ] Antes de adicionar o item à lista, somar todos os valores dos campos de quantidade daquele item.
+- [ ] Validar que todos os campos preenchidos possuem valores válidos (números positivos).
+- [ ] Se algum campo estiver vazio ou inválido, impedir a adição e exibir alerta.
+- [ ] Registrar log detalhado da soma realizada e dos valores inseridos.
 
-### Observações
-- Cada grupo pode ser usado de forma isolada, sem interferir nos outros.
-- Modularização, logs e padrões do projeto devem ser mantidos.
-- O campo de pesquisa pode continuar filtrando todos os três grupos simultaneamente.
+#### 17.4 Integração com a Lógica Existente
+- [ ] Adaptar a função de adição de item para receber o total somado dos campos de quantidade.
+- [ ] Garantir que o valor final utilizado na lista/refino/preview seja sempre a soma dos campos.
+- [ ] Atualizar logs e sistema de preview para refletir a nova lógica.
+
+#### 17.5 Testes Manuais e Validação
+- [ ] Testar manualmente a adição de múltiplos campos de quantidade para diferentes tipos de itens.
+- [ ] Validar a soma automática e o valor final apresentado/adicionado.
+- [ ] Testar remoção de campos extras e comportamento em casos de erro.
+- [ ] Verificar integração com logs e preview.
+
+#### 17.6 Documentação e Refino
+- [ ] Documentar a nova funcionalidade no plano e nos arquivos afetados.
+- [ ] Atualizar comentários e instruções nos módulos modificados.
+- [ ] Garantir compatibilidade com todas as regras e padrões do projeto.
 
 ---
 
-## 17.9 Mapeamento Detalhado dos Grupos de Componentes para Dropdowns
+### Checklist de Implementação
 
-Para garantir que todos os componentes estejam corretamente agrupados e nenhum seja omitido, segue o mapeamento validado para os três grupos de dropdowns:
+- [ ] Localização correta das funções e lógica nos módulos temáticos (`ui.jsx` para interface, `funcoesComponentes.jsx`/`funcoesBolas.jsx` para lógica de adição)
+- [ ] Estrutura padrão de validação, logs e exportação global
+- [ ] Compatibilidade com o sistema de logs e preview
+- [ ] Testes manuais incrementais após cada etapa
+- [ ] Documentação atualizada no plano e nos arquivos afetados
 
-### Grupo PRINT
-- bioprint
-- flexiprint
-- print ignifuge
-- recyprint
-
-### Grupo LEDS
-- lucioles
-- rideaux
-- stalactits
-
-### Grupo COMPONENTS
-- Todos os demais componentes que não pertencem aos grupos acima (ex: potence, structure, etc.)
+---
 
 **Observações:**
-- O grupo LEDS inclui explicitamente todos os componentes cujo nome contenha "luciole", "lucioles", "rideaux" ou "stalactits" (case insensitive), garantindo que variações como "lucioles" estejam sempre presentes.
-- O grupo PRINT inclui todos os componentes especiais: "bioprint", "flexiprint", "print ignifuge", "recyprint".
-- O grupo COMPONENTS é dinâmico e inclui todos os outros componentes disponíveis na base de dados, exceto os já listados nos grupos PRINT e LEDS.
-- O mapeamento é revisado sempre que a base de dados de componentes for atualizada, para garantir que nenhum componente seja omitido.
-
-**Checklist de Validação:**
-- [x] Todos os componentes da lista visual estão mapeados.
-- [x] "lucioles" está incluído explicitamente no grupo LEDS.
-- [x] Nenhum componente dos grupos PRINT ou LEDS é omitido.
-- [x] O grupo COMPONENTS cobre todos os demais.
+- O layout dos campos deve ser limpo e intuitivo, evitando poluir visualmente a interface.
+- O botão "+" deve ser pequeno e discreto, mas facilmente acessível.
+- O sistema deve ser robusto para evitar erros de soma ou campos inválidos.
 
 ---
 
-#### 17.5 FASE 5: Integração da Busca/Procura nas Três Linhas
-- **Objetivo:** Garantir que o campo de pesquisa (procura) filtre corretamente e de forma independente os componentes exibidos em cada um dos três grupos (PRINT, LEDS, COMPONENTS), mantendo a modularização, logs e experiência de uso consistente.
-- **Técnica:**
-  - O campo de pesquisa deve acionar a função de filtragem para cada grupo separadamente, atualizando apenas o dropdown de componentes correspondente.
-  - A filtragem deve ser simultânea, mas cada grupo mantém sua lista e seleção independente.
-  - O sistema de logs deve registrar cada operação de busca, indicando o grupo afetado e o termo pesquisado.
-  - A filtragem não deve afetar os campos de cor, unidade, quantidade ou multiplicador das outras linhas.
-- **Checklist de Validação:**
-  - [ ] Pesquisar termo que existe apenas em PRINT: apenas o dropdown PRINT deve ser filtrado, os outros permanecem inalterados.
-  - [ ] Pesquisar termo que existe apenas em LEDS: apenas o dropdown LEDS deve ser filtrado.
-  - [ ] Pesquisar termo que existe apenas em COMPONENTS: apenas o dropdown COMPONENTS deve ser filtrado.
-  - [ ] Pesquisar termo que existe em mais de um grupo: todos os grupos relevantes devem ser filtrados corretamente.
-  - [ ] Após a filtragem, a seleção e adição de componentes continuam funcionando normalmente em cada grupo.
-  - [ ] Logs detalhados são registrados para cada operação de busca, indicando grupo e termo.
-  - [ ] A filtragem não interfere nos campos de cor, unidade, quantidade ou multiplicador das outras linhas.
-- **Critérios de Sucesso:**
-  - Busca integrada, independente e funcional nas três linhas.
-  - Modularização e logs mantidos conforme padrões do projeto.
-  - Nenhuma regressão ou quebra de funcionalidade existente.
-  - Documentação e checklist atualizados.
-
----
-
+</rewritten_file>

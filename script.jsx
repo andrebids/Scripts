@@ -92,7 +92,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v2.0.7");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v2.0.8");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -337,10 +337,56 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
     listaCores.selection = 0;
     var listaUnidades = grupoLinha.add("dropdownlist", undefined, [t("selecioneUnidade")]);
     listaUnidades.selection = 0;
-    var campoQuantidade = grupoLinha.add("edittext", undefined, "");
-    campoQuantidade.characters = 4;
-    campoQuantidade.preferredSize.width = 40;
-    funcoes.apenasNumerosEVirgula(campoQuantidade);
+
+    // Grupo para campos de quantidade
+    var grupoQuantidades = grupoLinha.add("group");
+    grupoQuantidades.orientation = "row";
+    grupoQuantidades.alignChildren = "center";
+    var camposQuantidade = [];
+
+    // Função para criar um campo de quantidade
+    function criarCampoQuantidade(valorPadrao) {
+        var campo = grupoQuantidades.add("edittext", undefined, valorPadrao ? valorPadrao : "");
+        campo.characters = 4;
+        campo.preferredSize.width = 40;
+        funcoes.apenasNumerosEVirgula(campo);
+        camposQuantidade.push(campo);
+        return campo;
+    }
+    // Função para remover um campo de quantidade
+    function removerCampoQuantidade(campo) {
+        for (var i = 0; i < camposQuantidade.length; i++) {
+            if (camposQuantidade[i] === campo) {
+                grupoQuantidades.remove(campo);
+                camposQuantidade.splice(i, 1);
+                break;
+            }
+        }
+        grupoLinha.layout.layout(true);
+        grupoLinha.layout.resize();
+    }
+    // Adicionar campo inicial
+    var campoQuantidade = criarCampoQuantidade("");
+    // Botão +
+    var botaoMais = grupoQuantidades.add("button", undefined, "+");
+    botaoMais.preferredSize.width = 22;
+    botaoMais.preferredSize.height = 22;
+    botaoMais.onClick = function() {
+        var novoCampo = criarCampoQuantidade("");
+        // Botão - para remover campo extra
+        var botaoMenos = grupoQuantidades.add("button", undefined, "-");
+        botaoMenos.preferredSize.width = 22;
+        botaoMenos.preferredSize.height = 22;
+        // Associar botão ao campo
+        botaoMenos.onClick = function() {
+            removerCampoQuantidade(novoCampo);
+            grupoQuantidades.remove(botaoMenos);
+            grupoLinha.layout.layout(true);
+            grupoLinha.layout.resize();
+        };
+        grupoLinha.layout.layout(true);
+        grupoLinha.layout.resize();
+    };
     grupoLinha.add("statictext", undefined, "x");
     var campoMultiplicador = grupoLinha.add("edittext", undefined, "1");
     campoMultiplicador.characters = 2;
@@ -351,7 +397,7 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
         listaComponentes: listaComponentes,
         listaCores: listaCores,
         listaUnidades: listaUnidades,
-        campoQuantidade: campoQuantidade,
+        camposQuantidade: camposQuantidade,
         campoMultiplicador: campoMultiplicador,
         botaoAdicionar: botaoAdicionar
     };
@@ -421,16 +467,28 @@ configurarEventosLinha(linhaPrint);
 configurarEventosLinha(linhaLeds);
 configurarEventosLinha(linhaNormais);
 
-// Eventos para adicionar componente em cada linha
+// Atualizar eventos de adicionar para todos os grupos
 linhaPrint.botaoAdicionar.onClick = function() {
     if (logs && logs.logEvento) {
         logs.logEvento("click", "botaoAdicionarComponente_PRINT");
+    }
+    var soma = 0;
+    var campos = linhaPrint.camposQuantidade;
+    for (var i = 0; i < campos.length; i++) {
+        var valor = parseFloat(campos[i].text.replace(",", "."));
+        if (!isNaN(valor) && valor > 0) {
+            soma += valor;
+        }
+    }
+    if (soma <= 0) {
+        alert(t("preencherCampos"));
+        return;
     }
     funcoesComponentes.adicionarComponente(
         linhaPrint.listaComponentes,
         linhaPrint.listaCores,
         linhaPrint.listaUnidades,
-        linhaPrint.campoQuantidade,
+        soma,
         linhaPrint.campoMultiplicador,
         ultimaSelecao,
         dados,
@@ -439,18 +497,31 @@ linhaPrint.botaoAdicionar.onClick = function() {
         t,
         logs,
         funcoes,
-        funcoes.encontrarIndicePorNome
+        funcoes.encontrarIndicePorNome,
+        linhaPrint.camposQuantidade
     );
 };
 linhaLeds.botaoAdicionar.onClick = function() {
     if (logs && logs.logEvento) {
         logs.logEvento("click", "botaoAdicionarComponente_LEDS");
     }
+    var soma = 0;
+    var campos = linhaLeds.camposQuantidade;
+    for (var i = 0; i < campos.length; i++) {
+        var valor = parseFloat(campos[i].text.replace(",", "."));
+        if (!isNaN(valor) && valor > 0) {
+            soma += valor;
+        }
+    }
+    if (soma <= 0) {
+        alert(t("preencherCampos"));
+        return;
+    }
     funcoesComponentes.adicionarComponente(
         linhaLeds.listaComponentes,
         linhaLeds.listaCores,
         linhaLeds.listaUnidades,
-        linhaLeds.campoQuantidade,
+        soma,
         linhaLeds.campoMultiplicador,
         ultimaSelecao,
         dados,
@@ -459,18 +530,31 @@ linhaLeds.botaoAdicionar.onClick = function() {
         t,
         logs,
         funcoes,
-        funcoes.encontrarIndicePorNome
+        funcoes.encontrarIndicePorNome,
+        linhaLeds.camposQuantidade
     );
 };
 linhaNormais.botaoAdicionar.onClick = function() {
     if (logs && logs.logEvento) {
         logs.logEvento("click", "botaoAdicionarComponente_COMPONENTS");
     }
+    var soma = 0;
+    var campos = linhaNormais.camposQuantidade;
+    for (var i = 0; i < campos.length; i++) {
+        var valor = parseFloat(campos[i].text.replace(",", "."));
+        if (!isNaN(valor) && valor > 0) {
+            soma += valor;
+        }
+    }
+    if (soma <= 0) {
+        alert(t("preencherCampos"));
+        return;
+    }
     funcoesComponentes.adicionarComponente(
         linhaNormais.listaComponentes,
         linhaNormais.listaCores,
         linhaNormais.listaUnidades,
-        linhaNormais.campoQuantidade,
+        soma,
         linhaNormais.campoMultiplicador,
         ultimaSelecao,
         dados,
@@ -479,7 +563,8 @@ linhaNormais.botaoAdicionar.onClick = function() {
         t,
         logs,
         funcoes,
-        funcoes.encontrarIndicePorNome
+        funcoes.encontrarIndicePorNome,
+        linhaNormais.camposQuantidade
     );
 };
 

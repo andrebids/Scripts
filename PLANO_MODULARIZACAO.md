@@ -1558,4 +1558,14 @@ Permitir ao usuário adicionar múltiplos campos de quantidade para cada item (c
 
 ---
 
+#### 17.7 Exibição da Soma por Extenso no Preview da Legenda
+- [ ] Analisar onde o preview da legenda é gerado (funcoesLegenda.jsx, função atualizarPreview/gerarFrasePrincipal).
+- [ ] Adaptar a lógica para, ao detectar múltiplos campos de quantidade, exibir a soma total também por extenso (ex: "Total: 7 (sete)").
+- [ ] Garantir que a exibição por extenso seja clara e não polua visualmente a interface.
+- [ ] Integrar a conversão numérica para texto por extenso (em português e francês, conforme idioma).
+- [ ] Adicionar logs detalhados sempre que a soma por extenso for exibida.
+- [ ] Testar manualmente a exibição do valor por extenso no preview da legenda, com diferentes quantidades e idiomas.
+
+---
+
 </rewritten_file>

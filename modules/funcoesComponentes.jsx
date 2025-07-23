@@ -145,9 +145,15 @@ function restaurarUltimaSelecao(listaComponentes, listaCores, listaUnidades, cam
             }
         }
 
-        // Deixar o campo quantidade vazio
+        // Limpar campo(s) de quantidade
         if (typeof campoQuantidade !== 'undefined' && campoQuantidade) {
-            campoQuantidade.text = "";
+            if (Object.prototype.toString.call(campoQuantidade) === '[object Array]') {
+                if (campoQuantidade.length > 0) {
+                    campoQuantidade[0].text = "";
+                }
+            } else if (typeof campoQuantidade.text !== 'undefined') {
+                campoQuantidade.text = "";
+            }
         }
         if (typeof campoMultiplicador !== 'undefined' && campoMultiplicador) {
             campoMultiplicador.text = ultimaSelecao.multiplicador;
@@ -156,25 +162,52 @@ function restaurarUltimaSelecao(listaComponentes, listaCores, listaUnidades, cam
     } catch (e) {
         alert("Erro ao restaurar seleção: " + e.message + "\nUsando reset padrão");
         // Reset padrão em caso de erro
-        campoQuantidade.text = "1";
-        campoMultiplicador.text = "1";
-        listaComponentes.selection = 0;
-        listaCores.removeAll();
-        listaCores.add("item", t("selecioneCor"));
-        listaCores.selection = 0;
-        listaUnidades.removeAll();
-        listaUnidades.add("item", t("selecioneUnidade"));
-        listaUnidades.selection = 0;
+        if (typeof campoQuantidade !== 'undefined' && campoQuantidade) {
+            if (Object.prototype.toString.call(campoQuantidade) === '[object Array]') {
+                if (campoQuantidade.length > 0) {
+                    campoQuantidade[0].text = "1";
+                }
+            } else if (typeof campoQuantidade.text !== 'undefined') {
+                campoQuantidade.text = "1";
+            }
+        }
+        if (typeof campoMultiplicador !== 'undefined' && campoMultiplicador) {
+            campoMultiplicador.text = "1";
+        }
+        if (listaComponentes && listaComponentes.selection) listaComponentes.selection = 0;
+        if (listaCores) {
+            listaCores.removeAll();
+            listaCores.add("item", t("selecioneCor"));
+            listaCores.selection = 0;
+        }
+        if (listaUnidades) {
+            listaUnidades.removeAll();
+            listaUnidades.add("item", t("selecioneUnidade"));
+            listaUnidades.selection = 0;
+        }
     }
 }
 
-function adicionarComponente(listaComponentes, listaCores, listaUnidades, campoQuantidade, campoMultiplicador, ultimaSelecao, dados, itensLegenda, atualizarListaItens, t, logs, funcoes, encontrarIndicePorNome) {
+// Ao criar ou atualizar o texto do item, passar o array de quantidades para criarTextoComponente
+// Converter camposQuantidade para array de valores
+function extrairValoresCampos(camposQuantidade) {
+    var arr = [];
+    if (camposQuantidade && Object.prototype.toString.call(camposQuantidade) === '[object Array]') {
+        for (var i = 0; i < camposQuantidade.length; i++) {
+            var val = parseFloat(camposQuantidade[i].text.replace(',', '.'));
+            if (!isNaN(val) && val > 0) {
+                arr.push(val);
+            }
+        }
+    }
+    return arr;
+}
+
+function adicionarComponente(listaComponentes, listaCores, listaUnidades, quantidade, campoMultiplicador, ultimaSelecao, dados, itensLegenda, atualizarListaItens, t, logs, funcoes, encontrarIndicePorNome, camposQuantidade) {
     try {
         // Verificar se a quantidade foi preenchida
-        var quantidade = campoQuantidade.text;
-        if (!quantidade || quantidade.replace(/\s/g, "") === "") {
+        if (typeof quantidade === 'undefined' || quantidade === null || isNaN(quantidade) || quantidade <= 0) {
             alert(t("quantidadeNaoInformada")); // "Por favor, informe a quantidade"
-            campoQuantidade.active = true; // Foca no campo
             return;
         }
 
@@ -224,11 +257,11 @@ function adicionarComponente(listaComponentes, listaCores, listaUnidades, campoQ
         }
 
         // Processar quantidade e multiplicador
-        var quantidade = parseFloat(campoQuantidade.text.replace(',', '.'));
+        var quantidadeNum = quantidade;
         var multiplicador = parseFloat(campoMultiplicador.text.replace(',', '.'));
 
-        if (isNaN(quantidade) || quantidade <= 0) {
-            alert(t("quantidadeInvalida") + "\nValor inserido: " + campoQuantidade.text);
+        if (isNaN(quantidadeNum) || quantidadeNum <= 0) {
+            alert(t("quantidadeInvalida") + "\nValor inserido: " + quantidade);
             return;
         }
 
@@ -257,7 +290,7 @@ function adicionarComponente(listaComponentes, listaCores, listaUnidades, campoQ
 
         // Processar o componente
         var nomeComponente = componenteSelecionado.nome + " " + corSelecionada.nome;
-        quantidade = funcoes.arredondarComponente(quantidade, unidadeSelecionada, nomeComponente);
+        quantidadeNum = funcoes.arredondarComponente(quantidadeNum, unidadeSelecionada, nomeComponente);
 
         // Verificar se o item já existe
         var itemExistente = null;
@@ -270,22 +303,21 @@ function adicionarComponente(listaComponentes, listaCores, listaUnidades, campoQ
             }
         }
 
+        var arrayQuantidades = extrairValoresCampos(camposQuantidade);
         if (itemExistente) {
-            // Atualizar quantidade e multiplicador do item existente
-            itemExistente.quantidade = quantidade;
+            itemExistente.quantidade = quantidadeNum;
             itemExistente.multiplicador = multiplicador;
-            itemExistente.texto = funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidade, multiplicador);
+            itemExistente.texto = funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidadeNum, multiplicador, arrayQuantidades);
         } else {
-            // Adicionar novo item
             var novoItem = {
                 tipo: "componente",
                 nome: nomeComponente,
-                quantidade: quantidade,
+                quantidade: quantidadeNum,
                 multiplicador: multiplicador,
                 unidade: unidadeSelecionada,
                 referencia: combinacaoSelecionada.referencia,
                 componenteId: componenteSelecionado.id,
-                texto: funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidade, multiplicador)
+                texto: funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidadeNum, multiplicador, arrayQuantidades)
             };
             itensLegenda.push(novoItem);
         }
@@ -297,19 +329,30 @@ function adicionarComponente(listaComponentes, listaCores, listaUnidades, campoQ
 
         // Restaurar a última seleção
         try {
-            restaurarUltimaSelecao(listaComponentes, listaCores, listaUnidades, campoQuantidade, campoMultiplicador, ultimaSelecao, dados, t);
+            restaurarUltimaSelecao(listaComponentes, listaCores, listaUnidades, camposQuantidade, campoMultiplicador, ultimaSelecao, dados, t);
         } catch (e) {
             alert("Erro ao restaurar seleção: " + e.message + "\nUsando reset padrão");
-            // Reset padrão em caso de erro
-            campoQuantidade.text = "1";
-            campoMultiplicador.text = "1";
-            listaComponentes.selection = 0;
-            listaCores.removeAll();
-            listaCores.add("item", t("selecioneCor"));
-            listaCores.selection = 0;
-            listaUnidades.removeAll();
-            listaUnidades.add("item", t("selecioneUnidade"));
-            listaUnidades.selection = 0;
+            if (typeof camposQuantidade !== 'undefined' && camposQuantidade) {
+                if (Object.prototype.toString.call(camposQuantidade) === '[object Array]') {
+                    if (camposQuantidade.length > 0) {
+                        camposQuantidade[0].text = "1";
+                    }
+                } else if (typeof camposQuantidade.text !== 'undefined') {
+                    camposQuantidade.text = "1";
+                }
+            }
+            if (campoMultiplicador) campoMultiplicador.text = "1";
+            if (listaComponentes && listaComponentes.selection) listaComponentes.selection = 0;
+            if (listaCores) {
+                listaCores.removeAll();
+                listaCores.add("item", t("selecioneCor"));
+                listaCores.selection = 0;
+            }
+            if (listaUnidades) {
+                listaUnidades.removeAll();
+                listaUnidades.add("item", t("selecioneUnidade"));
+                listaUnidades.selection = 0;
+            }
         }
 
     } catch (e) {

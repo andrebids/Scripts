@@ -467,24 +467,35 @@ function contarBolasNaArtboard() {
 }
 
 // Função para criar o texto do componente (migrada de script.jsx)
-function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicador) {
+function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicador, arrayQuantidades) {
     var texto = nome;
     if (referencia) {
         texto += " (Ref: " + referencia + ")";
     }
     texto += " (" + funcoes.formatarUnidade(unidade) + ")";
-    
     quantidade = funcoes.arredondarComponente(quantidade, unidade, nome);
-    
     var quantidadeFormatada = quantidade.toFixed(2).replace('.', ',');
-    if (multiplicador > 1) {
+    // Exibir conta detalhada se arrayQuantidades for fornecido e tiver mais de um valor
+    if (arrayQuantidades && Object.prototype.toString.call(arrayQuantidades) === '[object Array]' && arrayQuantidades.length > 1) {
+        var partes = [];
+        for (var i = 0; i < arrayQuantidades.length; i++) {
+            var val = parseFloat(arrayQuantidades[i]);
+            if (!isNaN(val) && val > 0) {
+                partes.push(val.toString().replace('.', ','));
+            }
+        }
+        if (partes.length > 1) {
+            texto += ": " + partes.join(" + ") + " = " + quantidadeFormatada;
+        } else {
+            texto += ": " + quantidadeFormatada;
+        }
+    } else if (multiplicador > 1) {
         texto += " " + quantidadeFormatada + "x" + multiplicador + ": ";
         var quantidadeTotal = quantidade * multiplicador;
         texto += quantidadeTotal.toFixed(2).replace('.', ',');
     } else {
         texto += ": " + quantidadeFormatada;
     }
-    
     return texto;
 }
 

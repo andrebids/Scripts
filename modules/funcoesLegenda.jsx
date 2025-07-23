@@ -30,6 +30,58 @@ function logLegenda(mensagem, tipo) {
 }
 
 /**
+ * Função auxiliar para juntar arrays de strings com vírgula e 'et' antes do último elemento.
+ * Compatível com ES3/ES5 (sem métodos modernos).
+ * Exemplo: ["a", "b", "c"] => "a, b et c"
+ * @param {Array} arr - Array de strings
+ * @returns {string} String formatada
+ */
+function juntarComEt(arr) {
+    if (!arr || arr.length === 0) {
+        return "";
+    }
+    if (arr.length === 1) {
+        return arr[0];
+    }
+    var resultado = "";
+    for (var i = 0; i < arr.length; i++) {
+        if (i > 0 && i === arr.length - 1) {
+            resultado += " et ";
+        } else if (i > 0) {
+            resultado += ", ";
+        }
+        resultado += arr[i];
+    }
+    return resultado;
+}
+
+/**
+ * Função auxiliar para juntar variações de cor de um mesmo componente com 'et'.
+ * Compatível com ES3/ES5 (sem métodos modernos).
+ * Exemplo: ["a", "b", "c"] => "a, b et c"
+ * @param {Array} arr - Array de strings (cores)
+ * @returns {string} String formatada
+ */
+function juntarVariaçõesCor(arr) {
+    if (!arr || arr.length === 0) {
+        return "";
+    }
+    if (arr.length === 1) {
+        return arr[0];
+    }
+    var resultado = "";
+    for (var i = 0; i < arr.length; i++) {
+        if (i > 0 && i === arr.length - 1) {
+            resultado += " et ";
+        } else if (i > 0) {
+            resultado += ", ";
+        }
+        resultado += arr[i];
+    }
+    return resultado;
+}
+
+/**
  * Função para ajustar o texto dos fil lumière para sempre incluir 'LED'
  * @param {string} texto - Texto a ser ajustado
  * @returns {string} Texto ajustado
@@ -164,15 +216,26 @@ function gerarFrasePrincipal(parametros) {
                             lista.push("led " + cor);
                         }
                     }
-                    resultado.push(lista.join(", "));
+                    var textoFil = juntarVariaçõesCor(lista);
+                    logLegenda("Regra 'et' aplicada para 'fil': " + textoFil, "info");
+                    resultado.push(textoFil);
                 } else if (variacoes.length > 0) {
-                    resultado.push(nome + " " + variacoes[0] + (variacoes.length > 1 ? ", " + variacoes.slice(1).join(", ") : ""));
+                    var textoComp = nome + " " + juntarVariaçõesCor(variacoes);
+                    logLegenda("Regra 'et' aplicada para '" + nome + "': " + textoComp, "info");
+                    resultado.push(textoComp);
                 } else {
                     resultado.push(nome);
                 }
             }
+            logLegenda("Resultado final de agrupamento: " + resultado.join(" | "), "info");
             return resultado;
         }
+
+        // LOG: Inspecionar outrosComponentes antes do agrupamento
+        logLegenda("Conteúdo de outrosComponentes: " + outrosComponentes.join(" | "), "info");
+        // LOG: Inspecionar agrupamento de componentes
+        var agrupados = agruparComponentes(outrosComponentes);
+        logLegenda("Resultado de agruparComponentes: " + agrupados.join(" | "), "info");
 
         // Construir a frase com a regra do bioprint
         var frasePrincipal = "Logo " + (parametros.listaL || "") + ": " + 
@@ -186,13 +249,13 @@ function gerarFrasePrincipal(parametros) {
             
             // Se há outros componentes, adicionar "avec"
             if (outrosComponentes.length > 0) {
-                frasePrincipal += " avec " + agruparComponentes(outrosComponentes).join(", ");
+                frasePrincipal += " avec " + agrupados.join(", ");
             }
         } else {
             // Se não há bioprint, usar "avec" normalmente
             frasePrincipal += " " + preposicao;
             if (outrosComponentes.length > 0) {
-                frasePrincipal += " " + agruparComponentes(outrosComponentes).join(", ");
+                frasePrincipal += " " + agrupados.join(", ");
             }
         }
 
@@ -359,7 +422,7 @@ function processarComponentes(itensLegenda) {
                 if (b.toUpperCase() === ordemComponentes[i]) {
                     posB = i;
                 }
-            }
+            } 
             
             return posA - posB;
         });
@@ -375,8 +438,12 @@ function processarComponentes(itensLegenda) {
                 return a.localeCompare(b);
             });
             
-            componentesTexto.push(nomeComponente.toLowerCase() + " " + coresOrdenadas.join(", "));
+            componentesTexto.push(nomeComponente.toLowerCase() + " " + juntarVariaçõesCor(coresOrdenadas));
         }
+
+        // LOG: Inspecionar agrupamento de componentes antes de retornar
+        logLegenda("componentesAgrupados: " + JSON.stringify(componentesAgrupados), "info");
+        logLegenda("componentesTexto: " + componentesTexto.join(" | "), "info");
 
         logLegenda("Processamento de componentes concluído: " + componentesTexto.length + " componentes", "info");
         

@@ -762,6 +762,14 @@ abaCombinacoes.orientation = "column";
 abaCombinacoes.alignChildren = ["fill", "top"];
 abaCombinacoes.spacing = 10;
 
+// Adicionar grupo de pesquisa para combinações
+var grupoPesquisaCombinacoes = abaCombinacoes.add("group");
+grupoPesquisaCombinacoes.orientation = "row";
+grupoPesquisaCombinacoes.alignChildren = ["left", "center"];
+grupoPesquisaCombinacoes.add("statictext", undefined, "Pesquisar:");
+var campoPesquisaCombinacoes = grupoPesquisaCombinacoes.add("edittext", undefined, "");
+campoPesquisaCombinacoes.preferredSize.width = 200;
+
 // Painel para a lista de combinações com barra de rolagem
 var painelCombinacoes = abaCombinacoes.add("panel");
 painelCombinacoes.orientation = "row";
@@ -858,7 +866,7 @@ var botaoSalvarCombinacao = grupoEditarCombinacao.add("button", undefined, "Salv
 var botaoRemoverCombinacao = abaCombinacoes.add("button", undefined, "Remover Selecionado");
 
 // Função para atualizar a lista de combinações
-function atualizarListaCombinacoes() {
+function atualizarListaCombinacoes(filtro) {
     listaCombinacoes.removeAll();
     var combinacoes = database.combinacoes.sort(function(a, b) {
         var compA = findById(database.componentes, a.componenteId).nome;
@@ -873,10 +881,18 @@ function atualizarListaCombinacoes() {
         var cor = findById(database.cores, combinacao.corId).nome;
         var referencia = combinacao.referencia ? " (Ref: " + combinacao.referencia + ")" : "";
         var cmyk = combinacao.cmyk ? " [CMYK: " + combinacao.cmyk.join(",") + "]" : "";
-        listaCombinacoes.add("item", componente + " - " + cor + " - " + combinacao.unidade + referencia + cmyk);
+        var texto = componente + " - " + cor + " - " + combinacao.unidade + referencia + cmyk;
+        if (!filtro || texto.toLowerCase().indexOf(filtro.toLowerCase()) !== -1) {
+            listaCombinacoes.add("item", texto);
+        }
     }
     $.writeln("Lista de combinações atualizada. Total de combinações: " + combinacoes.length);
 }
+
+// Evento de pesquisa para combinações
+campoPesquisaCombinacoes.onChanging = function() {
+    atualizarListaCombinacoes(this.text);
+};
 
 // Função para adicionar nova combinação
 botaoAdicionarCombinacao.onClick = function() {

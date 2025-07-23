@@ -126,6 +126,8 @@ function getComponentesComCombinacoes(dados, t, arrayContains, encontrarPorId) {
                             nomeComp.indexOf("luciole") !== -1 ||
                             nomeComp.indexOf("lucioles") !== -1 ||
                             nomeComp.indexOf("rideaux") !== -1 ||
+                            nomeComp.indexOf("stalactite") !== -1 ||
+                            nomeComp.indexOf("stalactites") !== -1 ||
                             nomeComp.indexOf("stalactits") !== -1
                         ) {
                             ehLed = true;

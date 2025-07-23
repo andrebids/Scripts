@@ -319,69 +319,159 @@ var grupo2 = grupoComponentes.add("group");
 grupo2.orientation = "row";
 
 // Atualizar a criação da lista de componentes
-var componentesNomes = funcoesFiltragem.getComponentesComCombinacoes(dados, t, funcoes.arrayContains, funcoes.encontrarPorId);
-var listaComponentes = grupo2.add("dropdownlist", undefined, componentesNomes);
-listaComponentes.selection = 0;
+var componentesSeparados = funcoesFiltragem.getComponentesComCombinacoes(dados, t, funcoes.arrayContains, funcoes.encontrarPorId);
+// Salvar arrays originais para garantir restauração correta na filtragem
+var componentesOriginaisPrint = componentesSeparados.componentesPrint.slice(0);
+var componentesOriginaisLeds = componentesSeparados.componentesLeds.slice(0);
+var componentesOriginaisNormais = componentesSeparados.componentesNormais.slice(0);
 
-// Lista de cores
-var coresNomes = [t("selecioneCor")].concat(extrairNomes(dados.cores));
-var listaCores = grupo2.add("dropdownlist", undefined, coresNomes);
-listaCores.selection = 0;
+// Função auxiliar para criar linha de grupo de componentes
+function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
+    var grupoLinha = grupoPai.add("group");
+    grupoLinha.orientation = "row";
+    grupoLinha.alignChildren = "center";
+    grupoLinha.add("statictext", undefined, labelGrupo);
+    var listaComponentes = grupoLinha.add("dropdownlist", undefined, [t("selecioneComponente")].concat(componentesGrupo));
+    listaComponentes.selection = 0;
+    var listaCores = grupoLinha.add("dropdownlist", undefined, [t("selecioneCor")].concat(extrairNomes(dados.cores)));
+    listaCores.selection = 0;
+    var listaUnidades = grupoLinha.add("dropdownlist", undefined, [t("selecioneUnidade")]);
+    listaUnidades.selection = 0;
+    var campoQuantidade = grupoLinha.add("edittext", undefined, "");
+    campoQuantidade.characters = 4;
+    campoQuantidade.preferredSize.width = 40;
+    funcoes.apenasNumerosEVirgula(campoQuantidade);
+    grupoLinha.add("statictext", undefined, "x");
+    var campoMultiplicador = grupoLinha.add("edittext", undefined, "1");
+    campoMultiplicador.characters = 2;
+    campoMultiplicador.preferredSize.width = 25;
+    funcoes.apenasNumerosEVirgula(campoMultiplicador);
+    var botaoAdicionar = grupoLinha.add("button", undefined, t("botaoAdicionar"));
+    return {
+        listaComponentes: listaComponentes,
+        listaCores: listaCores,
+        listaUnidades: listaUnidades,
+        campoQuantidade: campoQuantidade,
+        campoMultiplicador: campoMultiplicador,
+        botaoAdicionar: botaoAdicionar
+    };
+}
 
-// Lista de unidades
-var listaUnidades = grupo2.add("dropdownlist", undefined, [t("selecioneUnidade")]);
-listaUnidades.selection = 0;
+// Criar três linhas independentes para cada grupo
+var linhaPrint = criarLinhaGrupo(grupoComponentes, "PRINT", componentesSeparados.componentesPrint);
+var linhaLeds = criarLinhaGrupo(grupoComponentes, "LEDS", componentesSeparados.componentesLeds);
+var linhaNormais = criarLinhaGrupo(grupoComponentes, "COMPONENTS", componentesSeparados.componentesNormais);
 
-// Campo de pesquisa (otimizado) - CRIADO APÓS TODAS AS LISTAS
+// Campo de pesquisa (mantido no topo)
 var campoPesquisa = grupoPesquisa.add("edittext", undefined, "");
-campoPesquisa.characters = 15; // Reduzir de 20 para 15
-campoPesquisa.preferredSize.width = 120; // Definir largura fixa
+campoPesquisa.characters = 15;
+campoPesquisa.preferredSize.width = 120;
 campoPesquisa.onChanging = function() {
-    funcoesFiltragem.filtrarComponentes(campoPesquisa.text, componentesNomes, listaComponentes, listaCores, listaUnidades, dados, t, funcoes, funcoesComponentes);
+    funcoesFiltragem.filtrarComponentes(
+        campoPesquisa.text,
+        componentesOriginaisPrint.slice(0),
+        linhaPrint.listaComponentes,
+        linhaPrint.listaCores,
+        linhaPrint.listaUnidades,
+        dados,
+        t,
+        funcoes,
+        funcoesComponentes
+    );
+    funcoesFiltragem.filtrarComponentes(
+        campoPesquisa.text,
+        componentesOriginaisLeds.slice(0),
+        linhaLeds.listaComponentes,
+        linhaLeds.listaCores,
+        linhaLeds.listaUnidades,
+        dados,
+        t,
+        funcoes,
+        funcoesComponentes
+    );
+    funcoesFiltragem.filtrarComponentes(
+        campoPesquisa.text,
+        componentesOriginaisNormais.slice(0),
+        linhaNormais.listaComponentes,
+        linhaNormais.listaCores,
+        linhaNormais.listaUnidades,
+        dados,
+        t,
+        funcoes,
+        funcoesComponentes
+    );
 };
 
-// Evento para atualizar cores e unidades ao selecionar um componente
-listaComponentes.onChange = function() {
-    funcoes.atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, function() {
-        if (funcoesComponentes && funcoesComponentes.verificarCMYK) {
-            funcoesComponentes.verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, funcoes.encontrarIndicePorNome);
+// Eventos para atualizar cores e unidades ao selecionar um componente em cada linha
+function configurarEventosLinha(linha) {
+    linha.listaComponentes.onChange = function() {
+        funcoes.atualizarCores(linha.listaComponentes, linha.listaCores, linha.listaUnidades, dados, t, function() {
+            if (funcoesComponentes && funcoesComponentes.verificarCMYK) {
+                funcoesComponentes.verificarCMYK(linha.listaComponentes, linha.listaCores, linha.listaUnidades, dados, funcoes.encontrarIndicePorNome);
+            }
+        });
+    };
+    linha.listaCores.onChange = function() {
+        if (funcoesComponentes && funcoesComponentes.atualizarUnidades) {
+            funcoesComponentes.atualizarUnidades(linha.listaComponentes, linha.listaCores, linha.listaUnidades, dados, funcoes.selecionarUnidadeMetrica, funcoes.arrayContains);
         }
-    });
-};
+    };
+}
+configurarEventosLinha(linhaPrint);
+configurarEventosLinha(linhaLeds);
+configurarEventosLinha(linhaNormais);
 
-// Evento para atualizar unidades ao selecionar uma cor
-listaCores.onChange = function() {
-    if (funcoesComponentes && funcoesComponentes.atualizarUnidades) {
-        funcoesComponentes.atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, funcoes.selecionarUnidadeMetrica, funcoes.arrayContains);
-    }
-};
-
-// Campo de quantidade (otimizado)
-var campoQuantidade = grupo2.add("edittext", undefined, "");
-campoQuantidade.characters = 4; // Reduzir de 5 para 4
-campoQuantidade.preferredSize.width = 40; // Definir largura fixa menor
-funcoes.apenasNumerosEVirgula(campoQuantidade);
-// Campo de multiplicador (otimizado)
-grupo2.add("statictext", undefined, "x");
-var campoMultiplicador = grupo2.add("edittext", undefined, "1");
-campoMultiplicador.characters = 2; // Reduzir de 3 para 2
-campoMultiplicador.preferredSize.width = 25; // Definir largura fixa menor
-funcoes.apenasNumerosEVirgula(campoMultiplicador);
-
-// Botão adicionar componente
-var botaoAdicionarComponente = grupo2.add("button", undefined, t("botaoAdicionar"));
-
-// Evento para adicionar componente ao clicar no botão
-botaoAdicionarComponente.onClick = function() {
+// Eventos para adicionar componente em cada linha
+linhaPrint.botaoAdicionar.onClick = function() {
     if (logs && logs.logEvento) {
-        logs.logEvento("click", "botaoAdicionarComponente");
+        logs.logEvento("click", "botaoAdicionarComponente_PRINT");
     }
     funcoesComponentes.adicionarComponente(
-        listaComponentes,
-        listaCores,
-        listaUnidades,
-        campoQuantidade,
-        campoMultiplicador,
+        linhaPrint.listaComponentes,
+        linhaPrint.listaCores,
+        linhaPrint.listaUnidades,
+        linhaPrint.campoQuantidade,
+        linhaPrint.campoMultiplicador,
+        ultimaSelecao,
+        dados,
+        itensLegenda,
+        atualizarListaItens,
+        t,
+        logs,
+        funcoes,
+        funcoes.encontrarIndicePorNome
+    );
+};
+linhaLeds.botaoAdicionar.onClick = function() {
+    if (logs && logs.logEvento) {
+        logs.logEvento("click", "botaoAdicionarComponente_LEDS");
+    }
+    funcoesComponentes.adicionarComponente(
+        linhaLeds.listaComponentes,
+        linhaLeds.listaCores,
+        linhaLeds.listaUnidades,
+        linhaLeds.campoQuantidade,
+        linhaLeds.campoMultiplicador,
+        ultimaSelecao,
+        dados,
+        itensLegenda,
+        atualizarListaItens,
+        t,
+        logs,
+        funcoes,
+        funcoes.encontrarIndicePorNome
+    );
+};
+linhaNormais.botaoAdicionar.onClick = function() {
+    if (logs && logs.logEvento) {
+        logs.logEvento("click", "botaoAdicionarComponente_COMPONENTS");
+    }
+    funcoesComponentes.adicionarComponente(
+        linhaNormais.listaComponentes,
+        linhaNormais.listaCores,
+        linhaNormais.listaUnidades,
+        linhaNormais.campoQuantidade,
+        linhaNormais.campoMultiplicador,
         ultimaSelecao,
         dados,
         itensLegenda,

@@ -29,17 +29,17 @@ function filtrarComponentes(termo, componentesNomes, listaComponentes, listaCore
         if (!termo || typeof termo !== 'string') {
             termo = "";
         }
-        
+
         var componentesFiltrados = [t("selecioneComponente")];
-        
+
         if (termo.length > 0) {
-            for (var i = 1; i < componentesNomes.length; i++) {
+            for (var i = 0; i < componentesNomes.length; i++) { // Começa do 0!
                 if (componentesNomes[i].toLowerCase().indexOf(termo.toLowerCase()) !== -1) {
                     componentesFiltrados.push(componentesNomes[i]);
                 }
             }
         } else {
-            componentesFiltrados = [t("selecioneComponente")].concat(componentesNomes.slice(1));
+            componentesFiltrados = [t("selecioneComponente")].concat(componentesNomes);
         }
 
         // Salvar a seleção atual
@@ -89,10 +89,12 @@ function getComponentesComCombinacoes(dados, t, arrayContains, encontrarPorId) {
         // Validação de entrada
         if (!dados || !dados.combinacoes || !dados.componentes) {
             logProtegidoFiltragem("Dados inválidos para obter componentes com combinações", logs.TIPOS_LOG.WARNING);
-            return [t("selecioneComponente")];
+            return {
+                componentesPrint: [],
+                componentesLeds: [],
+                componentesNormais: []
+            };
         }
-        
-        var componentesDisponiveis = [t("selecioneComponente")];
         var componentesIds = [];
         var especiais = [
             "BIOPRINT",
@@ -101,13 +103,6 @@ function getComponentesComCombinacoes(dados, t, arrayContains, encontrarPorId) {
             "FLEXIPRINT",
             "FLEXIPRINT IGNIFUGE",
             "PRINT IGNIFUGE"
-        ];
-        var lucioles = [
-            "LUCIOLE BLANCHE",
-            "LUCIOLE BLEUE",
-            "LUCIOLE ORANGE",
-            "LUCIOLE ROUGE",
-            "LUCIOLE VERTE"
         ];
         var componentesNormais = [];
         var componentesEspeciais = [];
@@ -147,33 +142,23 @@ function getComponentesComCombinacoes(dados, t, arrayContains, encontrarPorId) {
                 }
             }
         }
-        // Adiciona separador e especiais no início
-        if (componentesEspeciais.length > 0) {
-            componentesDisponiveis.push("---- PRINT ----");
-            for (var i = 0; i < componentesEspeciais.length; i++) {
-                componentesDisponiveis.push(componentesEspeciais[i]);
-            }
-        }
-        // Adiciona separador e leds
-        if (componentesLeds.length > 0) {
-            componentesDisponiveis.push("---- LEDS ----");
-            for (var i = 0; i < componentesLeds.length; i++) {
-                componentesDisponiveis.push(componentesLeds[i]);
-            }
-        }
-        // Adiciona separador e normais
-        if (componentesNormais.length > 0) {
-            componentesDisponiveis.push("---- COMPONENTS ----");
-            for (var i = 0; i < componentesNormais.length; i++) {
-                componentesDisponiveis.push(componentesNormais[i]);
-            }
-        }
-        logProtegidoFiltragem("Componentes com combinações obtidos: " + (componentesDisponiveis.length - 1) + " componentes", logs.TIPOS_LOG.INFO);
-        return componentesDisponiveis;
-        
+        logProtegidoFiltragem(
+            "Componentes separados: PRINT=" + componentesEspeciais.length +
+            ", LEDS=" + componentesLeds.length + ", COMPONENTS=" + componentesNormais.length,
+            logs.TIPOS_LOG.INFO
+        );
+        return {
+            componentesPrint: componentesEspeciais,
+            componentesLeds: componentesLeds,
+            componentesNormais: componentesNormais
+        };
     } catch (erro) {
         logProtegidoFiltragem("Erro ao obter componentes com combinações: " + erro.message, logs.TIPOS_LOG.ERROR);
-        return [t("selecioneComponente")];
+        return {
+            componentesPrint: [],
+            componentesLeds: [],
+            componentesNormais: []
+        };
     }
 }
 

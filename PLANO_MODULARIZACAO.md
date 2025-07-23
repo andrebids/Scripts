@@ -1530,3 +1530,58 @@ Refatorar a interface para que cada grupo (PRINT, LEDS, COMPONENTS) fique em uma
 
 ---
 
+## 17.9 Mapeamento Detalhado dos Grupos de Componentes para Dropdowns
+
+Para garantir que todos os componentes estejam corretamente agrupados e nenhum seja omitido, segue o mapeamento validado para os três grupos de dropdowns:
+
+### Grupo PRINT
+- bioprint
+- flexiprint
+- print ignifuge
+- recyprint
+
+### Grupo LEDS
+- lucioles
+- rideaux
+- stalactits
+
+### Grupo COMPONENTS
+- Todos os demais componentes que não pertencem aos grupos acima (ex: potence, structure, etc.)
+
+**Observações:**
+- O grupo LEDS inclui explicitamente todos os componentes cujo nome contenha "luciole", "lucioles", "rideaux" ou "stalactits" (case insensitive), garantindo que variações como "lucioles" estejam sempre presentes.
+- O grupo PRINT inclui todos os componentes especiais: "bioprint", "flexiprint", "print ignifuge", "recyprint".
+- O grupo COMPONENTS é dinâmico e inclui todos os outros componentes disponíveis na base de dados, exceto os já listados nos grupos PRINT e LEDS.
+- O mapeamento é revisado sempre que a base de dados de componentes for atualizada, para garantir que nenhum componente seja omitido.
+
+**Checklist de Validação:**
+- [x] Todos os componentes da lista visual estão mapeados.
+- [x] "lucioles" está incluído explicitamente no grupo LEDS.
+- [x] Nenhum componente dos grupos PRINT ou LEDS é omitido.
+- [x] O grupo COMPONENTS cobre todos os demais.
+
+---
+
+#### 17.5 FASE 5: Integração da Busca/Procura nas Três Linhas
+- **Objetivo:** Garantir que o campo de pesquisa (procura) filtre corretamente e de forma independente os componentes exibidos em cada um dos três grupos (PRINT, LEDS, COMPONENTS), mantendo a modularização, logs e experiência de uso consistente.
+- **Técnica:**
+  - O campo de pesquisa deve acionar a função de filtragem para cada grupo separadamente, atualizando apenas o dropdown de componentes correspondente.
+  - A filtragem deve ser simultânea, mas cada grupo mantém sua lista e seleção independente.
+  - O sistema de logs deve registrar cada operação de busca, indicando o grupo afetado e o termo pesquisado.
+  - A filtragem não deve afetar os campos de cor, unidade, quantidade ou multiplicador das outras linhas.
+- **Checklist de Validação:**
+  - [ ] Pesquisar termo que existe apenas em PRINT: apenas o dropdown PRINT deve ser filtrado, os outros permanecem inalterados.
+  - [ ] Pesquisar termo que existe apenas em LEDS: apenas o dropdown LEDS deve ser filtrado.
+  - [ ] Pesquisar termo que existe apenas em COMPONENTS: apenas o dropdown COMPONENTS deve ser filtrado.
+  - [ ] Pesquisar termo que existe em mais de um grupo: todos os grupos relevantes devem ser filtrados corretamente.
+  - [ ] Após a filtragem, a seleção e adição de componentes continuam funcionando normalmente em cada grupo.
+  - [ ] Logs detalhados são registrados para cada operação de busca, indicando grupo e termo.
+  - [ ] A filtragem não interfere nos campos de cor, unidade, quantidade ou multiplicador das outras linhas.
+- **Critérios de Sucesso:**
+  - Busca integrada, independente e funcional nas três linhas.
+  - Modularização e logs mantidos conforme padrões do projeto.
+  - Nenhuma regressão ou quebra de funcionalidade existente.
+  - Documentação e checklist atualizados.
+
+---
+

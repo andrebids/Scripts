@@ -1496,3 +1496,37 @@ Dividir a lista de componentes em três dropdowns separados (PRINT, LEDS, COMPON
 
 ---
 
+## 17.8 FASE 8: Interface Independente por Grupo (Linha)
+
+### Objetivo
+Refatorar a interface para que cada grupo (PRINT, LEDS, COMPONENTS) fique em uma linha separada, cada uma com seus próprios campos de seleção de cor, unidade, quantidade, multiplicador e botão de adicionar, tornando-os totalmente independentes.
+
+### Arquivos/Funções a Alterar
+- `script.jsx`: Interface, eventos, chamadas de adição e atualização de campos.
+- `modules/funcoesFiltragem.jsx`: Garantir filtragem para múltiplos conjuntos de campos.
+- `modules/funcoesComponentes.jsx`: Garantir compatibilidade com múltiplos campos e botões.
+- (Opcional) `assets/translations.js`: Novos textos para labels, se necessário.
+
+### Tarefas Detalhadas
+- [ ] 17.8.1 Refatorar interface no `script.jsx` para criar três linhas independentes, cada uma com:
+    - Label do grupo
+    - Dropdown de componentes
+    - Dropdown de cor
+    - Dropdown de unidade
+    - Campo de quantidade
+    - Campo de multiplicador
+    - Botão de adicionar
+- [ ] 17.8.2 Adaptar eventos de seleção de componente, cor e unidade para cada linha funcionar de forma independente
+- [ ] 17.8.3 Adaptar cada botão "Adicionar" para usar apenas os campos da sua linha
+- [ ] 17.8.4 Adaptar função de filtragem para atualizar corretamente os três conjuntos de campos
+- [ ] 17.8.5 Garantir logs detalhados para cada operação em cada linha
+- [ ] 17.8.6 Testar manualmente seleção, adição e filtragem em cada linha
+- [ ] 17.8.7 Atualizar documentação e comentários nos arquivos alterados
+
+### Observações
+- Cada grupo pode ser usado de forma isolada, sem interferir nos outros.
+- Modularização, logs e padrões do projeto devem ser mantidos.
+- O campo de pesquisa pode continuar filtrando todos os três grupos simultaneamente.
+
+---
+

@@ -181,7 +181,7 @@ function inicializarSistema() {
         }
         
         // Mostrar alerta para o usuário
-        alert(mensagemErro + "\nO script será encerrado.");
+        alert("Error Illustrator DB\nO script será encerrado.");
         
         throw erro;
     }

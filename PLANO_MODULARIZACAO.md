@@ -1452,3 +1452,47 @@ Ajustar a geração da frase principal da legenda para que, ao listar múltiplas
 
 ---
 
+## 17. Divisão da Lista de Componentes em 3 Dropdowns
+
+### Objetivo
+Dividir a lista de componentes em três dropdowns separados (PRINT, LEDS, COMPONENTS), mantendo todas as regras, modularização e compatibilidade com o sistema de pesquisa.
+
+### Tarefas Detalhadas
+
+#### 17.1 FASE 1: Análise e Planejamento
+- [ ] 17.1.1 Analisar lógica de seleção, adição e pesquisa de componentes no `script.jsx`
+- [ ] 17.1.2 Mapear dependências e eventos ligados ao dropdown único
+
+#### 17.2 FASE 2: Refatoração da Interface
+- [ ] 17.2.1 Substituir dropdown único por três dropdowns: PRINT, LEDS, COMPONENTS
+- [ ] 17.2.2 Adicionar labels claros para cada dropdown
+- [ ] 17.2.3 Garantir seleção única entre os três dropdowns
+
+#### 17.3 FASE 3: Adaptação das Funções de Filtragem
+- [ ] 17.3.1 Refatorar `getComponentesComCombinacoes()` para retornar três arrays
+- [ ] 17.3.2 Adaptar `filtrarComponentes()` para atuar sobre os três grupos
+- [ ] 17.3.3 Garantir logs detalhados para cada operação
+
+#### 17.4 FASE 4: Adaptação da Lógica de Adição de Componentes
+- [ ] 17.4.1 Adaptar `adicionarComponente()` para identificar o dropdown de origem
+- [ ] 17.4.2 Garantir funcionamento e logs para os três grupos
+
+#### 17.5 FASE 5: Integração com Pesquisa
+- [ ] 17.5.1 Adaptar campo de pesquisa para filtrar nos três grupos
+- [ ] 17.5.2 Garantir seleção e adição após filtragem
+
+#### 17.6 FASE 6: Testes Manuais e Validação
+- [ ] 17.6.1 Testar seleção, adição e pesquisa em cada dropdown
+- [ ] 17.6.2 Validar logs, preview e geração de legenda
+- [ ] 17.6.3 Garantir compatibilidade com regras e modularização
+
+#### 17.7 FASE 7: Documentação e Atualização do Plano
+- [ ] 17.7.1 Atualizar documentação no `PLANO_MODULARIZACAO.md` e cabeçalhos dos módulos afetados
+
+### Observações
+- O sistema de logs deve registrar todas as operações de seleção, filtragem e adição em cada grupo.
+- A modularização e os padrões validados devem ser mantidos em todas as alterações.
+- O campo de pesquisa deve funcionar de forma integrada para os três dropdowns.
+
+---
+

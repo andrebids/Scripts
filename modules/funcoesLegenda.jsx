@@ -263,7 +263,8 @@ function gerarFrasePrincipal(parametros) {
         if (parametros.todosComponentesExtras && parametros.todosComponentesExtras.length > 0) {
             var nomesExtras = [];
             for (var i = 0; i < parametros.todosComponentesExtras.length; i++) {
-                nomesExtras.push(parametros.todosComponentesExtras[i].nome);
+                // Converter o nome do componente extra para minúsculas
+                nomesExtras.push(parametros.todosComponentesExtras[i].nome.toLowerCase());
             }
             frasePrincipal += ", " + nomesExtras.join(", ");
             logLegenda("Adicionados " + nomesExtras.length + " componentes extras na frase principal: " + nomesExtras.join(", "), "info");

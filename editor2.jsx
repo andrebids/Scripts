@@ -183,10 +183,14 @@ function executarScript() {
         var grupoEditar = aba.add("group");
         grupoEditar.orientation = "row";
         grupoEditar.alignChildren = ["left", "center"];
+        grupoEditar.add("statictext", undefined, "Editar Nome:");
+        var campoEditarNome = grupoEditar.add("edittext", undefined, "");
+        campoEditarNome.preferredSize.width = 200;
         grupoEditar.add("statictext", undefined, "Editar Referência:");
         var campoEditarReferencia = grupoEditar.add("edittext", undefined, "");
         campoEditarReferencia.preferredSize.width = 300;
-        var botaoSalvarReferencia = grupoEditar.add("button", undefined, "Salvar");
+        var botaoSalvarNome = grupoEditar.add("button", undefined, "Salvar Nome");
+        var botaoSalvarReferencia = grupoEditar.add("button", undefined, "Salvar Referência");
 
         // Botão para remover item selecionado
         var botaoRemover = aba.add("button", undefined, "Remover Selecionado");
@@ -203,7 +207,8 @@ function executarScript() {
                     if (itens[i].referencia) {
                         displayText += " (" + itens[i].referencia + ")";
                     }
-                    lista.add("item", displayText);
+                    var item = lista.add("item", displayText);
+                    item.componenteId = itens[i].id; // Associar o id ao item
                 }
             }
             lista.active = true; // Força a atualização visual da lista
@@ -270,13 +275,15 @@ function executarScript() {
 
         // Função para atualizar a referência
         function atualizarReferencia() {
-            var selectedIndex = lista.selection.index;
-            if (selectedIndex !== null) {
-                var componenteSelecionado = database.componentes[selectedIndex];
-                componenteSelecionado.referencia = campoEditarReferencia.text;
-                salvarJSON(caminhoDatabase, database);
-                atualizarLista();
-                alert("Referência atualizada com sucesso!");
+            var selectedItem = lista.selection;
+            if (selectedItem) {
+                var componenteSelecionado = findById(database.componentes, selectedItem.componenteId);
+                if (componenteSelecionado) {
+                    componenteSelecionado.referencia = campoEditarReferencia.text;
+                    salvarJSON(caminhoDatabase, database);
+                    atualizarLista();
+                    alert("Referência atualizada com sucesso!");
+                }
             } else {
                 alert("Por favor, selecione um componente para editar.");
             }
@@ -284,12 +291,44 @@ function executarScript() {
 
         botaoSalvarReferencia.onClick = atualizarReferencia;
 
+        // Função para atualizar o nome
+        function atualizarNome() {
+            var selectedItem = lista.selection;
+            if (selectedItem) {
+                var novoNome = campoEditarNome.text;
+                if (!novoNome) {
+                    alert("Por favor, insira um nome para o componente.");
+                    return;
+                }
+                // Verificar duplicidade (exceto o próprio)
+                for (var i = 0; i < database.componentes.length; i++) {
+                    if (database.componentes[i].id !== selectedItem.componenteId && database.componentes[i].nome.toLowerCase() === novoNome.toLowerCase()) {
+                        alert("Já existe um componente com este nome.");
+                        return;
+                    }
+                }
+                var componenteSelecionado = findById(database.componentes, selectedItem.componenteId);
+                if (componenteSelecionado) {
+                    componenteSelecionado.nome = novoNome;
+                    salvarJSON(caminhoDatabase, database);
+                    atualizarLista();
+                    alert("Nome atualizado com sucesso!");
+                }
+            } else {
+                alert("Por favor, selecione um componente para editar.");
+            }
+        }
+        botaoSalvarNome.onClick = atualizarNome;
+
         // Atualizar o campo de edição quando um item é selecionado
         lista.onChange = function() {
-            var selectedIndex = lista.selection.index;
-            if (selectedIndex !== null) {
-                var componenteSelecionado = database.componentes[selectedIndex];
-                campoEditarReferencia.text = componenteSelecionado.referencia || "";
+            var selectedItem = lista.selection;
+            if (selectedItem) {
+                var componenteSelecionado = findById(database.componentes, selectedItem.componenteId);
+                if (componenteSelecionado) {
+                    campoEditarNome.text = componenteSelecionado.nome || "";
+                    campoEditarReferencia.text = componenteSelecionado.referencia || "";
+                }
             }
         };
 

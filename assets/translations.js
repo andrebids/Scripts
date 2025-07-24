@@ -129,7 +129,7 @@ var TRANSLATIONS = {
         "erroAtualizacao": "Erro ao atualizar. Por favor, tente novamente.",
         "gitNaoInstalado": "O Git não está instalado neste computador.\n\nPor favor:\n1. Baixe o Git em https://git-scm.com/downloads\n2. Execute o instalador\n3. Reinicie o computador\n4. Tente atualizar novamente",
         "confirmarComponentes": "Tens certeza que adicionaste todos os componentes que precisavas?",
-        "legendaAdicionada": "Legenda adicionada com sucesso!",
+        "legendaAdicionada": "Parabéns Grabriel, conseguiste!",
         "quantidadeNaoInformada": "Por favor, informe a quantidade",
         "procurarLabel": "procurar:",
         "selecioneTipoFixacao": "Selecione o tipo de fixação",

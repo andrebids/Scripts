@@ -142,7 +142,7 @@ var TRANSLATIONS = {
         "nomeComponenteExtra": "Nome",
         "unidadeComponenteExtra": "Unidade",
         "quantidadeComponenteExtra": "Qtd",
-        "selecionarCampoL": "Selecione um valor para o campo L (obrigatório)"
+        "selecionarCampoL": "Gabriel, mete o L"
     },
     "Français": {
         "nomeDesigner": "Nom du Designer",

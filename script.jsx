@@ -92,7 +92,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v2.0.8");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v2.1.0");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -193,8 +193,15 @@ for (var i = 1; i <= 20; i++) {
     opcoesL.push("L" + i);
 }
 var listaL = grupoLFixacao.add("dropdownlist", undefined, opcoesL);
-listaL.selection = 0;
+// listaL.selection = 0; // Removido para não selecionar nenhum valor por padrão
 listaL.preferredSize.width = 50; // Reduzir ainda mais para 50px
+
+// Validação obrigatória do campo L
+listaL.onChange = function() {
+    if (logs && logs.logEvento) {
+        logs.logEvento("change", "listaL - " + (this.selection ? this.selection.text : "nenhuma seleção"));
+    }
+};
 
 grupoLFixacao.add("statictext", undefined, t("fixacao"));
 
@@ -894,11 +901,16 @@ function atualizarListaItens() {
     if (logs && logs.logEvento) {
         logs.logEvento("click", "botaoGerar");
     }
-        // Verificar se o tipo de fixação foi selecionado
-        if (!listaFixacao.selection || listaFixacao.selection.index === 0) {
-            alert(t("selecionarTipoFixacao"));
-            return;
-        }
+    // Verificar se o campo L foi selecionado
+    if (!listaL.selection) {
+        alert("Selecione um valor para o campo L (obrigatório)");
+        return;
+    }
+    // Verificar se o tipo de fixação foi selecionado
+    if (!listaFixacao.selection || listaFixacao.selection.index === 0) {
+        alert(t("selecionarTipoFixacao"));
+        return;
+    }
         // Verificar se há dimensões preenchidas
         var temDimensoes = false;
         for (var i = 0; i < dimensoes.length; i++) {

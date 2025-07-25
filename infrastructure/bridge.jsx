@@ -416,7 +416,16 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
             
             if (resObj.body === "success") {
                 logProtegido("Legenda adicionada com sucesso", logs.TIPOS_LOG.INFO);
-                alert(t("legendaAdicionada"));
+                // Substituir alert por janela personalizada
+                var mensagem = t("legendaAdicionada");
+                var dlg = new Window("dialog", "Mensagem Completa");
+                dlg.orientation = "column";
+                dlg.alignChildren = ["fill", "top"];
+                var texto = dlg.add("statictext", undefined, mensagem, {multiline: true});
+                texto.preferredSize = [300, 40];
+                var btnOk = dlg.add("button", undefined, "OK", {name: "ok"});
+                btnOk.onClick = function() { dlg.close(); };
+                dlg.show();
                 // if (janela) {
                 //     janela.close();
                 //     janela = null;

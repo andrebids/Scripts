@@ -117,7 +117,7 @@ var TRANSLATIONS = {
             "sansFixation": "sans fixation",
             "auSol": "posé au sol",
             "speciale": "spéciale",
-            "aucune": "aucune"
+            "aucune": "pas de fixation"
         },
         "Tipo": "Tipo",
         "selecioneUnidade": "Unidade",
@@ -141,7 +141,8 @@ var TRANSLATIONS = {
         "adicionarBolas": "Adicionar Bolas",
         "nomeComponenteExtra": "Nome",
         "unidadeComponenteExtra": "Unidade",
-        "quantidadeComponenteExtra": "Qtd"
+        "quantidadeComponenteExtra": "Qtd",
+        "selecionarCampoL": "Selecione um valor para o campo L (obrigatório)"
     },
     "Français": {
         "nomeDesigner": "Nom du Designer",
@@ -240,7 +241,7 @@ var TRANSLATIONS = {
             "sansFixation": "sans fixation",
             "auSol": "posé au sol",
             "speciale": "spéciale",
-            "aucune": "aucune"
+            "aucune": "pas de fixation"
         },
         "Nome": "Nom",
         "Tipo": "Type",
@@ -265,6 +266,7 @@ var TRANSLATIONS = {
         "adicionarBolas": "Ajouter Boules",
         "nomeComponenteExtra": "Nom",
         "unidadeComponenteExtra": "Unité",
-        "quantidadeComponenteExtra": "Qté"
+        "quantidadeComponenteExtra": "Qté",
+        "selecionarCampoL": "Veuillez sélectionner une valeur pour le champ L (obligatoire)"
     }
 };

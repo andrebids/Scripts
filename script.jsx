@@ -320,10 +320,20 @@ grupo2.orientation = "row";
 
 // Atualizar a criação da lista de componentes
 var componentesSeparados = funcoesFiltragem.getComponentesComCombinacoes(dados, t, funcoes.arrayContains, funcoes.encontrarPorId);
-// Salvar arrays originais para garantir restauração correta na filtragem
 var componentesOriginaisPrint = componentesSeparados.componentesPrint.slice(0);
 var componentesOriginaisLeds = componentesSeparados.componentesLeds.slice(0);
 var componentesOriginaisNormais = componentesSeparados.componentesNormais.slice(0);
+
+// Ordenar apenas os componentes normais (bubble sort tradicional)
+for (var i = 0; i < componentesOriginaisNormais.length - 1; i++) {
+    for (var j = 0; j < componentesOriginaisNormais.length - i - 1; j++) {
+        if (componentesOriginaisNormais[j].toLowerCase() > componentesOriginaisNormais[j + 1].toLowerCase()) {
+            var temp = componentesOriginaisNormais[j];
+            componentesOriginaisNormais[j] = componentesOriginaisNormais[j + 1];
+            componentesOriginaisNormais[j + 1] = temp;
+        }
+    }
+}
 
 // Função auxiliar para criar linha de grupo de componentes
 function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
@@ -404,9 +414,9 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
 }
 
 // Criar três linhas independentes para cada grupo
-var linhaPrint = criarLinhaGrupo(grupoComponentes, "PRINT", componentesSeparados.componentesPrint);
-var linhaLeds = criarLinhaGrupo(grupoComponentes, "LEDS", componentesSeparados.componentesLeds);
-var linhaNormais = criarLinhaGrupo(grupoComponentes, "COMPONENTS", componentesSeparados.componentesNormais);
+var linhaPrint = criarLinhaGrupo(grupoComponentes, "PRINT", componentesOriginaisPrint);
+var linhaLeds = criarLinhaGrupo(grupoComponentes, "LEDS", componentesOriginaisLeds);
+var linhaNormais = criarLinhaGrupo(grupoComponentes, "COMPONENTS", componentesOriginaisNormais);
 
 // Campo de pesquisa (mantido no topo)
 var campoPesquisa = grupoPesquisa.add("edittext", undefined, "");

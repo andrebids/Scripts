@@ -92,7 +92,8 @@ function getComponentesComCombinacoes(dados, t, arrayContains, encontrarPorId) {
             return {
                 componentesPrint: [],
                 componentesLeds: [],
-                componentesNormais: []
+                componentesNormais: [],
+                componentesOrdenados: []
             };
         }
         var componentesIds = [];
@@ -142,22 +143,46 @@ function getComponentesComCombinacoes(dados, t, arrayContains, encontrarPorId) {
                 }
             }
         }
+        // Unir todos os componentes em uma lista única
+        var todosComponentes = [];
+        for (var i = 0; i < componentesEspeciais.length; i++) {
+            todosComponentes.push(componentesEspeciais[i]);
+        }
+        for (var i = 0; i < componentesLeds.length; i++) {
+            todosComponentes.push(componentesLeds[i]);
+        }
+        for (var i = 0; i < componentesNormais.length; i++) {
+            todosComponentes.push(componentesNormais[i]);
+        }
+        // Bubble sort tradicional para ordenar alfabeticamente
+        for (var i = 0; i < todosComponentes.length - 1; i++) {
+            for (var j = 0; j < todosComponentes.length - i - 1; j++) {
+                if (todosComponentes[j].toLowerCase() > todosComponentes[j + 1].toLowerCase()) {
+                    var temp = todosComponentes[j];
+                    todosComponentes[j] = todosComponentes[j + 1];
+                    todosComponentes[j + 1] = temp;
+                }
+            }
+        }
         logProtegidoFiltragem(
             "Componentes separados: PRINT=" + componentesEspeciais.length +
-            ", LEDS=" + componentesLeds.length + ", COMPONENTS=" + componentesNormais.length,
+            ", LEDS=" + componentesLeds.length + ", COMPONENTS=" + componentesNormais.length +
+            ", ORDENADOS=" + todosComponentes.length,
             logs.TIPOS_LOG.INFO
         );
         return {
             componentesPrint: componentesEspeciais,
             componentesLeds: componentesLeds,
-            componentesNormais: componentesNormais
+            componentesNormais: componentesNormais,
+            componentesOrdenados: todosComponentes
         };
     } catch (erro) {
         logProtegidoFiltragem("Erro ao obter componentes com combinações: " + erro.message, logs.TIPOS_LOG.ERROR);
         return {
             componentesPrint: [],
             componentesLeds: [],
-            componentesNormais: []
+            componentesNormais: [],
+            componentesOrdenados: []
         };
     }
 }

@@ -361,12 +361,16 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
     grupoQuantidades.alignChildren = "center";
     var camposQuantidade = [];
 
-    // Função para criar um campo de quantidade
+    // Função para criar um campo de quantidade (modificada para garantir só um campo visível)
     function criarCampoQuantidade(valorPadrao) {
+        // Antes de criar, remover todos os campos existentes
+        while (camposQuantidade.length > 0) {
+            grupoQuantidades.remove(camposQuantidade[0]);
+            camposQuantidade.splice(0, 1);
+        }
         var campo = grupoQuantidades.add("edittext", undefined, valorPadrao ? valorPadrao : "");
         campo.characters = 4;
         campo.preferredSize.width = 40;
-        funcoes.apenasNumerosEVirgula(campo);
         camposQuantidade.push(campo);
         return campo;
     }
@@ -389,20 +393,114 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
     botaoMais.preferredSize.width = 22;
     botaoMais.preferredSize.height = 22;
     botaoMais.onClick = function() {
-        var novoCampo = criarCampoQuantidade("");
-        // Botão - para remover campo extra
-        var botaoMenos = grupoQuantidades.add("button", undefined, "-");
-        botaoMenos.preferredSize.width = 22;
-        botaoMenos.preferredSize.height = 22;
-        // Associar botão ao campo
-        botaoMenos.onClick = function() {
-            removerCampoQuantidade(novoCampo);
-            grupoQuantidades.remove(botaoMenos);
+        // Abrir nova janela para edição de quantidades
+        var dialogQuantidades = new Window("dialog", "Editar Quantidades");
+        dialogQuantidades.orientation = "column";
+        dialogQuantidades.alignChildren = ["fill", "top"];
+        dialogQuantidades.spacing = 10;
+        dialogQuantidades.margins = 16;
+
+        var grupoCampos = dialogQuantidades.add("group");
+        grupoCampos.orientation = "column";
+        grupoCampos.alignChildren = ["fill", "top"];
+        var camposTemp = [];
+
+        // Função para criar campo na janela
+        function criarCampoTemp(valorPadrao) {
+            var grupoLinhaTemp = grupoCampos.add("group");
+            grupoLinhaTemp.orientation = "row";
+            var campoTemp = grupoLinhaTemp.add("edittext", undefined, valorPadrao ? valorPadrao : "");
+            campoTemp.characters = 4;
+            campoTemp.preferredSize.width = 40;
+            camposTemp.push({campo: campoTemp, grupo: grupoLinhaTemp});
+            // Botão - para remover
+            var botaoRemoverTemp = grupoLinhaTemp.add("button", undefined, "-");
+            botaoRemoverTemp.preferredSize.width = 22;
+            botaoRemoverTemp.preferredSize.height = 22;
+            botaoRemoverTemp.onClick = function() {
+                for (var i = 0; i < camposTemp.length; i++) {
+                    if (camposTemp[i].campo === campoTemp) {
+                        grupoCampos.remove(camposTemp[i].grupo);
+                        camposTemp.splice(i, 1);
+                        break;
+                    }
+                }
+                atualizarSoma();
+                dialogQuantidades.layout.layout(true);
+                dialogQuantidades.layout.resize();
+            };
+            // Atualizar soma em tempo real ao digitar
+            campoTemp.onChanging = function() {
+                atualizarSoma();
+            };
+            // Forçar atualização ao criar
+            campoTemp.addEventListener && campoTemp.addEventListener('changing', atualizarSoma);
+            return campoTemp;
+        }
+        // Preencher campos com valores atuais
+        for (var i = 0; i < camposQuantidade.length; i++) {
+            criarCampoTemp(camposQuantidade[i].text);
+        }
+        // Se não houver campos, criar um
+        if (camposTemp.length === 0) {
+            criarCampoTemp("");
+        }
+        // Botão para adicionar novo campo
+        var botaoAdicionarTemp = dialogQuantidades.add("button", undefined, "+");
+        botaoAdicionarTemp.preferredSize.width = 22;
+        botaoAdicionarTemp.preferredSize.height = 22;
+        botaoAdicionarTemp.onClick = function() {
+            criarCampoTemp("");
+            dialogQuantidades.layout.layout(true);
+            dialogQuantidades.layout.resize();
+        };
+        // Exibir soma
+        var grupoSoma = dialogQuantidades.add("group");
+        grupoSoma.orientation = "row";
+        var textoSoma = grupoSoma.add("statictext", undefined, "Soma: 0");
+        textoSoma.preferredSize.width = 100;
+        function atualizarSoma() {
+            var soma = 0;
+            for (var i = 0; i < camposTemp.length; i++) {
+                var valor = parseFloat(camposTemp[i].campo.text.replace(",", "."));
+                if (!isNaN(valor) && valor > 0) {
+                    soma += valor;
+                }
+            }
+            textoSoma.text = "Soma: " + soma;
+        }
+        atualizarSoma();
+        // Botões OK e Cancelar
+        var grupoBotoes = dialogQuantidades.add("group");
+        grupoBotoes.orientation = "row";
+        var botaoOK = grupoBotoes.add("button", undefined, "OK");
+        var botaoCancelar = grupoBotoes.add("button", undefined, "Cancelar");
+        botaoOK.onClick = function() {
+            // Atualizar camposQuantidade principal
+            // Limpar campos antigos
+            while (camposQuantidade.length > 0) {
+                grupoQuantidades.remove(camposQuantidade[0]);
+                camposQuantidade.splice(0, 1);
+            }
+            // Calcular a soma total
+            var soma = 0;
+            for (var i = 0; i < camposTemp.length; i++) {
+                var valor = parseFloat(camposTemp[i].campo.text.replace(",", "."));
+                if (!isNaN(valor) && valor > 0) {
+                    soma += valor;
+                }
+            }
+            // Criar apenas um campo com a soma total
+            criarCampoQuantidade(soma > 0 ? soma : "");
+            // Atualizar layout
             grupoLinha.layout.layout(true);
             grupoLinha.layout.resize();
+            dialogQuantidades.close();
         };
-        grupoLinha.layout.layout(true);
-        grupoLinha.layout.resize();
+        botaoCancelar.onClick = function() {
+            dialogQuantidades.close();
+        };
+        dialogQuantidades.show();
     };
     grupoLinha.add("statictext", undefined, "x");
     var campoMultiplicador = grupoLinha.add("edittext", undefined, "1");

@@ -122,12 +122,12 @@ function getComponentesComCombinacoes(dados, t, arrayContains, encontrarPorId) {
                             break;
                         }
                     }
-                    // ALTERAÇÃO: Apenas nomes exatos para LEDS
+                    // ALTERAÇÃO: Aceitar variações de 'stalactite' para LEDS
                     if (!ehEspecial) {
                         if (
                             nomeComp === "lucioles" ||
-                            nomeComp === "stalactits" ||
-                            nomeComp === "rideaux"
+                            nomeComp === "rideaux" ||
+                            nomeComp.indexOf("stalactit") === 0 // pega stalactits, stalactite, stalactites
                         ) {
                             ehLed = true;
                         }

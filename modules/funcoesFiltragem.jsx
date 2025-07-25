@@ -121,14 +121,12 @@ function getComponentesComCombinacoes(dados, t, arrayContains, encontrarPorId) {
                             break;
                         }
                     }
+                    // ALTERAÇÃO: Apenas nomes exatos para LEDS
                     if (!ehEspecial) {
                         if (
-                            nomeComp.indexOf("luciole") !== -1 ||
-                            nomeComp.indexOf("lucioles") !== -1 ||
-                            nomeComp.indexOf("rideaux") !== -1 ||
-                            nomeComp.indexOf("stalactite") !== -1 ||
-                            nomeComp.indexOf("stalactites") !== -1 ||
-                            nomeComp.indexOf("stalactits") !== -1
+                            nomeComp === "lucioles" ||
+                            nomeComp === "stalactits" ||
+                            nomeComp === "rideaux"
                         ) {
                             ehLed = true;
                         }

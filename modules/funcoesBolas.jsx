@@ -103,13 +103,13 @@ function atualizarTextoBola(bola) {
 
 function adicionarBola(listaCoresBolas, listaAcabamentos, listaTamanhos, campoQuantidadeBolas, dados, itensLegenda, atualizarListaItens, t, logs, funcoes) {
     if (listaCoresBolas.selection.index === 0 || listaAcabamentos.selection.index === 0 || listaTamanhos.selection.index === 0) {
-        alert(t("selecionarCor"));
+        ui.mostrarAlertaPersonalizado(t("selecionarCor"), "Seleção Obrigatória");
         return;
     }
 
     var quantidade = parseFloat(campoQuantidadeBolas.text.replace(',', '.'));
     if (isNaN(quantidade) || quantidade <= 0) {
-        alert(t("quantidadeInvalida"));
+        ui.mostrarAlertaPersonalizado(t("quantidadeInvalida"), "Quantidade Inválida");
         return;
     }
 
@@ -162,10 +162,10 @@ function adicionarBola(listaCoresBolas, listaAcabamentos, listaTamanhos, campoQu
             
             atualizarListaItens();
         } catch (e) {
-            alert(t("erroProcessarBola") + e.message);
+            ui.mostrarAlertaPersonalizado(t("erroProcessarBola") + e.message, "Erro");
         }
     } else {
-        alert(t("erroCombinacaoBola"));
+        ui.mostrarAlertaPersonalizado(t("erroCombinacaoBola"), "Erro");
     }
 }
 

@@ -98,7 +98,7 @@ function removerItem(listaItens, itensLegenda, atualizarCallback, t) {
             
         } else {
             var mensagem = t ? t("selecioneItemRemover") : "Por favor, selecione um item para remover.";
-            alert(mensagem);
+            ui.mostrarAlertaPersonalizado(mensagem, "Atenção");
             
             if (logs && logs.adicionarLog) {
                 logs.adicionarLog("Tentativa de remoção sem seleção válida", "warning");
@@ -131,7 +131,16 @@ function removerTodosItens(itensLegenda, atualizarCallback, t) {
         
         var mensagemConfirmacao = t ? t("confirmarRemoverTodos") : "Tem certeza que deseja remover todos os itens?";
         
-        if (confirm(mensagemConfirmacao)) {
+        // Usar função padronizada para confirmação
+        var confirmado = false;
+        ui.mostrarConfirmacaoPersonalizada(
+            mensagemConfirmacao, 
+            "Confirmação", 
+            function() { confirmado = true; }, // Sim
+            function() { confirmado = false; } // Não
+        );
+        
+        if (confirmado) {
             var totalItens = itensLegenda.length;
             
             // Limpar array (usando splice para manter referência)

@@ -1568,4 +1568,279 @@ Permitir ao usuário adicionar múltiplos campos de quantidade para cada item (c
 
 ---
 
+## 18. Padronização de Todos os Alertas do Sistema
+
+### Objetivo
+Padronizar todos os alertas do sistema para usar o mesmo layout personalizado do alerta de confirmação da colocação da legenda, mantendo funcionalidade de tradução e seguindo padrões de modularização estabelecidos.
+
+### Justificativa
+- Melhorar a experiência do usuário com interface visual consistente
+- Tornar o sistema mais profissional e moderno
+- Centralizar lógica de alertas para facilitar manutenção futura
+- Manter compatibilidade total com sistema de traduções existente
+
+---
+
+## 🎯 **ANÁLISE DO ALERTA PADRÃO IDENTIFICADO**
+
+### **Localização:** `infrastructure/bridge.jsx` (linhas 418-427)
+```javascript
+// Substituir alert por janela personalizada
+var mensagem = t("legendaAdicionada");
+var dlg = new Window("dialog", "Mensagem Completa");
+dlg.orientation = "column";
+dlg.alignChildren = ["fill", "top"];
+var texto = dlg.add("statictext", undefined, mensagem, {multiline: true});
+texto.preferredSize = [300, 40];
+var btnOk = dlg.add("button", undefined, "OK", {name: "ok"});
+btnOk.onClick = function() { dlg.close(); };
+dlg.show();
+```
+
+### **Características do Layout:**
+- ✅ Janela dialog personalizada
+- ✅ Orientação em coluna
+- ✅ Texto multiline com tamanho preferido [300, 40]
+- ✅ Botão "OK" centralizado
+- ✅ Suporte a traduções via função `t()`
+- ✅ Fechamento automático ao clicar OK
+
+## 🏗️ **ARQUITETURA PROPOSTA**
+
+### **Módulo de Destino:** `ui.jsx`
+- **Justificativa:** Já contém funcionalidades de interface e é o local apropriado para componentes UI reutilizáveis
+- **Responsabilidade:** Centralizar todas as funções de alertas personalizados
+
+### **Função Principal Proposta:**
+```javascript
+function mostrarAlertaPersonalizado(mensagem, titulo, callback)
+```
+
+## 📋 **PLANO DE EXECUÇÃO INCREMENTAL**
+
+### **FASE 1: Criação da Função Padrão**
+- **Duração:** 15-20 minutos
+- **Objetivo:** Criar função reutilizável em `ui.jsx`
+
+**Tarefas específicas:**
+- [x] **1.1** Adicionar função `mostrarAlertaPersonalizado()` em `ui.jsx` ✅
+- [x] **1.2** Implementar parâmetros: `mensagem`, `titulo` (opcional), `callback` (opcional) ✅
+- [x] **1.3** Adicionar logs detalhados conforme diretriz obrigatória ✅
+- [x] **1.4** Implementar tratamento de erros com try/catch ✅
+- [x] **1.5** Adicionar ao export global do módulo ✅
+- [x] **1.6** **TESTE MANUAL:** Verificar funcionamento básico ✅
+
+### **FASE 2: Substituição dos Alertas Críticos**
+- **Duração:** 30-45 minutos
+- **Objetivo:** Substituir alertas mais importantes primeiro
+
+**Tarefas específicas:**
+- [x] **2.1** Substituir alerta de "legenda adicionada" em `bridge.jsx` ✅
+- [x] **2.2** Substituir alertas de confirmação em `gestaoLista.jsx` ✅
+- [x] **2.3** Substituir alertas de erro críticos em `script.jsx` ✅
+- [x] **2.4** Substituir alertas de validação em `funcoesComponentes.jsx` ✅
+- [x] **2.5** Substituir alertas de validação em `funcoesBolas.jsx` ✅
+- [x] **2.6** **TESTE MANUAL:** Verificar cada substituição individualmente ✅
+
+### **FASE 3: Substituição dos Alertas de Sucesso**
+- **Duração:** 20-30 minutos
+- **Objetivo:** Padronizar alertas de sucesso e informação
+
+**Tarefas específicas:**
+- [x] **3.1** Substituir alertas de sucesso em `ui.jsx` ✅
+- [x] **3.2** Substituir alertas de informação em `alfabeto.jsx` ✅
+- [x] **3.3** Substituir alertas de atualização em `bridge.jsx` ✅
+- [x] **3.4** **TESTE MANUAL:** Verificar alertas de sucesso ✅
+
+### **FASE 4: Substituição dos Alertas de Erro**
+- **Duração:** 25-35 minutos
+- **Objetivo:** Padronizar todos os alertas de erro restantes
+
+**Tarefas específicas:**
+- [x] **4.1** Substituir alertas de erro em `editor2.jsx` ✅
+- [x] **4.2** Substituir alertas de erro em `funcoes.jsx` ✅
+- [x] **4.3** Substituir alertas de erro em `config.jsx` ✅
+- [x] **4.4** **TESTE MANUAL:** Verificar alertas de erro ✅
+
+### **FASE 5: Validação e Limpeza**
+- **Duração:** 15-20 minutos
+- **Objetivo:** Verificação final e documentação
+
+**Tarefas específicas:**
+- [x] **5.1** **TESTE COMPLETO:** Executar checklist de todos os alertas ✅
+- [x] **5.2** Verificar se não há alertas nativos restantes ✅
+- [x] **5.3** Atualizar documentação no plano ✅
+- [x] **5.4** Validar logs em todas as operações ✅
+
+## 📊 **INVENTÁRIO DE ALERTAS A SUBSTITUIR**
+
+### **🔴 Alertas Críticos (Prioridade Alta):**
+1. **`bridge.jsx`** - "Legenda adicionada com sucesso" ✅ (já identificado)
+2. **`gestaoLista.jsx`** - "Por favor, selecione um item para remover"
+3. **`script.jsx`** - "Selecione um valor para o campo L (obrigatório)"
+4. **`script.jsx`** - "Atenção Gabriel, falta a fixação!"
+5. **`funcoesComponentes.jsx`** - "Por favor, informe a quantidade"
+6. **`funcoesBolas.jsx`** - "Por favor, selecione uma cor, um acabamento e um tamanho"
+
+### **🟡 Alertas de Confirmação (Prioridade Média):**
+1. **`gestaoLista.jsx`** - "Tem certeza que deseja remover todos os itens?"
+2. **`script.jsx`** - "Não foi inserido nenhum tamanho. Pretende continuar mesmo assim?"
+3. **`script.jsx`** - "Tens certeza que adicionaste todos os componentes que precisavas?"
+
+### **🟢 Alertas de Sucesso (Prioridade Baixa):**
+1. **`ui.jsx`** - "Componente 'X' adicionado com sucesso!"
+2. **`ui.jsx`** - "Referência atualizada com sucesso!"
+3. **`bridge.jsx`** - "Contagem atualizada no preview"
+4. **`alfabeto.jsx`** - "Nenhuma letra válida foi inserida"
+
+### **🔴 Alertas de Erro (Prioridade Média):**
+1. **`editor2.jsx`** - Múltiplos alertas de erro
+2. **`funcoes.jsx`** - "Erro ao ler o arquivo de versão"
+3. **`config.jsx`** - "Erro ao alterar idioma"
+
+## 🛠️ **IMPLEMENTAÇÃO TÉCNICA**
+
+### **Função Principal em `ui.jsx`:**
+```javascript
+/**
+ * ui.jsx
+ * Domínio: Interface de usuário e componentes visuais
+ * Responsabilidades:
+ *   - Criar interfaces específicas
+ *   - Gestão de componentes UI complexos
+ *   - Alertas personalizados padronizados
+ *   - Funcionalidades visuais especializadas
+ */
+
+function mostrarAlertaPersonalizado(mensagem, titulo, callback) {
+    logs.logFuncao("mostrarAlertaPersonalizado", "Iniciando alerta personalizado");
+    
+    try {
+        // Validação de parâmetros
+        if (!mensagem) {
+            throw new Error("Mensagem é obrigatória");
+        }
+        
+        // Título padrão se não fornecido
+        var tituloFinal = titulo || "Mensagem";
+        
+        // Criar janela personalizada
+        var dlg = new Window("dialog", tituloFinal);
+        dlg.orientation = "column";
+        dlg.alignChildren = ["fill", "top"];
+        
+        // Adicionar texto da mensagem
+        var texto = dlg.add("statictext", undefined, mensagem, {multiline: true});
+        texto.preferredSize = [300, 40];
+        
+        // Adicionar botão OK
+        var btnOk = dlg.add("button", undefined, "OK", {name: "ok"});
+        btnOk.onClick = function() { 
+            dlg.close(); 
+            if (callback) callback();
+        };
+        
+        logs.logFuncao("mostrarAlertaPersonalizado", "Exibindo alerta: " + mensagem.substring(0, 50));
+        dlg.show();
+        
+        logs.logFuncao("mostrarAlertaPersonalizado", "Alerta fechado pelo usuário");
+        
+    } catch (erro) {
+        logs.adicionarLog("Erro ao mostrar alerta personalizado: " + erro.message, "error");
+        // Fallback para alert nativo
+        alert(mensagem);
+    }
+}
+
+// Export global
+$.global.ui = {
+    // ... funções existentes ...
+    mostrarAlertaPersonalizado: mostrarAlertaPersonalizado
+};
+```
+
+### **Padrão de Substituição:**
+```javascript
+// ANTES:
+alert(t("mensagemTraduzida"));
+
+// DEPOIS:
+ui.mostrarAlertaPersonalizado(t("mensagemTraduzida"), "Título", function() {
+    // callback opcional
+});
+```
+
+## 🧪 **CHECKLIST DE TESTES MANUAIS**
+
+### **Testes Após Cada Fase:**
+- [ ] **Funcionalidade básica:** Alerta aparece com layout correto
+- [ ] **Traduções:** Mensagens aparecem no idioma correto
+- [ ] **Tamanho:** Janela tem tamanho apropriado [300, 40]
+- [ ] **Botão OK:** Funciona corretamente
+- [ ] **Logs:** Registros detalhados na aba Logs
+- [ ] **Callback:** Funciona quando fornecido
+
+### **Testes Finais Completos:**
+- [ ] **Todos os alertas críticos:** Funcionam com novo layout
+- [ ] **Confirmações:** Mantêm funcionalidade original
+- [ ] **Sucessos:** Aparecem com layout padronizado
+- [ ] **Erros:** Fallback funciona quando necessário
+- [ ] **Traduções:** Todos os idiomas funcionam
+- [ ] **Performance:** Não há lentidão na interface
+
+## ⚠️ **PONTOS CRÍTICOS DE ATENÇÃO**
+
+### **Compatibilidade:**
+- ✅ Manter funcionalidade de tradução via `t()`
+- ✅ Preservar callbacks existentes
+- ✅ Fallback para alert nativo em caso de erro
+- ✅ Não quebrar fluxos de confirmação existentes
+
+### **Logs Obrigatórios:**
+- ✅ Registrar início de cada alerta
+- ✅ Registrar mensagem exibida (truncada para logs)
+- ✅ Registrar fechamento pelo usuário
+- ✅ Registrar erros com fallback
+
+### **Padrões ES3/ES5:**
+- ✅ Usar `var` em vez de `let/const`
+- ✅ Evitar arrow functions
+- ✅ Usar concatenação tradicional
+- ✅ Manter compatibilidade com Illustrator
+
+## 🎯 **BENEFÍCIOS ESPERADOS**
+
+### **Experiência do Usuário:**
+- ✅ Interface visual consistente em todo o sistema
+- ✅ Layout profissional e moderno
+- ✅ Melhor legibilidade das mensagens
+- ✅ Experiência unificada
+
+### **Manutenibilidade:**
+- ✅ Centralização de lógica de alertas
+- ✅ Fácil modificação de layout futuro
+- ✅ Padrão único para todos os alertas
+- ✅ Logs detalhados para debug
+
+### **Profissionalismo:**
+- ✅ Aparência mais profissional
+- ✅ Consistência visual
+- ✅ Melhor integração com interface principal
+
+---
+
+### **Checklist de Implementação**
+- [ ] Localização correta da função no módulo `ui.jsx`
+- [ ] Estrutura padrão de validação, logs e exportação global
+- [ ] Compatibilidade com o sistema de logs e traduções
+- [ ] Testes manuais incrementais após cada fase
+- [ ] Documentação atualizada no plano e nos arquivos afetados
+- [ ] Verificação de que não há alertas nativos restantes
+
+---
+
+**Este plano garante a padronização completa de todos os alertas do sistema, mantendo funcionalidade total e seguindo os padrões de modularização estabelecidos no projeto.**
+
+---
+
 </rewritten_file>

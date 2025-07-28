@@ -91,7 +91,7 @@ function executarContagemBolas(dados, textoResultado, callback) {
             logProtegido("Resultado da contagem finalizado e exibido", logs.TIPOS_LOG.INFO);
             
             if (callback) callback(null, textoCompleto);
-            alert("Resultado atualizado na janela de contagem");
+            ui.mostrarAlertaPersonalizado("Resultado atualizado na janela de contagem", "Sucesso");
         };
         
         // Configurar callback de erro
@@ -104,9 +104,9 @@ function executarContagemBolas(dados, textoResultado, callback) {
                 textoResultado.notify("onChange");
             }
             
-            if (callback) callback(mensagemErro, null);
-            alert(mensagemErro);
-        };
+                    if (callback) callback(mensagemErro, null);
+        ui.mostrarAlertaPersonalizado(mensagemErro, "Erro");
+    };
         
         logProtegido("Enviando requisição BridgeTalk", logs.TIPOS_LOG.INFO);
         bt.send();
@@ -121,7 +121,7 @@ function executarContagemBolas(dados, textoResultado, callback) {
         }
         
         if (callback) callback(mensagemErro, null);
-        alert(mensagemErro);
+        ui.mostrarAlertaPersonalizado(mensagemErro, "Erro");
     }
 }
 
@@ -238,7 +238,7 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
                                     logs.adicionarLog("[BridgeTalk] Arquivo existe: " + arquivoTextura.exists, "info");
                                 }
                                 if (!arquivoTextura.exists) {
-                                    alert("[BridgeTalk] Arquivo SVG não encontrado: " + caminhoTextura);
+                                    ui.mostrarAlertaPersonalizado("[BridgeTalk] Arquivo SVG não encontrado: " + caminhoTextura, "Erro");
                                 }
                                 if (arquivoTextura.exists) {
                                     var texturaItem = novaLayer.placedItems.add();
@@ -416,21 +416,10 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
             
             if (resObj.body === "success") {
                 logProtegido("Legenda adicionada com sucesso", logs.TIPOS_LOG.INFO);
-                // Substituir alert por janela personalizada
-                var mensagem = t("legendaAdicionada");
-                var dlg = new Window("dialog", "Mensagem Completa");
-                dlg.orientation = "column";
-                dlg.alignChildren = ["fill", "top"];
-                var texto = dlg.add("statictext", undefined, mensagem, {multiline: true});
-                texto.preferredSize = [300, 40];
-                var btnOk = dlg.add("button", undefined, "OK", {name: "ok"});
-                btnOk.onClick = function() { dlg.close(); };
-                dlg.show();
-                // if (janela) {
-                //     janela.close();
-                //     janela = null;
-                // }
-                if (callback) callback(null, "success");
+                // Usar função padronizada de alerta personalizado
+                ui.mostrarAlertaPersonalizado(t("legendaAdicionada"), "Mensagem Completa", function() {
+                    if (callback) callback(null, "success");
+                });
             } else {
                 var mensagemErro = "Ocorreu um problema ao adicionar a legenda: " + resObj.body;
                 logProtegido(mensagemErro, logs.TIPOS_LOG.ERROR);

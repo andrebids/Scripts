@@ -185,7 +185,7 @@ function lerVersao() {
             var dadosVersao = parseJSON(conteudo);
             return dadosVersao.version;
         } catch (e) {
-            alert("Erro ao ler o arquivo de versão: " + e.message);
+            ui.mostrarAlertaPersonalizado("Erro ao ler o arquivo de versão: " + e.message, "Erro");
         }
     }
     return "0.0.0"; // Versão padrão se não for possível ler o arquivo

@@ -97,9 +97,9 @@ function salvarSelecaoAtual(listaComponentes, listaCores, listaUnidades, campoMu
         if (campoMultiplicador) {
             ultimaSelecao.multiplicador = campoMultiplicador.text;
         }
-    } catch (e) {
-        alert("Erro ao salvar seleção: " + e.message);
-    }
+            } catch (e) {
+            ui.mostrarAlertaPersonalizado("Erro ao salvar seleção: " + e.message, "Erro");
+        }
 }
 
 function restaurarUltimaSelecao(listaComponentes, listaCores, listaUnidades, campoQuantidade, campoMultiplicador, ultimaSelecao, dados, t) {
@@ -159,9 +159,9 @@ function restaurarUltimaSelecao(listaComponentes, listaCores, listaUnidades, cam
             campoMultiplicador.text = ultimaSelecao.multiplicador;
         }
         
-    } catch (e) {
-        alert("Erro ao restaurar seleção: " + e.message + "\nUsando reset padrão");
-        // Reset padrão em caso de erro
+            } catch (e) {
+            ui.mostrarAlertaPersonalizado("Erro ao restaurar seleção: " + e.message + "\nUsando reset padrão", "Erro");
+            // Reset padrão em caso de erro
         if (typeof campoQuantidade !== 'undefined' && campoQuantidade) {
             if (Object.prototype.toString.call(campoQuantidade) === '[object Array]') {
                 if (campoQuantidade.length > 0) {
@@ -207,36 +207,36 @@ function adicionarComponente(listaComponentes, listaCores, listaUnidades, quanti
     try {
         // Verificar se a quantidade foi preenchida
         if (typeof quantidade === 'undefined' || quantidade === null || isNaN(quantidade) || quantidade <= 0) {
-            alert(t("quantidadeNaoInformada")); // "Por favor, informe a quantidade"
+            ui.mostrarAlertaPersonalizado(t("quantidadeNaoInformada"), "Campo Obrigatório"); // "Por favor, informe a quantidade"
             return;
         }
 
         // Verificações iniciais
         if (!dados || typeof dados !== 'object') {
-            alert("Erro: dados não está definido ou não é um objeto");
+            ui.mostrarAlertaPersonalizado("Erro: dados não está definido ou não é um objeto", "Erro");
             return;
         }
 
         if (!dados.componentes || !dados.cores) {
-            alert("Erro: dados.componentes ou dados.cores não estão definidos");
+            ui.mostrarAlertaPersonalizado("Erro: dados.componentes ou dados.cores não estão definidos", "Erro");
             return;
         }
 
         if (!listaComponentes || !listaCores || !listaUnidades) {
-            alert("Erro: Uma ou mais listas não estão definidas\nComponentes: " + 
+            ui.mostrarAlertaPersonalizado("Erro: Uma ou mais listas não estão definidas\nComponentes: " + 
                   (listaComponentes ? "OK" : "Não definido") + 
                   "\nCores: " + (listaCores ? "OK" : "Não definido") + 
-                  "\nUnidades: " + (listaUnidades ? "OK" : "Não definido"));
+                  "\nUnidades: " + (listaUnidades ? "OK" : "Não definido"), "Erro");
             return;
         }
 
         if (!listaComponentes.selection || !listaCores.selection || !listaUnidades.selection) {
-            alert(t("selecionarComponenteCompleto"));
+            ui.mostrarAlertaPersonalizado(t("selecionarComponenteCompleto"), "Seleção Obrigatória");
             return;
         }
 
         if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0 || listaUnidades.selection.index === 0) {
-            alert(t("selecionarComponenteCompleto"));
+            ui.mostrarAlertaPersonalizado(t("selecionarComponenteCompleto"), "Seleção Obrigatória");
             return;
         }
 
@@ -250,9 +250,9 @@ function adicionarComponente(listaComponentes, listaCores, listaUnidades, quanti
 
         // Verificar se os dados foram obtidos corretamente
         if (!componenteSelecionado || !corSelecionada) {
-            alert("Erro ao obter componente ou cor selecionada:\nComponente: " + 
+            ui.mostrarAlertaPersonalizado("Erro ao obter componente ou cor selecionada:\nComponente: " + 
                   (componenteSelecionado ? "OK" : "Não encontrado") + 
-                  "\nCor: " + (corSelecionada ? "OK" : "Não encontrada"));
+                  "\nCor: " + (corSelecionada ? "OK" : "Não encontrada"), "Erro");
             return;
         }
 
@@ -261,12 +261,12 @@ function adicionarComponente(listaComponentes, listaCores, listaUnidades, quanti
         var multiplicador = parseFloat(campoMultiplicador.text.replace(',', '.'));
 
         if (isNaN(quantidadeNum) || quantidadeNum <= 0) {
-            alert(t("quantidadeInvalida") + "\nValor inserido: " + quantidade);
+            ui.mostrarAlertaPersonalizado(t("quantidadeInvalida") + "\nValor inserido: " + quantidade, "Quantidade Inválida");
             return;
         }
 
         if (isNaN(multiplicador) || multiplicador <= 0) {
-            alert("Multiplicador inválido, usando valor padrão 1\nValor inserido: " + campoMultiplicador.text);
+            ui.mostrarAlertaPersonalizado("Multiplicador inválido, usando valor padrão 1\nValor inserido: " + campoMultiplicador.text, "Atenção");
             multiplicador = 1;
         }
 
@@ -282,9 +282,9 @@ function adicionarComponente(listaComponentes, listaCores, listaUnidades, quanti
         }
 
         if (!combinacaoSelecionada) {
-            alert("Combinação não encontrada:\nComponente: " + componenteSelecionado.nome + 
+            ui.mostrarAlertaPersonalizado("Combinação não encontrada:\nComponente: " + componenteSelecionado.nome + 
                   "\nCor: " + corSelecionada.nome + 
-                  "\nUnidade: " + unidadeSelecionada);
+                  "\nUnidade: " + unidadeSelecionada, "Erro");
             return;
         }
 
@@ -355,9 +355,9 @@ function adicionarComponente(listaComponentes, listaCores, listaUnidades, quanti
             }
         }
 
-    } catch (e) {
-        alert("Erro geral ao adicionar componente:\n" + e.message + "\nLinha: " + e.line);
-    }
+            } catch (e) {
+            ui.mostrarAlertaPersonalizado("Erro geral ao adicionar componente:\n" + e.message + "\nLinha: " + e.line, "Erro");
+        }
 }
 
 // Exportação global

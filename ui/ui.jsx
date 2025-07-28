@@ -67,13 +67,13 @@
                 atualizarLista();
                 campoNovo.text = "";
                 campoNovo.active = true;
-                alert(tipo.charAt(0).toUpperCase() + tipo.slice(1, -1) + " '" + novoNome + "' adicionado com sucesso!");
+                ui.mostrarAlertaPersonalizado(tipo.charAt(0).toUpperCase() + tipo.slice(1, -1) + " '" + novoNome + "' adicionado com sucesso!", "Sucesso");
                 if (callback) callback(); // Chama o callback após adicionar
             } else {
-                alert("Este " + tipo.slice(0, -1) + " já existe.");
+                ui.mostrarAlertaPersonalizado("Este " + tipo.slice(0, -1) + " já existe.", "Atenção");
             }
         } else {
-            alert("Por favor, insira um nome para o " + tipo.slice(0, -1) + ".");
+            ui.mostrarAlertaPersonalizado("Por favor, insira um nome para o " + tipo.slice(0, -1) + ".", "Campo Obrigatório");
         }
     }
 
@@ -96,9 +96,9 @@
             removerItemEDependencias(tipo, itemRemovido.id);
             atualizarLista();
             if (callback) callback();
-            alert(tipo.charAt(0).toUpperCase() + tipo.slice(1, -1) + " '" + itemRemovido.nome + "' removido com sucesso!");
+            ui.mostrarAlertaPersonalizado(tipo.charAt(0).toUpperCase() + tipo.slice(1, -1) + " '" + itemRemovido.nome + "' removido com sucesso!", "Sucesso");
         } else {
-            alert("Por favor, selecione um " + tipo.slice(0, -1) + " válido para remover.");
+            ui.mostrarAlertaPersonalizado("Por favor, selecione um " + tipo.slice(0, -1) + " válido para remover.", "Seleção Obrigatória");
         }
     }
 
@@ -197,12 +197,12 @@
                 campoNovo.text = "";
                 campoReferencia.text = "";
                 campoNovo.active = true;
-                alert("Componente '" + novoNome + "' adicionado com sucesso!");
+                ui.mostrarAlertaPersonalizado("Componente '" + novoNome + "' adicionado com sucesso!", "Sucesso");
             } else {
-                alert("Este componente já existe.");
+                ui.mostrarAlertaPersonalizado("Este componente já existe.", "Atenção");
             }
         } else {
-            alert("Por favor, insira um nome para o componente.");
+            ui.mostrarAlertaPersonalizado("Por favor, insira um nome para o componente.", "Campo Obrigatório");
         }
     }
 
@@ -225,9 +225,9 @@
             removerItemEDependencias("componentes", itemRemovido.id);
             atualizarLista();
             if (callback) callback();
-            alert("Componente '" + itemRemovido.nome + "' removido com sucesso!");
+            ui.mostrarAlertaPersonalizado("Componente '" + itemRemovido.nome + "' removido com sucesso!", "Sucesso");
         } else {
-            alert("Por favor, selecione um componente válido para remover.");
+            ui.mostrarAlertaPersonalizado("Por favor, selecione um componente válido para remover.", "Seleção Obrigatória");
         }
     }
 
@@ -239,9 +239,9 @@
             componenteSelecionado.referencia = campoEditarReferencia.text;
             salvarJSON(caminhoDatabase, database);
             atualizarLista();
-            alert("Referência atualizada com sucesso!");
+            ui.mostrarAlertaPersonalizado("Referência atualizada com sucesso!", "Sucesso");
         } else {
-            alert("Por favor, selecione um componente para editar.");
+            ui.mostrarAlertaPersonalizado("Por favor, selecione um componente para editar.", "Seleção Obrigatória");
         }
     }
 
@@ -306,9 +306,9 @@ function criarInterfaceContadorBolas(grupoContar, dados, itensLegenda, atualizar
                 texto: resultado
             });
             atualizarListaItens();
-            alert(t("contagemAtualizada"));
+            ui.mostrarAlertaPersonalizado(t("contagemAtualizada"), "Sucesso");
         } else {
-            alert(t("realizarContagemPrimeiro"));
+            ui.mostrarAlertaPersonalizado(t("realizarContagemPrimeiro"), "Atenção");
         }
     };
 
@@ -509,7 +509,7 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
                 // Resetar a seleção
                 listaTexturas.selection = 0;
             } else {
-                alert(t("selecioneTexturaAlerta"));
+                ui.mostrarAlertaPersonalizado(t("selecioneTexturaAlerta"), "Seleção Obrigatória");
             }
         };
 
@@ -551,7 +551,7 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
                         }
                     }
                 } catch (e) {
-                    alert(t("erroCarregarImagem") + e.message);
+                    ui.mostrarAlertaPersonalizado(t("erroCarregarImagem") + e.message, "Erro");
                 }
             }
             
@@ -687,6 +687,130 @@ function removerInterfaceObservacoes(componentes, janela) {
     }
 }
 
+/**
+ * Mostra alerta personalizado com layout padronizado
+ * @param {string} mensagem - Mensagem a ser exibida
+ * @param {string} titulo - Título da janela (opcional)
+ * @param {function} callback - Função a ser executada após fechar (opcional)
+ */
+function mostrarAlertaPersonalizado(mensagem, titulo, callback) {
+    if (logs && logs.logFuncao) {
+        logs.logFuncao("mostrarAlertaPersonalizado", "Iniciando alerta personalizado");
+    }
+    
+    try {
+        // Validação de parâmetros
+        if (!mensagem) {
+            throw new Error("Mensagem é obrigatória");
+        }
+        
+        // Título padrão se não fornecido
+        var tituloFinal = titulo || "Mensagem";
+        
+        // Criar janela personalizada
+        var dlg = new Window("dialog", tituloFinal);
+        dlg.orientation = "column";
+        dlg.alignChildren = ["fill", "top"];
+        
+        // Adicionar texto da mensagem
+        var texto = dlg.add("statictext", undefined, mensagem, {multiline: true});
+        texto.preferredSize = [300, 40];
+        
+        // Adicionar botão OK
+        var btnOk = dlg.add("button", undefined, "OK", {name: "ok"});
+        btnOk.onClick = function() { 
+            dlg.close(); 
+            if (callback) callback();
+        };
+        
+        if (logs && logs.logFuncao) {
+            logs.logFuncao("mostrarAlertaPersonalizado", "Exibindo alerta: " + mensagem.substring(0, 50));
+        }
+        dlg.show();
+        
+        if (logs && logs.logFuncao) {
+            logs.logFuncao("mostrarAlertaPersonalizado", "Alerta fechado pelo usuário");
+        }
+        
+    } catch (erro) {
+        if (logs && logs.adicionarLog) {
+            logs.adicionarLog("Erro ao mostrar alerta personalizado: " + erro.message, "error");
+        }
+        // Fallback para alert nativo
+        alert(mensagem);
+    }
+}
+
+/**
+ * Mostra confirmação personalizada com botões Sim/Não
+ * @param {string} mensagem - Mensagem a ser exibida
+ * @param {string} titulo - Título da janela (opcional)
+ * @param {function} callbackSim - Função a ser executada se clicar em Sim
+ * @param {function} callbackNao - Função a ser executada se clicar em Não
+ */
+function mostrarConfirmacaoPersonalizada(mensagem, titulo, callbackSim, callbackNao) {
+    if (logs && logs.logFuncao) {
+        logs.logFuncao("mostrarConfirmacaoPersonalizada", "Iniciando confirmação personalizada");
+    }
+    
+    try {
+        // Validação de parâmetros
+        if (!mensagem) {
+            throw new Error("Mensagem é obrigatória");
+        }
+        
+        // Título padrão se não fornecido
+        var tituloFinal = titulo || "Confirmação";
+        
+        // Criar janela personalizada
+        var dlg = new Window("dialog", tituloFinal);
+        dlg.orientation = "column";
+        dlg.alignChildren = ["fill", "top"];
+        
+        // Adicionar texto da mensagem
+        var texto = dlg.add("statictext", undefined, mensagem, {multiline: true});
+        texto.preferredSize = [300, 40];
+        
+        // Grupo para botões
+        var grupoBotoes = dlg.add("group");
+        grupoBotoes.orientation = "row";
+        grupoBotoes.alignChildren = ["center", "center"];
+        grupoBotoes.spacing = 10;
+        
+        // Botão Sim
+        var btnSim = grupoBotoes.add("button", undefined, "Sim", {name: "sim"});
+        btnSim.onClick = function() { 
+            dlg.close(); 
+            if (callbackSim) callbackSim();
+        };
+        
+        // Botão Não
+        var btnNao = grupoBotoes.add("button", undefined, "Não", {name: "nao"});
+        btnNao.onClick = function() { 
+            dlg.close(); 
+            if (callbackNao) callbackNao();
+        };
+        
+        if (logs && logs.logFuncao) {
+            logs.logFuncao("mostrarConfirmacaoPersonalizada", "Exibindo confirmação: " + mensagem.substring(0, 50));
+        }
+        dlg.show();
+        
+        if (logs && logs.logFuncao) {
+            logs.logFuncao("mostrarConfirmacaoPersonalizada", "Confirmação fechada pelo usuário");
+        }
+        
+    } catch (erro) {
+        if (logs && logs.adicionarLog) {
+            logs.adicionarLog("Erro ao mostrar confirmação personalizada: " + erro.message, "error");
+        }
+        // Fallback para confirm nativo
+        var resultado = confirm(mensagem);
+        if (resultado && callbackSim) callbackSim();
+        if (!resultado && callbackNao) callbackNao();
+    }
+}
+
 // Make functions available globally
 $.global.ui = {
     criarInterfaceGerenciamento: criarInterfaceGerenciamento,
@@ -695,5 +819,7 @@ $.global.ui = {
     removerInterfaceTexturas: removerInterfaceTexturas,
     criarInterfaceObservacoes: criarInterfaceObservacoes,
     removerInterfaceObservacoes: removerInterfaceObservacoes,
-    criarInterfaceContadorBolas: criarInterfaceContadorBolas // Adicionado para exportação global
+    criarInterfaceContadorBolas: criarInterfaceContadorBolas, // Adicionado para exportação global
+    mostrarAlertaPersonalizado: mostrarAlertaPersonalizado,
+    mostrarConfirmacaoPersonalizada: mostrarConfirmacaoPersonalizada
 };

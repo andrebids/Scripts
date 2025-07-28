@@ -82,7 +82,7 @@ function adicionarPalavraChaveAlfabeto(campoPalavraChave, dropdownCorBioprint, t
         campoPalavraChave.text = "";
         campoNomeTipo.text = resultado.palavraDigitada;
     } else {
-        alert(t("nenhumaLetraValida"));
+        ui.mostrarAlertaPersonalizado(t("nenhumaLetraValida"), "Atenção");
     }
 } 
 

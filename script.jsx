@@ -112,12 +112,12 @@ dropdownIdiomas.onChange = function() {
         // Usar módulo config para alterar idioma
         if (config.alterarIdioma(novoIdioma)) {
             // Mostrar mensagem para o usuário
-            alert(t("idiomaAlterado") + novoIdioma + t("reiniciarScript"));
+            ui.mostrarAlertaPersonalizado(t("idiomaAlterado") + novoIdioma + t("reiniciarScript"), "Idioma Alterado");
             
             // Fechar a janela atual
             janela.close();
         } else {
-            alert("Erro ao alterar idioma. Por favor, tente novamente.");
+            ui.mostrarAlertaPersonalizado("Erro ao alterar idioma. Por favor, tente novamente.", "Erro");
         }
     }
 };
@@ -596,7 +596,7 @@ linhaPrint.botaoAdicionar.onClick = function() {
         }
     }
     if (soma <= 0) {
-        alert(t("preencherCampos"));
+        ui.mostrarAlertaPersonalizado(t("preencherCampos"), "Campo Obrigatório");
         return;
     }
     funcoesComponentes.adicionarComponente(
@@ -629,7 +629,7 @@ linhaLeds.botaoAdicionar.onClick = function() {
         }
     }
     if (soma <= 0) {
-        alert(t("preencherCampos"));
+        ui.mostrarAlertaPersonalizado(t("preencherCampos"), "Campo Obrigatório");
         return;
     }
     funcoesComponentes.adicionarComponente(
@@ -662,7 +662,7 @@ linhaNormais.botaoAdicionar.onClick = function() {
         }
     }
     if (soma <= 0) {
-        alert(t("preencherCampos"));
+        ui.mostrarAlertaPersonalizado(t("preencherCampos"), "Campo Obrigatório");
         return;
     }
     funcoesComponentes.adicionarComponente(
@@ -927,7 +927,7 @@ checkboxMostrarComponenteExtra.onClick = function() {
             var unidadeExtra = campoUnidadeExtra.selection ? campoUnidadeExtra.selection.text : "";
             var quantidadeExtra = parseFloat(campoQuantidadeExtra.text.replace(',', '.'));
             if (nomeExtra === "" || isNaN(quantidadeExtra) || quantidadeExtra <= 0) {
-                alert(t("preencherCampos"));
+                ui.mostrarAlertaPersonalizado(t("preencherCampos"), "Campo Obrigatório");
                 return;
             }
             var textoExtra = nomeExtra + " (" + unidadeExtra + "): " + quantidadeExtra.toFixed(2).replace('.', ',');
@@ -1001,12 +1001,12 @@ function atualizarListaItens() {
     }
     // Verificar se o campo L foi selecionado
     if (!listaL.selection) {
-        alert("Selecione um valor para o campo L (obrigatório)");
+        ui.mostrarAlertaPersonalizado("Selecione um valor para o campo L (obrigatório)", "Campo Obrigatório");
         return;
     }
     // Verificar se o tipo de fixação foi selecionado
     if (!listaFixacao.selection || listaFixacao.selection.index === 0) {
-        alert(t("selecionarTipoFixacao"));
+        ui.mostrarAlertaPersonalizado(t("selecionarTipoFixacao"), "Atenção");
         return;
     }
         // Verificar se há dimensões preenchidas
@@ -1019,15 +1019,29 @@ function atualizarListaItens() {
             }
         }
 
-        // Se não houver dimensões, mostrar alerta
+        // Se não houver dimensões, mostrar confirmação personalizada
         if (!temDimensoes) {
-            if (!confirm(t("confirmacaoSemTamanho"))) {
-                return; // Se o usuário clicar em "Cancelar", interrompe a execução
+            var continuarSemTamanho = false;
+            ui.mostrarConfirmacaoPersonalizada(
+                t("confirmacaoSemTamanho"), 
+                "Confirmação", 
+                function() { continuarSemTamanho = true; }, // Sim
+                function() { return; } // Não - retorna sem fazer nada
+            );
+            if (!continuarSemTamanho) {
+                return; // Se o usuário clicar em "Não", interrompe a execução
             }
         }
 
-        // Continua com a verificação original
-        if (confirm(t("confirmarComponentes"))) {
+        // Continua com a verificação original usando confirmação personalizada
+        var confirmarComponentes = false;
+        ui.mostrarConfirmacaoPersonalizada(
+            t("confirmarComponentes"), 
+            "Confirmação", 
+            function() { confirmarComponentes = true; }, // Sim
+            function() { return; } // Não - retorna sem fazer nada
+        );
+        if (confirmarComponentes) {
             try {
                 // Preparar parâmetros para a função modularizada
                 var parametrosPreview = {
@@ -1049,7 +1063,7 @@ function atualizarListaItens() {
                 var legendaInfo = funcoesLegenda.atualizarPreview(parametrosPreview);
                 
                 if (legendaInfo === undefined) {
-                    alert(t("erroGerarLegenda"));
+                    ui.mostrarAlertaPersonalizado(t("erroGerarLegenda"), "Erro");
                     return;
                 }
                 
@@ -1091,7 +1105,7 @@ function atualizarListaItens() {
                 );
     
             } catch (e) {
-                alert("Erro ao adicionar legenda: " + e + "\nLinha: " + e.line);
+                ui.mostrarAlertaPersonalizado("Erro ao adicionar legenda: " + e + "\nLinha: " + e.line, "Erro");
             }
         }
     };

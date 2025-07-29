@@ -432,7 +432,7 @@ function exemploComLogs(parametros) {
 - [ ] **8.4.7** **TESTE MANUAL:** Verificar dropdowns de componentes e cores
 - [ ] **8.4.8** **TESTE MANUAL:** Verificar layout dinâmico da janela
 
-### **8.5 FASE 5: Modularização da Gestão de Lista**
+### **8.5 FASE 5: Modularização da Gestão de Lista** - **CONCLUÍDA ✅**
 - **Duração estimada:** 25-35 minutos
 - **Arquivo de destino:** `gestaoLista.jsx`
 - **Funcionalidades a extrair:**
@@ -441,14 +441,14 @@ function exemploComLogs(parametros) {
   - Gestão do array `itensLegenda`
 
 **Tarefas específicas:**
-- [ ] **8.5.1** Criar `gestaoLista.jsx` com namespace global
-- [ ] **8.5.2** Implementar `gestaoLista.atualizarListaItens()`
-- [ ] **8.5.3** Implementar `gestaoLista.removerItem()`
-- [ ] **8.5.4** Implementar `gestaoLista.removerTodosItens()`
-- [ ] **8.5.5** Substituir chamadas no `script.jsx`
-- [ ] **8.5.6** **TESTE MANUAL:** Verificar atualização da lista
-- [ ] **8.5.7** **TESTE MANUAL:** Verificar remoção de itens
-- [ ] **8.5.8** **TESTE MANUAL:** Verificar ordem dos itens (bolas por último)
+- [x] **8.5.1** Criar `gestaoLista.jsx` com namespace global
+- [x] **8.5.2** Implementar `gestaoLista.atualizarListaItens()`
+- [x] **8.5.3** Implementar `gestaoLista.removerItem()`
+- [x] **8.5.4** Implementar `gestaoLista.removerTodosItens()`
+- [x] **8.5.5** Substituir chamadas no `script.jsx`
+- [x] **8.5.6** **TESTE MANUAL:** Verificar atualização da lista
+- [x] **8.5.7** **TESTE MANUAL:** Verificar remoção de itens
+- [x] **8.5.8** **TESTE MANUAL:** Verificar ordem dos itens (bolas por último)
 
 ### **8.6 FASE 6: Limpeza Final e Validação** - **CONCLUÍDA ✅**
 - **Duração estimada:** 20-30 minutos

@@ -463,20 +463,21 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
         grupoLista.spacing = 5;
 
         // Lista de texturas no subgrupo
-        var listaTexturas = grupoLista.add("dropdownlist", undefined, [
-            t("selecioneTextura"),
-            "--- BIOPRINT, RECYPRINT, FIRE-RETARDANT PRINT ---",
-            "PMline", "GMline", "LetteringLine", "PMSpaghetti", "MMSpaghetti", "GMSpaghetti",
-            "PMcrossedline", "GMcrossedline", "OrigamiLine", "PMfoliage", "GMfoliage", "Round",
-            "Alpha", "Square", "Square_rectangle", "Gingerbread", "PMcalisson", "GMcalisson",
-            "Heart", "Wave", "Beehive",
-            "--- FLEXIPRINT, FIRE-RETARDANT FLEXIPRINT ---",
-            "Boucle", "MeliMelo",
-            "--- EXTRA ---",
-            "etoileGM", "etoilePM"
-        ]);
-        listaTexturas.selection = 0;
-        listaTexturas.preferredSize.width = 200;
+        var listaTexturas = grupoLista.add("listbox", undefined, undefined, {
+            items: [
+                "--- BIOPRINT, RECYPRINT, FIRE-RETARDANT PRINT ---",
+                "PMline", "GMline", "LetteringLine", "PMSpaghetti", "MMSpaghetti", "GMSpaghetti",
+                "PMcrossedline", "GMcrossedline", "OrigamiLine", "PMfoliage", "GMfoliage", "Round",
+                "Alpha", "Square", "Square_rectangle", "Gingerbread", "PMcalisson", "GMcalisson",
+                "Heart", "Wave", "Beehive",
+                "--- FLEXIPRINT, FIRE-RETARDANT FLEXIPRINT ---",
+                "Boucle", "MeliMelo",
+                "--- EXTRA ---",
+                "etoileGM", "etoilePM"
+            ]
+        });
+        listaTexturas.preferredSize.width = 250;
+        listaTexturas.preferredSize.height = 100;
 
         // Botão no subgrupo
         var botaoInserirTextura = grupoLista.add("button", undefined, t("inserirTextura"));
@@ -491,8 +492,7 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
         
         // Adicionar o evento onClick para o botão
         botaoInserirTextura.onClick = function() {
-            if (listaTexturas.selection && 
-                listaTexturas.selection.index > 0 && 
+            if (listaTexturas.selection &&
                 listaTexturas.selection.text.indexOf("---") === -1) {
                 
                 var texturaNumero = funcoesFiltragem.obterNumeroTextura(listaTexturas.selection.text);
@@ -510,7 +510,7 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
                 atualizarListaItens();
                 
                 // Resetar a seleção
-                listaTexturas.selection = 0;
+                listaTexturas.selection = null;
             } else {
                 ui.mostrarAlertaPersonalizado(t("selecioneTexturaAlerta"), "Seleção Obrigatória");
             }
@@ -523,7 +523,7 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
                 grupoPreview.remove(grupoPreview.children[0]);
             }
             
-            if (this.selection.index > 0 && this.selection.text.indexOf("---") === -1) {
+            if (this.selection && this.selection.text.indexOf("---") === -1) {
                 try {
                     // Verificar se a função existe
                     if (typeof funcoesFiltragem === 'undefined') {
@@ -587,7 +587,7 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
         var infoTexto = grupoLista.add("statictext", undefined, 
             t("instrucaoTextura"), 
             {multiline: true});
-        infoTexto.preferredSize.width = 200;
+        infoTexto.preferredSize.width = 250;
 
         // Atualizar layout da janela
         janela.layout.layout(true);

@@ -704,10 +704,26 @@ abasExtra.alignChildren = ["fill", "fill"];
 // Aba 1: Observações e Componente Extra
 var abaGeral = abasExtra.add("tab", undefined, t("geral"));
 abaGeral.alignChildren = ["fill", "top"];
-var checkboxMostrarObs = abaGeral.add("checkbox", undefined, t("adicionarObservacoes"));
-var checkboxMostrarComponenteExtra = abaGeral.add("checkbox", undefined, t("adicionarComponenteExtra"));
-var checkboxMostrarBolas = abaGeral.add("checkbox", undefined, t("adicionarBolas"));
-var checkboxMostrarTexturas = abaGeral.add("checkbox", undefined, t("adicionarTexturas"));
+
+// Grupo para organizar checkboxes em 2 colunas
+var grupoCheckboxes = abaGeral.add("group");
+grupoCheckboxes.orientation = "row";
+grupoCheckboxes.alignChildren = ["fill", "top"];
+grupoCheckboxes.spacing = 10;
+
+// Coluna esquerda
+var colunaEsquerda = grupoCheckboxes.add("group");
+colunaEsquerda.orientation = "column";
+colunaEsquerda.alignChildren = ["fill", "top"];
+var checkboxMostrarObs = colunaEsquerda.add("checkbox", undefined, t("adicionarObservacoes"));
+var checkboxMostrarComponenteExtra = colunaEsquerda.add("checkbox", undefined, t("adicionarComponenteExtra"));
+
+// Coluna direita
+var colunaDireita = grupoCheckboxes.add("group");
+colunaDireita.orientation = "column";
+colunaDireita.alignChildren = ["fill", "top"];
+var checkboxMostrarBolas = colunaDireita.add("checkbox", undefined, t("adicionarBolas"));
+var checkboxMostrarTexturas = colunaDireita.add("checkbox", undefined, t("adicionarTexturas"));
 
 // Variável para armazenar o grupo de bolas extra
 var grupoBolasExtra = null;

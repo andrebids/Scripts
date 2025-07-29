@@ -110,6 +110,8 @@ var TRANSLATIONS = {
         "reiniciarScript": ".\nPor favor, reinicie o script para aplicar as alterações.",
         "tituloJanela": "Cartouche by Bids",
         "tiposFixacao": {
+            "poteau latéral": "poteau latéral",
+            "poteau central": "poteau central",
             "poteau": "poteau",
             "suspendue": "suspendue",
             "transversal": "transversal",
@@ -234,6 +236,8 @@ var TRANSLATIONS = {
         "reiniciarScript": ".\nVeuillez redémarrer le script pour appliquer les changements.",
         "tituloJanela": "Cartouche",
         "tiposFixacao": {
+            "poteau latéral": "poteau latéral",
+            "poteau central": "poteau central",
             "poteau": "poteau",
             "suspendue": "suspendue",
             "transversal": "transversal",

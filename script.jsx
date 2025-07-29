@@ -707,6 +707,7 @@ abaGeral.alignChildren = ["fill", "top"];
 var checkboxMostrarObs = abaGeral.add("checkbox", undefined, t("adicionarObservacoes"));
 var checkboxMostrarComponenteExtra = abaGeral.add("checkbox", undefined, t("adicionarComponenteExtra"));
 var checkboxMostrarBolas = abaGeral.add("checkbox", undefined, t("adicionarBolas"));
+var checkboxMostrarTexturas = abaGeral.add("checkbox", undefined, t("adicionarTexturas"));
 
 // Variável para armazenar o grupo de bolas extra
 var grupoBolasExtra = null;
@@ -839,14 +840,13 @@ checkboxMostrarContar.onClick = function() {
         }
     }
 };
-// Aba 4: Texturas
-var abaTexturas = abasExtra.add("tab", undefined, t("texturas"));
-abaTexturas.alignChildren = ["fill", "top"];
-var checkboxMostrarTexturas = abaTexturas.add("checkbox", undefined, t("adicionarTexturas"));
-var grupoTexturas = abaTexturas.add("group");
+// Variável para armazenar componentes da interface de texturas
+var grupoTexturas = abaGeral.add("group");
 grupoTexturas.orientation = "column";
 grupoTexturas.alignChildren = ["fill", "top"];
 var componentesTextura = null;
+
+// Evento para o checkbox de texturas
 checkboxMostrarTexturas.onClick = function() {
     if (this.value) {
         componentesTextura = ui.criarInterfaceTexturas(grupoTexturas, janela, t, funcoesFiltragem, itensLegenda, atualizarListaItens);
@@ -857,7 +857,7 @@ checkboxMostrarTexturas.onClick = function() {
     janela.layout.resize();
 };
 
-// Aba 5: Logs
+// Aba 4: Logs
 var abaLogs = abasExtra.add("tab", undefined, "Logs");
 abaLogs.alignChildren = ["fill", "top"];
 abaLogs.spacing = 10;

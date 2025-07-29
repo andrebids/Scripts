@@ -16,9 +16,10 @@
  * Carrega dados da base de dados do caminho especificado
  */
 function carregarDadosBase(caminhoBaseDados) {
-    if (logs && logs.logFuncao) {
-        logs.logFuncao("carregarDadosBase", "Iniciando carregamento da base de dados");
-    }
+    // Removido log de função para melhorar performance
+    // if (logs && logs.logFuncao) {
+    //     logs.logFuncao("carregarDadosBase", "Iniciando carregamento da base de dados");
+    // }
     
     try {
         // Validação de entrada
@@ -38,8 +39,9 @@ function carregarDadosBase(caminhoBaseDados) {
             throw new Error("Base de dados vazia ou inválida");
         }
         
-        if (logs && logs.logFuncao) {
-            logs.logFuncao("carregarDadosBase", "Base de dados carregada com sucesso");
+        // Log apenas de sucesso, não de função
+        if (logs && logs.adicionarLog) {
+            logs.adicionarLog("Base de dados carregada com sucesso", "info");
         }
         
         return dadosBase;
@@ -56,9 +58,10 @@ function carregarDadosBase(caminhoBaseDados) {
  * Verifica se os dados carregados estão em formato válido
  */
 function verificarDadosCarregados(dados) {
-    if (logs && logs.logFuncao) {
-        logs.logFuncao("verificarDadosCarregados", "Iniciando verificação dos dados");
-    }
+    // Removido log de função para melhorar performance
+    // if (logs && logs.logFuncao) {
+    //     logs.logFuncao("verificarDadosCarregados", "Iniciando verificação dos dados");
+    // }
     
     try {
         // Validação básica
@@ -87,8 +90,9 @@ function verificarDadosCarregados(dados) {
             }
         }
         
-        if (logs && logs.logFuncao) {
-            logs.logFuncao("verificarDadosCarregados", "Dados verificados com sucesso - " + dados.componentes.length + " componentes encontrados");
+        // Log apenas de sucesso, não de função
+        if (logs && logs.adicionarLog) {
+            logs.adicionarLog("Dados verificados - " + dados.componentes.length + " componentes encontrados", "info");
         }
         
         return true;
@@ -105,9 +109,10 @@ function verificarDadosCarregados(dados) {
  * Configura variáveis globais necessárias para o sistema
  */
 function configurarVariaveisGlobais() {
-    if (logs && logs.logFuncao) {
-        logs.logFuncao("configurarVariaveisGlobais", "Configurando variáveis globais");
-    }
+    // Removido log de função para melhorar performance
+    // if (logs && logs.logFuncao) {
+    //     logs.logFuncao("configurarVariaveisGlobais", "Configurando variáveis globais");
+    // }
     
     try {
         // Inicializar arrays globais se não existirem
@@ -129,8 +134,9 @@ function configurarVariaveisGlobais() {
             };
         }
         
-        if (logs && logs.logFuncao) {
-            logs.logFuncao("configurarVariaveisGlobais", "Variáveis globais configuradas com sucesso");
+        // Log apenas de sucesso, não de função
+        if (logs && logs.adicionarLog) {
+            logs.adicionarLog("Variáveis globais configuradas", "info");
         }
         
         return true;
@@ -147,8 +153,9 @@ function configurarVariaveisGlobais() {
  * Função principal de inicialização do sistema
  */
 function inicializarSistema() {
-    if (logs && logs.logFuncao) {
-        logs.logFuncao("inicializarSistema", "Iniciando inicialização completa do sistema");
+    // Log apenas de início, não de função
+    if (logs && logs.adicionarLog) {
+        logs.adicionarLog("Iniciando inicialização do sistema", "info");
     }
     
     try {
@@ -167,8 +174,9 @@ function inicializarSistema() {
         // 5. Verificar integridade dos dados
         verificarDadosCarregados(dados);
         
-        if (logs && logs.logFuncao) {
-            logs.logFuncao("inicializarSistema", "Sistema inicializado com sucesso");
+        // Log apenas de sucesso, não de função
+        if (logs && logs.adicionarLog) {
+            logs.adicionarLog("Sistema inicializado com sucesso", "info");
         }
         
         return dados;

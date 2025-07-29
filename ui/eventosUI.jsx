@@ -1,4 +1,5 @@
-#targetengine maintarget illustrator
+#target illustrator
+#targetengine maintarget
 
 /**
  * Módulo de Centralização de Eventos UI
@@ -22,9 +23,10 @@ $.global.eventosUI = {};
      * Configura eventos de checkboxes da interface
      */
     eventosUI.configurarEventosCheckboxes = function(config) {
-        if (logs && logs.adicionarLog) {
-            logs.adicionarLog("Configurando eventos de checkboxes", logs.TIPOS_LOG.INFO);
-        }
+        // Removido log de início para melhorar performance
+        // if (logs && logs.adicionarLog) {
+        //     logs.adicionarLog("Configurando eventos de checkboxes", logs.TIPOS_LOG.INFO);
+        // }
         
         try {
             // Evento para checkbox Structure laqueé

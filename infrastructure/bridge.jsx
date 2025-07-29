@@ -283,12 +283,13 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
                                 var nomeArquivo = obterNomeArquivoTextura(numeroTextura);
                                 var caminhoTextura = pastaScript + "/resources/svg/" + nomeArquivo;
                                 var arquivoTextura = new File(caminhoTextura);
-                                if (typeof logs !== 'undefined' && logs.adicionarLog) {
-                                    logs.adicionarLog("[BridgeTalk] Processando textura: " + numeroTextura, "info");
-                                    logs.adicionarLog("[BridgeTalk] Nome do arquivo: " + nomeArquivo, "info");
-                                    logs.adicionarLog("[BridgeTalk] Caminho do arquivo: " + caminhoTextura, "info");
-                                    logs.adicionarLog("[BridgeTalk] Arquivo existe: " + arquivoTextura.exists, "info");
-                                }
+                                // Removidos logs de debug excessivos para melhorar performance
+                                // if (typeof logs !== 'undefined' && logs.adicionarLog) {
+                                //     logs.adicionarLog("[BridgeTalk] Processando textura: " + numeroTextura, "info");
+                                //     logs.adicionarLog("[BridgeTalk] Nome do arquivo: " + nomeArquivo, "info");
+                                //     logs.adicionarLog("[BridgeTalk] Caminho do arquivo: " + caminhoTextura, "info");
+                                //     logs.adicionarLog("[BridgeTalk] Arquivo existe: " + arquivoTextura.exists, "info");
+                                // }
                                 if (!arquivoTextura.exists) {
                                     ui.mostrarAlertaPersonalizado("[BridgeTalk] Arquivo não encontrado: " + caminhoTextura, "Erro");
                                 }
@@ -325,11 +326,12 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
                         var nomeArquivo = gerarNomeArquivoAlfabeto(caractere, sufixoTamanho);
                         var caminhoArquivo = caminhoAlfabeto + nomeArquivo;
                         var arquivoAlfabeto = new File(caminhoArquivo);
-                        if (typeof logs !== 'undefined' && logs.adicionarLog) {
-                            logs.adicionarLog("[BridgeTalk] Tentando carregar alfabeto: " + nomeArquivo, "info");
-                            logs.adicionarLog("[BridgeTalk] Caminho do arquivo alfabeto: " + caminhoArquivo, "info");
-                            logs.adicionarLog("[BridgeTalk] Arquivo existe: " + arquivoAlfabeto.exists, "info");
-                        }
+                        // Removidos logs de debug excessivos para melhorar performance
+                        // if (typeof logs !== 'undefined' && logs.adicionarLog) {
+                        //     logs.adicionarLog("[BridgeTalk] Tentando carregar alfabeto: " + nomeArquivo, "info");
+                        //     logs.adicionarLog("[BridgeTalk] Caminho do arquivo alfabeto: " + caminhoArquivo, "info");
+                        //     logs.adicionarLog("[BridgeTalk] Arquivo existe: " + arquivoAlfabeto.exists, "info");
+                        // }
                         if (!arquivoAlfabeto.exists) {
                             if (typeof logs !== 'undefined' && logs.adicionarLog) {
                                 logs.adicionarLog("[BridgeTalk] Arquivo de letra NÃO encontrado: " + caminhoArquivo, "error");

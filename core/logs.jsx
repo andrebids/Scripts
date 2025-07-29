@@ -3,12 +3,12 @@
 
 // Variável global para armazenar logs em memória
 var logsArray = [];
-var maxLogs = 1000; // Limite máximo de logs em memória
+var maxLogs = 500; // Reduzido de 1000 para 500 para melhor performance
 
 // Configurações de log carregadas do settings.json
 var configLogs = {
     habilitados: true,
-    nivelDetalhe: "basico"
+    nivelDetalhe: "basico" // Alterado para básico por padrão
 };
 
 // Tipos de log disponíveis
@@ -32,7 +32,11 @@ var nivelAtual = NIVEIS_LOG.BASIC;
 
 // Cache para evitar logs repetitivos
 var cacheOperacoes = {};
-var limiteCacheOperacao = 3; // Máximo de vezes que a mesma operação é logada
+var limiteCacheOperacao = 2; // Reduzido de 3 para 2
+
+// Contador para controlar atualizações da interface
+var contadorAtualizacoes = 0;
+var intervaloAtualizacao = 10; // Atualizar a cada 10 logs em vez de 5
 
 // Função para verificar se deve registrar o log baseado no nível
 function deveRegistrarLog(tipo, mensagem) {
@@ -59,24 +63,21 @@ function deveRegistrarLog(tipo, mensagem) {
         return true;
     }
     
-    // Registrar functions no nível DETAILED ou superior
-    if (tipo === TIPOS_LOG.FUNCTION && nivelConfig >= NIVEIS_LOG.DETAILED) {
+    // Registrar functions apenas no nível DEBUG (não mais no DETAILED)
+    if (tipo === TIPOS_LOG.FUNCTION && nivelConfig >= NIVEIS_LOG.DEBUG) {
         return true;
     }
     
-    // Registrar alguns logs INFO importantes mesmo no nível BASIC
+    // Registrar apenas logs INFO críticos no nível BASIC
     if (tipo === TIPOS_LOG.INFO) {
-        // Logs de inicialização e operações importantes sempre aparecem
+        // Logs de inicialização e operações críticas sempre aparecem
         if (mensagem.indexOf("inicializado") !== -1 || 
             mensagem.indexOf("Sistema de logs") !== -1 ||
             mensagem.indexOf("Módulo de logs") !== -1 ||
             mensagem.indexOf("Nível de log alterado") !== -1 ||
             mensagem.indexOf("Cache de operações limpo") !== -1 ||
             mensagem.indexOf("Logs limpos") !== -1 ||
-            mensagem.indexOf("Auto-scroll") !== -1 ||
-            mensagem.indexOf("adicionado") !== -1 ||
-            mensagem.indexOf("removido") !== -1 ||
-            mensagem.indexOf("atualizado") !== -1) {
+            mensagem.indexOf("Auto-scroll") !== -1) {
             return true;
         }
         
@@ -138,15 +139,16 @@ function adicionarLog(mensagem, tipo, nivel) {
         logsArray.shift(); // Remove o log mais antigo
     }
     
-    // Atualizar interface se existir 
-    // Nos primeiros 20 logs ou em logs importantes, atualizar sempre
-    var deveAtualizarSempre = logsArray.length <= 20 || 
+    // Atualizar interface com menos frequência
+    contadorAtualizacoes++;
+    var deveAtualizarSempre = logsArray.length <= 10 || // Reduzido de 20 para 10
                               tipo === TIPOS_LOG.ERROR || 
                               tipo === TIPOS_LOG.WARNING ||
                               mensagem.indexOf("inicializado") !== -1;
     
-    if ((deveAtualizarSempre || logsArray.length % 5 === 0) && typeof atualizarInterfaceLogs === 'function') {
+    if ((deveAtualizarSempre || contadorAtualizacoes % intervaloAtualizacao === 0) && typeof atualizarInterfaceLogs === 'function') {
         atualizarInterfaceLogs();
+        contadorAtualizacoes = 0; // Reset do contador
     }
     
     return logEntry;

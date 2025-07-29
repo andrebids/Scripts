@@ -481,14 +481,11 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
             
             if (resObj.body === "success") {
                 logProtegido("Legenda adicionada com sucesso", logs.TIPOS_LOG.INFO);
-                // Usar função padronizada de alerta personalizado
-                ui.mostrarAlertaPersonalizado(t("legendaAdicionada"), "Mensagem Completa", function() {
-                    if (callback) callback(null, "success");
-                });
+                if (callback) callback(null, "success");
             } else {
                 var mensagemErro = "Ocorreu um problema ao adicionar a legenda: " + resObj.body;
                 logProtegido(mensagemErro, logs.TIPOS_LOG.ERROR);
-                alert(mensagemErro);
+                ui.mostrarAlertaPersonalizado(mensagemErro, "Erro");
                 if (callback) callback(mensagemErro, null);
             }
         };
@@ -497,7 +494,7 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
         bt.onError = function(err) {
             var mensagemErro = "Erro ao adicionar legenda: " + err.body;
             logProtegido(mensagemErro, logs.TIPOS_LOG.ERROR);
-            alert(mensagemErro);
+            ui.mostrarAlertaPersonalizado(mensagemErro, "Erro");
             if (callback) callback(mensagemErro, null);
         };
         
@@ -506,7 +503,7 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
     } catch (e) {
         var mensagemErro = "Erro ao adicionar legenda: " + e + "\nLinha: " + e.line;
         logProtegido("Exceção capturada: " + mensagemErro, logs.TIPOS_LOG.ERROR);
-        alert(mensagemErro);
+        ui.mostrarAlertaPersonalizado(mensagemErro, "Erro");
         if (callback) callback(mensagemErro, null);
     }
 }

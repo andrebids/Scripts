@@ -92,7 +92,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v2.1.1");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v2.1.2");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -1033,16 +1033,8 @@ function atualizarListaItens() {
             }
         }
 
-        // Continua com a verificação original usando confirmação personalizada
-        var confirmarComponentes = false;
-        ui.mostrarConfirmacaoPersonalizada(
-            t("confirmarComponentes"), 
-            "Confirmação", 
-            function() { confirmarComponentes = true; }, // Sim
-            function() { return; } // Não - retorna sem fazer nada
-        );
-        if (confirmarComponentes) {
-            try {
+        // Continua diretamente sem confirmação
+        try {
                 // Preparar parâmetros para a função modularizada
                 var parametrosPreview = {
                     itensLegenda: itensLegenda,
@@ -1107,7 +1099,6 @@ function atualizarListaItens() {
             } catch (e) {
                 ui.mostrarAlertaPersonalizado("Erro ao adicionar legenda: " + e + "\nLinha: " + e.line, "Erro");
             }
-        }
     };
 
     // Exibir a janela

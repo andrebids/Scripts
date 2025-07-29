@@ -397,7 +397,7 @@ function criarInterfaceExtra(janela) {
     tabLogs.alignChildren = ["fill", "fill"];
     
     // Área de logs com barra de rolagem (ocupa toda a aba)
-    var areaLogs = tabLogs.add("edittext", undefined, "", {multiline: true, scrollable: true, readonly: true});
+    var areaLogs = tabLogs.add("edittext", undefined, "", {multiline: true, scrollable: true});
     areaLogs.preferredSize.width = 500;
     areaLogs.preferredSize.height = 350;
     
@@ -465,14 +465,15 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
         // Lista de texturas no subgrupo
         var listaTexturas = grupoLista.add("dropdownlist", undefined, [
             t("selecioneTextura"),
-            "--- SIMPLE TRAIT ---",
-            "Texture 01", "Texture 02", "Texture 03", "Texture 04",
-            "Texture 05", "Texture 06", "Texture 07", "Texture 08",
-            "--- DOUBLE TRAIT ---",
-            "Texture 09", "Texture 10", "Texture 11", "Texture 12",
-            "Texture 13", "Texture 14", "Texture 15", "Texture 16",
-            "--- FLEXI ---",
-            "Flexi Triangle", "Flexi Boucle", "Flexi Losange", "Flexi Meli Melo"
+            "--- BIOPRINT, RECYPRINT, FIRE-RETARDANT PRINT ---",
+            "PMline", "GMline", "LetteringLine", "PMSpaghetti", "MMSpaghetti", "GMSpaghetti",
+            "PMcrossedline", "GMcrossedline", "OrigamiLine", "PMfoliage", "GMfoliage", "Round",
+            "Alpha", "Square", "Square_rectangle", "Gingerbread", "PMcalisson", "GMcalisson",
+            "Heart", "Wave", "Beehive",
+            "--- FLEXIPRINT, FIRE-RETARDANT FLEXIPRINT ---",
+            "Boucle", "MeliMelo",
+            "--- EXTRA ---",
+            "etoileGM", "etoilePM"
         ]);
         listaTexturas.selection = 0;
         listaTexturas.preferredSize.width = 200;
@@ -485,7 +486,9 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
         grupoPreview.orientation = "column";
         grupoPreview.alignChildren = ["left", "top"];
         grupoPreview.spacing = 5;
-
+        grupoPreview.preferredSize.width = 100;
+        grupoPreview.preferredSize.height = 100;
+        
         // Adicionar o evento onClick para o botão
         botaoInserirTextura.onClick = function() {
             if (listaTexturas.selection && 
@@ -522,41 +525,62 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
             
             if (this.selection.index > 0 && this.selection.text.indexOf("---") === -1) {
                 try {
-                    var numeroTextura = funcoesFiltragem.obterNumeroTextura(this.selection.text);
-                    var nomeArquivo = "texture" + numeroTextura + ".png";
+                    // Verificar se a função existe
+                    if (typeof funcoesFiltragem === 'undefined') {
+                        var erro = grupoPreview.add("statictext", undefined, "Erro: funcoesFiltragem não definido");
+                        return;
+                    }
+                    
+                    if (typeof funcoesFiltragem.obterNomeArquivoPNG !== 'function') {
+                        var erro = grupoPreview.add("statictext", undefined, "Erro: obterNomeArquivoPNG não existe");
+                        return;
+                    }
+                    
+                    // Obter nome do arquivo PNG
+                    var nomeArquivo = funcoesFiltragem.obterNomeArquivoPNG(this.selection.text);
+                    
                     // Caminho dinâmico relativo à pasta do projeto (Legenda)
                     var pastaScript = File($.fileName).parent.parent.fsName.replace(/\\/g, '/');
                     var caminhoImagem = pastaScript + "/resources/png/" + nomeArquivo;
                     var arquivoImagem = new File(caminhoImagem);
                     
-                    // Debug: logs detalhados para identificar o problema
-                    if (typeof logs !== 'undefined' && logs.adicionarLog) {
-                        logs.adicionarLog("Textura selecionada: " + this.selection.text, "info");
-                        logs.adicionarLog("Número extraído: " + numeroTextura, "info");
-                        logs.adicionarLog("Nome do arquivo: " + nomeArquivo, "info");
-                        logs.adicionarLog("Caminho completo: " + caminhoImagem, "info");
-                        logs.adicionarLog("Arquivo existe: " + arquivoImagem.exists, "info");
-                    }
-                    
                     if (arquivoImagem.exists) {
-                        var imagem = grupoPreview.add("image", undefined, arquivoImagem);
-                        imagem.preferredSize = [100, 100];
-                        if (typeof logs !== 'undefined' && logs.adicionarLog) {
-                            logs.adicionarLog("SUCESSO: Imagem carregada: " + nomeArquivo, "info");
+                        try {
+                            var imagem = grupoPreview.add("image", undefined, arquivoImagem);
+                            if (imagem) {
+                                imagem.preferredSize.width = 80;
+                                imagem.preferredSize.height = 80;
+                                
+                                // Forçar layout update
+                                grupoPreview.layout.layout(true);
+                                grupoPreview.parent.layout.layout(true);
+                                
+                                // Forçar refresh da janela inteira
+                                if (typeof janela !== 'undefined') {
+                                    janela.layout.layout(true);
+                                    janela.layout.resize();
+                                }
+                            }
+                        } catch (imgError) {
+                            var erro = grupoPreview.add("statictext", undefined, "Erro ao carregar imagem");
+                            erro.preferredSize.width = 80;
+                            erro.preferredSize.height = 40;
                         }
                     } else {
-                        var textoErro = grupoPreview.add("statictext", undefined, "Imagem não encontrada");
-                        if (typeof logs !== 'undefined' && logs.adicionarLog) {
-                            logs.adicionarLog("ERRO: Arquivo não encontrado em: " + caminhoImagem, "error");
+                        // Se o PNG não existir, mostrar mensagem
+                        var texto = grupoPreview.add("statictext", undefined, "Preview não disponível\n(" + nomeArquivo + " não encontrado)");
+                        if (texto) {
+                            texto.preferredSize.width = 80;
+                            texto.preferredSize.height = 40;
                         }
                     }
+                    
                 } catch (e) {
-                    ui.mostrarAlertaPersonalizado(t("erroCarregarImagem") + e.message, "Erro");
+                    var erro = grupoPreview.add("statictext", undefined, "Erro no preview:\n" + e.message);
+                    erro.preferredSize.width = 80;
+                    erro.preferredSize.height = 40;
                 }
             }
-            
-            janela.layout.layout(true);
-            janela.layout.resize();
         };
 
         // Texto de informação

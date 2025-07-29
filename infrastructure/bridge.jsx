@@ -220,6 +220,56 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
             
             var artboardBounds = doc.artboards[0].artboardRect;
             
+            // Função para obter nome do arquivo baseado no número da textura
+            function obterNomeArquivoTextura(numeroTextura) {
+                var num = parseInt(numeroTextura);
+                switch(num) {
+                    // LINHAS
+                    case 1: return "Alpha.ai";
+                    case 2: return "LetteringLine.ai";
+                    case 3: return "OrigamiLine.ai";
+                    case 4: return "GMline.ai";
+                    case 5: return "PMline.ai";
+                    
+                    // LINHAS CRUZADAS
+                    case 6: return "GMcrossedline.ai";
+                    case 7: return "PMcrossedline.ai";
+                    
+                    // FORMAS GEOMÉTRICAS
+                    case 8: return "Round.ai";
+                    case 9: return "Square.ai";
+                    case 10: return "Square_rectangle.ai";
+                    case 11: return "Heart.ai";
+                    
+                    // PADRÕES ORGÂNICOS
+                    case 12: return "Beehive.ai";
+                    case 13: return "GMfoliage.ai";
+                    case 14: return "PMfoliage.ai";
+                    case 15: return "Gingerbread.ai";
+                    
+                    // PADRÕES COMPLEXOS
+                    case 16: return "Boucle.ai";
+                    case 17: return "MeliMelo.ai";
+                    case 18: return "Wave.ai";
+                    
+                    // CALISSONS
+                    case 19: return "GMcalisson.ai";
+                    case 20: return "PMcalisson.ai";
+                    
+                    // SPAGHETTI
+                    case 21: return "GMSpaghetti.ai";
+                    case 22: return "MMSpaghetti.ai";
+                    case 23: return "PMSpaghetti.ai";
+                    
+                    // ESTRELAS
+                    case 24: return "etoileGM.ai";
+                    case 25: return "etoilePM.ai";
+                    
+                    // Fallback para texturas antigas
+                    default: return "texture" + numeroTextura + ".ai";
+                }
+            }
+
             // Processar texturas se existirem
             if (texturasString && texturasString !== "") {
                 try {
@@ -230,15 +280,17 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
                         if (texturas[t] && texturas[t] !== "") {
                             var numeroTextura = String(texturas[t]).replace(/[^0-9]/g, '');
                             if (numeroTextura) {
-                                var caminhoTextura = pastaScript + "/resources/svg/texture" + numeroTextura + ".ai";
+                                var nomeArquivo = obterNomeArquivoTextura(numeroTextura);
+                                var caminhoTextura = pastaScript + "/resources/svg/" + nomeArquivo;
                                 var arquivoTextura = new File(caminhoTextura);
                                 if (typeof logs !== 'undefined' && logs.adicionarLog) {
                                     logs.adicionarLog("[BridgeTalk] Processando textura: " + numeroTextura, "info");
-                                    logs.adicionarLog("[BridgeTalk] Caminho do SVG: " + caminhoTextura, "info");
+                                    logs.adicionarLog("[BridgeTalk] Nome do arquivo: " + nomeArquivo, "info");
+                                    logs.adicionarLog("[BridgeTalk] Caminho do arquivo: " + caminhoTextura, "info");
                                     logs.adicionarLog("[BridgeTalk] Arquivo existe: " + arquivoTextura.exists, "info");
                                 }
                                 if (!arquivoTextura.exists) {
-                                    ui.mostrarAlertaPersonalizado("[BridgeTalk] Arquivo SVG não encontrado: " + caminhoTextura, "Erro");
+                                    ui.mostrarAlertaPersonalizado("[BridgeTalk] Arquivo não encontrado: " + caminhoTextura, "Erro");
                                 }
                                 if (arquivoTextura.exists) {
                                     var texturaItem = novaLayer.placedItems.add();

@@ -299,17 +299,57 @@ function obterNumeroTextura(texturaNome) {
         
         var numero;
         
-        if (texturaNome.indexOf("Texture") === 0) {
-            numero = parseInt(texturaNome.replace("Texture ", ""));
-        } else {
-            // Para texturas Flexi, manter a numeração original
-            switch(texturaNome) {
-                case "Flexi Triangle": numero = 17; break;
-                case "Flexi Boucle": numero = 18; break;
-                case "Flexi Losange": numero = 19; break;
-                case "Flexi Meli Melo": numero = 20; break;
-                default: numero = 1; break;
-            }
+        // Mapeamento dos novos nomes das texturas para números
+        switch(texturaNome) {
+            // LINHAS
+            case "Alpha": numero = 1; break;
+            case "LetteringLine": numero = 2; break;
+            case "OrigamiLine": numero = 3; break;
+            case "GMline": numero = 4; break;
+            case "PMline": numero = 5; break;
+            
+            // LINHAS CRUZADAS
+            case "GMcrossedline": numero = 6; break;
+            case "PMcrossedline": numero = 7; break;
+            
+            // FORMAS GEOMÉTRICAS
+            case "Round": numero = 8; break;
+            case "Square": numero = 9; break;
+            case "Square_rectangle": numero = 10; break;
+            case "Heart": numero = 11; break;
+            
+            // PADRÕES ORGÂNICOS
+            case "Beehive": numero = 12; break;
+            case "GMfoliage": numero = 13; break;
+            case "PMfoliage": numero = 14; break;
+            case "Gingerbread": numero = 15; break;
+            
+            // PADRÕES COMPLEXOS
+            case "Boucle": numero = 16; break;
+            case "MeliMelo": numero = 17; break;
+            case "Wave": numero = 18; break;
+            
+            // CALISSONS
+            case "GMcalisson": numero = 19; break;
+            case "PMcalisson": numero = 20; break;
+            
+            // SPAGHETTI
+            case "GMSpaghetti": numero = 21; break;
+            case "MMSpaghetti": numero = 22; break;
+            case "PMSpaghetti": numero = 23; break;
+            
+            // ESTRELAS
+            case "etoileGM": numero = 24; break;
+            case "etoilePM": numero = 25; break;
+            
+            // Fallback para texturas antigas (retrocompatibilidade)
+            default:
+                if (texturaNome.indexOf("Texture") === 0) {
+                    numero = parseInt(texturaNome.replace("Texture ", ""));
+                } else {
+                    numero = 1;
+                }
+                break;
         }
         
         return numero;
@@ -319,11 +359,189 @@ function obterNumeroTextura(texturaNome) {
     }
 }
 
+/**
+ * Obtém o nome do arquivo .ai baseado no nome da textura
+ */
+function obterNomeArquivoTextura(texturaNome) {
+    try {
+        // Validação de entrada
+        if (!texturaNome || typeof texturaNome !== 'string') {
+            return "Alpha.ai";
+        }
+        
+        // Mapeamento direto dos nomes das texturas para arquivos .ai
+        switch(texturaNome) {
+            // LINHAS
+            case "Alpha": return "Alpha.ai";
+            case "LetteringLine": return "LetteringLine.ai";
+            case "OrigamiLine": return "OrigamiLine.ai";
+            case "GMline": return "GMline.ai";
+            case "PMline": return "PMline.ai";
+            
+            // LINHAS CRUZADAS
+            case "GMcrossedline": return "GMcrossedline.ai";
+            case "PMcrossedline": return "PMcrossedline.ai";
+            
+            // FORMAS GEOMÉTRICAS
+            case "Round": return "Round.ai";
+            case "Square": return "Square.ai";
+            case "Square_rectangle": return "Square_rectangle.ai";
+            case "Heart": return "Heart.ai";
+            
+            // PADRÕES ORGÂNICOS
+            case "Beehive": return "Beehive.ai";
+            case "GMfoliage": return "GMfoliage.ai";
+            case "PMfoliage": return "PMfoliage.ai";
+            case "Gingerbread": return "Gingerbread.ai";
+            
+            // PADRÕES COMPLEXOS
+            case "Boucle": return "Boucle.ai";
+            case "MeliMelo": return "MeliMelo.ai";
+            case "Wave": return "Wave.ai";
+            
+            // CALISSONS
+            case "GMcalisson": return "GMcalisson.ai";
+            case "PMcalisson": return "PMcalisson.ai";
+            
+            // SPAGHETTI
+            case "GMSpaghetti": return "GMSpaghetti.ai";
+            case "MMSpaghetti": return "MMSpaghetti.ai";
+            case "PMSpaghetti": return "PMSpaghetti.ai";
+            
+            // ESTRELAS
+            case "etoileGM": return "etoileGM.ai";
+            case "etoilePM": return "etoilePM.ai";
+            
+            // Fallback para texturas antigas
+            default:
+                if (texturaNome.indexOf("Texture") === 0) {
+                    var numero = parseInt(texturaNome.replace("Texture ", ""));
+                    return "texture" + numero + ".ai";
+                } else {
+                    return "Alpha.ai";
+                }
+        }
+        
+    } catch (erro) {
+        return "Alpha.ai";
+    }
+}
+
+/**
+ * Obtém o nome do arquivo PNG para preview baseado no nome da textura
+ */
+function obterNomeArquivoPNG(texturaNome) {
+    try {
+        // Validação de entrada
+        if (!texturaNome || typeof texturaNome !== 'string') {
+            return "Alpha.png";
+        }
+        
+        var resultado;
+        
+        // Mapeamento atualizado - agora todos os PNGs existem com nomes corretos
+        switch(texturaNome) {
+            case "Alpha": 
+                resultado = "Alpha.png";
+                break;
+            case "LetteringLine": 
+                resultado = "LetteringLine.png";
+                break;
+            case "OrigamiLine": 
+                resultado = "OrigamiLine.png";
+                break;
+            case "GMline": 
+                resultado = "GMline.png";
+                break;
+            case "PMline": 
+                resultado = "PMline.png";
+                break;
+            case "GMcrossedline": 
+                resultado = "GMcrossedline.png";
+                break;
+            case "PMcrossedline": 
+                resultado = "PMcrossedline.png";
+                break;
+            case "Round": 
+                resultado = "Round.png";
+                break;
+            case "Square": 
+                resultado = "Square.png";
+                break;
+            case "Square_rectangle": 
+                resultado = "Square_rectangle.png";
+                break;
+            case "Heart": 
+                resultado = "Heart.png";
+                break;
+            case "Beehive": 
+                resultado = "Beehive.png";
+                break;
+            case "GMfoliage": 
+                resultado = "GMfoliage.png";
+                break;
+            case "PMfoliage": 
+                resultado = "PMfoliage.png";
+                break;
+            case "Gingerbread": 
+                resultado = "Gingerbread.png";
+                break;
+            case "Boucle": 
+                resultado = "Boucle.png";
+                break;
+            case "MeliMelo": 
+                resultado = "MeliMelo.png";
+                break;
+            case "Wave": 
+                resultado = "Wave.png";
+                break;
+            case "GMcalisson": 
+                resultado = "GMcalisson.png";
+                break;
+            case "PMcalisson": 
+                resultado = "PMcalisson.png";
+                break;
+            case "GMSpaghetti": 
+                resultado = "GMSpaghetti.png";
+                break;
+            case "MMSpaghetti": 
+                resultado = "MMSpaghetti.png";
+                break;
+            case "PMSpaghetti": 
+                resultado = "PMSpaghetti.png";
+                break;
+            case "etoileGM": 
+                resultado = "etoileGM.png";
+                break;
+            case "etoilePM": 
+                resultado = "etoilePM.png";
+                break;
+            
+            // Fallback para texturas antigas
+            default:
+                if (texturaNome.indexOf("Texture") === 0) {
+                    var numero = parseInt(texturaNome.replace("Texture ", ""));
+                    resultado = "texture" + numero + ".png";
+                } else {
+                    resultado = "Alpha.png";
+                }
+                break;
+        }
+        
+        return resultado;
+        
+    } catch (erro) {
+        return "Alpha.png";
+    }
+}
+
 // Export global
 $.global.funcoesFiltragem = {
     filtrarComponentes: filtrarComponentes,
     getComponentesComCombinacoes: getComponentesComCombinacoes,
     getCoresDisponiveisBolas: getCoresDisponiveisBolas,
     preencherCoresBioprint: preencherCoresBioprint,
-    obterNumeroTextura: obterNumeroTextura
+    obterNumeroTextura: obterNumeroTextura,
+    obterNomeArquivoTextura: obterNomeArquivoTextura,
+    obterNomeArquivoPNG: obterNomeArquivoPNG
 }; 

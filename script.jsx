@@ -717,13 +717,21 @@ colunaEsquerda.orientation = "column";
 colunaEsquerda.alignChildren = ["fill", "top"];
 var checkboxMostrarObs = colunaEsquerda.add("checkbox", undefined, t("adicionarObservacoes"));
 var checkboxMostrarComponenteExtra = colunaEsquerda.add("checkbox", undefined, t("adicionarComponenteExtra"));
+var checkboxMostrarTexturas = colunaEsquerda.add("checkbox", undefined, t("adicionarTexturas"));
 
 // Coluna direita
 var colunaDireita = grupoCheckboxes.add("group");
 colunaDireita.orientation = "column";
 colunaDireita.alignChildren = ["fill", "top"];
 var checkboxMostrarBolas = colunaDireita.add("checkbox", undefined, t("adicionarBolas"));
-var checkboxMostrarTexturas = colunaDireita.add("checkbox", undefined, t("adicionarTexturas"));
+var checkboxMostrarContar = colunaDireita.add("checkbox", undefined, t("mostrarContarElementos"));
+var checkboxMostrarAlfabeto = colunaDireita.add("checkbox", undefined, t("criarGX"));
+
+// Variável para armazenar componentes do alfabeto
+var componentesAlfabeto = null;
+
+// Variável para armazenar componentes do contador
+var componentesContador = null;
 
 // Variável para armazenar o grupo de bolas extra
 var grupoBolasExtra = null;
@@ -801,15 +809,11 @@ checkboxMostrarBolas.onClick = function() {
     janela.layout.resize();
 };
 
-// Aba 2: Criar
-var abaCriar = abasExtra.add("tab", undefined, t("criar"));
-abaCriar.alignChildren = ["fill", "top"];
-var checkboxMostrarAlfabeto = abaCriar.add("checkbox", undefined, t("criarGX"));
-var componentesAlfabeto = null;
+// Evento para o checkbox alfabeto
 checkboxMostrarAlfabeto.onClick = function() {
     if (this.value) {
         componentesAlfabeto = alfabeto.criarInterfaceAlfabeto(
-            abaCriar, dados, janela, t, funcoesFiltragem, funcoes, itensLegenda, atualizarListaItens, campoNomeTipo, grupoDimensoes
+            abaGeral, dados, janela, t, funcoesFiltragem, funcoes, itensLegenda, atualizarListaItens, campoNomeTipo, grupoDimensoes
         );
     } else {
         if (componentesAlfabeto) {
@@ -820,17 +824,8 @@ checkboxMostrarAlfabeto.onClick = function() {
     janela.layout.layout(true);
     janela.layout.resize();
 };
-var checkboxCriarPalavraAluminio = abaCriar.add("checkbox", undefined, t("criarPalavraAluminio"));
 
-// Aba 3: Contagem
-var abaContagem = abasExtra.add("tab", undefined, t("contador"));
-abaContagem.alignChildren = ["fill", "top"];
-var checkboxMostrarContar = abaContagem.add("checkbox", undefined, t("mostrarContarElementos"));
-// O grupo deve ser criado DEPOIS do checkbox, para ficar abaixo dele
-var grupoContador = abaContagem.add("group");
-grupoContador.orientation = "column";
-grupoContador.alignChildren = ["fill", "top"];
-var componentesContador = null;
+// Evento para o checkbox contador
 checkboxMostrarContar.onClick = function() {
     if (logs && logs.logEvento) {
         logs.logEvento("click", "checkboxMostrarContar - valor: " + this.value);
@@ -856,11 +851,18 @@ checkboxMostrarContar.onClick = function() {
         }
     }
 };
+
+
 // Variável para armazenar componentes da interface de texturas
 var grupoTexturas = abaGeral.add("group");
 grupoTexturas.orientation = "column";
 grupoTexturas.alignChildren = ["fill", "top"];
 var componentesTextura = null;
+
+// Grupo para o contador na aba Geral
+var grupoContador = abaGeral.add("group");
+grupoContador.orientation = "column";
+grupoContador.alignChildren = ["fill", "top"];
 
 // Evento para o checkbox de texturas
 checkboxMostrarTexturas.onClick = function() {
@@ -873,7 +875,7 @@ checkboxMostrarTexturas.onClick = function() {
     janela.layout.resize();
 };
 
-// Aba 4: Logs
+// Aba 2: Logs
 var abaLogs = abasExtra.add("tab", undefined, "Logs");
 abaLogs.alignChildren = ["fill", "top"];
 abaLogs.spacing = 10;

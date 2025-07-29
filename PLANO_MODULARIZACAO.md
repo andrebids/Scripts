@@ -414,7 +414,7 @@ function exemploComLogs(parametros) {
 - [ ] **8.3.7** **TESTE MANUAL:** Verificar checkbox de observações
 - [ ] **8.3.8** **TESTE MANUAL:** Verificar preview de texturas
 
-### **8.4 FASE 4: Centralização de Eventos UI**
+### **8.4 FASE 4: Centralização de Eventos UI** - **CONCLUÍDA ✅**
 - **Duração estimada:** 30-40 minutos
 - **Arquivo de destino:** `eventosUI.jsx`
 - **Eventos a extrair:**
@@ -423,11 +423,11 @@ function exemploComLogs(parametros) {
   - Lógica de atualização de interface
 
 **Tarefas específicas:**
-- [ ] **8.4.1** Criar `eventosUI.jsx` com namespace global
-- [ ] **8.4.2** Implementar `eventosUI.configurarEventosCheckboxes()`
-- [ ] **8.4.3** Implementar `eventosUI.configurarEventosDropdowns()`
-- [ ] **8.4.4** Implementar `eventosUI.atualizarLayoutJanela()`
-- [ ] **8.4.5** Substituir eventos inline por chamadas modulares
+- [x] **8.4.1** Criar `eventosUI.jsx` com namespace global
+- [x] **8.4.2** Implementar `eventosUI.configurarEventosCheckboxes()`
+- [x] **8.4.3** Implementar `eventosUI.configurarEventosDropdowns()`
+- [x] **8.4.4** Implementar `eventosUI.atualizarLayoutJanela()`
+- [x] **8.4.5** Substituir eventos inline por chamadas modulares
 - [ ] **8.4.6** **TESTE MANUAL:** Verificar todos os checkboxes
 - [ ] **8.4.7** **TESTE MANUAL:** Verificar dropdowns de componentes e cores
 - [ ] **8.4.8** **TESTE MANUAL:** Verificar layout dinâmico da janela

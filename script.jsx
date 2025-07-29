@@ -26,6 +26,7 @@ $.evalFile(File($.fileName).path + "/core/inicializacao.jsx");
 // Importar módulos de interface e gestão
 $.evalFile(File($.fileName).path + "/ui/ui.jsx");
 $.evalFile(File($.fileName).path + "/ui/gestaoLista.jsx");
+$.evalFile(File($.fileName).path + "/ui/eventosUI.jsx");
 
 // Importar módulos de manutenção
 $.evalFile(File($.fileName).path + "/infrastructure/update.jsx");
@@ -103,24 +104,7 @@ if (idiomaUsuario) {
     dropdownIdiomas.selection = 0;
 }
 
-// Evento de mudança do idioma - só dispara quando o usuário muda manualmente
-dropdownIdiomas.onChange = function() {
-    var novoIdioma = dropdownIdiomas.selection.text;
-    
-    // Só mostrar alerta e salvar se o idioma realmente mudou
-    if (novoIdioma !== idiomaUsuario) {
-        // Usar módulo config para alterar idioma
-        if (config.alterarIdioma(novoIdioma)) {
-            // Mostrar mensagem para o usuário
-            ui.mostrarAlertaPersonalizado(t("idiomaAlterado") + novoIdioma + t("reiniciarScript"), "Idioma Alterado");
-            
-            // Fechar a janela atual
-            janela.close();
-        } else {
-            ui.mostrarAlertaPersonalizado("Erro ao alterar idioma. Por favor, tente novamente.", "Erro");
-        }
-    }
-};
+// Evento será configurado pelo módulo eventosUI
 
 // Na criação do dropdown, selecionar o idioma atual
 dropdownIdiomas.selection = dropdownIdiomas.find(IDIOMA_ATUAL);
@@ -129,10 +113,7 @@ var botaoUpdate = grupoUpdate.add("button", undefined, t("botaoUpdate"));
 botaoUpdate.alignment = ["right", "center"];
 botaoUpdate.size = [60, 25];
 
-// Adicionar a funcionalidade do Update
-botaoUpdate.onClick = function() {
-    executarUpdate(t);
-};
+// Evento será configurado pelo módulo eventosUI
 
 // Criar abas para Legenda e Contador de Bolas
 var abas = janela.add("tabbedpanel");
@@ -196,12 +177,7 @@ var listaL = grupoLFixacao.add("dropdownlist", undefined, opcoesL);
 // listaL.selection = 0; // Removido para não selecionar nenhum valor por padrão
 listaL.preferredSize.width = 50; // Reduzir ainda mais para 50px
 
-// Validação obrigatória do campo L
-listaL.onChange = function() {
-    if (logs && logs.logEvento) {
-        logs.logEvento("change", "listaL - " + (this.selection ? this.selection.text : "nenhuma seleção"));
-    }
-};
+// Evento será configurado pelo módulo eventosUI
 
 grupoLFixacao.add("statictext", undefined, t("fixacao"));
 
@@ -252,12 +228,7 @@ var campoUsage = grupoCamposOpcionais.add("dropdownlist", undefined, [t("selecio
 campoUsage.selection = 0;
 campoUsage.preferredSize.width = 100; // Reduzir de 120 para 100
 
-// Adicionar evento para logs
-campoUsage.onChange = function() {
-    if (logs && logs.logEvento) {
-        logs.logEvento("change", "campoUsage - " + (this.selection ? this.selection.text : "nenhuma seleção"));
-    }
-};
+// Evento será configurado pelo módulo eventosUI
 
 // Campo Quantité prévue (input numérico mais compacto)
 grupoCamposOpcionais.add("statictext", undefined, t("quantitePrevu"));
@@ -266,12 +237,7 @@ campoQuantitePrevu.characters = 6; // Reduzir de 8 para 6
 campoQuantitePrevu.preferredSize.width = 50; // Definir largura fixa menor
 funcoes.apenasNumerosEVirgula(campoQuantitePrevu);
 
-// Adicionar evento para logs
-campoQuantitePrevu.onChanging = function() {
-    if (logs && logs.logEvento) {
-        logs.logEvento("change", "campoQuantitePrevu - " + this.text);
-    }
-};
+// Evento será configurado pelo módulo eventosUI
 
 // Campo Preço (input numérico mais compacto)
 grupoCamposOpcionais.add("statictext", undefined, t("preco"));
@@ -280,12 +246,7 @@ campoPreco.characters = 6; // Mesmo tamanho que o campo quantidade
 campoPreco.preferredSize.width = 50; // Definir largura fixa menor
 funcoes.apenasNumerosEVirgula(campoPreco);
 
-// Adicionar evento para logs
-campoPreco.onChanging = function() {
-    if (logs && logs.logEvento) {
-        logs.logEvento("change", "campoPreco - " + this.text);
-    }
-};
+// Evento será configurado pelo módulo eventosUI
 
 var coresStructure = [
     "Blanc RAL 9010",
@@ -305,9 +266,6 @@ corStructure.selection = 0;
 
 // Tornar o dropdown de cores visível apenas quando o checkbox estiver marcado
 corStructure.visible = false;
-checkStructure.onClick = function() {
-    corStructure.visible = this.value;
-};
 
 // Segundo grupo (Componentes)
 var grupoComponentes = conteudoLegenda.add("panel", undefined, t("painelComponentes"));
@@ -564,124 +522,11 @@ campoPesquisa.onChanging = function() {
 };
 
 // Eventos para atualizar cores e unidades ao selecionar um componente em cada linha
-function configurarEventosLinha(linha) {
-    linha.listaComponentes.onChange = function() {
-        funcoes.atualizarCores(linha.listaComponentes, linha.listaCores, linha.listaUnidades, dados, t, function() {
-            if (funcoesComponentes && funcoesComponentes.verificarCMYK) {
-                funcoesComponentes.verificarCMYK(linha.listaComponentes, linha.listaCores, linha.listaUnidades, dados, funcoes.encontrarIndicePorNome);
-            }
-        });
-    };
-    linha.listaCores.onChange = function() {
-        if (funcoesComponentes && funcoesComponentes.atualizarUnidades) {
-            funcoesComponentes.atualizarUnidades(linha.listaComponentes, linha.listaCores, linha.listaUnidades, dados, funcoes.selecionarUnidadeMetrica, funcoes.arrayContains);
-        }
-    };
-}
-configurarEventosLinha(linhaPrint);
-configurarEventosLinha(linhaLeds);
-configurarEventosLinha(linhaNormais);
+// Eventos serão configurados pelo módulo eventosUI
 
-// Atualizar eventos de adicionar para todos os grupos
-linhaPrint.botaoAdicionar.onClick = function() {
-    if (logs && logs.logEvento) {
-        logs.logEvento("click", "botaoAdicionarComponente_PRINT");
-    }
-    var soma = 0;
-    var campos = linhaPrint.camposQuantidade;
-    for (var i = 0; i < campos.length; i++) {
-        var valor = parseFloat(campos[i].text.replace(",", "."));
-        if (!isNaN(valor) && valor > 0) {
-            soma += valor;
-        }
-    }
-    if (soma <= 0) {
-        ui.mostrarAlertaPersonalizado(t("preencherCampos"), "Campo Obrigatório");
-        return;
-    }
-    funcoesComponentes.adicionarComponente(
-        linhaPrint.listaComponentes,
-        linhaPrint.listaCores,
-        linhaPrint.listaUnidades,
-        soma,
-        linhaPrint.campoMultiplicador,
-        ultimaSelecao,
-        dados,
-        itensLegenda,
-        atualizarListaItens,
-        t,
-        logs,
-        funcoes,
-        funcoes.encontrarIndicePorNome,
-        linhaPrint.camposQuantidade
-    );
-};
-linhaLeds.botaoAdicionar.onClick = function() {
-    if (logs && logs.logEvento) {
-        logs.logEvento("click", "botaoAdicionarComponente_LEDS");
-    }
-    var soma = 0;
-    var campos = linhaLeds.camposQuantidade;
-    for (var i = 0; i < campos.length; i++) {
-        var valor = parseFloat(campos[i].text.replace(",", "."));
-        if (!isNaN(valor) && valor > 0) {
-            soma += valor;
-        }
-    }
-    if (soma <= 0) {
-        ui.mostrarAlertaPersonalizado(t("preencherCampos"), "Campo Obrigatório");
-        return;
-    }
-    funcoesComponentes.adicionarComponente(
-        linhaLeds.listaComponentes,
-        linhaLeds.listaCores,
-        linhaLeds.listaUnidades,
-        soma,
-        linhaLeds.campoMultiplicador,
-        ultimaSelecao,
-        dados,
-        itensLegenda,
-        atualizarListaItens,
-        t,
-        logs,
-        funcoes,
-        funcoes.encontrarIndicePorNome,
-        linhaLeds.camposQuantidade
-    );
-};
-linhaNormais.botaoAdicionar.onClick = function() {
-    if (logs && logs.logEvento) {
-        logs.logEvento("click", "botaoAdicionarComponente_COMPONENTS");
-    }
-    var soma = 0;
-    var campos = linhaNormais.camposQuantidade;
-    for (var i = 0; i < campos.length; i++) {
-        var valor = parseFloat(campos[i].text.replace(",", "."));
-        if (!isNaN(valor) && valor > 0) {
-            soma += valor;
-        }
-    }
-    if (soma <= 0) {
-        ui.mostrarAlertaPersonalizado(t("preencherCampos"), "Campo Obrigatório");
-        return;
-    }
-    funcoesComponentes.adicionarComponente(
-        linhaNormais.listaComponentes,
-        linhaNormais.listaCores,
-        linhaNormais.listaUnidades,
-        soma,
-        linhaNormais.campoMultiplicador,
-        ultimaSelecao,
-        dados,
-        itensLegenda,
-        atualizarListaItens,
-        t,
-        logs,
-        funcoes,
-        funcoes.encontrarIndicePorNome,
-        linhaNormais.camposQuantidade
-    );
-};
+// Eventos serão configurados pelo módulo eventosUI
+// Eventos serão configurados pelo módulo eventosUI
+// Eventos serão configurados pelo módulo eventosUI
 
 // Grupo para bolas
 // var grupoBolas = conteudoLegenda.add("panel", undefined, t("painelBolas"));
@@ -736,121 +581,11 @@ var componentesContador = null;
 // Variável para armazenar o grupo de bolas extra
 var grupoBolasExtra = null;
 
-checkboxMostrarBolas.onClick = function() {
-    if (this.value) {
-        grupoBolasExtra = grupoExtra.add("panel", undefined, t("painelBolas"));
-        grupoBolasExtra.orientation = "column";
-        grupoBolasExtra.alignChildren = "left";
+// Evento será configurado pelo módulo eventosUI
 
-        // Grupo de seleção de bolas
-        var grupoBolasSelecao = grupoBolasExtra.add("group");
-        grupoBolasSelecao.orientation = "row";
+// Evento será configurado pelo módulo eventosUI
 
-        // Lista de cores para bolas
-        var coresBolasDisponiveis = funcoesFiltragem.getCoresDisponiveisBolas(dados, t, funcoes.arrayContains, funcoes.encontrarPorId);
-        var listaCoresBolas = grupoBolasSelecao.add("dropdownlist", undefined, coresBolasDisponiveis);
-        listaCoresBolas.selection = 0;
-
-        // Lista de acabamentos (inicialmente vazia)
-        var listaAcabamentos = grupoBolasSelecao.add("dropdownlist", undefined, [t("selecioneAcabamento")]);
-        listaAcabamentos.selection = 0;
-
-        // Lista de tamanhos (inicialmente vazia)
-        var listaTamanhos = grupoBolasSelecao.add("dropdownlist", undefined, [t("selecioneTamanho")]);
-        listaTamanhos.selection = 0;
-
-        // Campo para quantidade de bolas
-        var campoQuantidadeBolas = grupoBolasSelecao.add("edittext", undefined, "1");
-        campoQuantidadeBolas.characters = 5;
-        funcoes.apenasNumerosEVirgula(campoQuantidadeBolas);
-
-        // Botão adicionar bola
-        var botaoAdicionarBola = grupoBolasSelecao.add("button", undefined, t("adicionarBola"));
-
-        // Eventos de mudança
-        listaCoresBolas.onChange = function() {
-            if (logs && logs.logEvento) {
-                logs.logEvento("change", "listaCoresBolas - " + (this.selection ? this.selection.text : "nenhuma seleção"));
-            }
-            funcoesBolas.atualizarAcabamentos(listaCoresBolas, listaAcabamentos, dados, t, funcoes, function() {
-                funcoesBolas.atualizarTamanhos(listaCoresBolas, listaAcabamentos, listaTamanhos, dados, t, funcoes);
-            });
-        };
-        listaAcabamentos.onChange = function() {
-            if (logs && logs.logEvento) {
-                logs.logEvento("change", "listaAcabamentos - " + (this.selection ? this.selection.text : "nenhuma seleção"));
-            }
-            funcoesBolas.atualizarTamanhos(listaCoresBolas, listaAcabamentos, listaTamanhos, dados, t, funcoes);
-        };
-
-        botaoAdicionarBola.onClick = function() {
-            funcoesBolas.adicionarBola(
-                listaCoresBolas,
-                listaAcabamentos,
-                listaTamanhos,
-                campoQuantidadeBolas,
-                dados,
-                itensLegenda,
-                atualizarListaItens,
-                t,
-                logs,
-                funcoes
-            );
-        };
-
-        janela.layout.layout(true);
-    } else {
-        if (grupoBolasExtra) {
-            grupoBolasExtra.parent.remove(grupoBolasExtra);
-            grupoBolasExtra = null;
-            janela.layout.layout(true);
-        }
-    }
-    janela.layout.resize();
-};
-
-// Evento para o checkbox alfabeto
-checkboxMostrarAlfabeto.onClick = function() {
-    if (this.value) {
-        componentesAlfabeto = alfabeto.criarInterfaceAlfabeto(
-            abaGeral, dados, janela, t, funcoesFiltragem, funcoes, itensLegenda, atualizarListaItens, campoNomeTipo, grupoDimensoes
-        );
-    } else {
-        if (componentesAlfabeto) {
-            alfabeto.removerInterfaceAlfabeto(componentesAlfabeto, janela);
-            componentesAlfabeto = null;
-        }
-    }
-    janela.layout.layout(true);
-    janela.layout.resize();
-};
-
-// Evento para o checkbox contador
-checkboxMostrarContar.onClick = function() {
-    if (logs && logs.logEvento) {
-        logs.logEvento("click", "checkboxMostrarContar - valor: " + this.value);
-    }
-    if (this.value) {
-        componentesContador = ui.criarInterfaceContadorBolas(
-            grupoContador, dados, itensLegenda, atualizarListaItens
-        );
-        if (logs && logs.adicionarLog) {
-            logs.adicionarLog("Interface do contador criada e layout será atualizado", logs.TIPOS_LOG.INFO);
-        }
-        janela.layout.layout(true);
-        janela.layout.resize();
-    } else {
-        if (componentesContador && componentesContador.grupo) {
-            componentesContador.grupo.parent.remove(componentesContador.grupo);
-            componentesContador = null;
-            if (logs && logs.adicionarLog) {
-                logs.adicionarLog("Interface do contador removida e layout será atualizado", logs.TIPOS_LOG.INFO);
-            }
-            janela.layout.layout(true);
-            janela.layout.resize();
-        }
-    }
-};
+// Evento será configurado pelo módulo eventosUI
 
 
 // Variável para armazenar componentes da interface de texturas
@@ -864,16 +599,7 @@ var grupoContador = abaGeral.add("group");
 grupoContador.orientation = "column";
 grupoContador.alignChildren = ["fill", "top"];
 
-// Evento para o checkbox de texturas
-checkboxMostrarTexturas.onClick = function() {
-    if (this.value) {
-        componentesTextura = ui.criarInterfaceTexturas(grupoTexturas, janela, t, funcoesFiltragem, itensLegenda, atualizarListaItens);
-    } else {
-        ui.removerInterfaceTexturas(componentesTextura, janela);
-        componentesTextura = null;
-    }
-    janela.layout.resize();
-};
+// Evento será configurado pelo módulo eventosUI
 
 // Aba 2: Logs
 var abaLogs = abasExtra.add("tab", undefined, "Logs");
@@ -902,78 +628,11 @@ abasExtra.selection = abaGeral;
 // Variável para armazenar componentes da interface de observações
 var componentesObservacoes = null;
 
-checkboxMostrarObs.onClick = function() {
-    if (this.value) {
-        // Criar interface de observações usando módulo
-        componentesObservacoes = ui.criarInterfaceObservacoes(
-            grupoExtra,
-            janela,
-            t
-        );
-    } else {
-        // Remover interface de observações usando módulo
-        ui.removerInterfaceObservacoes(componentesObservacoes, janela);
-        componentesObservacoes = null;
-    }
-    janela.layout.resize();
-};
+// Evento será configurado pelo módulo eventosUI
 
 // Variável para armazenar o grupo de componente extra
 var grupoComponenteExtra = null;
-checkboxMostrarComponenteExtra.onClick = function() {
-    if (this.value) {
-        if (logs && logs.logEvento) {
-            logs.logEvento("click", "checkboxMostrarComponenteExtra - criando campo de componente extra");
-        }
-        grupoComponenteExtra = abaGeral.add("group");
-        grupoComponenteExtra.orientation = "row";
-        grupoComponenteExtra.alignChildren = ["left", "center"];
-        grupoComponenteExtra.spacing = 5;
-        grupoComponenteExtra.add("statictext", undefined, t("nomeComponenteExtra"));
-        var campoNomeExtra = grupoComponenteExtra.add("edittext", undefined, "");
-        campoNomeExtra.characters = 12;
-        grupoComponenteExtra.add("statictext", undefined, t("unidadeComponenteExtra"));
-        var opcoesUnidadeExtra = ["m2", "ml", "unit"];
-        var campoUnidadeExtra = grupoComponenteExtra.add("dropdownlist", undefined, opcoesUnidadeExtra);
-        campoUnidadeExtra.selection = 0;
-        grupoComponenteExtra.add("statictext", undefined, t("quantidadeComponenteExtra"));
-        var campoQuantidadeExtra = grupoComponenteExtra.add("edittext", undefined, "1");
-        campoQuantidadeExtra.characters = 4;
-        var botaoAdicionarExtra = grupoComponenteExtra.add("button", undefined, t("adicionarComponenteExtra"));
-        botaoAdicionarExtra.onClick = function() {
-            var nomeExtra = campoNomeExtra.text;
-            var unidadeExtra = campoUnidadeExtra.selection ? campoUnidadeExtra.selection.text : "";
-            var quantidadeExtra = parseFloat(campoQuantidadeExtra.text.replace(',', '.'));
-            if (nomeExtra === "" || isNaN(quantidadeExtra) || quantidadeExtra <= 0) {
-                ui.mostrarAlertaPersonalizado(t("preencherCampos"), "Campo Obrigatório");
-                return;
-            }
-            var textoExtra = nomeExtra + " (" + unidadeExtra + "): " + quantidadeExtra.toFixed(2).replace('.', ',');
-            itensLegenda.push({
-                tipo: "extra",
-                nome: nomeExtra,
-                texto: textoExtra,
-                unidade: unidadeExtra,
-                quantidade: quantidadeExtra
-            });
-            atualizarListaItens();
-            campoNomeExtra.text = "";
-            campoQuantidadeExtra.text = "";
-        };
-        janela.layout.layout(true);
-        janela.layout.resize();
-    } else {
-        if (grupoComponenteExtra) {
-            if (logs && logs.logEvento) {
-                logs.logEvento("click", "checkboxMostrarComponenteExtra - removendo campo de componente extra");
-            }
-            grupoComponenteExtra.parent.remove(grupoComponenteExtra);
-            grupoComponenteExtra = null;
-            janela.layout.layout(true);
-            janela.layout.resize();
-        }
-    }
-};
+// Evento será configurado pelo módulo eventosUI
 
 // Manter apenas este código para a lista única
 var grupoPreviewBotoes = conteudoLegenda.add("group");
@@ -1012,113 +671,120 @@ function atualizarListaItens() {
   // Configurar eventos da lista usando o módulo gestaoLista.jsx
   gestaoLista.configurarEventosLista(botaoRemoverItem, botaoRemoverTodos, listaItens, itensLegenda, atualizarListaItens, t);
 
-  // Evento de clique no botão gerar
-  botaoGerar.onClick = function() {
-    if (logs && logs.logEvento) {
-        logs.logEvento("click", "botaoGerar");
-    }
-    // Verificar se o campo L foi selecionado
-    if (!listaL.selection) {
-        ui.mostrarAlertaPersonalizado("Selecione um valor para o campo L (obrigatório)", "Campo Obrigatório");
-        return;
-    }
-    // Verificar se o tipo de fixação foi selecionado
-    if (!listaFixacao.selection || listaFixacao.selection.index === 0) {
-        ui.mostrarAlertaPersonalizado(t("selecionarTipoFixacao"), "Atenção");
-        return;
-    }
-        // Verificar se há dimensões preenchidas
-        var temDimensoes = false;
-        for (var i = 0; i < dimensoes.length; i++) {
-            var valorDimensao = grupoDimensoes.children[i*2 + 1].text;
-            if (valorDimensao !== "") {
-                temDimensoes = true;
-                break;
-            }
-        }
+  // Evento será configurado pelo módulo eventosUI
 
-        // Se não houver dimensões, mostrar confirmação personalizada
-        if (!temDimensoes) {
-            var continuarSemTamanho = false;
-            ui.mostrarConfirmacaoPersonalizada(
-                t("confirmacaoSemTamanho"), 
-                "Confirmação", 
-                function() { continuarSemTamanho = true; }, // Sim
-                function() { return; } // Não - retorna sem fazer nada
-            );
-            if (!continuarSemTamanho) {
-                return; // Se o usuário clicar em "Não", interrompe a execução
-            }
-        }
-
-        // Continua diretamente sem confirmação
-        try {
-                // Preparar parâmetros para a função modularizada
-                var parametrosPreview = {
-                    itensLegenda: itensLegenda,
-                    campoNomeTipo: campoNomeTipo,
-                    escolhaNomeTipo: escolhaNomeTipo,
-                    listaL: listaL,
-                    dimensoes: dimensoes,
-                    grupoDimensoes: grupoDimensoes,
-                    listaFixacao: listaFixacao,
-                    checkStructure: checkStructure,
-                    corStructure: corStructure,
-                    campoObs: componentesObservacoes ? componentesObservacoes.campoObs : null,
-                    campoUsage: campoUsage,
-                    campoQuantitePrevu: campoQuantitePrevu,
-                    campoPreco: campoPreco
-                };
-                
-                var legendaInfo = funcoesLegenda.atualizarPreview(parametrosPreview);
-                
-                if (legendaInfo === undefined) {
-                    ui.mostrarAlertaPersonalizado(t("erroGerarLegenda"), "Erro");
-                    return;
-                }
-                
-                // Substituir pontos por vírgulas
-                var legendaConteudo = legendaInfo.texto.replace(/(\d+)\.(\d+)/g, formatarNumero);
-    
-                // Encontrar o tamanho do alfabeto nos itens da legenda
-                var tamanhoGXSelecionado = obterTamanhoAlfabeto(itensLegenda);
-    
-                // Capturar a palavra digitada do campo alfabeto
-                var palavraDigitada = obterPalavraDigitadaAlfabeto(itensLegenda);
-                
-                // Usar módulo bridge para adicionar legenda
-                if (logs && logs.adicionarLog) {
-                    logs.adicionarLog("Tipo de legendaInfo.texturas: " + Object.prototype.toString.call(legendaInfo.texturas), "info");
-                    logs.adicionarLog("Valor de legendaInfo.texturas: " + legendaInfo.texturas, "info");
-                }
-                var pastaBaseLegenda = File($.fileName).parent.fsName.replace(/\\/g, '/');
-                bridge.adicionarLegendaViaBridge(
-                    nomeDesigner,
-                    legendaConteudo,
-                    (Object.prototype.toString.call(legendaInfo.texturas) === '[object Array]' ? legendaInfo.texturas.join(',') : ''),
-                    palavraDigitada,
-                    tamanhoGXSelecionado,
-                    t,
-                    janela,
-                    pastaBaseLegenda, // novo parâmetro
-                    function(erro, resultado) {
-                        if (erro) {
-                            if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
-                                logs.adicionarLog("Erro ao adicionar legenda via bridge: " + erro, logs.TIPOS_LOG.ERROR);
-                            }
-                        } else {
-                            if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
-                                logs.adicionarLog("Legenda adicionada via bridge com sucesso", logs.TIPOS_LOG.INFO);
+    // Configurar todos os eventos UI usando o módulo eventosUI
+    if (eventosUI) {
+        var configEventos = {
+            // Elementos de interface
+            janela: janela,
+            dropdownIdiomas: dropdownIdiomas,
+            botaoUpdate: botaoUpdate,
+            listaL: listaL,
+            campoUsage: campoUsage,
+            campoQuantitePrevu: campoQuantitePrevu,
+            campoPreco: campoPreco,
+            checkStructure: checkStructure,
+            corStructure: corStructure,
+            checkboxMostrarBolas: checkboxMostrarBolas,
+            checkboxMostrarAlfabeto: checkboxMostrarAlfabeto,
+            checkboxMostrarContar: checkboxMostrarContar,
+            checkboxMostrarTexturas: checkboxMostrarTexturas,
+            checkboxMostrarObs: checkboxMostrarObs,
+            checkboxMostrarComponenteExtra: checkboxMostrarComponenteExtra,
+            linhaPrint: linhaPrint,
+            linhaLeds: linhaLeds,
+            linhaNormais: linhaNormais,
+            botaoGerar: botaoGerar,
+            listaFixacao: listaFixacao,
+            grupoDimensoes: grupoDimensoes,
+            dimensoes: dimensoes,
+            grupoExtra: grupoExtra,
+            grupoBolasExtra: grupoBolasExtra,
+            grupoTexturas: grupoTexturas,
+            grupoContador: grupoContador,
+            abaGeral: abaGeral,
+            componentesAlfabeto: componentesAlfabeto,
+            componentesContador: componentesContador,
+            componentesTextura: componentesTextura,
+            componentesObservacoes: componentesObservacoes,
+            grupoComponenteExtra: grupoComponenteExtra,
+            campoNomeTipo: campoNomeTipo,
+            
+            // Dados e funções
+            dados: dados,
+            t: t,
+            itensLegenda: itensLegenda,
+            atualizarListaItens: atualizarListaItens,
+            ultimaSelecao: ultimaSelecao,
+            idiomaUsuario: idiomaUsuario,
+            alterarIdioma: config ? config.alterarIdioma : null,
+            executarUpdate: executarUpdate,
+            gerarLegenda: function() {
+                // Lógica de geração da legenda
+                try {
+                    var parametrosPreview = {
+                        itensLegenda: itensLegenda,
+                        campoNomeTipo: campoNomeTipo,
+                        escolhaNomeTipo: escolhaNomeTipo,
+                        listaL: listaL,
+                        dimensoes: dimensoes,
+                        grupoDimensoes: grupoDimensoes,
+                        listaFixacao: listaFixacao,
+                        checkStructure: checkStructure,
+                        corStructure: corStructure,
+                        campoObs: componentesObservacoes ? componentesObservacoes.campoObs : null,
+                        campoUsage: campoUsage,
+                        campoQuantitePrevu: campoQuantitePrevu,
+                        campoPreco: campoPreco
+                    };
+                    
+                    var legendaInfo = funcoesLegenda.atualizarPreview(parametrosPreview);
+                    
+                    if (legendaInfo === undefined) {
+                        ui.mostrarAlertaPersonalizado(t("erroGerarLegenda"), "Erro");
+                        return;
+                    }
+                    
+                    var legendaConteudo = legendaInfo.texto.replace(/(\d+)\.(\d+)/g, regras.formatarNumero);
+                    var tamanhoGXSelecionado = alfabeto.obterTamanhoAlfabeto(itensLegenda);
+                    var palavraDigitada = alfabeto.obterPalavraDigitadaAlfabeto(itensLegenda);
+                    
+                    var pastaBaseLegenda = File($.fileName).parent.fsName.replace(/\\/g, '/');
+                    bridge.adicionarLegendaViaBridge(
+                        nomeDesigner,
+                        legendaConteudo,
+                        (Object.prototype.toString.call(legendaInfo.texturas) === '[object Array]' ? legendaInfo.texturas.join(',') : ''),
+                        palavraDigitada,
+                        tamanhoGXSelecionado,
+                        t,
+                        janela,
+                        pastaBaseLegenda,
+                        function(erro, resultado) {
+                            if (erro) {
+                                if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
+                                    logs.adicionarLog("Erro ao adicionar legenda via bridge: " + erro, logs.TIPOS_LOG.ERROR);
+                                }
+                            } else {
+                                if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
+                                    logs.adicionarLog("Legenda adicionada via bridge com sucesso", logs.TIPOS_LOG.INFO);
+                                }
                             }
                         }
-                    }
-                );
-    
-            } catch (e) {
-                ui.mostrarAlertaPersonalizado("Erro ao adicionar legenda: " + e + "\nLinha: " + e.line, "Erro");
+                    );
+                } catch (e) {
+                    ui.mostrarAlertaPersonalizado("Erro ao adicionar legenda: " + e + "\nLinha: " + e.line, "Erro");
+                }
             }
-    };
-
+        };
+        
+        // Configurar eventos
+        eventosUI.configurarEventosCheckboxes(configEventos);
+        eventosUI.configurarEventosDropdowns(configEventos);
+        eventosUI.configurarEventosComponentes(configEventos);
+        eventosUI.configurarEventosBotoes(configEventos);
+    }
+    
     // Exibir a janela
     janela.show();
 

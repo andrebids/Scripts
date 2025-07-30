@@ -93,7 +93,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v2.1.5");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v2.1.6");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -480,6 +480,49 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
 var linhaPrint = criarLinhaGrupo(grupoComponentes, "PRINT", componentesOriginaisPrint);
 var linhaLeds = criarLinhaGrupo(grupoComponentes, "LEDS", componentesOriginaisLeds);
 var linhaNormais = criarLinhaGrupo(grupoComponentes, "COMPONENTS", componentesOriginaisNormais);
+
+// Aplicar filtragem inicial do dropdown de print baseada no uso selecionado
+if (campoUsage && campoUsage.selection && linhaPrint && linhaPrint.listaComponentes) {
+    try {
+        var usoInicial = campoUsage.selection.text;
+        
+        if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
+            logs.adicionarLog("Aplicando filtragem inicial do PRINT por uso: " + usoInicial, logs.TIPOS_LOG.INFO);
+        }
+        
+        var componentesFiltradosInicial = funcoesFiltragem.filtrarComponentesPrintPorUso(usoInicial, dados, t);
+        
+        // Limpar e repopular o dropdown
+        linhaPrint.listaComponentes.removeAll();
+        linhaPrint.listaComponentes.add("item", t("selecioneComponente"));
+        
+        for (var i = 0; i < componentesFiltradosInicial.length; i++) {
+            linhaPrint.listaComponentes.add("item", componentesFiltradosInicial[i]);
+        }
+        
+        linhaPrint.listaComponentes.selection = 0;
+        
+        if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
+            logs.adicionarLog("Filtragem inicial aplicada: " + componentesFiltradosInicial.length + " componentes para uso '" + usoInicial + "'", logs.TIPOS_LOG.INFO);
+        }
+        
+    } catch (erro) {
+        if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
+            logs.adicionarLog("Erro na filtragem inicial do PRINT: " + erro.message, logs.TIPOS_LOG.ERROR);
+        }
+    }
+} else {
+    var mensagemDebugInicial = "=== DEBUG FILTRAGEM INICIAL ===\n";
+    mensagemDebugInicial += "campoUsage existe: " + (campoUsage ? "SIM" : "NÃO") + "\n";
+    if (campoUsage) {
+        mensagemDebugInicial += "campoUsage.selection existe: " + (campoUsage.selection ? "SIM" : "NÃO") + "\n";
+    }
+    mensagemDebugInicial += "linhaPrint existe: " + (linhaPrint ? "SIM" : "NÃO") + "\n";
+    if (linhaPrint) {
+        mensagemDebugInicial += "linhaPrint.listaComponentes existe: " + (linhaPrint.listaComponentes ? "SIM" : "NÃO") + "\n";
+    }
+    alert(mensagemDebugInicial);
+}
 
 // Campo de pesquisa (mantido no topo)
 var campoPesquisa = grupoPesquisa.add("edittext", undefined, "");

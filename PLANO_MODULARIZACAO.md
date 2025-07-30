@@ -1841,6 +1841,47 @@ ui.mostrarAlertaPersonalizado(t("mensagemTraduzida"), "Título", function() {
 
 **Este plano garante a padronização completa de todos os alertas do sistema, mantendo funcionalidade total e seguindo os padrões de modularização estabelecidos no projeto.**
 
----
-
-</rewritten_file>
+19. Filtragem do Dropdown Print por Uso Interior/Exterior
+Objetivo
+Garantir que o dropdown de seleção de "print" (BIOPRINT, RECYPRINT, PRINT IGNIFUGÉ, FLEXIPRINT, FLEXIPRINT IGNIFUGÉ) exiba apenas as opções compatíveis com o "uso" selecionado (interior ou exterior), conforme correspondência definida na base de dados (database2.json).
+Justificativa
+Evitar seleção de combinações inválidas de produto/uso.
+Melhorar a experiência do usuário, tornando a interface mais intuitiva.
+Garantir integridade dos dados e evitar erros de produção.
+19.1 Análise e Planejamento
+[ ] Mapear todos os produtos "print" e suas compatibilidades de uso (interior/exterior) no database2.json.
+[ ] Identificar os campos/IDs que determinam a compatibilidade de cada opção de "print" com o uso.
+[ ] Localizar no código onde ocorre:
+A seleção do "uso" (interior/exterior).
+O preenchimento do dropdown de "print".
+19.2 Implementação da Lógica de Filtragem
+[ ] Criar função de utilidade (ex: filtrarPrintPorUso(usoSelecionado)) no módulo temático correto (funcoesFiltragem.jsx ou funcoesComponentes.jsx).
+[ ] A função deve:
+Receber o valor selecionado de uso ("interior" ou "exterior").
+Ler a lista de opções de "print" e suas compatibilidades do database2.json.
+Retornar apenas as opções válidas para o uso selecionado.
+[ ] Adicionar logs detalhados do processo de filtragem (início, resultado, erros).
+19.3 Integração com a Interface
+[ ] Adaptar o evento de mudança do dropdown de "uso" para disparar a filtragem do dropdown de "print".
+[ ] Atualizar o dropdown de "print" dinamicamente, exibindo apenas as opções filtradas.
+[ ] Garantir que, ao trocar o uso, a seleção de "print" seja validada (limpar se a opção anterior não for mais válida).
+[ ] Adicionar logs de interface para cada atualização.
+19.4 Testes Manuais e Validação
+[ ] Testar manualmente todas as combinações de uso e print.
+[ ] Validar que nunca é possível selecionar uma combinação inválida.
+[ ] Verificar logs de filtragem e interface.
+[ ] Garantir que a alteração não afeta outras funcionalidades.
+19.5 Documentação e Refino
+[ ] Documentar a função de filtragem e a lógica implementada no plano e nos arquivos afetados.
+[ ] Atualizar comentários e instruções nos módulos modificados.
+[ ] Garantir compatibilidade com todas as regras e padrões do projeto.
+Checklist de Implementação
+[ ] Localização correta das funções e lógica nos módulos temáticos.
+[ ] Estrutura padrão de validação, logs e exportação global.
+[ ] Compatibilidade com o sistema de logs e interface.
+[ ] Testes manuais incrementais após cada etapa.
+[ ] Documentação atualizada no plano e nos arquivos afetados.
+Observações:
+O sistema deve ser robusto para futuras expansões (novos tipos de uso ou produtos print).
+O layout do dropdown não deve ser poluído visualmente; apenas as opções válidas devem aparecer.
+O tratamento de erros e logs deve seguir o padrão do projeto.

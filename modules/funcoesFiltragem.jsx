@@ -1,5 +1,5 @@
-#target illustrator
-#targetengine maintarget
+#target illustrator;
+#targetengine maintarget;
 
 /**
  * funcoesFiltragem.jsx
@@ -535,6 +535,56 @@ function obterNomeArquivoPNG(texturaNome) {
     }
 }
 
+/**
+ * Filtra componentes PRINT conforme o uso selecionado (interior/exterior)
+ * @param {string} uso - "interior" ou "exterior"
+ * @param {object} dados - Objeto de dados carregado do database2.json
+ * @param {function} t - Função de tradução
+ * @returns {Array} Lista de nomes de componentes print compatíveis
+ */
+function filtrarComponentesPrintPorUso(uso, dados, t) {
+    logProtegidoFiltragem("Iniciando filtragem de componentes PRINT por uso: " + uso, logs.TIPOS_LOG.FUNCTION);
+    try {
+        if (!dados || !dados.componentes) {
+            logProtegidoFiltragem("Dados inválidos para filtragem de PRINT por uso", logs.TIPOS_LOG.WARNING);
+            return [];
+        }
+        var printsInterior = ["print ignifuge", "flexiprint ignifuge"];
+        var printsExterior = ["bioprint", "recyprint", "flexiprint"];
+        var printsValidos = [];
+        var usoLower = (uso || "").toLowerCase();
+        var listaFinal = [];
+        if (usoLower.indexOf("interieur") !== -1 || usoLower.indexOf("interior") !== -1) {
+            printsValidos = printsInterior;
+        } else if (usoLower.indexOf("exterieur") !== -1 || usoLower.indexOf("exterior") !== -1) {
+            printsValidos = printsExterior;
+        } else {
+            // Se não definido, retorna todos
+            for (var i = 0; i < dados.componentes.length; i++) {
+                var nome = dados.componentes[i].nome.toLowerCase();
+                if (nome === "bioprint" || nome === "recyprint" || nome === "print ignifuge" || nome === "flexiprint" || nome === "flexiprint ignifuge") {
+                    listaFinal.push(dados.componentes[i].nome);
+                }
+            }
+            logProtegidoFiltragem("Uso não definido, retornando todos os prints", logs.TIPOS_LOG.INFO);
+            return listaFinal;
+        }
+        for (var i = 0; i < dados.componentes.length; i++) {
+            var nome = dados.componentes[i].nome.toLowerCase();
+            for (var j = 0; j < printsValidos.length; j++) {
+                if (nome === printsValidos[j]) {
+                    listaFinal.push(dados.componentes[i].nome);
+                }
+            }
+        }
+        logProtegidoFiltragem("Filtragem PRINT por uso concluída: " + listaFinal.length + " encontrados", logs.TIPOS_LOG.INFO);
+        return listaFinal;
+    } catch (erro) {
+        logProtegidoFiltragem("Erro ao filtrar PRINT por uso: " + erro.message, logs.TIPOS_LOG.ERROR);
+        return [];
+    }
+}
+
 // Export global
 $.global.funcoesFiltragem = {
     filtrarComponentes: filtrarComponentes,
@@ -545,3 +595,9 @@ $.global.funcoesFiltragem = {
     obterNomeArquivoTextura: obterNomeArquivoTextura,
     obterNomeArquivoPNG: obterNomeArquivoPNG
 }; 
+
+// Exportar função no global
+if (!$.global.funcoesFiltragem) {
+    $.global.funcoesFiltragem = {};
+}
+$.global.funcoesFiltragem.filtrarComponentesPrintPorUso = filtrarComponentesPrintPorUso; 

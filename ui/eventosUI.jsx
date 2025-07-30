@@ -320,6 +320,54 @@ $.global.eventosUI = {};
                     if (logs && logs.logEvento) {
                         logs.logEvento("change", "campoUsage - " + (this.selection ? this.selection.text : "nenhuma seleção"));
                     }
+                    
+                    try {
+                        // Verificar se a linha de print existe
+                        if (config.linhaPrint && config.linhaPrint.listaComponentes) {
+                            var usoSelecionado = this.selection ? this.selection.text : "";
+                            
+                            // Chamar função de filtragem
+                            var componentesFiltrados = funcoesFiltragem.filtrarComponentesPrintPorUso(usoSelecionado, config.dados, config.t);
+                            
+                            // Salvar seleção atual
+                            var selecaoAtual = config.linhaPrint.listaComponentes.selection;
+                            var textoSelecionado = selecaoAtual ? selecaoAtual.text : "";
+                            
+                            // Limpar e repopular o dropdown
+                            config.linhaPrint.listaComponentes.removeAll();
+                            
+                            // Adicionar opção padrão
+                            config.linhaPrint.listaComponentes.add("item", config.t("selecioneComponente"));
+                            
+                            // Adicionar componentes filtrados
+                            for (var i = 0; i < componentesFiltrados.length; i++) {
+                                config.linhaPrint.listaComponentes.add("item", componentesFiltrados[i]);
+                            }
+                            
+                            // Tentar restaurar seleção anterior se ainda válida
+                            var indiceRestaurado = -1;
+                            for (var i = 0; i < config.linhaPrint.listaComponentes.items.length; i++) {
+                                if (config.linhaPrint.listaComponentes.items[i].text === textoSelecionado) {
+                                    indiceRestaurado = i;
+                                    break;
+                                }
+                            }
+                            
+                            if (indiceRestaurado !== -1) {
+                                config.linhaPrint.listaComponentes.selection = indiceRestaurado;
+                            } else {
+                                config.linhaPrint.listaComponentes.selection = 0; // Selecionar "Selecione componente"
+                            }
+                            
+                            if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
+                                logs.adicionarLog("Dropdown de PRINT atualizado: " + componentesFiltrados.length + " componentes para uso '" + usoSelecionado + "'", logs.TIPOS_LOG.INFO);
+                            }
+                        }
+                    } catch (erro) {
+                        if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
+                            logs.adicionarLog("Erro ao filtrar componentes PRINT por uso: " + erro.message, logs.TIPOS_LOG.ERROR);
+                        }
+                    }
                 };
             }
             

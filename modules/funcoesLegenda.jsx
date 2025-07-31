@@ -190,7 +190,18 @@ function gerarFrasePrincipal(parametros) {
                         for (var c = 0; c < coresSeparadas.length; c++) {
                             var cor = coresSeparadas[c].replace(/^\s+|\s+$/g, "");
                             if (cor !== "") {
-                                agrupados[nome].push(cor);
+                                // Se a cor contém "et", separar também por "et"
+                                if (cor.indexOf(" et ") !== -1) {
+                                    var subCores = cor.split(" et ");
+                                    for (var sc = 0; sc < subCores.length; sc++) {
+                                        var subCor = subCores[sc].replace(/^\s+|\s+$/g, "");
+                                        if (subCor !== "") {
+                                            agrupados[nome].push(subCor);
+                                        }
+                                    }
+                                } else {
+                                    agrupados[nome].push(cor);
+                                }
                             }
                         }
                     } else {
@@ -207,8 +218,8 @@ function gerarFrasePrincipal(parametros) {
                     var lista = [];
                     for (var k = 0; k < variacoes.length; k++) {
                         var cor = variacoes[k];
-                        cor = cor.replace(/\bled\b/gi, "");
-                        cor = cor.replace(/\blumi[èe]re\b/gi, "");
+                        // Remover "led" e "lumière" apenas se estiverem no início da string
+                        cor = cor.replace(/^(led|lumi[èe]re)\s+/gi, "");
                         cor = cor.replace(/\s+/g, " ").replace(/^\s+/, "").replace(/\s+$/, "");
                         if (k === 0) {
                             lista.push(prefixo + cor);
@@ -439,7 +450,16 @@ function processarComponentes(itensLegenda) {
                 return a.localeCompare(b);
             });
             
-            componentesTexto.push(nomeComponente.toLowerCase() + " " + juntarVariaçõesCor(coresOrdenadas));
+            // Para componentes que não são 'fil', aplicar juntarVariaçõesCor aqui
+            // Para 'fil', deixar as cores separadas para processamento posterior
+            if (nomeComponente.toLowerCase() === "fil") {
+                // Para fil, manter as cores separadas para processamento na frase principal
+                for (var j = 0; j < coresOrdenadas.length; j++) {
+                    componentesTexto.push(nomeComponente.toLowerCase() + " " + coresOrdenadas[j]);
+                }
+            } else {
+                componentesTexto.push(nomeComponente.toLowerCase() + " " + juntarVariaçõesCor(coresOrdenadas));
+            }
         }
 
         // LOG: Inspecionar agrupamento de componentes antes de retornar

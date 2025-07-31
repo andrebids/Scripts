@@ -231,9 +231,37 @@ function gerarFrasePrincipal(parametros) {
                     logLegenda("Regra 'et' aplicada para 'fil': " + textoFil, "info");
                     resultado.push(textoFil);
                 } else if (variacoes.length > 0) {
-                    var textoComp = nome + " " + juntarVariaçõesCor(variacoes);
-                    logLegenda("Regra 'et' aplicada para '" + nome + "': " + textoComp, "info");
-                    resultado.push(textoComp);
+                    // Tratamento especial para flexiprint ignifuge e print ignifuge
+                    if ((nome === "flexiprint" || nome === "print") && variacoes.length > 1) {
+                        // Verificar se todas as variações contêm "ignifuge"
+                        var todasIgnifuge = true;
+                        for (var v = 0; v < variacoes.length; v++) {
+                            if (variacoes[v].indexOf("ignifuge") === -1) {
+                                todasIgnifuge = false;
+                                break;
+                            }
+                        }
+                        
+                        if (todasIgnifuge) {
+                            // Extrair apenas as cores, removendo "ignifuge"
+                            var coresLimpas = [];
+                            for (var c = 0; c < variacoes.length; c++) {
+                                var cor = variacoes[c].replace(/\s*ignifuge\s*/gi, "").replace(/^\s+|\s+$/g, "");
+                                coresLimpas.push(cor);
+                            }
+                            var textoComponente = nome + " ignifuge " + juntarVariaçõesCor(coresLimpas);
+                            logLegenda("Regra 'et' aplicada para '" + nome + " ignifuge': " + textoComponente, "info");
+                            resultado.push(textoComponente);
+                        } else {
+                            var textoComp = nome + " " + juntarVariaçõesCor(variacoes);
+                            logLegenda("Regra 'et' aplicada para '" + nome + "': " + textoComp, "info");
+                            resultado.push(textoComp);
+                        }
+                    } else {
+                        var textoComp = nome + " " + juntarVariaçõesCor(variacoes);
+                        logLegenda("Regra 'et' aplicada para '" + nome + "': " + textoComp, "info");
+                        resultado.push(textoComp);
+                    }
                 } else {
                     resultado.push(nome);
                 }
@@ -450,10 +478,10 @@ function processarComponentes(itensLegenda) {
                 return a.localeCompare(b);
             });
             
-            // Para componentes que não são 'fil', aplicar juntarVariaçõesCor aqui
-            // Para 'fil', deixar as cores separadas para processamento posterior
-            if (nomeComponente.toLowerCase() === "fil") {
-                // Para fil, manter as cores separadas para processamento na frase principal
+            // Para componentes que não são 'fil', 'flexiprint' ou 'print', aplicar juntarVariaçõesCor aqui
+            // Para 'fil', 'flexiprint' e 'print', deixar as cores separadas para processamento posterior
+            if (nomeComponente.toLowerCase() === "fil" || nomeComponente.toLowerCase() === "flexiprint" || nomeComponente.toLowerCase() === "print") {
+                // Para fil, flexiprint e print, manter as cores separadas para processamento na frase principal
                 for (var j = 0; j < coresOrdenadas.length; j++) {
                     componentesTexto.push(nomeComponente.toLowerCase() + " " + coresOrdenadas[j]);
                 }

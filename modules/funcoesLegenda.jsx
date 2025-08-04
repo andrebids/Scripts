@@ -29,6 +29,8 @@ function logLegenda(mensagem, tipo) {
     }
 }
 
+
+
 /**
  * Função auxiliar para juntar arrays de strings com vírgula e 'et' antes do último elemento.
  * Compatível com ES3/ES5 (sem métodos modernos).
@@ -174,11 +176,28 @@ function gerarFrasePrincipal(parametros) {
         function agruparComponentes(componentesArray) {
             var agrupados = {};
             var ordem = [];
+
             for (var i = 0; i < componentesArray.length; i++) {
                 var comp = componentesArray[i];
-                var partes = comp.split(' ');
-                var nome = partes[0];
-                var resto = partes.slice(1).join(' ');
+
+                
+                // Verificar se é um componente composto que deve ser tratado como um todo
+                var nome, resto;
+                if (comp.toLowerCase() === "fil cométe" || comp.toLowerCase() === "fil comète" || comp.toLowerCase() === "fil lumiére") {
+                    nome = comp.toLowerCase();
+                    resto = "";
+
+                } else if (comp.toLowerCase().indexOf("fil cométe led") !== -1 || comp.toLowerCase().indexOf("fil comète led") !== -1 || comp.toLowerCase().indexOf("fil lumiére led") !== -1) {
+                    // Se for a referencia completa (ex: "fil cométe led blanc pur"), tratar como um todo
+                    nome = comp.toLowerCase();
+                    resto = "";
+
+                } else {
+                    var partes = comp.split(' ');
+                    nome = partes[0];
+                    resto = partes.slice(1).join(' ');
+                }
+
                 if (!agrupados[nome]) {
                     agrupados[nome] = [];
                     ordem.push(nome);
@@ -214,6 +233,7 @@ function gerarFrasePrincipal(parametros) {
                 var nome = ordem[j];
                 var variacoes = agrupados[nome];
                 if (nome === "fil" && variacoes.length > 0) {
+
                     var prefixo = "fil lumière led ";
                     var lista = [];
                     for (var k = 0; k < variacoes.length; k++) {
@@ -228,8 +248,20 @@ function gerarFrasePrincipal(parametros) {
                         }
                     }
                     var textoFil = juntarVariaçõesCor(lista);
-                    logLegenda("Regra 'et' aplicada para 'fil': " + textoFil, "info");
+
                     resultado.push(textoFil);
+                } else if (nome === "fil cométe" || nome === "fil comète" || nome === "fil lumiére") {
+                    // Para componentes compostos, manter o nome original sem prefixo
+                    resultado.push(nome);
+
+                } else if (nome.indexOf("fil cométe led") !== -1 || nome.indexOf("fil comète led") !== -1 || nome.indexOf("fil lumiére led") !== -1) {
+                    // Para referencias completas, manter como estão
+                    resultado.push(nome);
+
+                } else if (nome === "fil" && (comp.toLowerCase() === "fil cométe" || comp.toLowerCase() === "fil comète" || comp.toLowerCase() === "fil lumiére")) {
+                    // Caso especial: se o nome foi extraído como "fil" mas o componente original é composto
+                    resultado.push(comp.toLowerCase());
+
                 } else if (variacoes.length > 0) {
                     // Tratamento especial para flexiprint ignifuge e print ignifuge
                     if ((nome === "flexiprint" || nome === "print") && variacoes.length > 1) {
@@ -270,11 +302,8 @@ function gerarFrasePrincipal(parametros) {
             return resultado;
         }
 
-        // LOG: Inspecionar outrosComponentes antes do agrupamento
-        logLegenda("Conteúdo de outrosComponentes: " + outrosComponentes.join(" | "), "info");
         // LOG: Inspecionar agrupamento de componentes
         var agrupados = agruparComponentes(outrosComponentes);
-        logLegenda("Resultado de agruparComponentes: " + agrupados.join(" | "), "info");
 
         // Construir a frase com a regra do bioprint
         var frasePrincipal = "Logo " + (parametros.listaL || "") + ": " + 
@@ -359,14 +388,33 @@ function processarComponentes(itensLegenda) {
                     texturasAdicionadas.push(numeroTextura);
                 }
             } else if (item.tipo === "componente") {
-                var nomeComponente = item.nome.split(' ')[0];
-                var corComponente = item.nome.split(' ').slice(1).join(' ');
+                // Tratamento especial para componentes compostos como "fil comète" e "fil lumiére"
+                var nomeComponente, corComponente;
+                
+                // Para "fil cométe" e "fil lumiére", usar a referencia se disponível
+                if (item.nome.toLowerCase() === "fil cométe" || item.nome.toLowerCase() === "fil lumiére") {
+                    if (item.referencia && item.referencia.trim() !== "") {
+                        // Usar a referencia completa (ex: "Fil cométe led blanc pur")
+                        nomeComponente = item.referencia.toLowerCase();
+                        corComponente = ""; // A cor já está incluída na referencia
+
+                    } else {
+                        // Fallback para o nome se não houver referencia
+                        nomeComponente = item.nome.toLowerCase();
+                        corComponente = "";
+
+                    }
+                } else {
+                    // Para outros componentes, dividir normalmente
+                    nomeComponente = item.nome.split(' ')[0];
+                    corComponente = item.nome.split(' ').slice(1).join(' ');
+                }
                 
                 if (!componentesAgrupados[nomeComponente]) {
                     componentesAgrupados[nomeComponente] = [];
                 }
                 
-                if (!funcoes.arrayContains(componentesAgrupados[nomeComponente], corComponente)) {
+                if (corComponente !== "" && !funcoes.arrayContains(componentesAgrupados[nomeComponente], corComponente)) {
                     componentesAgrupados[nomeComponente].push(corComponente);
                 }
                 
@@ -388,7 +436,7 @@ function processarComponentes(itensLegenda) {
             'LUCIOLES',
             'STALACTITS',
             'RIDEAUX',
-            'FIL COMÈTE',
+            'FIL COMÉTE',
             'SOFT XLED',
             'BOULE ANIMÉ',
             'BOULES ANIMÉS',
@@ -485,14 +533,18 @@ function processarComponentes(itensLegenda) {
                 for (var j = 0; j < coresOrdenadas.length; j++) {
                     componentesTexto.push(nomeComponente.toLowerCase() + " " + coresOrdenadas[j]);
                 }
+            } else if (nomeComponente.toLowerCase() === "fil cométe" || nomeComponente.toLowerCase() === "fil lumiére") {
+                // Para componentes compostos, manter o nome original sem cores
+                componentesTexto.push(nomeComponente.toLowerCase());
+            } else if (nomeComponente.toLowerCase().indexOf("fil cométe led") !== -1 || nomeComponente.toLowerCase().indexOf("fil lumiére led") !== -1) {
+                // Para referencias completas, manter como estão
+                componentesTexto.push(nomeComponente.toLowerCase());
             } else {
                 componentesTexto.push(nomeComponente.toLowerCase() + " " + juntarVariaçõesCor(coresOrdenadas));
             }
         }
 
-        // LOG: Inspecionar agrupamento de componentes antes de retornar
-        logLegenda("componentesAgrupados: " + JSON.stringify(componentesAgrupados), "info");
-        logLegenda("componentesTexto: " + componentesTexto.join(" | "), "info");
+
 
         logLegenda("Processamento de componentes concluído: " + componentesTexto.length + " componentes", "info");
         

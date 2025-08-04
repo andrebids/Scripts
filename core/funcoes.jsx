@@ -1,4 +1,7 @@
 // funcoes.jsx
+
+
+
 // Função para analisar JSON
 function parseJSON(str) {
     if (!str || typeof str !== 'string') {
@@ -129,7 +132,6 @@ function arredondarComponente(valor, unidade, nome) {
     var nomeLowerCase = nome.toLowerCase();
     if (nomeLowerCase.indexOf("fil lumière") !== -1 || 
         nomeLowerCase.indexOf("fil lumiére") !== -1 || 
-        nomeLowerCase.indexOf("fil comète") !== -1 || 
         nomeLowerCase.indexOf("fil cométe") !== -1) {
         // Arredondar para o próximo metro inteiro
         return Math.ceil(valor);
@@ -149,9 +151,15 @@ function extrairInfoComponente(texto) {
         unidade: ''
     };
     
-    // Extrair componente base (ex: flexiprint)
-    var pos = texto.indexOf(' ');
-    info.componente = pos === -1 ? texto : texto.substring(0, pos).toLowerCase();
+    // Tratamento especial para componentes compostos
+    if (texto.toLowerCase() === "fil cométe" || texto.toLowerCase() === "fil lumiére") {
+        info.componente = texto.toLowerCase();
+        info.cor = '';
+    } else {
+        // Extrair componente base (ex: flexiprint)
+        var pos = texto.indexOf(' ');
+        info.componente = pos === -1 ? texto : texto.substring(0, pos).toLowerCase();
+    }
     
     // Extrair cor (ex: or PANTONE 131C, blanc RAL 9010)
     var matches = texto.match(/(or|blanc|noir|rouge|bleu|vert|jaune|PANTONE|RAL)\s+[^\(]+/i);
@@ -502,6 +510,8 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
 // Função para criar a linha de referência (migrada de script.jsx)
 function criarLinhaReferencia(item) {
     var linha = item.referencia ? item.referencia : item.nome;
+    // Log para debug
+
     if (item.unidade) {
         linha += " (" + funcoes.formatarUnidade(item.unidade) + ")";
     }

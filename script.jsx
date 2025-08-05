@@ -93,7 +93,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2.2");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2.3");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -351,8 +351,9 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
     botaoMais.preferredSize.width = 22;
     botaoMais.preferredSize.height = 22;
     botaoMais.onClick = function() {
-        // Abrir nova janela para edição de quantidades
-        var dialogQuantidades = new Window("palette", "Editar Quantidades");
+        try {
+            // Abrir nova janela para edição de quantidades
+            var dialogQuantidades = new Window("palette", "Editar Quantidades");
         dialogQuantidades.orientation = "column";
         dialogQuantidades.alignChildren = ["fill", "top"];
         dialogQuantidades.spacing = 10;
@@ -405,7 +406,8 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
 
         // Função para criar campo na janela
         function criarCampoTemp(valorPadrao, descricaoPadrao) {
-            var grupoLinhaTemp = grupoCampos.add("group");
+            try {
+                var grupoLinhaTemp = grupoCampos.add("group");
             grupoLinhaTemp.orientation = "row";
             grupoLinhaTemp.alignChildren = ["left", "center"];
             grupoLinhaTemp.spacing = 5;
@@ -414,6 +416,38 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
             var campoTemp = grupoLinhaTemp.add("edittext", undefined, valorPadrao ? valorPadrao : "");
             campoTemp.characters = 4;
             campoTemp.preferredSize.width = 40;
+            
+            // Configurar navegação por Tab
+            campoTemp.addEventListener('keydown', function(event) {
+                // Tab key = keyCode 9
+                if (event.keyName === 'Tab') {
+                    event.preventDefault();
+                    // Encontrar próximo campo
+                    var indiceCampoAtual = -1;
+                    for (var k = 0; k < camposTemp.length; k++) {
+                        if (camposTemp[k].campo === campoTemp) {
+                            indiceCampoAtual = k;
+                            break;
+                        }
+                    }
+                    // Ir para próximo campo ou criar novo se for o último
+                    if (indiceCampoAtual >= 0) {
+                        if (indiceCampoAtual < camposTemp.length - 1) {
+                            // Ir para próximo campo existente
+                            camposTemp[indiceCampoAtual + 1].campo.active = true;
+                        } else {
+                            // Se for o último campo e tiver valor, criar novo e focar nele
+                            if (campoTemp.text && campoTemp.text.length > 0) {
+                                var novoCampo = criarCampoTemp("", "");
+                                dialogQuantidades.layout.layout(true);
+                                dialogQuantidades.layout.resize();
+                                // Focar no novo campo criado
+                                novoCampo.active = true;
+                            }
+                        }
+                    }
+                }
+            });
             
             // Validação em tempo real - só permite números, vírgula e ponto
             campoTemp.onChanging = function() {
@@ -474,6 +508,10 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
                 }
             };
             return campoTemp;
+            } catch (e) {
+                alert("ERRO na criarCampoTemp: " + e.toString() + "\nLinha: " + e.line);
+                return null;
+            }
         }
         // Preencher campos com valores atuais
         for (var i = 0; i < camposQuantidade.length; i++) {
@@ -483,6 +521,12 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
         if (camposTemp.length === 0) {
             criarCampoTemp("", "");
         }
+        
+        // Focar no primeiro campo automaticamente
+        if (camposTemp.length > 0) {
+            camposTemp[0].campo.active = true;
+        }
+        
         // Botão + removido - adição automática de campos implementada
         // Separador visual
         var separador = dialogQuantidades.add("panel");
@@ -628,6 +672,9 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
             dialogQuantidades.close();
         };
         dialogQuantidades.show();
+        } catch (e) {
+            alert("ERRO GERAL na janela: " + e.toString() + "\nLinha: " + e.line + "\nDescrição: " + e.description);
+        }
     };
     grupoLinha.add("statictext", undefined, "x");
     var campoMultiplicador = grupoLinha.add("edittext", undefined, "1");

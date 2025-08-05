@@ -549,7 +549,7 @@ function filtrarComponentesPrintPorUso(uso, dados, t) {
             logProtegidoFiltragem("Dados inválidos para filtragem de PRINT por uso", logs.TIPOS_LOG.WARNING);
             return [];
         }
-        var printsInterior = ["print ignifuge", "flexiprint ignifuge"];
+        var printsInterior = ["print ignifuge", "flexiprint ignifuge","recyprint"];
         var printsExterior = ["bioprint", "recyprint", "flexiprint"];
         var printsValidos = [];
         var usoLower = (uso || "").toLowerCase();

@@ -37,7 +37,9 @@ function executarUpdate(t) {
             scriptFile.write("cd /d \"" + currentDir + "\"\n");
             scriptFile.write("del /f /q temp_log.txt update_log.txt 2>nul\n");
             scriptFile.write("git config --global --add safe.directory \"%CD%\" > update_log.txt\n");
-            scriptFile.write("git pull >> update_log.txt 2>&1\n");
+            scriptFile.write("git fetch origin main >> update_log.txt 2>&1\n");
+            scriptFile.write("git reset --hard origin/main >> update_log.txt 2>&1\n");
+            scriptFile.write("git clean -fd >> update_log.txt 2>&1\n");
             scriptFile.write("exit\n");
             scriptFile.close();
         }

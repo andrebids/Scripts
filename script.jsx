@@ -352,7 +352,7 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
     botaoMais.preferredSize.height = 22;
     botaoMais.onClick = function() {
         // Abrir nova janela para edição de quantidades
-        var dialogQuantidades = new Window("dialog", "Editar Quantidades");
+        var dialogQuantidades = new Window("palette", "Editar Quantidades");
         dialogQuantidades.orientation = "column";
         dialogQuantidades.alignChildren = ["fill", "top"];
         dialogQuantidades.spacing = 10;

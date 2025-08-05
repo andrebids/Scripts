@@ -93,7 +93,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2.1");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2.2");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -513,10 +513,15 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
         grupoSoma.orientation = "row";
         grupoSoma.alignChildren = ["center", "center"];
         grupoSoma.margins = 8;
+        grupoSoma.preferredSize.width = 280;
+        grupoSoma.preferredSize.height = 35;
         
         var textoSoma = grupoSoma.add("statictext", undefined, "TOTAL: 0");
         textoSoma.graphics.font = ScriptUI.newFont("Arial", ScriptUI.FontStyle.BOLD, 16);
         textoSoma.graphics.foregroundColor = textoSoma.graphics.newPen(textoSoma.graphics.PenType.SOLID_COLOR, [1, 1, 1], 1);
+        // Definir tamanho adequado para acomodar números grandes
+        textoSoma.preferredSize.width = 200;
+        textoSoma.preferredSize.height = 25;
         
         function atualizarSoma() {
             var soma = 0;
@@ -539,14 +544,29 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
                 var textoValores = "";
                 if (numerosValidos.length <= 6) {
                     // Poucos números: mostrar em linha
-                    textoValores = numerosValidos.join(" + ");
+                    var numerosFormatados = [];
+                    for (var j = 0; j < numerosValidos.length; j++) {
+                        var num = numerosValidos[j];
+                        if (num % 1 === 0) {
+                            numerosFormatados.push(num.toString());
+                        } else {
+                            numerosFormatados.push(num.toString());
+                        }
+                    }
+                    textoValores = numerosFormatados.join(" + ");
                 } else {
                     // Muitos números: mostrar em linhas organizadas (5 por linha)
                     for (var i = 0; i < numerosValidos.length; i++) {
                         if (i > 0 && i % 5 === 0) {
                             textoValores += "\n";
                         }
-                        textoValores += numerosValidos[i];
+                        var numeroFormatado = numerosValidos[i];
+                        if (numeroFormatado % 1 === 0) {
+                            numeroFormatado = numeroFormatado.toString();
+                        } else {
+                            numeroFormatado = numeroFormatado.toString();
+                        }
+                        textoValores += numeroFormatado;
                         if (i < numerosValidos.length - 1) {
                             textoValores += " + ";
                         }
@@ -556,12 +576,25 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
             } else {
                 areaValores.text = "-";
             }
-            // Atualizar soma destacada com informação sobre valores inválidos
-            var textoTotal = "TOTAL: " + soma;
+            // Recalcular soma especificamente para exibição
+            var somaExibicao = 0;
+            for (var j = 0; j < numerosValidos.length; j++) {
+                somaExibicao = somaExibicao + numerosValidos[j];
+            }
+            
+            // Forçar conversão para string de forma explícita
+            var somaString = String(somaExibicao);
+            
+            // Atualizar soma destacada com informação sobre valores inválidos  
+            var textoTotal = "TOTAL: " + somaString;
             if (valoresInvalidos > 0) {
                 textoTotal += " (" + valoresInvalidos + " inválido" + (valoresInvalidos > 1 ? "s" : "") + ")";
             }
+            
+            // Forçar atualização da interface
             textoSoma.text = textoTotal;
+            textoSoma.parent.layout.layout(true);
+            textoSoma.parent.layout.resize();
         }
         atualizarSoma();
         // Botões OK e Cancelar

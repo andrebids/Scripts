@@ -93,7 +93,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2.0");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2.1");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -357,20 +357,82 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
         dialogQuantidades.alignChildren = ["fill", "top"];
         dialogQuantidades.spacing = 10;
         dialogQuantidades.margins = 16;
+        dialogQuantidades.preferredSize.width = 320;
+        dialogQuantidades.preferredSize.height = 400;
+        
+        // Proteção contra janela órfã
+        dialogQuantidades.onClose = function() {
+            try {
+                // Verificar se a janela principal ainda existe
+                if (!janela || janela.toString() === "[object Window]") {
+                    return true; // Permitir fechamento
+                }
+                return true;
+            } catch (e) {
+                return true; // Em caso de erro, permitir fechamento
+            }
+        };
 
-        var grupoCampos = dialogQuantidades.add("group");
+        // Título da seção
+        var tituloSecao = dialogQuantidades.add("statictext", undefined, "Campos de Valores:");
+        tituloSecao.graphics.font = ScriptUI.newFont(tituloSecao.graphics.font.family, ScriptUI.FontStyle.BOLD, 10);
+        
+        // Cabeçalho explicativo
+        var grupoCabecalho = dialogQuantidades.add("group");
+        grupoCabecalho.orientation = "row";
+        grupoCabecalho.alignChildren = ["left", "center"];
+        grupoCabecalho.spacing = 5;
+        
+        var labelValor = grupoCabecalho.add("statictext", undefined, "Valor");
+        labelValor.preferredSize.width = 40;
+        labelValor.graphics.font = ScriptUI.newFont(labelValor.graphics.font.family, ScriptUI.FontStyle.BOLD, 9);
+        
+        var labelDescricao = grupoCabecalho.add("statictext", undefined, "Descrição (opcional)");
+        labelDescricao.preferredSize.width = 120;
+        labelDescricao.graphics.font = ScriptUI.newFont(labelDescricao.graphics.font.family, ScriptUI.FontStyle.BOLD, 9);
+
+        // Área scrollável para os campos
+        var painelCampos = dialogQuantidades.add("panel");
+        painelCampos.orientation = "column";
+        painelCampos.alignChildren = ["fill", "top"];
+        painelCampos.preferredSize.width = 290;
+        painelCampos.preferredSize.height = 150;
+        
+        var grupoCampos = painelCampos.add("group");
         grupoCampos.orientation = "column";
         grupoCampos.alignChildren = ["fill", "top"];
         var camposTemp = [];
 
         // Função para criar campo na janela
-        function criarCampoTemp(valorPadrao) {
+        function criarCampoTemp(valorPadrao, descricaoPadrao) {
             var grupoLinhaTemp = grupoCampos.add("group");
             grupoLinhaTemp.orientation = "row";
+            grupoLinhaTemp.alignChildren = ["left", "center"];
+            grupoLinhaTemp.spacing = 5;
+            
+            // Campo numérico
             var campoTemp = grupoLinhaTemp.add("edittext", undefined, valorPadrao ? valorPadrao : "");
             campoTemp.characters = 4;
             campoTemp.preferredSize.width = 40;
-            camposTemp.push({campo: campoTemp, grupo: grupoLinhaTemp});
+            
+            // Validação em tempo real - só permite números, vírgula e ponto
+            campoTemp.onChanging = function() {
+                // Filtrar caracteres não numéricos (exceto vírgula, ponto e menos)
+                var texto = campoTemp.text;
+                var textoLimpo = texto.replace(/[^0-9.,\-]/g, "");
+                if (texto !== textoLimpo) {
+                    campoTemp.text = textoLimpo;
+                }
+            };
+            
+            // Campo de descrição (opcional)
+            var campoDescricao = grupoLinhaTemp.add("edittext", undefined, descricaoPadrao ? descricaoPadrao : "");
+            campoDescricao.characters = 15;
+            campoDescricao.preferredSize.width = 120;
+            campoDescricao.helpTip = "Descrição opcional (não conta no total)";
+            
+            camposTemp.push({campo: campoTemp, descricao: campoDescricao, grupo: grupoLinhaTemp});
+            
             // Botão - para remover
             var botaoRemoverTemp = grupoLinhaTemp.add("button", undefined, "-");
             botaoRemoverTemp.preferredSize.width = 22;
@@ -387,45 +449,119 @@ function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
                 dialogQuantidades.layout.layout(true);
                 dialogQuantidades.layout.resize();
             };
-            // Atualizar soma em tempo real ao digitar
-            campoTemp.onChanging = function() {
+            // Evento adicional para soma e auto-adição (após validação)
+            campoTemp.addEventListener('changing', function() {
+                // Executar após a validação
                 atualizarSoma();
+                // Verificar se é o último campo e tem valor
+                var isUltimoCampo = camposTemp[camposTemp.length - 1].campo === campoTemp;
+                var temValor = campoTemp.text && campoTemp.text.length > 0;
+                
+                if (isUltimoCampo && temValor) {
+                    // Adicionar novo campo automaticamente
+                    criarCampoTemp("", "");
+                    dialogQuantidades.layout.layout(true);
+                    dialogQuantidades.layout.resize();
+                }
+            });
+            // Evento onBlur para validação final
+            campoTemp.onDeactivate = function() {
+                var valor = parseFloat(campoTemp.text.replace(",", "."));
+                if (campoTemp.text && (isNaN(valor) || valor <= 0)) {
+                    campoTemp.graphics.backgroundColor = campoTemp.graphics.newBrush(campoTemp.graphics.BrushType.SOLID_COLOR, [1, 0.9, 0.9]);
+                } else {
+                    campoTemp.graphics.backgroundColor = campoTemp.graphics.newBrush(campoTemp.graphics.BrushType.SOLID_COLOR, [1, 1, 1]);
+                }
             };
-            // Forçar atualização ao criar
-            campoTemp.addEventListener && campoTemp.addEventListener('changing', atualizarSoma);
             return campoTemp;
         }
         // Preencher campos com valores atuais
         for (var i = 0; i < camposQuantidade.length; i++) {
-            criarCampoTemp(camposQuantidade[i].text);
+            criarCampoTemp(camposQuantidade[i].text, "");
         }
         // Se não houver campos, criar um
         if (camposTemp.length === 0) {
-            criarCampoTemp("");
+            criarCampoTemp("", "");
         }
-        // Botão para adicionar novo campo
-        var botaoAdicionarTemp = dialogQuantidades.add("button", undefined, "+");
-        botaoAdicionarTemp.preferredSize.width = 22;
-        botaoAdicionarTemp.preferredSize.height = 22;
-        botaoAdicionarTemp.onClick = function() {
-            criarCampoTemp("");
-            dialogQuantidades.layout.layout(true);
-            dialogQuantidades.layout.resize();
-        };
-        // Exibir soma
-        var grupoSoma = dialogQuantidades.add("group");
+        // Botão + removido - adição automática de campos implementada
+        // Separador visual
+        var separador = dialogQuantidades.add("panel");
+        separador.preferredSize.height = 2;
+        
+        // Painel destacado para o resumo
+        var painelResumo = dialogQuantidades.add("panel", undefined, "Resumo");
+        painelResumo.orientation = "column";
+        painelResumo.alignChildren = ["fill", "top"];
+        painelResumo.spacing = 8;
+        painelResumo.margins = 10;
+        
+        // Área scrollável para os valores
+        var grupoValores = painelResumo.add("group");
+        grupoValores.orientation = "column";
+        grupoValores.alignChildren = ["fill", "top"];
+        
+        var labelValores = grupoValores.add("statictext", undefined, "Valores inseridos:");
+        labelValores.graphics.font = ScriptUI.newFont(labelValores.graphics.font.family, ScriptUI.FontStyle.BOLD, 9);
+        
+        var areaValores = grupoValores.add("edittext", undefined, "-", {multiline: true, scrollable: true, readonly: true});
+        areaValores.preferredSize.width = 280;
+        areaValores.preferredSize.height = 50;
+        areaValores.graphics.font = ScriptUI.newFont(areaValores.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
+        
+        // Soma total destacada
+        var grupoSoma = painelResumo.add("panel");
         grupoSoma.orientation = "row";
-        var textoSoma = grupoSoma.add("statictext", undefined, "Soma: 0");
-        textoSoma.preferredSize.width = 100;
+        grupoSoma.alignChildren = ["center", "center"];
+        grupoSoma.margins = 8;
+        
+        var textoSoma = grupoSoma.add("statictext", undefined, "TOTAL: 0");
+        textoSoma.graphics.font = ScriptUI.newFont("Arial", ScriptUI.FontStyle.BOLD, 16);
+        textoSoma.graphics.foregroundColor = textoSoma.graphics.newPen(textoSoma.graphics.PenType.SOLID_COLOR, [1, 1, 1], 1);
+        
         function atualizarSoma() {
             var soma = 0;
+            var numerosValidos = [];
+            var valoresInvalidos = 0;
+            
             for (var i = 0; i < camposTemp.length; i++) {
-                var valor = parseFloat(camposTemp[i].campo.text.replace(",", "."));
+                var textoOriginal = camposTemp[i].campo.text;
+                var valor = parseFloat(textoOriginal.replace(",", "."));
+                
                 if (!isNaN(valor) && valor > 0) {
                     soma += valor;
+                    numerosValidos.push(valor);
+                } else if (textoOriginal && textoOriginal.length > 0) {
+                    valoresInvalidos++;
                 }
             }
-            textoSoma.text = "Soma: " + soma;
+            // Atualizar lista de valores com quebras de linha organizadas
+            if (numerosValidos.length > 0) {
+                var textoValores = "";
+                if (numerosValidos.length <= 6) {
+                    // Poucos números: mostrar em linha
+                    textoValores = numerosValidos.join(" + ");
+                } else {
+                    // Muitos números: mostrar em linhas organizadas (5 por linha)
+                    for (var i = 0; i < numerosValidos.length; i++) {
+                        if (i > 0 && i % 5 === 0) {
+                            textoValores += "\n";
+                        }
+                        textoValores += numerosValidos[i];
+                        if (i < numerosValidos.length - 1) {
+                            textoValores += " + ";
+                        }
+                    }
+                }
+                areaValores.text = textoValores;
+            } else {
+                areaValores.text = "-";
+            }
+            // Atualizar soma destacada com informação sobre valores inválidos
+            var textoTotal = "TOTAL: " + soma;
+            if (valoresInvalidos > 0) {
+                textoTotal += " (" + valoresInvalidos + " inválido" + (valoresInvalidos > 1 ? "s" : "") + ")";
+            }
+            textoSoma.text = textoTotal;
         }
         atualizarSoma();
         // Botões OK e Cancelar
@@ -839,4 +975,5 @@ function atualizarListaItens() {
         }
     }
 })();
+
 

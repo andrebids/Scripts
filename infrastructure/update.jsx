@@ -37,9 +37,7 @@ function executarUpdate(t) {
             scriptFile.write("cd /d \"" + currentDir + "\"\n");
             scriptFile.write("del /f /q temp_log.txt update_log.txt 2>nul\n");
             scriptFile.write("git config --global --add safe.directory \"%CD%\" > update_log.txt\n");
-            scriptFile.write("git fetch origin main >> update_log.txt\n");
-            scriptFile.write("git checkout -f origin/main >> update_log.txt 2>&1\n");
-            scriptFile.write("git clean -fd >> update_log.txt\n");
+            scriptFile.write("git pull >> update_log.txt 2>&1\n");
             scriptFile.write("exit\n");
             scriptFile.close();
         }
@@ -107,11 +105,42 @@ function reiniciarScript() {
             if (logs && logs.adicionarLog) {
                 logs.adicionarLog("Reiniciando script: " + scriptPath, logs.TIPOS_LOG ? logs.TIPOS_LOG.INFO : "INFO");
             }
-            // Usar evalFile para recarregar o script
-            $.evalFile(novoScript);
+            
+            // Método mais confiável de reinício
+            try {
+                // Log do caminho completo para debugging
+                if (logs && logs.adicionarLog) {
+                    logs.adicionarLog("Caminho completo do script: " + novoScript.fsName, logs.TIPOS_LOG ? logs.TIPOS_LOG.INFO : "INFO");
+                }
+                
+                // Aguardar mais tempo para garantir que o arquivo foi atualizado
+                $.sleep(500);
+                
+                // Tentar recarregar o script
+                $.evalFile(novoScript);
+                
+                if (logs && logs.adicionarLog) {
+                    logs.adicionarLog("Script reiniciado com sucesso", logs.TIPOS_LOG ? logs.TIPOS_LOG.INFO : "INFO");
+                }
+                
+            } catch (evalError) {
+                if (logs && logs.adicionarLog) {
+                    logs.adicionarLog("Erro ao executar $.evalFile: " + evalError.message, logs.TIPOS_LOG ? logs.TIPOS_LOG.ERROR : "ERROR");
+                }
+                
+                // Fallback: mostrar mensagem para reinício manual
+                if (ui && ui.mostrarAlertaPersonalizado) {
+                    ui.mostrarAlertaPersonalizado(
+                        "Atualização concluída com sucesso!\n\nPor favor, execute o script manualmente para carregar a nova versão.\n\nDetalhes: " + evalError.message, 
+                        "Reinício Manual Necessário"
+                    );
+                } else {
+                    alert("Atualização concluída! Por favor, execute o script manualmente.\nErro: " + evalError.message);
+                }
+            }
         } else {
             if (ui && ui.mostrarAlertaPersonalizado) {
-                ui.mostrarAlertaPersonalizado("Arquivo do script não encontrado para reinicialização", "Erro");
+                ui.mostrarAlertaPersonalizado("Arquivo do script não encontrado para reinicialização: " + scriptPath, "Erro");
             } else {
                 alert("Arquivo do script não encontrado para reinicialização");
             }

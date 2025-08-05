@@ -21,7 +21,11 @@ function executarUpdate(t) {
                 gitCheckFile.remove();
                 checkGitFile.remove();
                 if (gitCheck.indexOf("git version") === -1) {
-                    alert(t("gitNaoInstalado"));
+                    if (ui && ui.mostrarAlertaPersonalizado) {
+                        ui.mostrarAlertaPersonalizado(t("gitNaoInstalado"), "Git Não Encontrado");
+                    } else {
+                        alert(t("gitNaoInstalado"));
+                    }
                     return;
                 }
             }
@@ -47,12 +51,81 @@ function executarUpdate(t) {
                     logFile.open('r');
                     var logContent = logFile.read();
                     logFile.close();
-                    alert(t("atualizacaoSucesso"));
+                    
+                    // Usar a janela personalizada nova e adicionar callback para reiniciar
+                    if (ui && ui.mostrarAlertaPersonalizado) {
+                        ui.mostrarAlertaPersonalizado(
+                            t("atualizacaoSucesso") + "\n\nO script será reiniciado automaticamente.",
+                            "Atualização Concluída",
+                            function() {
+                                reiniciarScript();
+                            }
+                        );
+                    } else {
+                        alert(t("atualizacaoSucesso"));
+                        reiniciarScript();
+                    }
                     scriptFile.remove();
                 }
             }
         }
     } catch (e) {
-        alert(t("erroAtualizacao") + ": " + e);
+        if (ui && ui.mostrarAlertaPersonalizado) {
+            ui.mostrarAlertaPersonalizado(t("erroAtualizacao") + ": " + e, "Erro na Atualização");
+        } else {
+            alert(t("erroAtualizacao") + ": " + e);
+        }
     }
-} 
+}
+
+/**
+ * Função para reiniciar o script após o update
+ */
+function reiniciarScript() {
+    try {
+        if (logs && logs.adicionarLog) {
+            logs.adicionarLog("Iniciando reinicialização do script", logs.TIPOS_LOG ? logs.TIPOS_LOG.INFO : "INFO");
+        }
+        
+        // Fechar janela principal se existir
+        if (typeof janela !== 'undefined' && janela && janela.close) {
+            janela.close();
+        }
+        
+        // Aguardar um pouco para garantir que a janela foi fechada
+        $.sleep(500);
+        
+        // Executar o script novamente
+        var scriptPath = File($.fileName).fsName;
+        var novoScript = new File(scriptPath);
+        
+        if (novoScript.exists) {
+            // Usar evalFile para recarregar o script
+            $.evalFile(novoScript);
+        } else {
+            if (ui && ui.mostrarAlertaPersonalizado) {
+                ui.mostrarAlertaPersonalizado("Arquivo do script não encontrado para reinicialização", "Erro");
+            } else {
+                alert("Arquivo do script não encontrado para reinicialização");
+            }
+        }
+        
+    } catch (e) {
+        if (logs && logs.adicionarLog) {
+            logs.adicionarLog("Erro ao reiniciar script: " + e.message, logs.TIPOS_LOG ? logs.TIPOS_LOG.ERROR : "ERROR");
+        }
+        
+        if (ui && ui.mostrarAlertaPersonalizado) {
+            ui.mostrarAlertaPersonalizado(
+                "Atualização concluída com sucesso, mas houve um erro ao reiniciar automaticamente.\n\nPor favor, execute o script manualmente.", 
+                "Reinicialização Manual Necessária"
+            );
+        } else {
+            alert("Atualização concluída. Por favor, execute o script manualmente.");
+        }
+    }
+}
+
+// Exportar funções para o escopo global
+$.global.executarUpdate = executarUpdate;
+$.global.reiniciarScript = reiniciarScript; 

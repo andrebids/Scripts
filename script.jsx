@@ -59,6 +59,8 @@ try {
 
 // Criar a janela principal
 var janela = new Window("palette", t("tituloJanela"), undefined);
+// Tornar a janela acessível globalmente para reinício
+$.global.janelaScript = janela;
 janela.orientation = "column";
 janela.alignChildren = ["fill", "top"];
 janela.spacing = 10;
@@ -93,7 +95,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2.4");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2.5");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 

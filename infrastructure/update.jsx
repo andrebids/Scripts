@@ -88,18 +88,25 @@ function reiniciarScript() {
         }
         
         // Fechar janela principal se existir
-        if (typeof janela !== 'undefined' && janela && janela.close) {
-            janela.close();
+        if ($.global.janelaScript && $.global.janelaScript.close) {
+            if (logs && logs.adicionarLog) {
+                logs.adicionarLog("Fechando janela principal", logs.TIPOS_LOG ? logs.TIPOS_LOG.INFO : "INFO");
+            }
+            $.global.janelaScript.close();
+            $.global.janelaScript = null;
         }
         
         // Aguardar um pouco para garantir que a janela foi fechada
-        $.sleep(500);
+        $.sleep(1000);
         
         // Executar o script novamente
         var scriptPath = File($.fileName).fsName;
         var novoScript = new File(scriptPath);
         
         if (novoScript.exists) {
+            if (logs && logs.adicionarLog) {
+                logs.adicionarLog("Reiniciando script: " + scriptPath, logs.TIPOS_LOG ? logs.TIPOS_LOG.INFO : "INFO");
+            }
             // Usar evalFile para recarregar o script
             $.evalFile(novoScript);
         } else {
@@ -117,11 +124,11 @@ function reiniciarScript() {
         
         if (ui && ui.mostrarAlertaPersonalizado) {
             ui.mostrarAlertaPersonalizado(
-                "Atualização concluída com sucesso, mas houve um erro ao reiniciar automaticamente.\n\nPor favor, execute o script manualmente.", 
+                "Atualização concluída com sucesso, mas houve um erro ao reiniciar automaticamente.\n\nPor favor, execute o script manualmente.\n\nErro: " + e.message, 
                 "Reinicialização Manual Necessária"
             );
         } else {
-            alert("Atualização concluída. Por favor, execute o script manualmente.");
+            alert("Atualização concluída. Por favor, execute o script manualmente.\nErro: " + e.message);
         }
     }
 }

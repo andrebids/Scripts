@@ -184,9 +184,6 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
     try {
         // Função que será executada no contexto do Illustrator
         var scriptIllustrator = function(nomeDesigner, conteudoLegenda, texturasString, palavraDigitada, tamanhoGX, pastaBaseLegenda) {
-            if (typeof logs !== 'undefined' && logs.adicionarLog && logs.TIPOS_LOG) {
-                logProtegido("Script executando no Illustrator", logs.TIPOS_LOG.INFO);
-            }
             
             // Função gerarNomeArquivoAlfabeto local para o BridgeTalk
             function gerarNomeArquivoAlfabeto(caractere, sufixoTamanho) {
@@ -385,6 +382,7 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
 
             // Processar linhas do conteúdo da legenda
             var linhas = conteudoLegenda.split('\n');
+            
             for (var i = 0; i < linhas.length; i++) {
                 var linha = linhas[i];
                 
@@ -401,28 +399,38 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
                     var conteudoDecodificado = "";
                     
                     // Decodificar o conteúdo da observação
-                    var i = 0;
-                    while (i < conteudoObs.length) {
-                        if (conteudoObs.charAt(i) === '%' && i + 2 < conteudoObs.length) {
-                            var hex = conteudoObs.substring(i + 1, i + 3);
+                    var j = 0;
+                    while (j < conteudoObs.length) {
+                        if (conteudoObs.charAt(j) === '%' && j + 2 < conteudoObs.length) {
+                            var hex = conteudoObs.substring(j + 1, j + 3);
                             try {
                                 var charCode = parseInt(hex, 16);
                                 conteudoDecodificado += String.fromCharCode(charCode);
-                                i += 3;
+                                j += 3;
                             } catch (e) {
-                                conteudoDecodificado += conteudoObs.charAt(i);
-                                i++;
+                                conteudoDecodificado += conteudoObs.charAt(j);
+                                j++;
                             }
                         } else {
-                            conteudoDecodificado += conteudoObs.charAt(i);
-                            i++;
+                            conteudoDecodificado += conteudoObs.charAt(j);
+                            j++;
                         }
                     }
                     linha = prefixoObs + conteudoDecodificado;
                 } else {
-                    linha = decodeURI(linha);
+                    try {
+                        linha = decodeURI(linha);
+                    } catch (e) {
+                        // Usar linha original se falhar a decodificação
+                    }
                 }
-                var novoParag = textoLegenda.paragraphs.add(linha);
+                
+                try {
+                    var novoParag = textoLegenda.paragraphs.add(linha);
+                } catch (e) {
+                    // Continuar sem a linha problemática
+                    continue;
+                }
                 novoParag.characterAttributes.size = tamanhoFontePrincipal;
                 
                 // Formatação especial para linha "Composants:"
@@ -505,7 +513,8 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
                     linhasProcessadas.push(linhaProcessada);
                 } else {
                     // Para outras linhas, usar escape padrão
-                    linhasProcessadas.push(escaparParaBridgeTalk(linha));
+                    var linhaProcessada = escaparParaBridgeTalk(linha);
+                    linhasProcessadas.push(linhaProcessada);
                 }
             }
             

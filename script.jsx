@@ -95,7 +95,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2.5");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2.6");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -994,7 +994,7 @@ function atualizarListaItens() {
                         listaFixacao: listaFixacao,
                         checkStructure: checkStructure,
                         corStructure: corStructure,
-                        campoObs: componentesObservacoes ? componentesObservacoes.campoObs : null,
+                        campoObs: $.global.componentesObservacoes ? $.global.componentesObservacoes.campoObs : null,
                         campoUsage: campoUsage,
                         campoQuantitePrevu: campoQuantitePrevu,
                         campoPreco: campoPreco

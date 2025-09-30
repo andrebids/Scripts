@@ -202,9 +202,12 @@ $.global.eventosUI = {};
                             config.janela,
                             config.t
                         );
+                        // Atualizar variável global também
+                        $.global.componentesObservacoes = config.componentesObservacoes;
                     } else {
                         ui.removerInterfaceObservacoes(config.componentesObservacoes, config.janela);
                         config.componentesObservacoes = null;
+                        $.global.componentesObservacoes = null;
                     }
                     config.janela.layout.resize();
                 };

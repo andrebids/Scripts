@@ -195,6 +195,11 @@ function gerarFrasePrincipal(parametros) {
                     nome = comp.toLowerCase();
                     resto = "";
 
+                } else if (/^flexi\s*\+/i.test(comp)) {
+                    // Tratar "flexi +" como nome único para evitar "+ cor" repetido.
+                    nome = "flexi +";
+                    resto = comp.replace(/^flexi\s*\+\s*/i, "");
+
                 } else {
                     var partes = comp.split(' ');
                     nome = partes[0];
@@ -224,6 +229,18 @@ function gerarFrasePrincipal(parametros) {
                                 } else {
                                     agrupados[nome].push(cor);
                                 }
+                            }
+                        }
+                    } else if (nome === "flexi +") {
+                        // Para flexi +, dividir cores e remover "+" herdado em cada uma.
+                        var restoNormalizado = resto.replace(/\s+et\s+/gi, ",");
+                        var coresFlexi = restoNormalizado.split(",");
+                        for (var f = 0; f < coresFlexi.length; f++) {
+                            var corFlexi = coresFlexi[f].replace(/^\s+|\s+$/g, "");
+                            corFlexi = corFlexi.replace(/^\+\s*/g, "");
+                            corFlexi = corFlexi.replace(/^\s+|\s+$/g, "");
+                            if (corFlexi !== "") {
+                                agrupados[nome].push(corFlexi);
                             }
                         }
                     } else {

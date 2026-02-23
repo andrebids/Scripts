@@ -3,9 +3,7 @@ param(
     [string]$SourceDir,
 
     [Parameter(Mandatory = $true)]
-    [string]$LogPath,
-
-    [switch]$SkipElevation
+    [string]$LogPath
 )
 
 $ErrorActionPreference = "Stop"
@@ -14,12 +12,6 @@ function Write-Log {
     param([string]$Message)
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     Add-Content -Path $LogPath -Value ("[{0}] {1}" -f $timestamp, $Message) -Encoding UTF8
-}
-
-function Test-IsAdministrator {
-    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $principal = New-Object Security.Principal.WindowsPrincipal($identity)
-    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
 function Ensure-Directory {
@@ -66,13 +58,23 @@ function Grant-ModifyPermission {
 function Invoke-Git {
     param([string[]]$Arguments)
     Write-Log ("git {0}" -f ($Arguments -join " "))
-    & git @Arguments 2>&1 | ForEach-Object {
-        if ($_ -ne $null) {
-            Write-Log $_.ToString()
+    $previousErrorActionPreference = $ErrorActionPreference
+    $commandExitCode = 0
+    try {
+        # Native tools like git often write progress to stderr; do not treat that as fatal.
+        $ErrorActionPreference = "Continue"
+        & git @Arguments 2>&1 | ForEach-Object {
+            if ($_ -ne $null) {
+                Write-Log $_.ToString()
+            }
         }
+        $commandExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
     }
-    if ($LASTEXITCODE -ne 0) {
-        throw ("git failed with code {0}: git {1}" -f $LASTEXITCODE, ($Arguments -join " "))
+
+    if ($commandExitCode -ne 0) {
+        throw ("git failed with code {0}: git {1}" -f $commandExitCode, ($Arguments -join " "))
     }
 }
 
@@ -156,13 +158,21 @@ function Sync-ToTarget {
         "update_script.bat"
     )
 
-    & robocopy $From $To /MIR /R:2 /W:1 /NFL /NDL /NJH /NJS /NP /XF @excludeFiles 2>&1 | ForEach-Object {
-        if ($_ -ne $null) {
-            Write-Log $_.ToString()
+    $previousErrorActionPreference = $ErrorActionPreference
+    $copyExitCode = 0
+    try {
+        # robocopy can emit stderr even for non-fatal copy states.
+        $ErrorActionPreference = "Continue"
+        & robocopy $From $To /MIR /R:2 /W:1 /NFL /NDL /NJH /NJS /NP /XF @excludeFiles 2>&1 | ForEach-Object {
+            if ($_ -ne $null) {
+                Write-Log $_.ToString()
+            }
         }
+        $copyExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
     }
 
-    $copyExitCode = $LASTEXITCODE
     if ($copyExitCode -ge 8) {
         throw ("robocopy failed with code {0} for {1}" -f $copyExitCode, $To)
     }
@@ -180,26 +190,7 @@ if (-not (Test-Path -LiteralPath $SourceDir)) {
     exit 91
 }
 
-if ((-not (Test-IsAdministrator)) -and (-not $SkipElevation)) {
-    Write-Log "Process is not elevated. Requesting administrator elevation."
-    try {
-        $pwsh = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
-        $argList = @(
-            "-NoProfile",
-            "-ExecutionPolicy", "Bypass",
-            "-File", $PSCommandPath,
-            "-SourceDir", $SourceDir,
-            "-LogPath", $LogPath,
-            "-SkipElevation"
-        )
-
-        $elevated = Start-Process -FilePath $pwsh -ArgumentList $argList -Verb RunAs -Wait -PassThru
-        exit $elevated.ExitCode
-    } catch {
-        Write-Log ("Elevation canceled or failed: {0}" -f $_.Exception.Message)
-        exit 5
-    }
-}
+Write-Log "Running update without elevation."
 
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     Write-Log "Git is not available in PATH."
@@ -250,7 +241,8 @@ try {
         foreach ($failed in $failedTargets) {
             Write-Log (" - {0}" -f $failed)
         }
-        exit 10
+        Write-Log "Update finished with partial sync."
+        exit 11
     }
 
     Write-Log "Update and sync finished successfully."

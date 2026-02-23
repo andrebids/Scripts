@@ -1,22 +1,6 @@
-error: unable to unlink old 'update_log.txt': Invalid argument
-Note: switching to 'origin/main'.
-
-You are in 'detached HEAD' state. You can look around, make experimental
-changes and commit them, and you can discard any commits you make in this
-state without impacting any branches by switching back to a branch.
-
-If you want to create a new branch to retain commits you create, you may
-do so (now or later) by using -c with the switch command. Example:
-
-  git switch -c <new-branch-name>
-
-Or undo this operation with:
-
-  git switch -
-
-Turn off this advice by setting config variable advice.detachedHead to false
-
-HEAD is now at e7c025b Adiciona funcionalidade de atualização e remove botão de teste
-Removing check_git.bat
-Removing src/
-Removing update_script.bat
+﻿
+[2026-02-23 14:52:51] Starting update from source: C:\Program Files\Adobe\Adobe Illustrator 2026\Presets\en_GB\Scripts\Legenda
+[2026-02-23 14:52:51] Running update without elevation.
+[2026-02-23 14:52:51] git config --global --add safe.directory C:\Program Files\Adobe\Adobe Illustrator 2026\Presets\en_GB\Scripts\Legenda
+[2026-02-23 14:52:51] git fetch origin main
+[2026-02-23 14:52:52] Fatal error: From https://github.com/andrebids/Scripts

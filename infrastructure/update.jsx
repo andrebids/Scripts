@@ -72,8 +72,9 @@ function executarUpdate(t) {
             throw new Error("Não foi possível iniciar o update_runner.bat");
         }
 
-        var timeoutMs = 600000; // 10 minutos
-        var intervaloMs = 500;
+        // Espera curta para não bloquear a UI do Illustrator por muito tempo.
+        var timeoutMs = 12000; // 12 segundos
+        var intervaloMs = 400;
         var aguardadoMs = 0;
 
         while (aguardadoMs < timeoutMs) {
@@ -85,25 +86,45 @@ function executarUpdate(t) {
             }
         }
 
+        // Se ainda estiver a correr após timeout curto, não bloquear mais.
         if (!statusFile.exists) {
-            throw new Error("Timeout ao aguardar update. Consulte update_log.txt para detalhes.");
+            if (ui && ui.mostrarAlertaPersonalizado) {
+                ui.mostrarAlertaPersonalizado(
+                    "Atualização iniciada em segundo plano.\n\nO Illustrator não ficará bloqueado.\n\nQuando terminar, execute novamente o script.",
+                    "Atualização em Progresso"
+                );
+            } else {
+                alert("Atualização iniciada em segundo plano. Execute novamente o script quando terminar.");
+            }
+            return;
         }
 
         var status = lerConteudoArquivo(statusFile);
         var logContent = lerConteudoArquivo(logFile);
         var sucesso = status && status.indexOf("OK") === 0;
+        var sucessoParcial = status && status.indexOf("OK_PARTIAL") === 0;
 
         if (sucesso) {
+            var mensagemSucesso = t("atualizacaoSucesso") + "\n\nO script será reiniciado automaticamente.";
+            if (sucessoParcial) {
+                var resumoParcial = obterUltimasLinhas(logContent, 10);
+                mensagemSucesso = "Atualização concluída, mas algumas pastas do Illustrator não puderam ser atualizadas sem permissões adicionais.";
+                if (resumoParcial) {
+                    mensagemSucesso += "\n\n" + resumoParcial;
+                }
+                mensagemSucesso += "\n\nO script será reiniciado automaticamente.";
+            }
+
             if (ui && ui.mostrarAlertaPersonalizado) {
                 ui.mostrarAlertaPersonalizado(
-                    t("atualizacaoSucesso") + "\n\nUpdate sincronizado para as instalações do Illustrator encontradas.\nO script será reiniciado automaticamente.",
+                    mensagemSucesso,
                     "Atualização Concluída",
                     function() {
                         reiniciarScript();
                     }
                 );
             } else {
-                alert(t("atualizacaoSucesso"));
+                alert(mensagemSucesso);
                 reiniciarScript();
             }
             return;

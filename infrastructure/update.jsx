@@ -34,13 +34,26 @@ function obterUltimasLinhas(texto, maxLinhas) {
     return linhas.slice(linhas.length - maxLinhas).join("\n");
 }
 
+function obterDiretorioProjeto() {
+    try {
+        var arquivoAtual = new File($.fileName);
+        var pastaAtual = arquivoAtual.parent;
+        if (pastaAtual && pastaAtual.name && pastaAtual.name.toLowerCase() === "infrastructure") {
+            return pastaAtual.parent.fsName;
+        }
+        return pastaAtual.fsName;
+    } catch (e) {
+        return File($.fileName).parent.fsName;
+    }
+}
+
 function executarUpdate(t) {
     try {
-        var currentDir = File($.fileName).parent.fsName;
-        var runnerFile = new File(currentDir + "/infrastructure/update_runner.bat");
-        var logFile = new File(currentDir + "/update_log.txt");
-        var statusFile = new File(currentDir + "/update_status.txt");
-        var lockFile = new File(currentDir + "/update_running.lock");
+        var projectDir = obterDiretorioProjeto();
+        var runnerFile = new File(projectDir + "/infrastructure/update_runner.bat");
+        var logFile = new File(projectDir + "/update_log.txt");
+        var statusFile = new File(projectDir + "/update_status.txt");
+        var lockFile = new File(projectDir + "/update_running.lock");
 
         if (!runnerFile.exists) {
             var erroRunner = "Arquivo de update não encontrado: " + runnerFile.fsName;
@@ -140,7 +153,8 @@ function reiniciarScript() {
         $.sleep(1000);
         
         // Executar o script novamente
-        var scriptPath = File($.fileName).fsName;
+        var projectDir = obterDiretorioProjeto();
+        var scriptPath = projectDir + "/script.jsx";
         var novoScript = new File(scriptPath);
         
         if (novoScript.exists) {

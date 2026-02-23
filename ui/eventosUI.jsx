@@ -331,6 +331,12 @@ $.global.eventosUI = {};
                             
                             // Chamar função de filtragem
                             var componentesFiltrados = funcoesFiltragem.filtrarComponentesPrintPorUso(usoSelecionado, config.dados, config.t);
+                            if (!componentesFiltrados || componentesFiltrados.length === 0) {
+                                componentesFiltrados = config.componentesOriginaisPrint ? config.componentesOriginaisPrint.slice(0) : [];
+                                if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
+                                    logs.adicionarLog("Filtragem de PRINT por uso retornou vazio; aplicado fallback para lista original.", logs.TIPOS_LOG.WARNING);
+                                }
+                            }
                             
                             // Salvar seleção atual
                             var selecaoAtual = config.linhaPrint.listaComponentes.selection;

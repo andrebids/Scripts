@@ -553,38 +553,77 @@ function filtrarComponentesPrintPorUso(uso, dados, t) {
             logProtegidoFiltragem("Dados inválidos para filtragem de PRINT por uso", logs.TIPOS_LOG.WARNING);
             return [];
         }
-        var printsInterior = ["print ignifuge", "flexiprint ignifuge","recyprint"];
-        var printsExterior = ["bioprint", "recyprint", "flexiprint"];
-        var printsValidos = [];
-        var usoLower = (uso || "").toLowerCase();
+
+        function normalizarTexto(valor) {
+            if (!valor) return "";
+            var txt = String(valor).toLowerCase();
+            txt = txt.replace(/[áàâãä]/g, "a");
+            txt = txt.replace(/[éèêë]/g, "e");
+            txt = txt.replace(/[íìîï]/g, "i");
+            txt = txt.replace(/[óòôõö]/g, "o");
+            txt = txt.replace(/[úùûü]/g, "u");
+            txt = txt.replace(/ç/g, "c");
+            txt = txt.replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
+            return txt;
+        }
+
+        function ehFlexiPlus(nomeNorm) {
+            return nomeNorm.indexOf("flexi+") !== -1 || nomeNorm.indexOf("flexi +") !== -1;
+        }
+
+        function ehComponentePrint(nomeNorm) {
+            return nomeNorm.indexOf("print") !== -1 || ehFlexiPlus(nomeNorm);
+        }
+
+        function ehInterior(nomeNorm) {
+            return (
+                nomeNorm === "recyprint" ||
+                ehFlexiPlus(nomeNorm) ||
+                (nomeNorm.indexOf("ignifuge") !== -1 && nomeNorm.indexOf("print") !== -1)
+            );
+        }
+
+        function ehExterior(nomeNorm) {
+            return (
+                nomeNorm === "bioprint" ||
+                nomeNorm === "recyprint" ||
+                nomeNorm === "flexiprint" ||
+                ehFlexiPlus(nomeNorm)
+            );
+        }
+
+        var usoNorm = normalizarTexto(uso || "");
+        var isInterior = usoNorm.indexOf("interieur") !== -1 || usoNorm.indexOf("interior") !== -1;
+        var isExterior = usoNorm.indexOf("exterieur") !== -1 || usoNorm.indexOf("exterior") !== -1;
+        var listaTodosPrint = [];
         var listaFinal = [];
-        if (usoLower.indexOf("interieur") !== -1 || usoLower.indexOf("interior") !== -1) {
-            printsValidos = printsInterior;
-        } else if (usoLower.indexOf("exterieur") !== -1 || usoLower.indexOf("exterior") !== -1) {
-            printsValidos = printsExterior;
-        } else {
-            // Se não definido, retorna todos (inclui flexi+)
-            for (var i = 0; i < dados.componentes.length; i++) {
-                var nome = dados.componentes[i].nome.toLowerCase();
-                if (nome === "bioprint" || nome === "recyprint" || nome === "print ignifuge" || nome === "flexiprint" || nome === "flexiprint ignifuge" || nome.indexOf("flexi+") !== -1 || nome.indexOf("flexi +") !== -1) {
-                    listaFinal.push(dados.componentes[i].nome);
-                }
-            }
-            logProtegidoFiltragem("Uso não definido, retornando todos os prints", logs.TIPOS_LOG.INFO);
-            return listaFinal;
-        }
+
         for (var i = 0; i < dados.componentes.length; i++) {
-            var nome = dados.componentes[i].nome.toLowerCase();
-            for (var j = 0; j < printsValidos.length; j++) {
-                if (nome === printsValidos[j]) {
-                    listaFinal.push(dados.componentes[i].nome);
+            var nomeOriginal = dados.componentes[i].nome;
+            var nomeNorm = normalizarTexto(nomeOriginal);
+            if (!ehComponentePrint(nomeNorm)) {
+                continue;
+            }
+
+            if (listaTodosPrint.indexOf(nomeOriginal) === -1) {
+                listaTodosPrint.push(nomeOriginal);
+            }
+
+            if ((!isInterior && !isExterior) ||
+                (isInterior && ehInterior(nomeNorm)) ||
+                (isExterior && ehExterior(nomeNorm))) {
+                if (listaFinal.indexOf(nomeOriginal) === -1) {
+                    listaFinal.push(nomeOriginal);
                 }
             }
-            // Incluir sempre combinações flexi+ (com ou sem espaço) no dropdown PRINT (interior e exterior)
-            if ((nome.indexOf("flexi+") !== -1 || nome.indexOf("flexi +") !== -1) && listaFinal.indexOf(dados.componentes[i].nome) === -1) {
-                listaFinal.push(dados.componentes[i].nome);
-            }
         }
+
+        // Fallback de segurança: nunca deixar dropdown PRINT vazio quando houver prints na base.
+        if (listaFinal.length === 0 && listaTodosPrint.length > 0) {
+            logProtegidoFiltragem("Filtragem por uso ficou vazia. Aplicando fallback com todos os PRINT.", logs.TIPOS_LOG.WARNING);
+            listaFinal = listaTodosPrint;
+        }
+
         logProtegidoFiltragem("Filtragem PRINT por uso concluída: " + listaFinal.length + " encontrados", logs.TIPOS_LOG.INFO);
         return listaFinal;
     } catch (erro) {

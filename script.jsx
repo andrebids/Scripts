@@ -136,7 +136,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2.7");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2.8");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -750,6 +750,12 @@ if (campoUsage && campoUsage.selection && linhaPrint && linhaPrint.listaComponen
         }
         
         var componentesFiltradosInicial = funcoesFiltragem.filtrarComponentesPrintPorUso(usoInicial, dados, t);
+        if (!componentesFiltradosInicial || componentesFiltradosInicial.length === 0) {
+            componentesFiltradosInicial = componentesOriginaisPrint.slice(0);
+            if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
+                logs.adicionarLog("Filtragem inicial de PRINT vazia; usando fallback com lista original.", logs.TIPOS_LOG.WARNING);
+            }
+        }
         
         // Limpar e repopular o dropdown
         linhaPrint.listaComponentes.removeAll();
@@ -1019,6 +1025,7 @@ function atualizarListaItens() {
             dados: dados,
             t: t,
             itensLegenda: itensLegenda,
+            componentesOriginaisPrint: componentesOriginaisPrint,
             atualizarListaItens: atualizarListaItens,
             ultimaSelecao: ultimaSelecao,
             idiomaUsuario: idiomaUsuario,

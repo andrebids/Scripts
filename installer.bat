@@ -2,7 +2,8 @@
 setlocal EnableExtensions EnableDelayedExpansion
 
 set "SCRIPT_DIR=%~dp0"
-set "LOG_FILE=%SCRIPT_DIR%installer_log.txt"
+for %%A in ("%SCRIPT_DIR%\.") do set "CURRENT_INSTALL=%%~fA"
+set "LOG_FILE=%TEMP%\Legenda_installer.log"
 set "REPO_URL=https://github.com/andrebids/Scripts"
 set "BRANCH=main"
 set "USER_ID=%USERDOMAIN%\%USERNAME%"
@@ -92,6 +93,7 @@ goto :eof
 :install_target
 set "SCRIPTS_DIR=%~1"
 set "TARGET_DIR=%~2"
+for %%A in ("%TARGET_DIR%\.") do set "TARGET_NORM=%%~fA"
 
 set /a TOTAL+=1
 call :log "Target: %TARGET_DIR%"
@@ -107,27 +109,21 @@ if not exist "%SCRIPTS_DIR%" (
 
 icacls "%SCRIPTS_DIR%" /grant "%USER_ID%:(OI)(CI)M" /T /C >>"%LOG_FILE%" 2>&1
 
-if exist "%TARGET_DIR%" (
-    rmdir /s /q "%TARGET_DIR%" >>"%LOG_FILE%" 2>&1
+if not exist "%TARGET_DIR%" (
+    mkdir "%TARGET_DIR%" >>"%LOG_FILE%" 2>&1
     if errorlevel 1 (
-        icacls "%TARGET_DIR%" /grant "%USER_ID%:(OI)(CI)M" /T /C >>"%LOG_FILE%" 2>&1
-        rmdir /s /q "%TARGET_DIR%" >>"%LOG_FILE%" 2>&1
-        if errorlevel 1 (
-            call :log "ERROR: Cannot replace target folder: %TARGET_DIR%"
-            set /a FAILED+=1
-            goto :eof
-        )
+        call :log "ERROR: Cannot create target folder: %TARGET_DIR%"
+        set /a FAILED+=1
+        goto :eof
     )
 )
 
-mkdir "%TARGET_DIR%" >>"%LOG_FILE%" 2>&1
-if errorlevel 1 (
-    call :log "ERROR: Cannot create target folder: %TARGET_DIR%"
-    set /a FAILED+=1
-    goto :eof
+if /I "%TARGET_NORM%"=="%CURRENT_INSTALL%" (
+    call :log "INFO: Updating running installation in place (self path)."
+    robocopy "%TEMP_REPO%" "%TARGET_DIR%" /MIR /R:2 /W:1 /NFL /NDL /NJH /NJS /NP /XF installer.bat installer_log.txt >>"%LOG_FILE%" 2>&1
+) else (
+    robocopy "%TEMP_REPO%" "%TARGET_DIR%" /MIR /R:2 /W:1 /NFL /NDL /NJH /NJS /NP >>"%LOG_FILE%" 2>&1
 )
-
-robocopy "%TEMP_REPO%" "%TARGET_DIR%" /MIR /R:2 /W:1 /NFL /NDL /NJH /NJS /NP >>"%LOG_FILE%" 2>&1
 set "COPY_RC=%ERRORLEVEL%"
 if %COPY_RC% GEQ 8 (
     call :log "ERROR: robocopy failed (%COPY_RC%) on %TARGET_DIR%"

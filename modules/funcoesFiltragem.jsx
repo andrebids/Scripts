@@ -122,6 +122,10 @@ function getComponentesComCombinacoes(dados, t, arrayContains, encontrarPorId) {
                             break;
                         }
                     }
+                    // Incluir combinações flexi+ (com ou sem espaço: "flexi+" ou "flexi +") no dropdown PRINT
+                    if (!ehEspecial && (nomeComp.indexOf("flexi+") !== -1 || nomeComp.indexOf("flexi +") !== -1)) {
+                        ehEspecial = true;
+                    }
                     // ALTERAÇÃO: Aceitar variações de 'stalactite' para LEDS
                     if (!ehEspecial) {
                         if (
@@ -559,10 +563,10 @@ function filtrarComponentesPrintPorUso(uso, dados, t) {
         } else if (usoLower.indexOf("exterieur") !== -1 || usoLower.indexOf("exterior") !== -1) {
             printsValidos = printsExterior;
         } else {
-            // Se não definido, retorna todos
+            // Se não definido, retorna todos (inclui flexi+)
             for (var i = 0; i < dados.componentes.length; i++) {
                 var nome = dados.componentes[i].nome.toLowerCase();
-                if (nome === "bioprint" || nome === "recyprint" || nome === "print ignifuge" || nome === "flexiprint" || nome === "flexiprint ignifuge") {
+                if (nome === "bioprint" || nome === "recyprint" || nome === "print ignifuge" || nome === "flexiprint" || nome === "flexiprint ignifuge" || nome.indexOf("flexi+") !== -1 || nome.indexOf("flexi +") !== -1) {
                     listaFinal.push(dados.componentes[i].nome);
                 }
             }
@@ -575,6 +579,10 @@ function filtrarComponentesPrintPorUso(uso, dados, t) {
                 if (nome === printsValidos[j]) {
                     listaFinal.push(dados.componentes[i].nome);
                 }
+            }
+            // Incluir sempre combinações flexi+ (com ou sem espaço) no dropdown PRINT (interior e exterior)
+            if ((nome.indexOf("flexi+") !== -1 || nome.indexOf("flexi +") !== -1) && listaFinal.indexOf(dados.componentes[i].nome) === -1) {
+                listaFinal.push(dados.componentes[i].nome);
             }
         }
         logProtegidoFiltragem("Filtragem PRINT por uso concluída: " + listaFinal.length + " encontrados", logs.TIPOS_LOG.INFO);

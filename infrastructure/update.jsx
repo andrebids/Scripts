@@ -1,74 +1,114 @@
 // update.jsx
 // Função para executar o update do projeto Legenda
 
+function lerConteudoArquivo(arquivo) {
+    try {
+        if (!arquivo || !arquivo.exists) {
+            return "";
+        }
+        if (arquivo.open('r')) {
+            var conteudo = arquivo.read();
+            arquivo.close();
+            return conteudo;
+        }
+    } catch (e) {}
+    return "";
+}
+
+function removerArquivoSeExistir(arquivo) {
+    try {
+        if (arquivo && arquivo.exists) {
+            arquivo.remove();
+        }
+    } catch (e) {}
+}
+
+function obterUltimasLinhas(texto, maxLinhas) {
+    if (!texto) {
+        return "";
+    }
+    var linhas = texto.split(/\r?\n/);
+    if (linhas.length <= maxLinhas) {
+        return texto;
+    }
+    return linhas.slice(linhas.length - maxLinhas).join("\n");
+}
+
 function executarUpdate(t) {
     try {
         var currentDir = File($.fileName).parent.fsName;
-        // Verificar se o Git está instalado
-        var checkGitFile = new File(currentDir + "/check_git.bat");
-        if (checkGitFile.open('w')) {
-            checkGitFile.write("@echo off\n");
-            checkGitFile.write("git --version > git_check.txt 2>&1\n");
-            checkGitFile.write("exit\n");
-            checkGitFile.close();
-            checkGitFile.execute();
-            $.sleep(1000);
-            var gitCheckFile = new File(currentDir + "/git_check.txt");
-            if (gitCheckFile.exists) {
-                gitCheckFile.open('r');
-                var gitCheck = gitCheckFile.read();
-                gitCheckFile.close();
-                gitCheckFile.remove();
-                checkGitFile.remove();
-                if (gitCheck.indexOf("git version") === -1) {
-                    if (ui && ui.mostrarAlertaPersonalizado) {
-                        ui.mostrarAlertaPersonalizado(t("gitNaoInstalado"), "Git Não Encontrado");
-                    } else {
-                        alert(t("gitNaoInstalado"));
-                    }
-                    return;
-                }
+        var runnerFile = new File(currentDir + "/infrastructure/update_runner.bat");
+        var logFile = new File(currentDir + "/update_log.txt");
+        var statusFile = new File(currentDir + "/update_status.txt");
+        var lockFile = new File(currentDir + "/update_running.lock");
+
+        if (!runnerFile.exists) {
+            var erroRunner = "Arquivo de update não encontrado: " + runnerFile.fsName;
+            if (ui && ui.mostrarAlertaPersonalizado) {
+                ui.mostrarAlertaPersonalizado(erroRunner, "Erro na Atualização");
+            } else {
+                alert(erroRunner);
+            }
+            return;
+        }
+
+        removerArquivoSeExistir(statusFile);
+        removerArquivoSeExistir(lockFile);
+
+        if (!runnerFile.execute()) {
+            throw new Error("Não foi possível iniciar o update_runner.bat");
+        }
+
+        var timeoutMs = 600000; // 10 minutos
+        var intervaloMs = 500;
+        var aguardadoMs = 0;
+
+        while (aguardadoMs < timeoutMs) {
+            $.sleep(intervaloMs);
+            aguardadoMs += intervaloMs;
+
+            if (statusFile.exists && !lockFile.exists) {
+                break;
             }
         }
-        // Criar arquivo .bat para Windows
-        var scriptFile = new File(currentDir + "/update_script.bat");
-        if (scriptFile.open('w')) {
-            scriptFile.write("@echo off\n");
-            scriptFile.write("cd /d \"" + currentDir + "\"\n");
-            scriptFile.write("del /f /q temp_log.txt update_log.txt 2>nul\n");
-            scriptFile.write("git config --global --add safe.directory \"%CD%\" > update_log.txt\n");
-            scriptFile.write("git fetch origin main >> update_log.txt 2>&1\n");
-            scriptFile.write("git reset --hard origin/main >> update_log.txt 2>&1\n");
-            scriptFile.write("git clean -fd >> update_log.txt 2>&1\n");
-            scriptFile.write("exit\n");
-            scriptFile.close();
+
+        if (!statusFile.exists) {
+            throw new Error("Timeout ao aguardar update. Consulte update_log.txt para detalhes.");
         }
-        if (scriptFile.exists) {
-            if (scriptFile.execute()) {
-                $.sleep(2000);
-                var logFile = new File(currentDir + "/update_log.txt");
-                if (logFile.exists) {
-                    logFile.open('r');
-                    var logContent = logFile.read();
-                    logFile.close();
-                    
-                    // Usar a janela personalizada nova e adicionar callback para reiniciar
-                    if (ui && ui.mostrarAlertaPersonalizado) {
-                        ui.mostrarAlertaPersonalizado(
-                            t("atualizacaoSucesso") + "\n\nO script será reiniciado automaticamente.",
-                            "Atualização Concluída",
-                            function() {
-                                reiniciarScript();
-                            }
-                        );
-                    } else {
-                        alert(t("atualizacaoSucesso"));
+
+        var status = lerConteudoArquivo(statusFile);
+        var logContent = lerConteudoArquivo(logFile);
+        var sucesso = status && status.indexOf("OK") === 0;
+
+        if (sucesso) {
+            if (ui && ui.mostrarAlertaPersonalizado) {
+                ui.mostrarAlertaPersonalizado(
+                    t("atualizacaoSucesso") + "\n\nUpdate sincronizado para as instalações do Illustrator encontradas.\nO script será reiniciado automaticamente.",
+                    "Atualização Concluída",
+                    function() {
                         reiniciarScript();
                     }
-                    scriptFile.remove();
-                }
+                );
+            } else {
+                alert(t("atualizacaoSucesso"));
+                reiniciarScript();
             }
+            return;
         }
+
+        var statusLimpo = status ? status.replace(/\r?\n/g, " ").replace(/\s+/g, " ") : "ERROR";
+        var resumoLog = obterUltimasLinhas(logContent, 14);
+        var mensagemErro = t("erroAtualizacao") + " (" + statusLimpo + ").";
+        if (resumoLog) {
+            mensagemErro += "\n\n" + resumoLog;
+        }
+
+        if (ui && ui.mostrarAlertaPersonalizado) {
+            ui.mostrarAlertaPersonalizado(mensagemErro, "Erro na Atualização");
+        } else {
+            alert(mensagemErro);
+        }
+
     } catch (e) {
         if (ui && ui.mostrarAlertaPersonalizado) {
             ui.mostrarAlertaPersonalizado(t("erroAtualizacao") + ": " + e, "Erro na Atualização");

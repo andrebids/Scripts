@@ -302,6 +302,33 @@ function encodeObservacao(texto) {
     return resultado;
 }
 
+// Função para sanitizar textos livres usados na legenda (nome/tipo e nome do designer)
+function sanitizarTextoLegenda(texto, maxLen) {
+    if (texto === null || texto === undefined) {
+        return "";
+    }
+
+    var valor = String(texto);
+
+    // Remover controles que podem quebrar ScriptUI/BridgeTalk e normalizar espaços
+    valor = valor.replace(/[\r\n\t]+/g, " ");
+    valor = valor.replace(/[\x00-\x1F\x7F]/g, "");
+    valor = valor.replace(/\s+/g, " ");
+
+    // Evitar conflito visual com as aspas usadas no formato: decor "NOME"
+    valor = valor.replace(/"/g, "'");
+    valor = valor.replace(/[<>]/g, "");
+
+    // trim compatível com ExtendScript
+    valor = valor.replace(/^\s+|\s+$/g, "");
+
+    if (maxLen && maxLen > 0 && valor.length > maxLen) {
+        valor = valor.substring(0, maxLen);
+    }
+
+    return valor;
+}
+
 // Certifique-se de que esta linha está presente no final do arquivo funcoes.jsx
 $.global.funcoes = $.global.funcoes || {};
 $.global.funcoes.lerVersao = lerVersao;
@@ -335,7 +362,8 @@ $.global.funcoes = {
     sanitizarObservacao: sanitizarObservacao,
     escaparParaScript: escaparParaScript,
     stringSeguraParaScript: stringSeguraParaScript,
-    encodeObservacao: encodeObservacao
+    encodeObservacao: encodeObservacao,
+    sanitizarTextoLegenda: sanitizarTextoLegenda
 };
 
 // Adicione estas funções no arquivo funcoes.jsx

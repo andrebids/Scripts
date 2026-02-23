@@ -68,6 +68,9 @@ janela.margins = 16;
 
 // Garantir que a janela pode ser fechada
 janela.addEventListener('close', function() {
+    $.global.componentesObservacoes = null;
+    $.global.janelaScript = null;
+    $.global.legendaEstadoObs = null;
     return true;
 });
 
@@ -76,6 +79,44 @@ if (janela.closeButton) {
     janela.closeButton.onClick = function() {
         janela.close();
     };
+}
+
+function obterChaveDocumentoAtivo() {
+    try {
+        if (app && app.documents && app.documents.length > 0 && app.activeDocument) {
+            var doc = app.activeDocument;
+            try {
+                if (doc.fullName) {
+                    return doc.fullName.fsName;
+                }
+            } catch (e1) {}
+            return doc.name || "";
+        }
+    } catch (e2) {}
+    return "";
+}
+
+function sincronizarObservacoesComDocumento(campoObs) {
+    var chaveAtual = obterChaveDocumentoAtivo();
+    if (!$.global.legendaEstadoObs) {
+        $.global.legendaEstadoObs = {
+            chaveDocumento: chaveAtual,
+            ultimoTexto: campoObs ? campoObs.text : ""
+        };
+        return;
+    }
+
+    var estado = $.global.legendaEstadoObs;
+    if (estado.chaveDocumento !== chaveAtual) {
+        // Se mudou de documento e o texto atual e exatamente o ultimo usado,
+        // considerar valor herdado e limpar.
+        if (campoObs && campoObs.text === estado.ultimoTexto) {
+            campoObs.text = "";
+        }
+        estado.chaveDocumento = chaveAtual;
+    }
+
+    estado.ultimoTexto = campoObs ? campoObs.text : "";
 }
 
 // Grupo para o botão Update (acima das abas)
@@ -95,7 +136,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2.6");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2.7");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -172,7 +213,7 @@ grupoLFixacao.orientation = "row";
 grupoLFixacao.spacing = 3; // Espaçamento mínimo entre todos os elementos
 grupoLFixacao.add("statictext", undefined, "L:");
 var opcoesL = [];
-for (var i = 1; i <= 20; i++) {
+for (var i = 1; i <= 30; i++) {
     opcoesL.push("L" + i);
 }
 var listaL = grupoLFixacao.add("dropdownlist", undefined, opcoesL);
@@ -888,6 +929,8 @@ abasExtra.selection = abaGeral;
 
 // Variável para armazenar componentes da interface de observações
 var componentesObservacoes = null;
+// Limpar referência global antiga ao iniciar nova janela (engine persistente)
+$.global.componentesObservacoes = null;
 
 // Evento será configurado pelo módulo eventosUI
 
@@ -984,6 +1027,13 @@ function atualizarListaItens() {
             gerarLegenda: function() {
                 // Lógica de geração da legenda
                 try {
+                    var campoObsAtual = (checkboxMostrarObs &&
+                        checkboxMostrarObs.value &&
+                        configEventos.componentesObservacoes &&
+                        configEventos.componentesObservacoes.campoObs) ?
+                        configEventos.componentesObservacoes.campoObs : null;
+                    sincronizarObservacoesComDocumento(campoObsAtual);
+
                     var parametrosPreview = {
                         itensLegenda: itensLegenda,
                         campoNomeTipo: campoNomeTipo,
@@ -994,7 +1044,7 @@ function atualizarListaItens() {
                         listaFixacao: listaFixacao,
                         checkStructure: checkStructure,
                         corStructure: corStructure,
-                        campoObs: $.global.componentesObservacoes ? $.global.componentesObservacoes.campoObs : null,
+                        campoObs: campoObsAtual,
                         campoUsage: campoUsage,
                         campoQuantitePrevu: campoQuantitePrevu,
                         campoPreco: campoPreco

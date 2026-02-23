@@ -125,7 +125,10 @@ function gerarFrasePrincipal(parametros) {
     logLegenda("Iniciando geração da frase principal", "function");
     
     try {
-        var nomeTipo = parametros.palavraDigitada || parametros.campoNomeTipo;
+        var nomeTipoBruto = parametros.palavraDigitada || parametros.campoNomeTipo;
+        var nomeTipo = (funcoes && funcoes.sanitizarTextoLegenda) ?
+            funcoes.sanitizarTextoLegenda(nomeTipoBruto, 120) :
+            nomeTipoBruto;
         var prefixoNomeTipo = parametros.escolhaNomeTipo === "Tipo" ? "type " : "";
         var preposicao = parametros.alfabetoUsado ? "en" : "avec";
         var decorTexto = "décor";

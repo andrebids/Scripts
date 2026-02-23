@@ -78,6 +78,27 @@ function Invoke-Git {
     }
 }
 
+function Test-GitWorkingTreeDirty {
+    try {
+        $previousErrorActionPreference = $ErrorActionPreference
+        $output = @()
+        try {
+            $ErrorActionPreference = "Continue"
+            $output = & git status --porcelain 2>$null
+        } finally {
+            $ErrorActionPreference = $previousErrorActionPreference
+        }
+
+        if ($LASTEXITCODE -ne 0) {
+            throw ("git status failed with code {0}" -f $LASTEXITCODE)
+        }
+
+        return ($output -and $output.Count -gt 0)
+    } catch {
+        throw ("Failed to check local git changes: {0}" -f $_.Exception.Message)
+    }
+}
+
 function Get-LegendaTargets {
     param([string]$CurrentSourceDir)
 
@@ -215,9 +236,15 @@ try {
     }
 
     Invoke-Git -Arguments @("config", "--global", "--add", "safe.directory", $resolvedSource)
-    Invoke-Git -Arguments @("fetch", "origin", "main")
-    Invoke-Git -Arguments @("reset", "--hard", "origin/main")
-    Invoke-Git -Arguments @("clean", "-fd")
+
+    $isDirty = Test-GitWorkingTreeDirty
+    if ($isDirty) {
+        Write-Log "Local changes detected. Skipping git fetch/reset/clean and syncing current local files."
+    } else {
+        Invoke-Git -Arguments @("fetch", "origin", "main")
+        Invoke-Git -Arguments @("reset", "--hard", "origin/main")
+        Invoke-Git -Arguments @("clean", "-fd")
+    }
 
     $targets = Get-LegendaTargets -CurrentSourceDir $resolvedSource
     Write-Log ("Targets found: {0}" -f $targets.Count)

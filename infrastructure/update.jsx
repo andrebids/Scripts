@@ -105,14 +105,14 @@ function executarUpdate(t) {
         var sucessoParcial = status && status.indexOf("OK_PARTIAL") === 0;
 
         if (sucesso) {
-            var mensagemSucesso = t("atualizacaoSucesso") + "\n\nO script será reiniciado automaticamente.";
+            var mensagemSucesso = t("atualizacaoSucesso") + "\n\nFeche e abra o script novamente.";
             if (sucessoParcial) {
                 var resumoParcial = obterUltimasLinhas(logContent, 10);
                 mensagemSucesso = "Atualização concluída, mas algumas pastas do Illustrator não puderam ser atualizadas sem permissões adicionais.";
                 if (resumoParcial) {
                     mensagemSucesso += "\n\n" + resumoParcial;
                 }
-                mensagemSucesso += "\n\nO script será reiniciado automaticamente.";
+                mensagemSucesso += "\n\nFeche e abra o script novamente.";
             }
 
             if (ui && ui.mostrarAlertaPersonalizado) {
@@ -120,12 +120,12 @@ function executarUpdate(t) {
                     mensagemSucesso,
                     "Atualização Concluída",
                     function() {
-                        reiniciarScript();
+                        fecharJanelaPrincipalAposUpdate();
                     }
                 );
             } else {
                 alert(mensagemSucesso);
-                reiniciarScript();
+                fecharJanelaPrincipalAposUpdate();
             }
             return;
         }
@@ -150,6 +150,15 @@ function executarUpdate(t) {
             alert(t("erroAtualizacao") + ": " + e);
         }
     }
+}
+
+function fecharJanelaPrincipalAposUpdate() {
+    try {
+        if ($.global.janelaScript && $.global.janelaScript.close) {
+            $.global.janelaScript.close();
+            $.global.janelaScript = null;
+        }
+    } catch (e) {}
 }
 
 /**

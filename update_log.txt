@@ -1,6 +1,18 @@
 ﻿
-[2026-02-23 14:52:51] Starting update from source: C:\Program Files\Adobe\Adobe Illustrator 2026\Presets\en_GB\Scripts\Legenda
-[2026-02-23 14:52:51] Running update without elevation.
-[2026-02-23 14:52:51] git config --global --add safe.directory C:\Program Files\Adobe\Adobe Illustrator 2026\Presets\en_GB\Scripts\Legenda
-[2026-02-23 14:52:51] git fetch origin main
-[2026-02-23 14:52:52] Fatal error: From https://github.com/andrebids/Scripts
+[2026-02-23 15:08:33] Starting update from source: C:\Program Files\Adobe\Adobe Illustrator 2026\Presets\en_GB\Scripts\Legenda
+[2026-02-23 15:08:33] Running update without elevation.
+[2026-02-23 15:08:33] git config --global --add safe.directory C:\Program Files\Adobe\Adobe Illustrator 2026\Presets\en_GB\Scripts\Legenda
+[2026-02-23 15:08:33] Local changes detected. Skipping git fetch/reset/clean and syncing current local files.
+[2026-02-23 15:08:33] Targets found: 4
+[2026-02-23 15:08:33] Sync start: C:\Program Files\Adobe\Adobe Illustrator (Beta)\Presets\en_GB\Scripts\Legenda
+[2026-02-23 15:08:33] 
+[2026-02-23 15:08:33] Sync success: C:\Program Files\Adobe\Adobe Illustrator (Beta)\Presets\en_GB\Scripts\Legenda (robocopy code 1)
+[2026-02-23 15:08:33] Sync start: C:\Program Files\Adobe\Adobe Illustrator 2024\Presets\en_GB\Scripts\Legenda
+[2026-02-23 15:08:34] 
+[2026-02-23 15:08:34] Sync success: C:\Program Files\Adobe\Adobe Illustrator 2024\Presets\en_GB\Scripts\Legenda (robocopy code 1)
+[2026-02-23 15:08:34] Sync start: C:\Program Files\Adobe\Adobe Illustrator 2025\Presets\en_GB\Scripts\Legenda
+[2026-02-23 15:08:34] 
+[2026-02-23 15:08:34] Sync success: C:\Program Files\Adobe\Adobe Illustrator 2025\Presets\en_GB\Scripts\Legenda (robocopy code 1)
+[2026-02-23 15:08:34] Skipping source folder sync: C:\Program Files\Adobe\Adobe Illustrator 2026\Presets\en_GB\Scripts\Legenda
+[2026-02-23 15:08:34] SYNC_SUMMARY total=4 success=4 failed=0
+[2026-02-23 15:08:34] Update and sync finished successfully.

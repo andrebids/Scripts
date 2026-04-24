@@ -149,7 +149,15 @@ var TRANSLATIONS = {
         "nomeComponenteExtra": "Nome",
         "unidadeComponenteExtra": "Unidade",
         "quantidadeComponenteExtra": "Qtd",
-        "selecionarCampoL": "Gabriel, mete o L"
+        "selecionarCampoL": "Gabriel, mete o L",
+        "adicionarPVC": "Adicionar PVC",
+        "tipoPVC": "Tipo",
+        "descricaoPVC": "Descrição",
+        "quantidadePVC": "Qtd",
+        "unidadePVC": "Unidade",
+        "opcaoPVC": "PVC",
+        "opcaoDisquePlexi": "Disque en plexi",
+        "opcaoImpression": "Impression"
     },
     "Français": {
         "nomeDesigner": "Nom du Designer",
@@ -281,6 +289,14 @@ var TRANSLATIONS = {
         "nomeComponenteExtra": "Nom",
         "unidadeComponenteExtra": "Unité",
         "quantidadeComponenteExtra": "Qté",
-        "selecionarCampoL": "Veuillez sélectionner une valeur pour le champ L (obligatoire)"
+        "selecionarCampoL": "Veuillez sélectionner une valeur pour le champ L (obligatoire)",
+        "adicionarPVC": "Ajouter PVC",
+        "tipoPVC": "Type",
+        "descricaoPVC": "Description",
+        "quantidadePVC": "Qté",
+        "unidadePVC": "Unité",
+        "opcaoPVC": "PVC",
+        "opcaoDisquePlexi": "Disque en plexi",
+        "opcaoImpression": "Impression"
     }
 };

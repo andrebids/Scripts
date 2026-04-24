@@ -122,14 +122,14 @@ function classificar2Dou3D(dimensoes) {
         var classificacao = "";
         var motivo = "";
         
-        if (temDiametro) {
-            // Se há diâmetro, sempre é 3D
+        if (temP) {
+            // A profundidade é o indicador mais forte de volume
             classificacao = "3D";
-            motivo = "Presença de diâmetro (⌀)";
-        } else if (temH && temL && temP) {
-            // Se há H, L e P, é 3D
-            classificacao = "3D";
-            motivo = "Presença de H, L e P";
+            motivo = temH && temL ? "Presença de H, L e P" : "Presença de profundidade (P)";
+        } else if (temDiametro) {
+            // Diâmetro sozinho não implica volume; um círculo continua a ser 2D
+            classificacao = "2D";
+            motivo = "Presença de diâmetro (⌀) sem profundidade (P)";
         } else if (temH && temL && !temP) {
             // Se há apenas H e L (sem P), é 2D
             classificacao = "2D";
@@ -138,10 +138,6 @@ function classificar2Dou3D(dimensoes) {
             // Se há apenas uma dimensão, considerar como 2D
             classificacao = "2D";
             motivo = "Apenas uma dimensão presente";
-        } else if (temP && !temH && !temL) {
-            // Caso especial: apenas profundidade
-            classificacao = "3D";
-            motivo = "Apenas profundidade (P) presente";
         } else {
             // Nenhuma dimensão válida ou caso não coberto
             classificacao = "";

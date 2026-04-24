@@ -119,6 +119,24 @@ function sincronizarObservacoesComDocumento(campoObs) {
     estado.ultimoTexto = campoObs ? campoObs.text : "";
 }
 
+function limparEstadoObservacoesSeMudouDocumento() {
+    var chaveAtual = obterChaveDocumentoAtivo();
+    if (!$.global.legendaEstadoObs) {
+        $.global.legendaEstadoObs = {
+            chaveDocumento: chaveAtual,
+            ultimoTexto: ""
+        };
+        return;
+    }
+
+    if ($.global.legendaEstadoObs.chaveDocumento !== chaveAtual) {
+        $.global.legendaEstadoObs = {
+            chaveDocumento: chaveAtual,
+            ultimoTexto: ""
+        };
+    }
+}
+
 // Grupo para o botão Update (acima das abas)
 var grupoUpdate = janela.add("group");
 grupoUpdate.orientation = "row";
@@ -136,7 +154,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2.8");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2.9");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -870,6 +888,7 @@ colunaEsquerda.orientation = "column";
 colunaEsquerda.alignChildren = ["fill", "top"];
 var checkboxMostrarObs = colunaEsquerda.add("checkbox", undefined, t("adicionarObservacoes"));
 var checkboxMostrarComponenteExtra = colunaEsquerda.add("checkbox", undefined, t("adicionarComponenteExtra"));
+var checkboxMostrarPVC = colunaEsquerda.add("checkbox", undefined, t("adicionarPVC"));
 var checkboxMostrarTexturas = colunaEsquerda.add("checkbox", undefined, t("adicionarTexturas"));
 
 // Coluna direita
@@ -933,6 +952,9 @@ if (logs && logs.inicializarSistemaLogs) {
 // Selecionar a primeira aba por padrão
 abasExtra.selection = abaGeral;
 
+// Isolar estado de observações por documento ao abrir a janela
+limparEstadoObservacoesSeMudouDocumento();
+
 // Variável para armazenar componentes da interface de observações
 var componentesObservacoes = null;
 // Limpar referência global antiga ao iniciar nova janela (engine persistente)
@@ -942,6 +964,10 @@ $.global.componentesObservacoes = null;
 
 // Variável para armazenar o grupo de componente extra
 var grupoComponenteExtra = null;
+// Evento será configurado pelo módulo eventosUI
+
+// Variável para armazenar o grupo de PVC
+var grupoPVC = null;
 // Evento será configurado pelo módulo eventosUI
 
 // Manter apenas este código para a lista única
@@ -1002,6 +1028,7 @@ function atualizarListaItens() {
             checkboxMostrarTexturas: checkboxMostrarTexturas,
             checkboxMostrarObs: checkboxMostrarObs,
             checkboxMostrarComponenteExtra: checkboxMostrarComponenteExtra,
+            checkboxMostrarPVC: checkboxMostrarPVC,
             linhaPrint: linhaPrint,
             linhaLeds: linhaLeds,
             linhaNormais: linhaNormais,
@@ -1019,6 +1046,7 @@ function atualizarListaItens() {
             componentesTextura: componentesTextura,
             componentesObservacoes: componentesObservacoes,
             grupoComponenteExtra: grupoComponenteExtra,
+            grupoPVC: grupoPVC,
             campoNomeTipo: campoNomeTipo,
             
             // Dados e funções

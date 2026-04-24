@@ -129,8 +129,8 @@ function gerarFrasePrincipal(parametros) {
         var nomeTipo = (funcoes && funcoes.sanitizarTextoLegenda) ?
             funcoes.sanitizarTextoLegenda(nomeTipoBruto, 120) :
             nomeTipoBruto;
-        var prefixoNomeTipo = parametros.escolhaNomeTipo === "Tipo" ? "type " : "";
-        var preposicao = parametros.alfabetoUsado ? "en" : "avec";
+        var escolhaNomeTipoTexto = String(parametros.escolhaNomeTipo || "").toLowerCase();
+        var prefixoNomeTipo = (escolhaNomeTipoTexto === "tipo" || escolhaNomeTipoTexto === "type") ? "type " : "";
         var decorTexto = "décor";
 
         // Adicionar tipo de fixação se fornecido
@@ -340,10 +340,9 @@ function gerarFrasePrincipal(parametros) {
                 frasePrincipal += " avec " + agrupados.join(", ");
             }
         } else {
-            // Se não há bioprint, usar "avec" normalmente
-            frasePrincipal += " " + preposicao;
+            // Se não há bioprint, só usar "avec" quando existirem componentes materiais
             if (outrosComponentes.length > 0) {
-                frasePrincipal += " " + agrupados.join(", ");
+                frasePrincipal += " avec " + agrupados.join(", ");
             }
         }
 
@@ -356,6 +355,25 @@ function gerarFrasePrincipal(parametros) {
             }
             frasePrincipal += ", " + nomesExtras.join(", ");
             logLegenda("Adicionados " + nomesExtras.length + " componentes extras na frase principal: " + nomesExtras.join(", "), "info");
+        }
+
+        // Adicionar itens PVC na frase principal
+        if (parametros.itensPVC && parametros.itensPVC.length > 0) {
+            var descricoesPVC = [];
+            for (var p = 0; p < parametros.itensPVC.length; p++) {
+                var itemPVC = parametros.itensPVC[p];
+                var tipoPVC = itemPVC.subtipo || itemPVC.nome || "PVC";
+                var descricaoPVC = itemPVC.descricao || "";
+                var textoPVCFrase = tipoPVC.toLowerCase();
+
+                if (descricaoPVC !== "") {
+                    textoPVCFrase += " " + descricaoPVC.toLowerCase();
+                }
+
+                descricoesPVC.push(textoPVCFrase);
+            }
+            frasePrincipal += ", " + descricoesPVC.join(", ");
+            logLegenda("Adicionados " + descricoesPVC.length + " itens PVC na frase principal: " + descricoesPVC.join(", "), "info");
         }
 
         // Adicionar as bolas
@@ -713,6 +731,31 @@ function processarComponentesExtras(itensLegenda) {
 }
 
 /**
+ * Processa os itens PVC/plexi/impression da legenda
+ * @param {Array} itensLegenda - Array com todos os itens da legenda
+ * @returns {Array} Array com todos os itens PVC
+ */
+function processarItensPVC(itensLegenda) {
+    logLegenda("Iniciando processamento de itens PVC", "function");
+
+    try {
+        var itensPVC = [];
+
+        for (var i = 0; i < itensLegenda.length; i++) {
+            if (itensLegenda[i].tipo === "pvc") {
+                itensPVC.push(itensLegenda[i]);
+            }
+        }
+
+        logLegenda("Processamento de itens PVC concluído: " + itensPVC.length + " itens", "info");
+        return itensPVC;
+    } catch (erro) {
+        logLegenda("Erro ao processar itens PVC: " + erro, "error");
+        return [];
+    }
+}
+
+/**
  * Processa as observações da legenda
  * @param {string} campoObs - Texto das observações
  * @returns {string} Observações processadas ou string vazia
@@ -819,9 +862,20 @@ function processarCamposOpcionais(campoUsage, campoQuantitePrevu, campoPreco) {
     try {
         var camposOpcionaisTexto = [];
 
+        function normalizarUsageParaFrances(textoUsage) {
+            var texto = String(textoUsage || "").toLowerCase();
+            if (texto === "interior" || texto === "intérieur") {
+                return "Intérieur";
+            }
+            if (texto === "exterior" || texto === "extérieur") {
+                return "Extérieur";
+            }
+            return textoUsage;
+        }
+
         // Processar campo Usage
         if (campoUsage && campoUsage.selection && campoUsage.selection.index > 0 && campoUsage.selection.text) {
-            var usageTexto = "Usage: " + campoUsage.selection.text;
+            var usageTexto = "Usage: " + normalizarUsageParaFrances(campoUsage.selection.text);
             camposOpcionaisTexto.push(usageTexto);
             logLegenda("Campo Usage processado: " + usageTexto, "info");
         }
@@ -908,6 +962,7 @@ function atualizarPreview(parametros) {
         var todosComponentesExtras = resultadoExtras.todosComponentesExtras;
         var primeiroComponenteExtra = resultadoExtras.primeiroComponenteExtra;
         var componentesExtras = resultadoExtras.componentesExtras;
+        var itensPVC = processarItensPVC(itensLegenda);
 
         // Preparar dimensões para a regra 2D/3D
         var dimensoesProcessadas = null;
@@ -950,6 +1005,7 @@ function atualizarPreview(parametros) {
             listaL: parametros.listaL ? parametros.listaL.selection.text : "",
             componentesTexto: componentesTexto,
             todosComponentesExtras: todosComponentesExtras,
+            itensPVC: itensPVC,
             primeiroComponenteExtra: primeiroComponenteExtra,  // manter para compatibilidade
             todasBolas: todasBolas,
             bolasCompostas: bolasCompostas,
@@ -992,7 +1048,8 @@ function atualizarPreview(parametros) {
         for (var i = 0; i < itensLegenda.length; i++) {
             if (itensLegenda[i].tipo === "componente" || 
                 itensLegenda[i].tipo === "alfabeto" || 
-                itensLegenda[i].tipo === "extra") {
+                itensLegenda[i].tipo === "extra" ||
+                itensLegenda[i].tipo === "pvc") {
                 temComponentes = true;
                 break;
             }
@@ -1001,7 +1058,7 @@ function atualizarPreview(parametros) {
         if (temComponentes) {
             previewText.push("\u200B"); // Linha em branco antes de "Composants:"
             previewText.push("Composants:");
-            logLegenda("Secção 'Composants:' adicionada (componentes, alfabeto ou extras detectados)", "info");
+            logLegenda("Secção 'Composants:' adicionada (componentes, alfabeto, extras ou PVC detectados)", "info");
         }
 
         // Adicionar referências do alfabeto
@@ -1016,7 +1073,7 @@ function atualizarPreview(parametros) {
         if (totalBolas > 0) {
             previewText.push("\u200B");
             var textoBouleContagem = totalBolas === 1 ? "boule" : "boules";
-            previewText.push("Total de " + totalBolas + " " + textoBouleContagem + " :");
+            previewText.push("Total : " + totalBolas + " " + textoBouleContagem);
             for (var chaveBola in bolasProcessadas) {
                 if (bolasProcessadas.hasOwnProperty(chaveBola)) {
                     var bolaItem = bolasProcessadas[chaveBola];
@@ -1043,6 +1100,18 @@ function atualizarPreview(parametros) {
                 
                 previewText.push(textoComMaiusculas);
                 logLegenda("Componente extra em maiúsculas adicionado na lista: " + nomeComponenteExtra.toUpperCase(), "info");
+            }
+        }
+
+        // Adicionar itens PVC
+        if (itensPVC.length > 0) {
+            for (var i = 0; i < itensPVC.length; i++) {
+                var textoPVC = itensPVC[i].texto;
+                var nomePVC = itensPVC[i].nome || itensPVC[i].subtipo || "PVC";
+                var textoPVCComMaiusculas = textoPVC.replace(nomePVC, nomePVC.toUpperCase());
+
+                previewText.push(textoPVCComMaiusculas);
+                logLegenda("Item PVC adicionado na lista: " + nomePVC.toUpperCase(), "info");
             }
         }
 

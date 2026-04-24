@@ -202,6 +202,9 @@ $.global.eventosUI = {};
                             config.janela,
                             config.t
                         );
+                        if (config.componentesObservacoes && config.componentesObservacoes.campoObs) {
+                            config.componentesObservacoes.campoObs.text = "";
+                        }
                         // Atualizar variável global também
                         $.global.componentesObservacoes = config.componentesObservacoes;
                     } else {
@@ -264,6 +267,86 @@ $.global.eventosUI = {};
                         if (config.grupoComponenteExtra) {
                             config.grupoComponenteExtra.parent.remove(config.grupoComponenteExtra);
                             config.grupoComponenteExtra = null;
+                            config.janela.layout.layout(true);
+                            config.janela.layout.resize();
+                        }
+                    }
+                };
+            }
+
+            // Evento para checkbox PVC
+            if (config.checkboxMostrarPVC) {
+                config.checkboxMostrarPVC.onClick = function() {
+                    if (logs && logs.logEvento) {
+                        logs.logEvento("click", "checkboxMostrarPVC - valor: " + this.value);
+                    }
+
+                    if (this.value) {
+                        config.grupoPVC = config.abaGeral.add("group");
+                        config.grupoPVC.orientation = "row";
+                        config.grupoPVC.alignChildren = ["left", "center"];
+                        config.grupoPVC.spacing = 5;
+
+                        config.grupoPVC.add("statictext", undefined, config.t("tipoPVC"));
+                        var opcoesTipoPVC = [
+                            config.t("opcaoPVC"),
+                            config.t("opcaoDisquePlexi"),
+                            config.t("opcaoImpression")
+                        ];
+                        var campoTipoPVC = config.grupoPVC.add("dropdownlist", undefined, opcoesTipoPVC);
+                        campoTipoPVC.selection = 0;
+
+                        config.grupoPVC.add("statictext", undefined, config.t("descricaoPVC"));
+                        var campoDescricaoPVC = config.grupoPVC.add("edittext", undefined, "");
+                        campoDescricaoPVC.characters = 18;
+
+                        config.grupoPVC.add("statictext", undefined, config.t("unidadePVC"));
+                        var campoUnidadePVC = config.grupoPVC.add("dropdownlist", undefined, ["units"]);
+                        campoUnidadePVC.selection = 0;
+
+                        config.grupoPVC.add("statictext", undefined, config.t("quantidadePVC"));
+                        var campoQuantidadePVC = config.grupoPVC.add("edittext", undefined, "1");
+                        campoQuantidadePVC.characters = 4;
+                        funcoes.apenasNumerosEVirgula(campoQuantidadePVC);
+
+                        var botaoAdicionarPVC = config.grupoPVC.add("button", undefined, config.t("adicionarPVC"));
+
+                        botaoAdicionarPVC.onClick = function() {
+                            var tipoPVC = campoTipoPVC.selection ? campoTipoPVC.selection.text : "";
+                            var descricaoPVC = String(campoDescricaoPVC.text || "").replace(/^\s+/, "").replace(/\s+$/, "");
+                            var unidadePVC = campoUnidadePVC.selection ? campoUnidadePVC.selection.text : "units";
+                            var quantidadePVC = parseFloat(String(campoQuantidadePVC.text || "").replace(',', '.'));
+
+                            if (tipoPVC === "" || descricaoPVC === "" || isNaN(quantidadePVC) || quantidadePVC <= 0) {
+                                ui.mostrarAlertaPersonalizado(config.t("preencherCampos"), "Campo Obrigatório");
+                                return;
+                            }
+
+                            var nomePVC = tipoPVC;
+                            var textoPVC = tipoPVC + " " + descricaoPVC + " (" + unidadePVC + "): " + quantidadePVC.toFixed(2).replace('.', ',');
+
+                            config.itensLegenda.push({
+                                tipo: "pvc",
+                                subtipo: tipoPVC,
+                                nome: nomePVC,
+                                descricao: descricaoPVC,
+                                texto: textoPVC,
+                                unidade: unidadePVC,
+                                quantidade: quantidadePVC
+                            });
+
+                            config.atualizarListaItens();
+                            campoTipoPVC.selection = 0;
+                            campoDescricaoPVC.text = "";
+                            campoQuantidadePVC.text = "1";
+                        };
+
+                        config.janela.layout.layout(true);
+                        config.janela.layout.resize();
+                    } else {
+                        if (config.grupoPVC) {
+                            config.grupoPVC.parent.remove(config.grupoPVC);
+                            config.grupoPVC = null;
                             config.janela.layout.layout(true);
                             config.janela.layout.resize();
                         }

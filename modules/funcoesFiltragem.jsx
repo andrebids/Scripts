@@ -592,6 +592,15 @@ function filtrarComponentesPrintPorUso(uso, dados, t) {
             );
         }
 
+        function contemItem(lista, valor) {
+            for (var j = 0; j < lista.length; j++) {
+                if (lista[j] === valor) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         var usoNorm = normalizarTexto(uso || "");
         var isInterior = usoNorm.indexOf("interieur") !== -1 || usoNorm.indexOf("interior") !== -1;
         var isExterior = usoNorm.indexOf("exterieur") !== -1 || usoNorm.indexOf("exterior") !== -1;
@@ -605,14 +614,14 @@ function filtrarComponentesPrintPorUso(uso, dados, t) {
                 continue;
             }
 
-            if (listaTodosPrint.indexOf(nomeOriginal) === -1) {
+            if (!contemItem(listaTodosPrint, nomeOriginal)) {
                 listaTodosPrint.push(nomeOriginal);
             }
 
             if ((!isInterior && !isExterior) ||
                 (isInterior && ehInterior(nomeNorm)) ||
                 (isExterior && ehExterior(nomeNorm))) {
-                if (listaFinal.indexOf(nomeOriginal) === -1) {
+                if (!contemItem(listaFinal, nomeOriginal)) {
                     listaFinal.push(nomeOriginal);
                 }
             }

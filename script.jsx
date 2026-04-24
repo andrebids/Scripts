@@ -10,6 +10,7 @@ $.evalFile(File($.fileName).path + "/core/funcoes.jsx");
 $.evalFile(File($.fileName).path + "/core/database.jsx");
 $.evalFile(File($.fileName).path + "/core/logs.jsx");
 $.evalFile(File($.fileName).path + "/core/regras.jsx");
+$.evalFile(File($.fileName).path + "/core/appState.jsx");
 
 // Importar módulos funcionais
 $.evalFile(File($.fileName).path + "/modules/funcoesComponentes.jsx");
@@ -22,120 +23,31 @@ $.evalFile(File($.fileName).path + "/modules/alfabeto.jsx");
 $.evalFile(File($.fileName).path + "/infrastructure/bridge.jsx");
 $.evalFile(File($.fileName).path + "/infrastructure/config.jsx");
 $.evalFile(File($.fileName).path + "/core/inicializacao.jsx");
+$.evalFile(File($.fileName).path + "/core/bootstrap.jsx");
 
 // Importar módulos de interface e gestão
 $.evalFile(File($.fileName).path + "/ui/ui.jsx");
+$.evalFile(File($.fileName).path + "/ui/componentRows.jsx");
 $.evalFile(File($.fileName).path + "/ui/gestaoLista.jsx");
 $.evalFile(File($.fileName).path + "/ui/eventosUI.jsx");
 
 // Importar módulos de manutenção
 $.evalFile(File($.fileName).path + "/infrastructure/update.jsx");
 
-// Definir variáveis no escopo global
-var caminhoConfig = Folder.myDocuments.fsName + "/cartouche_config.json";
-var nomeDesigner = "";
-var idiomaUsuario = "Português";
-var IDIOMA_ATUAL = "Português";
-
-var itensLegenda = [];
-var itensNomes = [];
-// Variável para armazenar última seleção
-var ultimaSelecao = {
-    componente: null,
-    cor: null,
-    unidade: null,
-    multiplicador: "1"
-};
+appState.inicializarEstadoBaseLegenda();
 
 (function() {
 // Inicializar sistema usando o módulo inicializacao.jsx
 var dados;
 try {
-    dados = inicializacao.inicializarSistema();
+    dados = bootstrap.inicializarSistema();
 } catch (e) {
     // Erro já foi tratado pelo módulo de inicialização
     return;
 }
 
 // Criar a janela principal
-var janela = new Window("palette", t("tituloJanela"), undefined);
-// Tornar a janela acessível globalmente para reinício
-$.global.janelaScript = janela;
-janela.orientation = "column";
-janela.alignChildren = ["fill", "top"];
-janela.spacing = 10;
-janela.margins = 16;
-
-// Garantir que a janela pode ser fechada
-janela.addEventListener('close', function() {
-    $.global.componentesObservacoes = null;
-    $.global.janelaScript = null;
-    $.global.legendaEstadoObs = null;
-    return true;
-});
-
-// Garantir que o evento de fechamento é processado corretamente
-if (janela.closeButton) {
-    janela.closeButton.onClick = function() {
-        janela.close();
-    };
-}
-
-function obterChaveDocumentoAtivo() {
-    try {
-        if (app && app.documents && app.documents.length > 0 && app.activeDocument) {
-            var doc = app.activeDocument;
-            try {
-                if (doc.fullName) {
-                    return doc.fullName.fsName;
-                }
-            } catch (e1) {}
-            return doc.name || "";
-        }
-    } catch (e2) {}
-    return "";
-}
-
-function sincronizarObservacoesComDocumento(campoObs) {
-    var chaveAtual = obterChaveDocumentoAtivo();
-    if (!$.global.legendaEstadoObs) {
-        $.global.legendaEstadoObs = {
-            chaveDocumento: chaveAtual,
-            ultimoTexto: campoObs ? campoObs.text : ""
-        };
-        return;
-    }
-
-    var estado = $.global.legendaEstadoObs;
-    if (estado.chaveDocumento !== chaveAtual) {
-        // Se mudou de documento e o texto atual e exatamente o ultimo usado,
-        // considerar valor herdado e limpar.
-        if (campoObs && campoObs.text === estado.ultimoTexto) {
-            campoObs.text = "";
-        }
-        estado.chaveDocumento = chaveAtual;
-    }
-
-    estado.ultimoTexto = campoObs ? campoObs.text : "";
-}
-
-function limparEstadoObservacoesSeMudouDocumento() {
-    var chaveAtual = obterChaveDocumentoAtivo();
-    if (!$.global.legendaEstadoObs) {
-        $.global.legendaEstadoObs = {
-            chaveDocumento: chaveAtual,
-            ultimoTexto: ""
-        };
-        return;
-    }
-
-    if ($.global.legendaEstadoObs.chaveDocumento !== chaveAtual) {
-        $.global.legendaEstadoObs = {
-            chaveDocumento: chaveAtual,
-            ultimoTexto: ""
-        };
-    }
-}
+var janela = bootstrap.criarJanelaPrincipal();
 
 // Grupo para o botão Update (acima das abas)
 var grupoUpdate = janela.add("group");
@@ -361,402 +273,16 @@ for (var i = 0; i < componentesOriginaisNormais.length - 1; i++) {
     }
 }
 
-// Função auxiliar para criar linha de grupo de componentes
-function criarLinhaGrupo(grupoPai, labelGrupo, componentesGrupo) {
-    var grupoLinha = grupoPai.add("group");
-    grupoLinha.orientation = "row";
-    grupoLinha.alignChildren = "center";
-    grupoLinha.add("statictext", undefined, labelGrupo);
-    var listaComponentes = grupoLinha.add("dropdownlist", undefined, [t("selecioneComponente")].concat(componentesGrupo));
-    listaComponentes.selection = 0;
-    var listaCores = grupoLinha.add("dropdownlist", undefined, [t("selecioneCor")].concat(extrairNomes(dados.cores)));
-    listaCores.selection = 0;
-    var listaUnidades = grupoLinha.add("dropdownlist", undefined, [t("selecioneUnidade")]);
-    listaUnidades.selection = 0;
-
-    // Grupo para campos de quantidade
-    var grupoQuantidades = grupoLinha.add("group");
-    grupoQuantidades.orientation = "row";
-    grupoQuantidades.alignChildren = "center";
-    var camposQuantidade = [];
-
-    // Função para criar um campo de quantidade (modificada para garantir só um campo visível)
-    function criarCampoQuantidade(valorPadrao) {
-        // Antes de criar, remover todos os campos existentes
-        while (camposQuantidade.length > 0) {
-            grupoQuantidades.remove(camposQuantidade[0]);
-            camposQuantidade.splice(0, 1);
-        }
-        var campo = grupoQuantidades.add("edittext", undefined, valorPadrao ? valorPadrao : "");
-        campo.characters = 4;
-        campo.preferredSize.width = 40;
-        camposQuantidade.push(campo);
-        return campo;
-    }
-    // Função para remover um campo de quantidade
-    function removerCampoQuantidade(campo) {
-        for (var i = 0; i < camposQuantidade.length; i++) {
-            if (camposQuantidade[i] === campo) {
-                grupoQuantidades.remove(campo);
-                camposQuantidade.splice(i, 1);
-                break;
-            }
-        }
-        grupoLinha.layout.layout(true);
-        grupoLinha.layout.resize();
-    }
-    // Adicionar campo inicial
-    var campoQuantidade = criarCampoQuantidade("");
-    // Botão +
-    var botaoMais = grupoQuantidades.add("button", undefined, "+");
-    botaoMais.preferredSize.width = 22;
-    botaoMais.preferredSize.height = 22;
-    botaoMais.onClick = function() {
-        try {
-            // Abrir nova janela para edição de quantidades
-            var dialogQuantidades = new Window("palette", "Editar Quantidades");
-        dialogQuantidades.orientation = "column";
-        dialogQuantidades.alignChildren = ["fill", "top"];
-        dialogQuantidades.spacing = 10;
-        dialogQuantidades.margins = 16;
-        dialogQuantidades.preferredSize.width = 320;
-        dialogQuantidades.preferredSize.height = 400;
-        
-        // Proteção contra janela órfã
-        dialogQuantidades.onClose = function() {
-            try {
-                // Verificar se a janela principal ainda existe
-                if (!janela || janela.toString() === "[object Window]") {
-                    return true; // Permitir fechamento
-                }
-                return true;
-            } catch (e) {
-                return true; // Em caso de erro, permitir fechamento
-            }
-        };
-
-        // Título da seção
-        var tituloSecao = dialogQuantidades.add("statictext", undefined, "Campos de Valores:");
-        tituloSecao.graphics.font = ScriptUI.newFont(tituloSecao.graphics.font.family, ScriptUI.FontStyle.BOLD, 10);
-        
-        // Cabeçalho explicativo
-        var grupoCabecalho = dialogQuantidades.add("group");
-        grupoCabecalho.orientation = "row";
-        grupoCabecalho.alignChildren = ["left", "center"];
-        grupoCabecalho.spacing = 5;
-        
-        var labelValor = grupoCabecalho.add("statictext", undefined, "Valor");
-        labelValor.preferredSize.width = 40;
-        labelValor.graphics.font = ScriptUI.newFont(labelValor.graphics.font.family, ScriptUI.FontStyle.BOLD, 9);
-        
-        var labelDescricao = grupoCabecalho.add("statictext", undefined, "Descrição (opcional)");
-        labelDescricao.preferredSize.width = 120;
-        labelDescricao.graphics.font = ScriptUI.newFont(labelDescricao.graphics.font.family, ScriptUI.FontStyle.BOLD, 9);
-
-        // Área scrollável para os campos
-        var painelCampos = dialogQuantidades.add("panel");
-        painelCampos.orientation = "column";
-        painelCampos.alignChildren = ["fill", "top"];
-        painelCampos.preferredSize.width = 290;
-        painelCampos.preferredSize.height = 150;
-        
-        var grupoCampos = painelCampos.add("group");
-        grupoCampos.orientation = "column";
-        grupoCampos.alignChildren = ["fill", "top"];
-        var camposTemp = [];
-
-        // Função para criar campo na janela
-        function criarCampoTemp(valorPadrao, descricaoPadrao) {
-            try {
-                var grupoLinhaTemp = grupoCampos.add("group");
-            grupoLinhaTemp.orientation = "row";
-            grupoLinhaTemp.alignChildren = ["left", "center"];
-            grupoLinhaTemp.spacing = 5;
-            
-            // Campo numérico
-            var campoTemp = grupoLinhaTemp.add("edittext", undefined, valorPadrao ? valorPadrao : "");
-            campoTemp.characters = 4;
-            campoTemp.preferredSize.width = 40;
-            
-            // Configurar navegação por Tab
-            campoTemp.addEventListener('keydown', function(event) {
-                // Tab key = keyCode 9
-                if (event.keyName === 'Tab') {
-                    event.preventDefault();
-                    // Encontrar próximo campo
-                    var indiceCampoAtual = -1;
-                    for (var k = 0; k < camposTemp.length; k++) {
-                        if (camposTemp[k].campo === campoTemp) {
-                            indiceCampoAtual = k;
-                            break;
-                        }
-                    }
-                    // Ir para próximo campo ou criar novo se for o último
-                    if (indiceCampoAtual >= 0) {
-                        if (indiceCampoAtual < camposTemp.length - 1) {
-                            // Ir para próximo campo existente
-                            camposTemp[indiceCampoAtual + 1].campo.active = true;
-                        } else {
-                            // Se for o último campo e tiver valor, criar novo e focar nele
-                            if (campoTemp.text && campoTemp.text.length > 0) {
-                                var novoCampo = criarCampoTemp("", "");
-                                dialogQuantidades.layout.layout(true);
-                                dialogQuantidades.layout.resize();
-                                // Focar no novo campo criado
-                                novoCampo.active = true;
-                            }
-                        }
-                    }
-                }
-            });
-            
-            // Validação em tempo real - só permite números, vírgula e ponto
-            campoTemp.onChanging = function() {
-                // Filtrar caracteres não numéricos (exceto vírgula, ponto e menos)
-                var texto = campoTemp.text;
-                var textoLimpo = texto.replace(/[^0-9.,\-]/g, "");
-                if (texto !== textoLimpo) {
-                    campoTemp.text = textoLimpo;
-                }
-            };
-            
-            // Campo de descrição (opcional)
-            var campoDescricao = grupoLinhaTemp.add("edittext", undefined, descricaoPadrao ? descricaoPadrao : "");
-            campoDescricao.characters = 15;
-            campoDescricao.preferredSize.width = 120;
-            campoDescricao.helpTip = "Descrição opcional (não conta no total)";
-            
-            camposTemp.push({campo: campoTemp, descricao: campoDescricao, grupo: grupoLinhaTemp});
-            
-            // Botão - para remover
-            var botaoRemoverTemp = grupoLinhaTemp.add("button", undefined, "-");
-            botaoRemoverTemp.preferredSize.width = 22;
-            botaoRemoverTemp.preferredSize.height = 22;
-            botaoRemoverTemp.onClick = function() {
-                for (var i = 0; i < camposTemp.length; i++) {
-                    if (camposTemp[i].campo === campoTemp) {
-                        grupoCampos.remove(camposTemp[i].grupo);
-                        camposTemp.splice(i, 1);
-                        break;
-                    }
-                }
-                atualizarSoma();
-                dialogQuantidades.layout.layout(true);
-                dialogQuantidades.layout.resize();
-            };
-            // Evento adicional para soma e auto-adição (após validação)
-            campoTemp.addEventListener('changing', function() {
-                // Executar após a validação
-                atualizarSoma();
-                // Verificar se é o último campo e tem valor
-                var isUltimoCampo = camposTemp[camposTemp.length - 1].campo === campoTemp;
-                var temValor = campoTemp.text && campoTemp.text.length > 0;
-                
-                if (isUltimoCampo && temValor) {
-                    // Adicionar novo campo automaticamente
-                    criarCampoTemp("", "");
-                    dialogQuantidades.layout.layout(true);
-                    dialogQuantidades.layout.resize();
-                }
-            });
-            // Evento onBlur para validação final
-            campoTemp.onDeactivate = function() {
-                var valor = parseFloat(campoTemp.text.replace(",", "."));
-                if (campoTemp.text && (isNaN(valor) || valor <= 0)) {
-                    campoTemp.graphics.backgroundColor = campoTemp.graphics.newBrush(campoTemp.graphics.BrushType.SOLID_COLOR, [1, 0.9, 0.9]);
-                } else {
-                    campoTemp.graphics.backgroundColor = campoTemp.graphics.newBrush(campoTemp.graphics.BrushType.SOLID_COLOR, [1, 1, 1]);
-                }
-            };
-            return campoTemp;
-            } catch (e) {
-                alert("ERRO na criarCampoTemp: " + e.toString() + "\nLinha: " + e.line);
-                return null;
-            }
-        }
-        // Preencher campos com valores atuais
-        for (var i = 0; i < camposQuantidade.length; i++) {
-            criarCampoTemp(camposQuantidade[i].text, "");
-        }
-        // Se não houver campos, criar um
-        if (camposTemp.length === 0) {
-            criarCampoTemp("", "");
-        }
-        
-        // Focar no primeiro campo automaticamente
-        if (camposTemp.length > 0) {
-            camposTemp[0].campo.active = true;
-        }
-        
-        // Botão + removido - adição automática de campos implementada
-        // Separador visual
-        var separador = dialogQuantidades.add("panel");
-        separador.preferredSize.height = 2;
-        
-        // Painel destacado para o resumo
-        var painelResumo = dialogQuantidades.add("panel", undefined, "Resumo");
-        painelResumo.orientation = "column";
-        painelResumo.alignChildren = ["fill", "top"];
-        painelResumo.spacing = 8;
-        painelResumo.margins = 10;
-        
-        // Área scrollável para os valores
-        var grupoValores = painelResumo.add("group");
-        grupoValores.orientation = "column";
-        grupoValores.alignChildren = ["fill", "top"];
-        
-        var labelValores = grupoValores.add("statictext", undefined, "Valores inseridos:");
-        labelValores.graphics.font = ScriptUI.newFont(labelValores.graphics.font.family, ScriptUI.FontStyle.BOLD, 9);
-        
-        var areaValores = grupoValores.add("edittext", undefined, "-", {multiline: true, scrollable: true, readonly: true});
-        areaValores.preferredSize.width = 280;
-        areaValores.preferredSize.height = 50;
-        areaValores.graphics.font = ScriptUI.newFont(areaValores.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
-        
-        // Soma total destacada
-        var grupoSoma = painelResumo.add("panel");
-        grupoSoma.orientation = "row";
-        grupoSoma.alignChildren = ["center", "center"];
-        grupoSoma.margins = 8;
-        grupoSoma.preferredSize.width = 280;
-        grupoSoma.preferredSize.height = 35;
-        
-        var textoSoma = grupoSoma.add("statictext", undefined, "TOTAL: 0");
-        textoSoma.graphics.font = ScriptUI.newFont("Arial", ScriptUI.FontStyle.BOLD, 16);
-        textoSoma.graphics.foregroundColor = textoSoma.graphics.newPen(textoSoma.graphics.PenType.SOLID_COLOR, [1, 1, 1], 1);
-        // Definir tamanho adequado para acomodar números grandes
-        textoSoma.preferredSize.width = 200;
-        textoSoma.preferredSize.height = 25;
-        
-        function atualizarSoma() {
-            var soma = 0;
-            var numerosValidos = [];
-            var valoresInvalidos = 0;
-            
-            for (var i = 0; i < camposTemp.length; i++) {
-                var textoOriginal = camposTemp[i].campo.text;
-                var valor = parseFloat(textoOriginal.replace(",", "."));
-                
-                if (!isNaN(valor) && valor > 0) {
-                    soma += valor;
-                    numerosValidos.push(valor);
-                } else if (textoOriginal && textoOriginal.length > 0) {
-                    valoresInvalidos++;
-                }
-            }
-            // Atualizar lista de valores com quebras de linha organizadas
-            if (numerosValidos.length > 0) {
-                var textoValores = "";
-                if (numerosValidos.length <= 6) {
-                    // Poucos números: mostrar em linha
-                    var numerosFormatados = [];
-                    for (var j = 0; j < numerosValidos.length; j++) {
-                        var num = numerosValidos[j];
-                        if (num % 1 === 0) {
-                            numerosFormatados.push(num.toString());
-                        } else {
-                            numerosFormatados.push(num.toString());
-                        }
-                    }
-                    textoValores = numerosFormatados.join(" + ");
-                } else {
-                    // Muitos números: mostrar em linhas organizadas (5 por linha)
-                    for (var i = 0; i < numerosValidos.length; i++) {
-                        if (i > 0 && i % 5 === 0) {
-                            textoValores += "\n";
-                        }
-                        var numeroFormatado = numerosValidos[i];
-                        if (numeroFormatado % 1 === 0) {
-                            numeroFormatado = numeroFormatado.toString();
-                        } else {
-                            numeroFormatado = numeroFormatado.toString();
-                        }
-                        textoValores += numeroFormatado;
-                        if (i < numerosValidos.length - 1) {
-                            textoValores += " + ";
-                        }
-                    }
-                }
-                areaValores.text = textoValores;
-            } else {
-                areaValores.text = "-";
-            }
-            // Recalcular soma especificamente para exibição
-            var somaExibicao = 0;
-            for (var j = 0; j < numerosValidos.length; j++) {
-                somaExibicao = somaExibicao + numerosValidos[j];
-            }
-            
-            // Forçar conversão para string de forma explícita
-            var somaString = String(somaExibicao);
-            
-            // Atualizar soma destacada com informação sobre valores inválidos  
-            var textoTotal = "TOTAL: " + somaString;
-            if (valoresInvalidos > 0) {
-                textoTotal += " (" + valoresInvalidos + " inválido" + (valoresInvalidos > 1 ? "s" : "") + ")";
-            }
-            
-            // Forçar atualização da interface
-            textoSoma.text = textoTotal;
-            textoSoma.parent.layout.layout(true);
-            textoSoma.parent.layout.resize();
-        }
-        atualizarSoma();
-        // Botões OK e Cancelar
-        var grupoBotoes = dialogQuantidades.add("group");
-        grupoBotoes.orientation = "row";
-        var botaoOK = grupoBotoes.add("button", undefined, "OK");
-        var botaoCancelar = grupoBotoes.add("button", undefined, "Cancelar");
-        botaoOK.onClick = function() {
-            // Atualizar camposQuantidade principal
-            // Limpar campos antigos
-            while (camposQuantidade.length > 0) {
-                grupoQuantidades.remove(camposQuantidade[0]);
-                camposQuantidade.splice(0, 1);
-            }
-            // Calcular a soma total
-            var soma = 0;
-            for (var i = 0; i < camposTemp.length; i++) {
-                var valor = parseFloat(camposTemp[i].campo.text.replace(",", "."));
-                if (!isNaN(valor) && valor > 0) {
-                    soma += valor;
-                }
-            }
-            // Criar apenas um campo com a soma total
-            criarCampoQuantidade(soma > 0 ? soma : "");
-            // Atualizar layout
-            grupoLinha.layout.layout(true);
-            grupoLinha.layout.resize();
-            dialogQuantidades.close();
-        };
-        botaoCancelar.onClick = function() {
-            dialogQuantidades.close();
-        };
-        dialogQuantidades.show();
-        } catch (e) {
-            alert("ERRO GERAL na janela: " + e.toString() + "\nLinha: " + e.line + "\nDescrição: " + e.description);
-        }
-    };
-    grupoLinha.add("statictext", undefined, "x");
-    var campoMultiplicador = grupoLinha.add("edittext", undefined, "1");
-    campoMultiplicador.characters = 2;
-    campoMultiplicador.preferredSize.width = 25;
-    funcoes.apenasNumerosEVirgula(campoMultiplicador);
-    var botaoAdicionar = grupoLinha.add("button", undefined, t("botaoAdicionar"));
-    return {
-        listaComponentes: listaComponentes,
-        listaCores: listaCores,
-        listaUnidades: listaUnidades,
-        camposQuantidade: camposQuantidade,
-        campoMultiplicador: campoMultiplicador,
-        botaoAdicionar: botaoAdicionar
-    };
-}
-
 // Criar três linhas independentes para cada grupo
-var linhaPrint = criarLinhaGrupo(grupoComponentes, "PRINT", componentesOriginaisPrint);
-var linhaLeds = criarLinhaGrupo(grupoComponentes, "LEDS", componentesOriginaisLeds);
-var linhaNormais = criarLinhaGrupo(grupoComponentes, "COMPONENTS", componentesOriginaisNormais);
+var opcoesLinhasComponentes = {
+    t: t,
+    dados: dados,
+    janela: janela,
+    funcoes: funcoes
+};
+var linhaPrint = componentRows.criarLinhaGrupo(grupoComponentes, "PRINT", componentesOriginaisPrint, opcoesLinhasComponentes);
+var linhaLeds = componentRows.criarLinhaGrupo(grupoComponentes, "LEDS", componentesOriginaisLeds, opcoesLinhasComponentes);
+var linhaNormais = componentRows.criarLinhaGrupo(grupoComponentes, "COMPONENTS", componentesOriginaisNormais, opcoesLinhasComponentes);
 
 // Aplicar filtragem inicial do dropdown de print baseada no uso selecionado
 if (campoUsage && campoUsage.selection && linhaPrint && linhaPrint.listaComponentes) {
@@ -953,7 +479,7 @@ if (logs && logs.inicializarSistemaLogs) {
 abasExtra.selection = abaGeral;
 
 // Isolar estado de observações por documento ao abrir a janela
-limparEstadoObservacoesSeMudouDocumento();
+bootstrap.prepararEstadoObservacoes();
 
 // Variável para armazenar componentes da interface de observações
 var componentesObservacoes = null;
@@ -1067,7 +593,7 @@ function atualizarListaItens() {
                         configEventos.componentesObservacoes &&
                         configEventos.componentesObservacoes.campoObs) ?
                         configEventos.componentesObservacoes.campoObs : null;
-                    sincronizarObservacoesComDocumento(campoObsAtual);
+                    bootstrap.sincronizarObservacoesComDocumento(campoObsAtual);
 
                     var parametrosPreview = {
                         itensLegenda: itensLegenda,

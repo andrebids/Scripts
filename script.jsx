@@ -27,6 +27,7 @@ $.evalFile(File($.fileName).path + "/core/bootstrap.jsx");
 
 // Importar módulos de interface e gestão
 $.evalFile(File($.fileName).path + "/ui/ui.jsx");
+$.evalFile(File($.fileName).path + "/ui/extraPanel.jsx");
 $.evalFile(File($.fileName).path + "/ui/componentRows.jsx");
 $.evalFile(File($.fileName).path + "/ui/gestaoLista.jsx");
 $.evalFile(File($.fileName).path + "/ui/eventosUI.jsx");
@@ -392,26 +393,30 @@ var grupoExtra = conteudoLegenda.add("panel", undefined, t("painelExtra"));
 grupoExtra.orientation = "column";
 grupoExtra.alignChildren = ["fill", "top"];
 grupoExtra.spacing = 5;
+grupoExtra.margins = [10, 14, 10, 10];
 
 // Adicionar as abas diretamente ao grupo Extra
 var abasExtra = grupoExtra.add("tabbedpanel");
 abasExtra.alignChildren = ["fill", "fill"];
+abasExtra.alignment = ["fill", "top"];
 
 
-// Aba 1: Observações e Componente Extra
-var abaGeral = abasExtra.add("tab", undefined, t("geral"));
-abaGeral.alignChildren = ["fill", "top"];
+// Aba 1: ativação dos módulos opcionais
+var abaAtivar = abasExtra.add("tab", undefined, t("geral"));
+abaAtivar.alignChildren = ["fill", "top"];
 
 // Grupo para organizar checkboxes em 2 colunas
-var grupoCheckboxes = abaGeral.add("group");
+var grupoCheckboxes = abaAtivar.add("group");
 grupoCheckboxes.orientation = "row";
 grupoCheckboxes.alignChildren = ["fill", "top"];
 grupoCheckboxes.spacing = 10;
+grupoCheckboxes.margins = [0, 8, 0, 0];
 
 // Coluna esquerda
 var colunaEsquerda = grupoCheckboxes.add("group");
 colunaEsquerda.orientation = "column";
 colunaEsquerda.alignChildren = ["fill", "top"];
+colunaEsquerda.spacing = 8;
 var checkboxMostrarObs = colunaEsquerda.add("checkbox", undefined, t("adicionarObservacoes"));
 var checkboxMostrarComponenteExtra = colunaEsquerda.add("checkbox", undefined, t("adicionarComponenteExtra"));
 var checkboxMostrarPVC = colunaEsquerda.add("checkbox", undefined, t("adicionarPVC"));
@@ -421,6 +426,7 @@ var checkboxMostrarTexturas = colunaEsquerda.add("checkbox", undefined, t("adici
 var colunaDireita = grupoCheckboxes.add("group");
 colunaDireita.orientation = "column";
 colunaDireita.alignChildren = ["fill", "top"];
+colunaDireita.spacing = 8;
 var checkboxMostrarBolas = colunaDireita.add("checkbox", undefined, t("adicionarBolas"));
 var checkboxMostrarContar = colunaDireita.add("checkbox", undefined, t("mostrarContarElementos"));
 var checkboxMostrarAlfabeto = colunaDireita.add("checkbox", undefined, t("criarGX"));
@@ -441,20 +447,31 @@ var grupoBolasExtra = null;
 // Evento será configurado pelo módulo eventosUI
 
 
-// Variável para armazenar componentes da interface de texturas
-var grupoTexturas = abaGeral.add("group");
-grupoTexturas.orientation = "column";
-grupoTexturas.alignChildren = ["fill", "top"];
+// Aba 2: preenchimento dos módulos ativos
+var abaConfigurar = abasExtra.add("tab", undefined, t("preencher"));
+abaConfigurar.alignChildren = ["fill", "top"];
+abaConfigurar.spacing = 10;
+
+var grupoConfigurarExtras = abaConfigurar.add("group");
+grupoConfigurarExtras.orientation = "column";
+grupoConfigurarExtras.alignChildren = ["fill", "top"];
+
+var grupoConfigVazio = grupoConfigurarExtras.add("group");
+grupoConfigVazio.orientation = "column";
+grupoConfigVazio.alignChildren = ["fill", "top"];
+grupoConfigVazio.margins = [8, 8, 8, 6];
+grupoConfigVazio.add("statictext", undefined, t("ativarExtraPreencherAqui"));
+
+var tabsModulosExtra = grupoConfigurarExtras.add("tabbedpanel");
+tabsModulosExtra.alignChildren = ["fill", "top"];
+tabsModulosExtra.alignment = ["fill", "top"];
+tabsModulosExtra.preferredSize.height = 100;
+tabsModulosExtra.visible = false;
+
 var componentesTextura = null;
+var grupoContador = null;
 
-// Grupo para o contador na aba Geral
-var grupoContador = abaGeral.add("group");
-grupoContador.orientation = "column";
-grupoContador.alignChildren = ["fill", "top"];
-
-// Evento será configurado pelo módulo eventosUI
-
-// Aba 2: Logs
+// Aba 3: Logs
 var abaLogs = abasExtra.add("tab", undefined, "Logs");
 abaLogs.alignChildren = ["fill", "top"];
 abaLogs.spacing = 10;
@@ -465,7 +482,7 @@ grupoLogs.orientation = "column";
 grupoLogs.alignChildren = ["fill", "fill"];
 var areaLogs = grupoLogs.add("edittext", undefined, "", {multiline: true, scrollable: true, readonly: true});
 areaLogs.preferredSize.width = 500;
-areaLogs.preferredSize.height = 80;
+areaLogs.preferredSize.height = 70;
 
 // Torna a área de logs global para acesso
 $.global.areaLogs = areaLogs;
@@ -476,7 +493,29 @@ if (logs && logs.inicializarSistemaLogs) {
 }
 
 // Selecionar a primeira aba por padrão
-abasExtra.selection = abaGeral;
+abasExtra.selection = abaAtivar;
+
+function atualizarAlturaExtra() {
+    var altura = 128;
+
+    if (abasExtra.selection === abaConfigurar) {
+        altura = tabsModulosExtra.visible ? 128 : 96;
+    } else if (abasExtra.selection === abaLogs) {
+        altura = 86;
+    }
+
+    abasExtra.preferredSize.height = altura;
+    abasExtra.minimumSize.height = altura;
+
+    grupoExtra.preferredSize.height = altura + 22;
+    grupoExtra.minimumSize.height = altura + 22;
+
+    janela.layout.layout(true);
+    janela.layout.resize();
+}
+
+abasExtra.onChange = atualizarAlturaExtra;
+atualizarAlturaExtra();
 
 // Isolar estado de observações por documento ao abrir a janela
 bootstrap.prepararEstadoObservacoes();
@@ -562,11 +601,15 @@ function atualizarListaItens() {
             listaFixacao: listaFixacao,
             grupoDimensoes: grupoDimensoes,
             dimensoes: dimensoes,
+            abasExtra: abasExtra,
             grupoExtra: grupoExtra,
             grupoBolasExtra: grupoBolasExtra,
-            grupoTexturas: grupoTexturas,
             grupoContador: grupoContador,
-            abaGeral: abaGeral,
+            abaAtivar: abaAtivar,
+            abaConfigurar: abaConfigurar,
+            grupoConfigVazio: grupoConfigVazio,
+            tabsModulosExtra: tabsModulosExtra,
+            atualizarAlturaExtra: atualizarAlturaExtra,
             componentesAlfabeto: componentesAlfabeto,
             componentesContador: componentesContador,
             componentesTextura: componentesTextura,
@@ -649,6 +692,10 @@ function atualizarListaItens() {
                 }
             }
         };
+
+        if (extraPanel && extraPanel.inicializar) {
+            configEventos.extraPanelManager = extraPanel.inicializar(configEventos);
+        }
         
         // Configurar eventos
         eventosUI.configurarEventosCheckboxes(configEventos);

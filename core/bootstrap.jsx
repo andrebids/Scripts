@@ -21,6 +21,9 @@ function bootstrapCriarJanelaPrincipal() {
     janela.margins = 16;
 
     janela.addEventListener("close", function() {
+        if ($.global.appState && $.global.appState.limparEstadoRuntimeLegenda) {
+            $.global.appState.limparEstadoRuntimeLegenda();
+        }
         $.global.componentesObservacoes = null;
         $.global.janelaScript = null;
         $.global.legendaEstadoObs = null;

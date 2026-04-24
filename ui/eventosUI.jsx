@@ -29,6 +29,17 @@ $.global.eventosUI = {};
         // }
         
         try {
+            function alternarModuloExtra(chave, valor) {
+                if (!config.extraPanelManager) {
+                    throw new Error("extraPanelManager não inicializado");
+                }
+
+                var instancia = config.extraPanelManager.toggleModulo(chave, valor);
+                if (chave === "observacoes" && valor && instancia && instancia.campoObs) {
+                    instancia.campoObs.text = "";
+                }
+            }
+
             // Evento para checkbox Structure laqueé
             if (config.checkStructure) {
                 config.checkStructure.onClick = function() {
@@ -45,78 +56,7 @@ $.global.eventosUI = {};
                     if (logs && logs.logEvento) {
                         logs.logEvento("click", "checkboxMostrarBolas - valor: " + this.value);
                     }
-                    
-                    if (this.value) {
-                        config.grupoBolasExtra = config.grupoExtra.add("panel", undefined, config.t("painelBolas"));
-                        config.grupoBolasExtra.orientation = "column";
-                        config.grupoBolasExtra.alignChildren = "left";
-
-                        // Grupo de seleção de bolas
-                        var grupoBolasSelecao = config.grupoBolasExtra.add("group");
-                        grupoBolasSelecao.orientation = "row";
-
-                        // Lista de cores para bolas
-                        var coresBolasDisponiveis = funcoesFiltragem.getCoresDisponiveisBolas(config.dados, config.t, funcoes.arrayContains, funcoes.encontrarPorId);
-                        var listaCoresBolas = grupoBolasSelecao.add("dropdownlist", undefined, coresBolasDisponiveis);
-                        listaCoresBolas.selection = 0;
-
-                        // Lista de acabamentos (inicialmente vazia)
-                        var listaAcabamentos = grupoBolasSelecao.add("dropdownlist", undefined, [config.t("selecioneAcabamento")]);
-                        listaAcabamentos.selection = 0;
-
-                        // Lista de tamanhos (inicialmente vazia)
-                        var listaTamanhos = grupoBolasSelecao.add("dropdownlist", undefined, [config.t("selecioneTamanho")]);
-                        listaTamanhos.selection = 0;
-
-                        // Campo para quantidade de bolas
-                        var campoQuantidadeBolas = grupoBolasSelecao.add("edittext", undefined, "1");
-                        campoQuantidadeBolas.characters = 5;
-                        funcoes.apenasNumerosEVirgula(campoQuantidadeBolas);
-
-                        // Botão adicionar bola
-                        var botaoAdicionarBola = grupoBolasSelecao.add("button", undefined, config.t("adicionarBola"));
-
-                        // Eventos de mudança
-                        listaCoresBolas.onChange = function() {
-                            if (logs && logs.logEvento) {
-                                logs.logEvento("change", "listaCoresBolas - " + (this.selection ? this.selection.text : "nenhuma seleção"));
-                            }
-                            funcoesBolas.atualizarAcabamentos(listaCoresBolas, listaAcabamentos, config.dados, config.t, funcoes, function() {
-                                funcoesBolas.atualizarTamanhos(listaCoresBolas, listaAcabamentos, listaTamanhos, config.dados, config.t, funcoes);
-                            });
-                        };
-                        
-                        listaAcabamentos.onChange = function() {
-                            if (logs && logs.logEvento) {
-                                logs.logEvento("change", "listaAcabamentos - " + (this.selection ? this.selection.text : "nenhuma seleção"));
-                            }
-                            funcoesBolas.atualizarTamanhos(listaCoresBolas, listaAcabamentos, listaTamanhos, config.dados, config.t, funcoes);
-                        };
-
-                        botaoAdicionarBola.onClick = function() {
-                            funcoesBolas.adicionarBola(
-                                listaCoresBolas,
-                                listaAcabamentos,
-                                listaTamanhos,
-                                campoQuantidadeBolas,
-                                config.dados,
-                                config.itensLegenda,
-                                config.atualizarListaItens,
-                                config.t,
-                                logs,
-                                funcoes
-                            );
-                        };
-
-                        config.janela.layout.layout(true);
-                    } else {
-                        if (config.grupoBolasExtra) {
-                            config.grupoBolasExtra.parent.remove(config.grupoBolasExtra);
-                            config.grupoBolasExtra = null;
-                            config.janela.layout.layout(true);
-                        }
-                    }
-                    config.janela.layout.resize();
+                    alternarModuloExtra("bolas", this.value);
                 };
             }
             
@@ -126,19 +66,7 @@ $.global.eventosUI = {};
                     if (logs && logs.logEvento) {
                         logs.logEvento("click", "checkboxMostrarAlfabeto - valor: " + this.value);
                     }
-                    
-                    if (this.value) {
-                        config.componentesAlfabeto = alfabeto.criarInterfaceAlfabeto(
-                            config.abaGeral, config.dados, config.janela, config.t, funcoesFiltragem, funcoes, config.itensLegenda, config.atualizarListaItens, config.campoNomeTipo, config.grupoDimensoes
-                        );
-                    } else {
-                        if (config.componentesAlfabeto) {
-                            alfabeto.removerInterfaceAlfabeto(config.componentesAlfabeto, config.janela);
-                            config.componentesAlfabeto = null;
-                        }
-                    }
-                    config.janela.layout.layout(true);
-                    config.janela.layout.resize();
+                    alternarModuloExtra("alfabeto", this.value);
                 };
             }
             
@@ -148,27 +76,7 @@ $.global.eventosUI = {};
                     if (logs && logs.logEvento) {
                         logs.logEvento("click", "checkboxMostrarContar - valor: " + this.value);
                     }
-                    
-                    if (this.value) {
-                        config.componentesContador = ui.criarInterfaceContadorBolas(
-                            config.grupoContador, config.dados, config.itensLegenda, config.atualizarListaItens
-                        );
-                        if (logs && logs.adicionarLog) {
-                            logs.adicionarLog("Interface do contador criada e layout será atualizado", logs.TIPOS_LOG.INFO);
-                        }
-                        config.janela.layout.layout(true);
-                        config.janela.layout.resize();
-                    } else {
-                        if (config.componentesContador && config.componentesContador.grupo) {
-                            config.componentesContador.grupo.parent.remove(config.componentesContador.grupo);
-                            config.componentesContador = null;
-                            if (logs && logs.adicionarLog) {
-                                logs.adicionarLog("Interface do contador removida e layout será atualizado", logs.TIPOS_LOG.INFO);
-                            }
-                            config.janela.layout.layout(true);
-                            config.janela.layout.resize();
-                        }
-                    }
+                    alternarModuloExtra("contador", this.value);
                 };
             }
             
@@ -178,14 +86,7 @@ $.global.eventosUI = {};
                     if (logs && logs.logEvento) {
                         logs.logEvento("click", "checkboxMostrarTexturas - valor: " + this.value);
                     }
-                    
-                    if (this.value) {
-                        config.componentesTextura = ui.criarInterfaceTexturas(config.grupoTexturas, config.janela, config.t, funcoesFiltragem, config.itensLegenda, config.atualizarListaItens);
-                    } else {
-                        ui.removerInterfaceTexturas(config.componentesTextura, config.janela);
-                        config.componentesTextura = null;
-                    }
-                    config.janela.layout.resize();
+                    alternarModuloExtra("texturas", this.value);
                 };
             }
             
@@ -195,24 +96,7 @@ $.global.eventosUI = {};
                     if (logs && logs.logEvento) {
                         logs.logEvento("click", "checkboxMostrarObs - valor: " + this.value);
                     }
-                    
-                    if (this.value) {
-                        config.componentesObservacoes = ui.criarInterfaceObservacoes(
-                            config.grupoExtra,
-                            config.janela,
-                            config.t
-                        );
-                        if (config.componentesObservacoes && config.componentesObservacoes.campoObs) {
-                            config.componentesObservacoes.campoObs.text = "";
-                        }
-                        // Atualizar variável global também
-                        $.global.componentesObservacoes = config.componentesObservacoes;
-                    } else {
-                        ui.removerInterfaceObservacoes(config.componentesObservacoes, config.janela);
-                        config.componentesObservacoes = null;
-                        $.global.componentesObservacoes = null;
-                    }
-                    config.janela.layout.resize();
+                    alternarModuloExtra("observacoes", this.value);
                 };
             }
             
@@ -222,55 +106,7 @@ $.global.eventosUI = {};
                     if (logs && logs.logEvento) {
                         logs.logEvento("click", "checkboxMostrarComponenteExtra - valor: " + this.value);
                     }
-                    
-                    if (this.value) {
-                        config.grupoComponenteExtra = config.abaGeral.add("group");
-                        config.grupoComponenteExtra.orientation = "row";
-                        config.grupoComponenteExtra.alignChildren = ["left", "center"];
-                        config.grupoComponenteExtra.spacing = 5;
-                        config.grupoComponenteExtra.add("statictext", undefined, config.t("nomeComponenteExtra"));
-                        var campoNomeExtra = config.grupoComponenteExtra.add("edittext", undefined, "");
-                        campoNomeExtra.characters = 12;
-                        config.grupoComponenteExtra.add("statictext", undefined, config.t("unidadeComponenteExtra"));
-                        var opcoesUnidadeExtra = ["m2", "ml", "unit"];
-                        var campoUnidadeExtra = config.grupoComponenteExtra.add("dropdownlist", undefined, opcoesUnidadeExtra);
-                        campoUnidadeExtra.selection = 0;
-                        config.grupoComponenteExtra.add("statictext", undefined, config.t("quantidadeComponenteExtra"));
-                        var campoQuantidadeExtra = config.grupoComponenteExtra.add("edittext", undefined, "1");
-                        campoQuantidadeExtra.characters = 4;
-                        var botaoAdicionarExtra = config.grupoComponenteExtra.add("button", undefined, config.t("adicionarComponenteExtra"));
-                        
-                        botaoAdicionarExtra.onClick = function() {
-                            var nomeExtra = campoNomeExtra.text;
-                            var unidadeExtra = campoUnidadeExtra.selection ? campoUnidadeExtra.selection.text : "";
-                            var quantidadeExtra = parseFloat(campoQuantidadeExtra.text.replace(',', '.'));
-                            if (nomeExtra === "" || isNaN(quantidadeExtra) || quantidadeExtra <= 0) {
-                                ui.mostrarAlertaPersonalizado(config.t("preencherCampos"), "Campo Obrigatório");
-                                return;
-                            }
-                            var textoExtra = nomeExtra + " (" + unidadeExtra + "): " + quantidadeExtra.toFixed(2).replace('.', ',');
-                            config.itensLegenda.push({
-                                tipo: "extra",
-                                nome: nomeExtra,
-                                texto: textoExtra,
-                                unidade: unidadeExtra,
-                                quantidade: quantidadeExtra
-                            });
-                            config.atualizarListaItens();
-                            campoNomeExtra.text = "";
-                            campoQuantidadeExtra.text = "";
-                        };
-                        
-                        config.janela.layout.layout(true);
-                        config.janela.layout.resize();
-                    } else {
-                        if (config.grupoComponenteExtra) {
-                            config.grupoComponenteExtra.parent.remove(config.grupoComponenteExtra);
-                            config.grupoComponenteExtra = null;
-                            config.janela.layout.layout(true);
-                            config.janela.layout.resize();
-                        }
-                    }
+                    alternarModuloExtra("componenteExtra", this.value);
                 };
             }
 
@@ -280,77 +116,7 @@ $.global.eventosUI = {};
                     if (logs && logs.logEvento) {
                         logs.logEvento("click", "checkboxMostrarPVC - valor: " + this.value);
                     }
-
-                    if (this.value) {
-                        config.grupoPVC = config.abaGeral.add("group");
-                        config.grupoPVC.orientation = "row";
-                        config.grupoPVC.alignChildren = ["left", "center"];
-                        config.grupoPVC.spacing = 5;
-
-                        config.grupoPVC.add("statictext", undefined, config.t("tipoPVC"));
-                        var opcoesTipoPVC = [
-                            config.t("opcaoPVC"),
-                            config.t("opcaoDisquePlexi"),
-                            config.t("opcaoImpression")
-                        ];
-                        var campoTipoPVC = config.grupoPVC.add("dropdownlist", undefined, opcoesTipoPVC);
-                        campoTipoPVC.selection = 0;
-
-                        config.grupoPVC.add("statictext", undefined, config.t("descricaoPVC"));
-                        var campoDescricaoPVC = config.grupoPVC.add("edittext", undefined, "");
-                        campoDescricaoPVC.characters = 18;
-
-                        config.grupoPVC.add("statictext", undefined, config.t("unidadePVC"));
-                        var campoUnidadePVC = config.grupoPVC.add("dropdownlist", undefined, ["units"]);
-                        campoUnidadePVC.selection = 0;
-
-                        config.grupoPVC.add("statictext", undefined, config.t("quantidadePVC"));
-                        var campoQuantidadePVC = config.grupoPVC.add("edittext", undefined, "1");
-                        campoQuantidadePVC.characters = 4;
-                        funcoes.apenasNumerosEVirgula(campoQuantidadePVC);
-
-                        var botaoAdicionarPVC = config.grupoPVC.add("button", undefined, config.t("adicionarPVC"));
-
-                        botaoAdicionarPVC.onClick = function() {
-                            var tipoPVC = campoTipoPVC.selection ? campoTipoPVC.selection.text : "";
-                            var descricaoPVC = String(campoDescricaoPVC.text || "").replace(/^\s+/, "").replace(/\s+$/, "");
-                            var unidadePVC = campoUnidadePVC.selection ? campoUnidadePVC.selection.text : "units";
-                            var quantidadePVC = parseFloat(String(campoQuantidadePVC.text || "").replace(',', '.'));
-
-                            if (tipoPVC === "" || descricaoPVC === "" || isNaN(quantidadePVC) || quantidadePVC <= 0) {
-                                ui.mostrarAlertaPersonalizado(config.t("preencherCampos"), "Campo Obrigatório");
-                                return;
-                            }
-
-                            var nomePVC = tipoPVC;
-                            var textoPVC = tipoPVC + " " + descricaoPVC + " (" + unidadePVC + "): " + quantidadePVC.toFixed(2).replace('.', ',');
-
-                            config.itensLegenda.push({
-                                tipo: "pvc",
-                                subtipo: tipoPVC,
-                                nome: nomePVC,
-                                descricao: descricaoPVC,
-                                texto: textoPVC,
-                                unidade: unidadePVC,
-                                quantidade: quantidadePVC
-                            });
-
-                            config.atualizarListaItens();
-                            campoTipoPVC.selection = 0;
-                            campoDescricaoPVC.text = "";
-                            campoQuantidadePVC.text = "1";
-                        };
-
-                        config.janela.layout.layout(true);
-                        config.janela.layout.resize();
-                    } else {
-                        if (config.grupoPVC) {
-                            config.grupoPVC.parent.remove(config.grupoPVC);
-                            config.grupoPVC = null;
-                            config.janela.layout.layout(true);
-                            config.janela.layout.resize();
-                        }
-                    }
+                    alternarModuloExtra("pvc", this.value);
                 };
             }
             

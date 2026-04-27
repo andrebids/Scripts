@@ -281,7 +281,7 @@ function criarInterfaceContadorBolas(grupoContar, dados, itensLegenda, atualizar
     // Campo de resultado
     var textoResultado = subgrupoContador.add("edittext", undefined, t("resultado"), {multiline: true, scrollable: true});
     textoResultado.preferredSize.width = 400;
-    textoResultado.preferredSize.height = 100;
+    textoResultado.preferredSize.height = 150;
 
     // Botão para contar
     var botaoContar = subgrupoContador.add("button", undefined, t("contarElementos"));
@@ -438,7 +438,7 @@ function criarInterfaceExtra(janela) {
 /**
  * Cria interface de texturas quando checkbox é marcado
  */
-function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLegenda, atualizarListaItens, opcoes) {
+function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLegenda, atualizarListaItens) {
     if (logs && logs.logFuncao) {
         logs.logFuncao("criarInterfaceTexturas", "Criando interface de texturas");
     }
@@ -449,13 +449,10 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
             throw new Error("Parâmetros obrigatórios não fornecidos");
         }
         
-        var usarGrupoSimples = opcoes && opcoes.useGroup;
-        var grupoTexturas = usarGrupoSimples ?
-            grupoExtra.add("group") :
-            grupoExtra.add("panel", undefined, t("texturas"));
+        // Criar o grupo de texturas
+        var grupoTexturas = grupoExtra.add("panel", undefined, t("texturas"));
         grupoTexturas.orientation = "row";
         grupoTexturas.alignChildren = ["left", "top"];
-        grupoTexturas.alignment = ["fill", "top"];
         grupoTexturas.spacing = 10;
         grupoTexturas.margins = 10;
 
@@ -592,10 +589,9 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
             {multiline: true});
         infoTexto.preferredSize.width = 250;
 
-        // Atualizar layout da janela sem alterar a altura global
-        if (janela && janela.layout) {
-            janela.layout.layout(true);
-        }
+        // Atualizar layout da janela
+        janela.layout.layout(true);
+        janela.preferredSize.height += 100;
         
         if (logs && logs.logFuncao) {
             logs.logFuncao("criarInterfaceTexturas", "Interface de texturas criada com sucesso");
@@ -627,9 +623,8 @@ function removerInterfaceTexturas(componentes, janela) {
     try {
         if (componentes && componentes.grupoTexturas) {
             componentes.grupoTexturas.parent.remove(componentes.grupoTexturas);
-            if (janela && janela.layout) {
-                janela.layout.layout(true);
-            }
+            janela.layout.layout(true);
+            janela.preferredSize.height -= 100;
             
             if (logs && logs.logFuncao) {
                 logs.logFuncao("removerInterfaceTexturas", "Interface de texturas removida com sucesso");
@@ -645,7 +640,7 @@ function removerInterfaceTexturas(componentes, janela) {
 /**
  * Cria interface de observações quando checkbox é marcado
  */
-function criarInterfaceObservacoes(grupoExtra, janela, t, opcoes) {
+function criarInterfaceObservacoes(grupoExtra, janela, t) {
     if (logs && logs.logFuncao) {
         logs.logFuncao("criarInterfaceObservacoes", "Criando interface de observações");
     }
@@ -656,13 +651,10 @@ function criarInterfaceObservacoes(grupoExtra, janela, t, opcoes) {
             throw new Error("Parâmetros obrigatórios não fornecidos");
         }
         
-        var usarGrupoSimples = opcoes && opcoes.useGroup;
-        var grupoObs = usarGrupoSimples ?
-            grupoExtra.add("group") :
-            grupoExtra.add("panel", undefined, t("observacoes"));
+        // Adicionar o grupo de observações
+        var grupoObs = grupoExtra.add("panel", undefined, t("observacoes"));
         grupoObs.orientation = "row";
         grupoObs.alignChildren = ["fill", "top"];
-        grupoObs.alignment = ["fill", "top"];
         grupoObs.spacing = 0;
 
         grupoObs.add("statictext", undefined, t("obs"));
@@ -670,13 +662,12 @@ function criarInterfaceObservacoes(grupoExtra, janela, t, opcoes) {
         // Adicionar uma caixa de texto para observações
         var campoObs = grupoObs.add("edittext", undefined, "", {multiline: true, scrollable: true});
         campoObs.characters = 60;
-        campoObs.preferredSize.height = 80;
+        campoObs.preferredSize.height = 100;
         campoObs.alignment = ["fill", "fill"];
 
-        // Atualizar layout da janela sem alterar a altura global
-        if (janela && janela.layout) {
-            janela.layout.layout(true);
-        }
+        // Atualizar layout da janela
+        janela.layout.layout(true);
+        janela.preferredSize.height += 100;
         
         if (logs && logs.logFuncao) {
             logs.logFuncao("criarInterfaceObservacoes", "Interface de observações criada com sucesso");
@@ -706,9 +697,8 @@ function removerInterfaceObservacoes(componentes, janela) {
     try {
         if (componentes && componentes.grupoObs) {
             componentes.grupoObs.parent.remove(componentes.grupoObs);
-            if (janela && janela.layout) {
-                janela.layout.layout(true);
-            }
+            janela.layout.layout(true);
+            janela.preferredSize.height -= 100;
             
             if (logs && logs.logFuncao) {
                 logs.logFuncao("removerInterfaceObservacoes", "Interface de observações removida com sucesso");

@@ -6,49 +6,6 @@
  * namespaces em $.global.
  */
 
-function criarUltimaSelecaoInicial() {
-    return {
-        componente: null,
-        cor: null,
-        unidade: null,
-        multiplicador: "1"
-    };
-}
-
-function criarExtraStateInicial() {
-    return {
-        ativos: {
-            observacoes: false,
-            componenteExtra: false,
-            pvc: false,
-            texturas: false,
-            bolas: false,
-            contador: false,
-            alfabeto: false
-        }
-    };
-}
-
-function limparEstadoRuntimeLegenda() {
-    itensLegenda = [];
-    itensNomes = [];
-    ultimaSelecao = criarUltimaSelecaoInicial();
-
-    $.global.itensLegenda = itensLegenda;
-    $.global.itensNomes = itensNomes;
-    $.global.ultimaSelecao = ultimaSelecao;
-    $.global.extraState = criarExtraStateInicial();
-    $.global.componentesObservacoes = null;
-    $.global.areaLogs = null;
-
-    return {
-        itensLegenda: itensLegenda,
-        itensNomes: itensNomes,
-        ultimaSelecao: ultimaSelecao,
-        extraState: $.global.extraState
-    };
-}
-
 function inicializarEstadoBaseLegenda() {
     if (typeof caminhoConfig === "undefined" || !caminhoConfig) {
         caminhoConfig = Folder.myDocuments.fsName + "/cartouche_config.json";
@@ -66,7 +23,22 @@ function inicializarEstadoBaseLegenda() {
         IDIOMA_ATUAL = idiomaUsuario;
     }
 
-    limparEstadoRuntimeLegenda();
+    if (typeof itensLegenda === "undefined" || !itensLegenda) {
+        itensLegenda = [];
+    }
+
+    if (typeof itensNomes === "undefined" || !itensNomes) {
+        itensNomes = [];
+    }
+
+    if (typeof ultimaSelecao === "undefined" || !ultimaSelecao) {
+        ultimaSelecao = {
+            componente: null,
+            cor: null,
+            unidade: null,
+            multiplicador: "1"
+        };
+    }
 
     $.global.caminhoConfig = caminhoConfig;
     $.global.nomeDesigner = nomeDesigner;
@@ -83,12 +55,10 @@ function inicializarEstadoBaseLegenda() {
         idiomaAtual: IDIOMA_ATUAL,
         itensLegenda: itensLegenda,
         itensNomes: itensNomes,
-        ultimaSelecao: ultimaSelecao,
-        extraState: $.global.extraState
+        ultimaSelecao: ultimaSelecao
     };
 }
 
 $.global.appState = {
-    inicializarEstadoBaseLegenda: inicializarEstadoBaseLegenda,
-    limparEstadoRuntimeLegenda: limparEstadoRuntimeLegenda
+    inicializarEstadoBaseLegenda: inicializarEstadoBaseLegenda
 };

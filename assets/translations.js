@@ -47,7 +47,6 @@ var TRANSLATIONS = {
         "adicionarBola": "Adicionar Bola",
         "painelExtra": "Extra",
         "geral": "Geral",
-        "preencher": "Preencher",
         "criar": "Criar",
         "contador": "Contador",
         "texturas": "Texturas",
@@ -158,8 +157,7 @@ var TRANSLATIONS = {
         "unidadePVC": "Unidade",
         "opcaoPVC": "PVC",
         "opcaoDisquePlexi": "Disque en plexi",
-        "opcaoImpression": "Impression",
-        "ativarExtraPreencherAqui": "Ative um extra na aba Geral para preencher aqui."
+        "opcaoImpression": "Impression"
     },
     "Français": {
         "nomeDesigner": "Nom du Designer",
@@ -188,7 +186,6 @@ var TRANSLATIONS = {
         "adicionarBola": "Ajouter Boule",
         "painelExtra": "Extra",
         "geral": "Général",
-        "preencher": "Remplir",
         "criar": "Créer",
         "contador": "Compteur",
         "texturas": "Textures",
@@ -281,7 +278,6 @@ var TRANSLATIONS = {
         "confirmarComponentes": "Êtes-vous sûr d'avoir ajouté tous les composants dont vous aviez besoin?",
         "legendaAdicionada": "Légende ajoutée avec succès!",
         "quantidadeNaoInformada": "Veuillez indiquer la quantité",
-        "ativarExtraPreencherAqui": "Activez un extra dans l'onglet Général pour le remplir ici.",
         "procurarLabel": "rechercher:",
         "selecioneTipoFixacao": "Sélectionnez le type de fixation",
         "selecioneFixacao": "Sélectionnez fixation",

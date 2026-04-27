@@ -150,7 +150,7 @@ function gerarNomeArquivoAlfabeto(caractere, sufixoTamanho) {
 /**
  * Cria interface de alfabeto quando checkbox é marcado
  */
-function criarInterfaceAlfabeto(grupoExtra, dados, janela, t, funcoesFiltragem, funcoes, itensLegenda, atualizarListaItens, campoNomeTipo, grupoDimensoes, opcoes) {
+function criarInterfaceAlfabeto(grupoExtra, dados, janela, t, funcoesFiltragem, funcoes, itensLegenda, atualizarListaItens, campoNomeTipo, grupoDimensoes) {
     if (logs && logs.logFuncao) {
         logs.logFuncao("criarInterfaceAlfabeto", "Criando interface de alfabeto");
     }
@@ -161,13 +161,10 @@ function criarInterfaceAlfabeto(grupoExtra, dados, janela, t, funcoesFiltragem, 
             throw new Error("Parâmetros obrigatórios não fornecidos");
         }
         
-        var usarGrupoSimples = opcoes && opcoes.useGroup;
-        var grupoAlfabeto = usarGrupoSimples ?
-            grupoExtra.add("group") :
-            grupoExtra.add("panel", undefined, t("alfabeto"));
+        // Adicionar o grupo de alfabeto
+        var grupoAlfabeto = grupoExtra.add("panel", undefined, t("alfabeto"));
         grupoAlfabeto.orientation = "column";
         grupoAlfabeto.alignChildren = ["fill", "top"];
-        grupoAlfabeto.alignment = ["fill", "top"];
         grupoAlfabeto.spacing = 10;
 
         var subGrupoAlfabeto = grupoAlfabeto.add("group");
@@ -220,10 +217,9 @@ function criarInterfaceAlfabeto(grupoExtra, dados, janela, t, funcoesFiltragem, 
             );
         };
 
-        // Atualizar layout da janela sem alterar a altura global
-        if (janela && janela.layout) {
-            janela.layout.layout(true);
-        }
+        // Atualizar layout da janela
+        janela.layout.layout(true);
+        janela.preferredSize.height += 100;
         
         if (logs && logs.logFuncao) {
             logs.logFuncao("criarInterfaceAlfabeto", "Interface de alfabeto criada com sucesso");
@@ -256,9 +252,8 @@ function removerInterfaceAlfabeto(componentes, janela) {
     try {
         if (componentes && componentes.grupoAlfabeto) {
             componentes.grupoAlfabeto.parent.remove(componentes.grupoAlfabeto);
-            if (janela && janela.layout) {
-                janela.layout.layout(true);
-            }
+            janela.layout.layout(true);
+            janela.preferredSize.height -= 100;
             
             if (logs && logs.logFuncao) {
                 logs.logFuncao("removerInterfaceAlfabeto", "Interface de alfabeto removida com sucesso");
@@ -281,4 +276,4 @@ $.global.alfabeto = {
     gerarNomeArquivoAlfabeto: gerarNomeArquivoAlfabeto,
     criarInterfaceAlfabeto: criarInterfaceAlfabeto,
     removerInterfaceAlfabeto: removerInterfaceAlfabeto
-};
+}; 

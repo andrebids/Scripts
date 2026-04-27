@@ -35,10 +35,8 @@ O ponto de entrada continua a ser `script.jsx`, com carregamento sequencial via 
 ### UI e gestão
 
 1. `ui/ui.jsx`
-2. `ui/extraPanel.jsx`
-3. `ui/componentRows.jsx`
-4. `ui/gestaoLista.jsx`
-5. `ui/eventosUI.jsx`
+2. `ui/gestaoLista.jsx`
+3. `ui/eventosUI.jsx`
 
 ### Manutenção
 

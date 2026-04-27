@@ -51,7 +51,6 @@ Espelhadas também em `$.global.*` para compatibilidade com os módulos existent
 - `$.global.componentesObservacoes`
 - `$.global.legendaEstadoObs`
 - `$.global.areaLogs`
-- `$.global.extraState`
 
 ## Riscos atuais
 

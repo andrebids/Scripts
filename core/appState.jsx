@@ -36,7 +36,8 @@ function inicializarEstadoBaseLegenda() {
             componente: null,
             cor: null,
             unidade: null,
-            multiplicador: "1"
+            multiplicador: "1",
+            gp: null
         };
     }
 
@@ -59,6 +60,35 @@ function inicializarEstadoBaseLegenda() {
     };
 }
 
+function limparEstadoSessaoLegenda() {
+    itensLegenda = [];
+    itensNomes = [];
+    ultimaSelecao = {
+        componente: null,
+        cor: null,
+        unidade: null,
+        multiplicador: "1",
+        gp: null
+    };
+
+    $.global.itensLegenda = itensLegenda;
+    $.global.itensNomes = itensNomes;
+    $.global.ultimaSelecao = ultimaSelecao;
+    $.global.componentesObservacoes = null;
+    $.global.legendaEstadoObs = null;
+
+    try {
+        $.gc();
+    } catch (e) {}
+
+    return {
+        itensLegenda: itensLegenda,
+        itensNomes: itensNomes,
+        ultimaSelecao: ultimaSelecao
+    };
+}
+
 $.global.appState = {
-    inicializarEstadoBaseLegenda: inicializarEstadoBaseLegenda
+    inicializarEstadoBaseLegenda: inicializarEstadoBaseLegenda,
+    limparEstadoSessaoLegenda: limparEstadoSessaoLegenda
 };

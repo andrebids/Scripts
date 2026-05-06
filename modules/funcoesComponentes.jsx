@@ -203,6 +203,36 @@ function extrairValoresCampos(camposQuantidade) {
     return arr;
 }
 
+function atualizarItemExistenteComDetalhesQuantidade(itemExistente, quantidadeNum, multiplicador, funcoes) {
+    if (!itemExistente || !itemExistente.detalhesQuantidade || Object.prototype.toString.call(itemExistente.detalhesQuantidade) !== '[object Array]') {
+        return false;
+    }
+
+    var termoManual = null;
+    for (var i = 0; i < itemExistente.detalhesQuantidade.length; i++) {
+        if (!itemExistente.detalhesQuantidade[i].grupoVinculadoId) {
+            termoManual = itemExistente.detalhesQuantidade[i];
+            break;
+        }
+    }
+
+    if (!termoManual) {
+        termoManual = {
+            quantidade: quantidadeNum,
+            multiplicador: multiplicador || 1
+        };
+        itemExistente.detalhesQuantidade.push(termoManual);
+    } else {
+        termoManual.quantidade = quantidadeNum;
+        termoManual.multiplicador = multiplicador || 1;
+    }
+
+    itemExistente.quantidade = funcoes.calcularTotalDetalhesQuantidade(itemExistente.detalhesQuantidade);
+    itemExistente.multiplicador = 1;
+    itemExistente.texto = funcoes.criarLinhaReferencia(itemExistente);
+    return true;
+}
+
 function adicionarComponente(listaComponentes, listaCores, listaUnidades, quantidade, campoMultiplicador, ultimaSelecao, dados, itensLegenda, atualizarListaItens, t, logs, funcoes, encontrarIndicePorNome, camposQuantidade) {
     try {
         // Verificar se a quantidade foi preenchida
@@ -305,9 +335,11 @@ function adicionarComponente(listaComponentes, listaCores, listaUnidades, quanti
 
         var arrayQuantidades = extrairValoresCampos(camposQuantidade);
         if (itemExistente) {
-            itemExistente.quantidade = quantidadeNum;
-            itemExistente.multiplicador = multiplicador;
-            itemExistente.texto = funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidadeNum, multiplicador, arrayQuantidades);
+            if (!atualizarItemExistenteComDetalhesQuantidade(itemExistente, quantidadeNum, multiplicador, funcoes)) {
+                itemExistente.quantidade = quantidadeNum;
+                itemExistente.multiplicador = multiplicador;
+                itemExistente.texto = funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidadeNum, multiplicador, arrayQuantidades);
+            }
         } else {
             var novoItem = {
                 tipo: "componente",
@@ -320,6 +352,10 @@ function adicionarComponente(listaComponentes, listaCores, listaUnidades, quanti
                 texto: funcoes.criarTextoComponente(nomeComponente, combinacaoSelecionada.referencia, unidadeSelecionada, quantidadeNum, multiplicador, arrayQuantidades)
             };
             itensLegenda.push(novoItem);
+        }
+
+        if (typeof funcoesGP !== 'undefined' && funcoesGP && funcoesGP.fundirLuciolesDuplicados) {
+            funcoesGP.fundirLuciolesDuplicados(itensLegenda);
         }
 
         // Atualizar a lista de itens

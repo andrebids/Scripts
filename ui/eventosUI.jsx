@@ -353,6 +353,209 @@ $.global.eventosUI = {};
                     }
                 };
             }
+
+            if (config.checkboxMostrarGP) {
+                config.checkboxMostrarGP.onClick = function() {
+                    if (logs && logs.logEvento) {
+                        logs.logEvento("click", "checkboxMostrarGP - valor: " + this.value);
+                    }
+
+                    if (this.value) {
+                        if (typeof funcoesGP === 'undefined' || !funcoesGP) {
+                            ui.mostrarAlertaPersonalizado("Módulo de GP não disponível.", "Erro");
+                            this.value = false;
+                            return;
+                        }
+
+                        funcoesGP.garantirEstrutura(config.dados);
+
+                        config.grupoGP = config.abaGeral.add("panel", undefined, "GP");
+                        config.grupoGP.orientation = "column";
+                        config.grupoGP.alignChildren = ["left", "top"];
+                        config.grupoGP.spacing = 8;
+
+                        var linhaGP = config.grupoGP.add("group");
+                        linhaGP.orientation = "row";
+                        linhaGP.alignChildren = ["left", "center"];
+                        linhaGP.spacing = 5;
+
+                        linhaGP.add("statictext", undefined, "\u00D8");
+                        var listaEspessuraGP = linhaGP.add("dropdownlist", undefined, ["Selecione " + "\u00D8"].concat(funcoesGP.listarEspessuras(config.dados)));
+                        listaEspessuraGP.selection = 0;
+
+                        linhaGP.add("statictext", undefined, "Cor");
+                        var listaCorGP = linhaGP.add("dropdownlist", undefined, ["Selecione cor"]);
+                        listaCorGP.selection = 0;
+
+                        linhaGP.add("statictext", undefined, "Lucioles");
+                        var listaLuciolesGP = linhaGP.add("dropdownlist", undefined, ["Sem lucioles", "LED blanc pur", "LED blanc chaud"]);
+                        listaLuciolesGP.selection = 0;
+
+                        linhaGP.add("statictext", undefined, "ml");
+                        var campoQuantidadeGP = linhaGP.add("edittext", undefined, "1");
+                        campoQuantidadeGP.characters = 4;
+                        funcoes.apenasNumerosEVirgula(campoQuantidadeGP);
+
+                        var botaoAdicionarGP = linhaGP.add("button", undefined, "Adicionar GP");
+
+                        function repopularDropdown(dropdown, placeholder, itens) {
+                            dropdown.removeAll();
+                            dropdown.add("item", placeholder);
+                            for (var i = 0; i < itens.length; i++) {
+                                dropdown.add("item", itens[i]);
+                            }
+                            dropdown.selection = 0;
+                        }
+
+                        function selecionarPorTexto(dropdown, texto) {
+                            if (!dropdown || !dropdown.items || !texto) {
+                                return false;
+                            }
+                            for (var i = 0; i < dropdown.items.length; i++) {
+                                if (dropdown.items[i].text === texto) {
+                                    dropdown.selection = i;
+                                    return true;
+                                }
+                            }
+                            return false;
+                        }
+
+                        function atualizarCoresGP() {
+                            if (!listaEspessuraGP.selection || listaEspessuraGP.selection.index <= 0) {
+                                repopularDropdown(listaCorGP, "Selecione cor", []);
+                                return;
+                            }
+                            repopularDropdown(
+                                listaCorGP,
+                                "Selecione cor",
+                                funcoesGP.listarCores(config.dados, listaEspessuraGP.selection.text)
+                            );
+                        }
+
+                        function restaurarUltimaSelecaoGP() {
+                            var ultimaSelecaoGP = config.ultimaSelecao ? config.ultimaSelecao.gp : null;
+                            if (!ultimaSelecaoGP) {
+                                return;
+                            }
+
+                            if (ultimaSelecaoGP.espessura) {
+                                selecionarPorTexto(listaEspessuraGP, ultimaSelecaoGP.espessura);
+                                atualizarCoresGP();
+                            }
+
+                            if (ultimaSelecaoGP.cor) {
+                                selecionarPorTexto(listaCorGP, ultimaSelecaoGP.cor);
+                            }
+
+                            if (typeof ultimaSelecaoGP.lucioles !== "undefined" && ultimaSelecaoGP.lucioles !== null) {
+                                listaLuciolesGP.selection = ultimaSelecaoGP.lucioles;
+                            }
+
+                            if (ultimaSelecaoGP.quantidade) {
+                                campoQuantidadeGP.text = ultimaSelecaoGP.quantidade;
+                            }
+                        }
+
+                        listaEspessuraGP.onChange = atualizarCoresGP;
+
+                        botaoAdicionarGP.onClick = function() {
+                            if (!listaEspessuraGP.selection || listaEspessuraGP.selection.index <= 0 ||
+                                !listaCorGP.selection || listaCorGP.selection.index <= 0) {
+                                ui.mostrarAlertaPersonalizado("Preencha diâmetro e cor do GP.", "Campo Obrigatório");
+                                return;
+                            }
+
+                            var quantidadeGP = parseFloat(String(campoQuantidadeGP.text || "").replace(",", "."));
+                            if (isNaN(quantidadeGP) || quantidadeGP <= 0) {
+                                ui.mostrarAlertaPersonalizado("Quantidade inválida para GP.", "Campo Obrigatório");
+                                return;
+                            }
+
+                            var modoLucioles = "none";
+                            if (listaLuciolesGP.selection && listaLuciolesGP.selection.index === 1) {
+                                modoLucioles = "blanc_pur";
+                            } else if (listaLuciolesGP.selection && listaLuciolesGP.selection.index === 2) {
+                                modoLucioles = "blanc_chaud";
+                            }
+
+                            try {
+                                if (config.ultimaSelecao) {
+                                    config.ultimaSelecao.gp = {
+                                        espessura: listaEspessuraGP.selection.text,
+                                        cor: listaCorGP.selection.text,
+                                        unidade: "ml",
+                                        lucioles: listaLuciolesGP.selection ? listaLuciolesGP.selection.index : 0,
+                                        quantidade: campoQuantidadeGP.text
+                                    };
+                                }
+
+                                var nomeBaseGP = "GP " + listaEspessuraGP.selection.text + " " + listaCorGP.selection.text;
+                                var unidadeBaseGP = "ml";
+
+                                // Substituir qualquer GP anterior equivalente para evitar
+                                // deixar um item de lucioles preso de uma seleção antiga.
+                                for (var r = config.itensLegenda.length - 1; r >= 0; r--) {
+                                    var itemExistente = config.itensLegenda[r];
+                                    if ((itemExistente.tipo === "gp" || itemExistente.tipo === "gp_lucioles") &&
+                                        itemExistente.nome &&
+                                        (itemExistente.nome === nomeBaseGP || itemExistente.grupoVinculadoId) &&
+                                        itemExistente.unidade === unidadeBaseGP) {
+                                        var grupoRemover = itemExistente.grupoVinculadoId;
+                                        if (grupoRemover) {
+                                            if (typeof funcoesGP !== 'undefined' && funcoesGP && funcoesGP.removerGrupoVinculado) {
+                                                funcoesGP.removerGrupoVinculado(config.itensLegenda, grupoRemover);
+                                            } else {
+                                                for (var rr = config.itensLegenda.length - 1; rr >= 0; rr--) {
+                                                    if (config.itensLegenda[rr].grupoVinculadoId === grupoRemover) {
+                                                        config.itensLegenda.splice(rr, 1);
+                                                    }
+                                                }
+                                            }
+                                        } else if (itemExistente.nome === nomeBaseGP) {
+                                            config.itensLegenda.splice(r, 1);
+                                        }
+                                    }
+                                }
+
+                                var itensGP = funcoesGP.criarItens(
+                                    config.dados,
+                                    listaEspessuraGP.selection.text,
+                                    listaCorGP.selection.text,
+                                    "ml",
+                                    quantidadeGP,
+                                    modoLucioles,
+                                    config.itensLegenda
+                                );
+
+                                for (var i = 0; i < itensGP.length; i++) {
+                                    config.itensLegenda.push(itensGP[i]);
+                                }
+
+                                if (typeof funcoesGP !== 'undefined' && funcoesGP && funcoesGP.fundirLuciolesDuplicados) {
+                                    funcoesGP.fundirLuciolesDuplicados(config.itensLegenda);
+                                }
+
+                                config.atualizarListaItens();
+                                restaurarUltimaSelecaoGP();
+                            } catch (e) {
+                                ui.mostrarAlertaPersonalizado("Erro ao adicionar GP: " + e.message, "Erro");
+                            }
+                        };
+
+                        restaurarUltimaSelecaoGP();
+
+                        config.janela.layout.layout(true);
+                        config.janela.layout.resize();
+                    } else {
+                        if (config.grupoGP) {
+                            config.grupoGP.parent.remove(config.grupoGP);
+                            config.grupoGP = null;
+                            config.janela.layout.layout(true);
+                            config.janela.layout.resize();
+                        }
+                    }
+                };
+            }
             
             if (logs && logs.adicionarLog) {
                 logs.adicionarLog("Eventos de checkboxes configurados com sucesso", logs.TIPOS_LOG.INFO);

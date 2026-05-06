@@ -322,8 +322,39 @@ function gerarFrasePrincipal(parametros) {
             return resultado;
         }
 
+        function gerarDescricoesGP(itensGP) {
+            var descricoes = [];
+
+            if (!itensGP || !itensGP.length) {
+                return descricoes;
+            }
+
+            for (var g = 0; g < itensGP.length; g++) {
+                var itemGP = itensGP[g];
+                if (itemGP.tipo !== "gp") {
+                    continue;
+                }
+
+                var descricao = (itemGP.nomeBase || "paille synthétique").toLowerCase();
+                descricao += " " + String(itemGP.cor || "").toLowerCase();
+
+                if (itemGP.temLucioles && itemGP.corLucioles) {
+                    descricao += " avec lucioles " + String(itemGP.corLucioles).toLowerCase();
+                }
+
+                descricoes.push(descricao);
+            }
+
+            return descricoes;
+        }
+
         // LOG: Inspecionar agrupamento de componentes
         var agrupados = agruparComponentes(outrosComponentes);
+        var descricoesGP = gerarDescricoesGP(parametros.itensGP);
+        var componentesMateriais = agrupados.slice(0);
+        for (var gp = 0; gp < descricoesGP.length; gp++) {
+            componentesMateriais.push(descricoesGP[gp]);
+        }
 
         // Construir a frase com a regra do bioprint
         var frasePrincipal = "Logo " + (parametros.listaL || "") + ": " + 
@@ -336,13 +367,13 @@ function gerarFrasePrincipal(parametros) {
             frasePrincipal += " en " + componentesBioprint.join(", ");
             
             // Se há outros componentes, adicionar "avec"
-            if (outrosComponentes.length > 0) {
-                frasePrincipal += " avec " + agrupados.join(", ");
+            if (componentesMateriais.length > 0) {
+                frasePrincipal += " avec " + componentesMateriais.join(", ");
             }
         } else {
             // Se não há bioprint, só usar "avec" quando existirem componentes materiais
-            if (outrosComponentes.length > 0) {
-                frasePrincipal += " avec " + agrupados.join(", ");
+            if (componentesMateriais.length > 0) {
+                frasePrincipal += " avec " + componentesMateriais.join(", ");
             }
         }
 
@@ -755,6 +786,26 @@ function processarItensPVC(itensLegenda) {
     }
 }
 
+function processarItensGP(itensLegenda) {
+    logLegenda("Iniciando processamento de itens GP", "function");
+
+    try {
+        var itensGP = [];
+
+        for (var i = 0; i < itensLegenda.length; i++) {
+            if (itensLegenda[i].tipo === "gp" || itensLegenda[i].tipo === "gp_lucioles") {
+                itensGP.push(itensLegenda[i]);
+            }
+        }
+
+        logLegenda("Processamento de itens GP concluído: " + itensGP.length + " itens", "info");
+        return itensGP;
+    } catch (erro) {
+        logLegenda("Erro ao processar itens GP: " + erro, "error");
+        return [];
+    }
+}
+
 /**
  * Processa as observações da legenda
  * @param {string} campoObs - Texto das observações
@@ -962,6 +1013,7 @@ function atualizarPreview(parametros) {
         var todosComponentesExtras = resultadoExtras.todosComponentesExtras;
         var primeiroComponenteExtra = resultadoExtras.primeiroComponenteExtra;
         var componentesExtras = resultadoExtras.componentesExtras;
+        var itensGP = processarItensGP(itensLegenda);
         var itensPVC = processarItensPVC(itensLegenda);
 
         // Preparar dimensões para a regra 2D/3D
@@ -1004,6 +1056,7 @@ function atualizarPreview(parametros) {
             corBioprint: corBioprint,
             listaL: parametros.listaL ? parametros.listaL.selection.text : "",
             componentesTexto: componentesTexto,
+            itensGP: itensGP,
             todosComponentesExtras: todosComponentesExtras,
             itensPVC: itensPVC,
             primeiroComponenteExtra: primeiroComponenteExtra,  // manter para compatibilidade
@@ -1049,6 +1102,8 @@ function atualizarPreview(parametros) {
             if (itensLegenda[i].tipo === "componente" || 
                 itensLegenda[i].tipo === "alfabeto" || 
                 itensLegenda[i].tipo === "extra" ||
+                itensLegenda[i].tipo === "gp" ||
+                itensLegenda[i].tipo === "gp_lucioles" ||
                 itensLegenda[i].tipo === "pvc") {
                 temComponentes = true;
                 break;
@@ -1068,6 +1123,11 @@ function atualizarPreview(parametros) {
 
         // Adicionar referências de componentes
         previewText = previewText.concat(componentesReferencias);
+
+        // Adicionar referências de GP
+        for (var i = 0; i < itensGP.length; i++) {
+            previewText.push(funcoes.criarLinhaReferencia(itensGP[i]));
+        }
         
         // Adicionar contagem de bolas
         if (totalBolas > 0) {
@@ -1148,6 +1208,7 @@ $.global.funcoesLegenda = {
     processarComponentes: processarComponentes,
     processarBolas: processarBolas,
     processarComponentesExtras: processarComponentesExtras,
+    processarItensGP: processarItensGP,
     processarObservacoes: processarObservacoes,
     processarDimensoes: processarDimensoes,
     processarContagemElementos: processarContagemElementos,

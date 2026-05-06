@@ -45,12 +45,28 @@ function atualizarListaItens(listaItens, itensLegenda) {
         
         // Adicionar primeiro os componentes que não são bolas
         for (var i = 0; i < componentesNaoBolas.length; i++) {
-            listaItens.add("item", componentesNaoBolas[i].texto);
+            var indiceOriginalNaoBola = -1;
+            for (var j = 0; j < itensLegenda.length; j++) {
+                if (itensLegenda[j] === componentesNaoBolas[i]) {
+                    indiceOriginalNaoBola = j;
+                    break;
+                }
+            }
+            var itemNaoBola = listaItens.add("item", componentesNaoBolas[i].texto);
+            itemNaoBola.indiceOriginal = indiceOriginalNaoBola;
         }
         
         // Adicionar as bolas por último
         for (var i = 0; i < bolas.length; i++) {
-            listaItens.add("item", bolas[i].texto);
+            var indiceOriginalBola = -1;
+            for (var k = 0; k < itensLegenda.length; k++) {
+                if (itensLegenda[k] === bolas[i]) {
+                    indiceOriginalBola = k;
+                    break;
+                }
+            }
+            var itemBola = listaItens.add("item", bolas[i].texto);
+            itemBola.indiceOriginal = indiceOriginalBola;
         }
         
         if (logs && logs.logFuncao) {
@@ -81,11 +97,26 @@ function removerItem(listaItens, itensLegenda, atualizarCallback, t) {
             throw new Error("Parâmetros obrigatórios não fornecidos");
         }
         
-        var selectedIndex = listaItens.selection ? listaItens.selection.index : -1;
+        var selectedItem = listaItens.selection;
+        var selectedIndex = selectedItem ? selectedItem.index : -1;
         
         if (selectedIndex !== null && selectedIndex >= 0 && selectedIndex < itensLegenda.length) {
-            var itemRemovido = itensLegenda[selectedIndex];
-            itensLegenda.splice(selectedIndex, 1);
+            var indiceOriginal = selectedItem && typeof selectedItem.indiceOriginal !== 'undefined' ? selectedItem.indiceOriginal : selectedIndex;
+            var itemRemovido = itensLegenda[indiceOriginal];
+
+            if (itemRemovido && itemRemovido.grupoVinculadoId) {
+                if (typeof funcoesGP !== 'undefined' && funcoesGP && funcoesGP.removerGrupoVinculado) {
+                    funcoesGP.removerGrupoVinculado(itensLegenda, itemRemovido.grupoVinculadoId);
+                } else {
+                    for (var i = itensLegenda.length - 1; i >= 0; i--) {
+                        if (itensLegenda[i].grupoVinculadoId === itemRemovido.grupoVinculadoId) {
+                            itensLegenda.splice(i, 1);
+                        }
+                    }
+                }
+            } else {
+                itensLegenda.splice(indiceOriginal, 1);
+            }
             
             // Atualizar visualização
             atualizarCallback();

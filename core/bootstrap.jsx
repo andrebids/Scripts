@@ -12,6 +12,13 @@ function bootstrapInicializarSistema() {
 }
 
 function bootstrapCriarJanelaPrincipal() {
+    if ($.global.janelaScript && $.global.janelaScript.close) {
+        try {
+            $.global.janelaScript.close();
+        } catch (e1) {}
+        $.global.janelaScript = null;
+    }
+
     var janela = new Window("palette", t("tituloJanela"), undefined);
 
     $.global.janelaScript = janela;
@@ -20,12 +27,13 @@ function bootstrapCriarJanelaPrincipal() {
     janela.spacing = 10;
     janela.margins = 16;
 
-    janela.addEventListener("close", function() {
-        $.global.componentesObservacoes = null;
+    janela.onClose = function() {
+        if (typeof appState !== "undefined" && appState && appState.limparEstadoSessaoLegenda) {
+            appState.limparEstadoSessaoLegenda();
+        }
         $.global.janelaScript = null;
-        $.global.legendaEstadoObs = null;
         return true;
-    });
+    };
 
     if (janela.closeButton) {
         janela.closeButton.onClick = function() {

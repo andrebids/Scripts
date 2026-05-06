@@ -78,6 +78,10 @@ function verificarDadosCarregados(dados) {
         if (!funcoes.isArray(dados.componentes)) {
             throw new Error("Propriedade 'componentes' não é um array");
         }
+
+        if (!dados.gp || !funcoes.isArray(dados.gp)) {
+            dados.gp = [];
+        }
         
         // Verificar outras propriedades essenciais
         var propriedadesObrigatorias = ['cores', 'combinacoes', 'bolas'];

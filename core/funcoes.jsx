@@ -356,6 +356,9 @@ $.global.funcoes = {
     formatarDimensao: formatarDimensao,
     escapeString: escapeString,
     criarTextoComponente: criarTextoComponente,
+    formatarNumeroComponente: formatarNumeroComponente,
+    calcularTotalDetalhesQuantidade: calcularTotalDetalhesQuantidade,
+    criarExpressaoDetalhesQuantidade: criarExpressaoDetalhesQuantidade,
     criarLinhaReferencia: criarLinhaReferencia,
     selecionarUnidadeMetrica: selecionarUnidadeMetrica,
     atualizarCores: atualizarCores,
@@ -535,6 +538,73 @@ function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicad
     return texto;
 }
 
+function formatarNumeroComponente(valor, unidade, nome) {
+    var quantidade = funcoes.arredondarComponente(valor, unidade, nome);
+    if (unidade === "units") {
+        return Math.round(quantidade).toString();
+    }
+    return quantidade.toFixed(2).replace('.', ',');
+}
+
+function calcularTotalDetalhesQuantidade(detalhesQuantidade) {
+    var total = 0;
+    for (var i = 0; i < detalhesQuantidade.length; i++) {
+        var termo = detalhesQuantidade[i];
+        var quantidade = parseFloat(termo.quantidade);
+        var multiplicador = parseFloat(termo.multiplicador || 1);
+        if (!isNaN(quantidade) && quantidade > 0 && !isNaN(multiplicador) && multiplicador > 0) {
+            total += quantidade * multiplicador;
+        }
+    }
+    return total;
+}
+
+function criarExpressaoDetalhesQuantidade(item) {
+    if (!item || !item.detalhesQuantidade || Object.prototype.toString.call(item.detalhesQuantidade) !== '[object Array]' || item.detalhesQuantidade.length === 0) {
+        return null;
+    }
+
+    var partes = [];
+    var termosValidos = [];
+
+    for (var i = 0; i < item.detalhesQuantidade.length; i++) {
+        var termo = item.detalhesQuantidade[i];
+        var quantidade = parseFloat(termo.quantidade);
+        var multiplicador = parseFloat(termo.multiplicador || 1);
+
+        if (isNaN(quantidade) || quantidade <= 0 || isNaN(multiplicador) || multiplicador <= 0) {
+            continue;
+        }
+
+        termosValidos.push(termo);
+
+        var quantidadeFormatada = formatarNumeroComponente(quantidade, item.unidade, item.nome);
+        if (multiplicador > 1) {
+            partes.push(quantidadeFormatada + "x" + multiplicador);
+        } else {
+            partes.push(quantidadeFormatada);
+        }
+    }
+
+    if (partes.length === 0) {
+        return null;
+    }
+
+    var total = calcularTotalDetalhesQuantidade(termosValidos);
+    var totalFormatado = formatarNumeroComponente(total, item.unidade, item.nome);
+
+    if (partes.length === 1) {
+        var termoUnico = termosValidos[0];
+        var multiplicadorUnico = parseFloat(termoUnico.multiplicador || 1);
+        if (!isNaN(multiplicadorUnico) && multiplicadorUnico > 1) {
+            return partes[0] + ": " + totalFormatado;
+        }
+        return totalFormatado;
+    }
+
+    return partes.join(" + ") + " = " + totalFormatado;
+}
+
 // Função para criar a linha de referência (migrada de script.jsx)
 function criarLinhaReferencia(item) {
     var linha = item.referencia ? item.referencia : item.nome;
@@ -543,28 +613,33 @@ function criarLinhaReferencia(item) {
     if (item.unidade) {
         linha += " (" + funcoes.formatarUnidade(item.unidade) + ")";
     }
-    
-    var quantidade = funcoes.arredondarComponente(item.quantidade, item.unidade, item.nome);
-    
-    var quantidadeFormatada;
-    if (item.unidade === "units") {
-        quantidadeFormatada = Math.round(quantidade).toString();
+
+    var expressaoDetalhada = criarExpressaoDetalhesQuantidade(item);
+    if (expressaoDetalhada) {
+        linha += ": " + expressaoDetalhada;
     } else {
-        quantidadeFormatada = quantidade.toFixed(2).replace('.', ',');
-    }
-    
-    if (item.multiplicador && item.multiplicador > 1) {
-        linha += " " + quantidadeFormatada + "x" + item.multiplicador + ": ";
-        var quantidadeTotal = quantidade * item.multiplicador;
-        var quantidadeTotalFormatada;
+        var quantidade = funcoes.arredondarComponente(item.quantidade, item.unidade, item.nome);
+        
+        var quantidadeFormatada;
         if (item.unidade === "units") {
-            quantidadeTotalFormatada = Math.round(quantidadeTotal).toString();
+            quantidadeFormatada = Math.round(quantidade).toString();
         } else {
-            quantidadeTotalFormatada = quantidadeTotal.toFixed(2).replace('.', ',');
+            quantidadeFormatada = quantidade.toFixed(2).replace('.', ',');
         }
-        linha += quantidadeTotalFormatada;
-    } else {
-        linha += ": " + quantidadeFormatada;
+        
+        if (item.multiplicador && item.multiplicador > 1) {
+            linha += " " + quantidadeFormatada + "x" + item.multiplicador + ": ";
+            var quantidadeTotal = quantidade * item.multiplicador;
+            var quantidadeTotalFormatada;
+            if (item.unidade === "units") {
+                quantidadeTotalFormatada = Math.round(quantidadeTotal).toString();
+            } else {
+                quantidadeTotalFormatada = quantidadeTotal.toFixed(2).replace('.', ',');
+            }
+            linha += quantidadeTotalFormatada;
+        } else {
+            linha += ": " + quantidadeFormatada;
+        }
     }
     
     if (item.composta) {

@@ -14,6 +14,7 @@ $.evalFile(File($.fileName).path + "/core/appState.jsx");
 
 // Importar módulos funcionais
 $.evalFile(File($.fileName).path + "/modules/funcoesComponentes.jsx");
+$.evalFile(File($.fileName).path + "/modules/funcoesGP.jsx");
 $.evalFile(File($.fileName).path + "/modules/funcoesBolas.jsx");
 $.evalFile(File($.fileName).path + "/modules/funcoesLegenda.jsx");
 $.evalFile(File($.fileName).path + "/modules/funcoesFiltragem.jsx");
@@ -66,7 +67,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v2.2.9");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v3.0");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -415,7 +416,7 @@ colunaEsquerda.alignChildren = ["fill", "top"];
 var checkboxMostrarObs = colunaEsquerda.add("checkbox", undefined, t("adicionarObservacoes"));
 var checkboxMostrarComponenteExtra = colunaEsquerda.add("checkbox", undefined, t("adicionarComponenteExtra"));
 var checkboxMostrarPVC = colunaEsquerda.add("checkbox", undefined, t("adicionarPVC"));
-var checkboxMostrarTexturas = colunaEsquerda.add("checkbox", undefined, t("adicionarTexturas"));
+var checkboxMostrarGP = colunaEsquerda.add("checkbox", undefined, "Adicionar GP");
 
 // Coluna direita
 var colunaDireita = grupoCheckboxes.add("group");
@@ -424,6 +425,7 @@ colunaDireita.alignChildren = ["fill", "top"];
 var checkboxMostrarBolas = colunaDireita.add("checkbox", undefined, t("adicionarBolas"));
 var checkboxMostrarContar = colunaDireita.add("checkbox", undefined, t("mostrarContarElementos"));
 var checkboxMostrarAlfabeto = colunaDireita.add("checkbox", undefined, t("criarGX"));
+var checkboxMostrarTexturas = colunaDireita.add("checkbox", undefined, t("adicionarTexturas"));
 
 // Variável para armazenar componentes do alfabeto
 var componentesAlfabeto = null;
@@ -496,6 +498,10 @@ var grupoComponenteExtra = null;
 var grupoPVC = null;
 // Evento será configurado pelo módulo eventosUI
 
+// Variável para armazenar o grupo de GP
+var grupoGP = null;
+// Evento será configurado pelo módulo eventosUI
+
 // Manter apenas este código para a lista única
 var grupoPreviewBotoes = conteudoLegenda.add("group");
 grupoPreviewBotoes.orientation = "column";
@@ -555,6 +561,7 @@ function atualizarListaItens() {
             checkboxMostrarObs: checkboxMostrarObs,
             checkboxMostrarComponenteExtra: checkboxMostrarComponenteExtra,
             checkboxMostrarPVC: checkboxMostrarPVC,
+            checkboxMostrarGP: checkboxMostrarGP,
             linhaPrint: linhaPrint,
             linhaLeds: linhaLeds,
             linhaNormais: linhaNormais,
@@ -573,6 +580,7 @@ function atualizarListaItens() {
             componentesObservacoes: componentesObservacoes,
             grupoComponenteExtra: grupoComponenteExtra,
             grupoPVC: grupoPVC,
+            grupoGP: grupoGP,
             campoNomeTipo: campoNomeTipo,
             
             // Dados e funções

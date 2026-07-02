@@ -1,182 +1,74 @@
 @echo off
-setlocal EnableExtensions EnableDelayedExpansion
+setlocal EnableExtensions
 
 set "SCRIPT_DIR=%~dp0"
-for %%A in ("%SCRIPT_DIR%\.") do set "CURRENT_INSTALL=%%~fA"
-set "LOG_FILE=%TEMP%\Legenda_installer.log"
-set "REPO_URL=https://github.com/andrebids/Scripts"
-set "BRANCH=main"
-set "USER_ID=%USERDOMAIN%\%USERNAME%"
-set "TEMP_ROOT=%TEMP%\LegendaInstall_%RANDOM%%RANDOM%%RANDOM%"
-set "TEMP_REPO=%TEMP_ROOT%\Legenda"
+set "RUN_ID=%RANDOM%_%RANDOM%_%RANDOM%"
 
-call :log "============================================================"
-call :log "Legenda installer started."
+set "INSTALLER_DIR=%LOCALAPPDATA%\Legenda\Installer"
+if "%LOCALAPPDATA%"=="" set "INSTALLER_DIR=%TEMP%\Legenda\Installer"
+if not exist "%INSTALLER_DIR%" mkdir "%INSTALLER_DIR%" >nul 2>&1
 
-call :ensure_admin
-if errorlevel 1 goto :fail
+set "STATUS_FILE=%INSTALLER_DIR%\status_%RUN_ID%.json"
+set "LOG_FILE=%INSTALLER_DIR%\install_%RUN_ID%.log"
+set "TEMP_RUN_DIR=%TEMP%\LegendaInstaller_%RUN_ID%"
+set "PS_LOCAL=%SCRIPT_DIR%infrastructure\install_all_illustrators.ps1"
+set "PS_RUNNER=%TEMP_RUN_DIR%\install_all_illustrators.ps1"
+set "PS_URL=https://raw.githubusercontent.com/andrebids/Scripts/main/infrastructure/install_all_illustrators.ps1"
 
-where git >nul 2>nul
+if exist "%TEMP_RUN_DIR%" rmdir /s /q "%TEMP_RUN_DIR%" >nul 2>&1
+mkdir "%TEMP_RUN_DIR%" >nul 2>&1
 if errorlevel 1 (
-    call :log "Git was not found in PATH. Trying winget install..."
-    where winget >nul 2>nul
-    if not errorlevel 1 (
-        winget install --id Git.Git -e --source winget --accept-package-agreements --accept-source-agreements >>"%LOG_FILE%" 2>&1
-        if exist "%ProgramFiles%\Git\cmd\git.exe" set "PATH=%ProgramFiles%\Git\cmd;%PATH%"
-    )
-
-    where git >nul 2>nul
-    if errorlevel 1 (
-        call :log "ERROR: Git installation failed or Git is still unavailable."
-        echo [ERRO] Git nao encontrado no PATH.
-        echo Instala o Git e volta a executar este installer.
-        set "RC=2"
-        goto :finish
-    )
+    echo [ERRO] Nao foi possivel criar pasta temporaria.
+    exit /b 11
 )
 
-if exist "%TEMP_ROOT%" rmdir /s /q "%TEMP_ROOT%" >nul 2>nul
-mkdir "%TEMP_ROOT%" >nul 2>nul
+where powershell >nul 2>&1
 if errorlevel 1 (
-    call :log "ERROR: Could not create temp folder: %TEMP_ROOT%"
-    set "RC=11"
-    goto :finish
+    echo [ERRO] PowerShell nao esta disponivel neste computador.
+    >"%STATUS_FILE%" echo {"runId":"%RUN_ID%","state":"MISSING_POWERSHELL","message":"PowerShell nao esta disponivel.","exitCode":91}
+    exit /b 91
 )
 
-call :log "Cloning repository: %REPO_URL%"
-git clone --depth 1 --branch %BRANCH% "%REPO_URL%" "%TEMP_REPO%" >>"%LOG_FILE%" 2>&1
-if errorlevel 1 (
-    call :log "ERROR: git clone failed."
-    set "RC=12"
-    goto :finish
-)
-
-set /a TOTAL=0
-set /a SUCCESS=0
-set /a FAILED=0
-
-call :scan_root "%ProgramFiles%"
-if defined ProgramFiles(x86) call :scan_root "%ProgramFiles(x86)%"
-
-if "%TOTAL%"=="0" (
-    call :log "ERROR: No Illustrator installations were detected."
-    echo [ERRO] Nenhuma instalacao do Adobe Illustrator foi encontrada.
-    set "RC=20"
-    goto :finish
-)
-
-call :log "INSTALL_SUMMARY total=%TOTAL% success=%SUCCESS% failed=%FAILED%"
-if not "%FAILED%"=="0" (
-    set "RC=10"
-    goto :finish
-)
-
-set "RC=0"
-goto :finish
-
-:scan_root
-set "BASE=%~1"
-if not defined BASE goto :eof
-if not exist "%BASE%\Adobe" goto :eof
-
-for /d %%I in ("%BASE%\Adobe\Adobe Illustrator *") do (
-    if exist "%%~fI\Presets" (
-        for /d %%L in ("%%~fI\Presets\*") do (
-            set "SCRIPTS_DIR=%%~fL\Scripts"
-            set "TARGET_DIR=!SCRIPTS_DIR!\Legenda"
-            call :install_target "!SCRIPTS_DIR!" "!TARGET_DIR!"
-        )
-    )
-)
-goto :eof
-
-:install_target
-set "SCRIPTS_DIR=%~1"
-set "TARGET_DIR=%~2"
-for %%A in ("%TARGET_DIR%\.") do set "TARGET_NORM=%%~fA"
-
-set /a TOTAL+=1
-call :log "Target: %TARGET_DIR%"
-
-if not exist "%SCRIPTS_DIR%" (
-    mkdir "%SCRIPTS_DIR%" >>"%LOG_FILE%" 2>&1
-    if errorlevel 1 (
-        call :log "ERROR: Cannot create Scripts folder: %SCRIPTS_DIR%"
-        set /a FAILED+=1
-        goto :eof
-    )
-)
-
-icacls "%SCRIPTS_DIR%" /grant "%USER_ID%:(OI)(CI)M" /T /C >>"%LOG_FILE%" 2>&1
-
-if not exist "%TARGET_DIR%" (
-    mkdir "%TARGET_DIR%" >>"%LOG_FILE%" 2>&1
-    if errorlevel 1 (
-        call :log "ERROR: Cannot create target folder: %TARGET_DIR%"
-        set /a FAILED+=1
-        goto :eof
-    )
-)
-
-if /I "%TARGET_NORM%"=="%CURRENT_INSTALL%" (
-    call :log "INFO: Updating running installation in place (self path)."
-    robocopy "%TEMP_REPO%" "%TARGET_DIR%" /MIR /R:2 /W:1 /NFL /NDL /NJH /NJS /NP /XF installer.bat installer_log.txt >>"%LOG_FILE%" 2>&1
+if exist "%PS_LOCAL%" (
+    copy /Y "%PS_LOCAL%" "%PS_RUNNER%" >nul 2>&1
 ) else (
-    robocopy "%TEMP_REPO%" "%TARGET_DIR%" /MIR /R:2 /W:1 /NFL /NDL /NJH /NJS /NP >>"%LOG_FILE%" 2>&1
-)
-set "COPY_RC=%ERRORLEVEL%"
-if %COPY_RC% GEQ 8 (
-    call :log "ERROR: robocopy failed (%COPY_RC%) on %TARGET_DIR%"
-    set /a FAILED+=1
-    goto :eof
+    echo Ficheiro local do installer nao encontrado. A descarregar do GitHub...
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%PS_URL%' -OutFile '%PS_RUNNER%' -UseBasicParsing" >nul 2>&1
 )
 
-git config --global --add safe.directory "%TARGET_DIR%" >>"%LOG_FILE%" 2>&1
-if errorlevel 1 (
-    call :log "WARN: Failed to add safe.directory for %TARGET_DIR%"
+if not exist "%PS_RUNNER%" (
+    echo [ERRO] Nao foi possivel preparar o installer PowerShell.
+    >"%STATUS_FILE%" echo {"runId":"%RUN_ID%","state":"MISSING_INSTALLER","message":"Installer PowerShell nao encontrado.","exitCode":90}
+    exit /b 90
 )
 
-set /a SUCCESS+=1
-call :log "OK: %TARGET_DIR%"
-goto :eof
+echo.
+echo A instalar Legenda em todas as versoes do Illustrator detectadas...
+echo O Windows pode pedir permissao de administrador.
+echo.
 
-:ensure_admin
-net session >nul 2>&1
-if %ERRORLEVEL% EQU 0 goto :eof
-
-call :log "Requesting administrator elevation..."
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath '%ComSpec%' -ArgumentList '/c \"\"%~f0\" --elevated\"' -Verb RunAs -Wait"
-if errorlevel 1 (
-    call :log "ERROR: Elevation canceled or failed."
-    echo [ERRO] Permissao de administrador recusada ou falhou.
-    exit /b 5
-)
-exit /b 99
-
-:log
-set "NOW=%DATE% %TIME%"
->>"%LOG_FILE%" echo [%NOW%] %~1
-goto :eof
-
-:fail
+powershell -NoProfile -ExecutionPolicy Bypass -File "%PS_RUNNER%" -RunId "%RUN_ID%" -StatusPath "%STATUS_FILE%" -LogPath "%LOG_FILE%"
 set "RC=%ERRORLEVEL%"
 
-:finish
-if exist "%TEMP_ROOT%" rmdir /s /q "%TEMP_ROOT%" >nul 2>nul
-
-if "%RC%"=="99" (
-    exit /b 0
-)
-
+echo.
 if "%RC%"=="0" (
-    echo.
     echo Instalacao concluida com sucesso.
-    echo Log: "%LOG_FILE%"
+) else if "%RC%"=="10" (
+    echo Instalacao concluida parcialmente. Verifique o log.
 ) else (
-    echo.
-    echo A instalacao terminou com erro (codigo %RC%).
-    echo Verifique o log: "%LOG_FILE%"
+    echo A instalacao terminou com erro ^(codigo %RC%^).
 )
+
+echo Status: "%STATUS_FILE%"
+echo Log: "%LOG_FILE%"
+echo.
+
+if exist "%STATUS_FILE%" (
+    type "%STATUS_FILE%"
+    echo.
+)
+
+if exist "%TEMP_RUN_DIR%" rmdir /s /q "%TEMP_RUN_DIR%" >nul 2>&1
 
 pause
 exit /b %RC%

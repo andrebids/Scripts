@@ -1,26 +1,98 @@
 param(
-    [Parameter(Mandatory = $false)]
-    [string]$RepoUrl = "https://github.com/andrebids/Scripts",
+    [string]$RunId = ("install_" + [guid]::NewGuid().ToString("N")),
 
-    [Parameter(Mandatory = $true)]
-    [string]$LogPath,
+    [string]$StatusPath = "",
+
+    [string]$LogPath = "",
+
+    [string]$RepoOwner = "andrebids",
+
+    [string]$RepoName = "Scripts",
+
+    [string]$Branch = "main",
+
+    [string[]]$TargetPath = @(),
 
     [switch]$SkipElevation
 )
 
 $ErrorActionPreference = "Stop"
+$ProgressPreference = "SilentlyContinue"
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-function Write-Log {
-    param([string]$Message)
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    Add-Content -Path $LogPath -Value ("[{0}] {1}" -f $timestamp, $Message) -Encoding UTF8
+if ([string]::IsNullOrWhiteSpace($StatusPath) -or [string]::IsNullOrWhiteSpace($LogPath)) {
+    $baseDir = Join-Path $env:LOCALAPPDATA "Legenda\Installer"
+    if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
+        $baseDir = Join-Path $env:TEMP "Legenda\Installer"
+    }
+    if ([string]::IsNullOrWhiteSpace($StatusPath)) {
+        $StatusPath = Join-Path $baseDir ("status_" + $RunId + ".json")
+    }
+    if ([string]::IsNullOrWhiteSpace($LogPath)) {
+        $LogPath = Join-Path $baseDir ("install_" + $RunId + ".log")
+    }
+}
+
+$script:StatusBase = [ordered]@{
+    runId = $RunId
+    state = "RUNNING"
+    message = "Instalacao iniciada."
+    startedAt = (Get-Date).ToString("s")
+    finishedAt = $null
+    repo = "$RepoOwner/$RepoName"
+    branch = $Branch
+    logPath = $LogPath
+    statusPath = $StatusPath
 }
 
 function Ensure-Directory {
     param([string]$Path)
+
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+        return
+    }
+
     if (-not (Test-Path -LiteralPath $Path)) {
         New-Item -ItemType Directory -Path $Path -Force | Out-Null
     }
+}
+
+function Write-Log {
+    param([string]$Message)
+
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    Add-Content -LiteralPath $LogPath -Value ("[{0}] {1}" -f $timestamp, $Message) -Encoding UTF8
+}
+
+function Write-Status {
+    param(
+        [string]$State,
+        [string]$Message,
+        [int]$ExitCode,
+        [hashtable]$Extra
+    )
+
+    $status = [ordered]@{}
+    foreach ($key in $script:StatusBase.Keys) {
+        $status[$key] = $script:StatusBase[$key]
+    }
+
+    $status["state"] = $State
+    $status["message"] = $Message
+    $status["exitCode"] = $ExitCode
+
+    if ($State -ne "RUNNING" -and $State -ne "ELEVATING" -and $State -ne "DOWNLOADING" -and $State -ne "INSTALLING") {
+        $status["finishedAt"] = (Get-Date).ToString("s")
+    }
+
+    if ($Extra) {
+        foreach ($key in $Extra.Keys) {
+            $status[$key] = $Extra[$key]
+        }
+    }
+
+    Ensure-Directory -Path (Split-Path -Path $StatusPath -Parent)
+    $status | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $StatusPath -Encoding UTF8
 }
 
 function Test-IsAdministrator {
@@ -31,10 +103,11 @@ function Test-IsAdministrator {
 
 function Test-WriteAccess {
     param([string]$Path)
+
     try {
         Ensure-Directory -Path $Path
         $probe = Join-Path $Path ("write_test_" + [guid]::NewGuid().ToString("N") + ".tmp")
-        Set-Content -Path $probe -Value "ok" -Encoding ASCII -ErrorAction Stop
+        Set-Content -LiteralPath $probe -Value "ok" -Encoding ASCII -ErrorAction Stop
         Remove-Item -LiteralPath $probe -Force -ErrorAction SilentlyContinue
         return $true
     } catch {
@@ -44,36 +117,184 @@ function Test-WriteAccess {
 
 function Grant-ModifyPermission {
     param([string]$Path)
+
     if (-not (Test-Path -LiteralPath $Path)) {
         return $false
     }
 
     $identity = "$env:USERDOMAIN\$env:USERNAME"
+    $systemRoot = $env:SystemRoot
+    if ([string]::IsNullOrWhiteSpace($systemRoot)) {
+        $systemRoot = $env:windir
+    }
+    $icacls = Join-Path $systemRoot "System32\icacls.exe"
+    if (-not (Test-Path -LiteralPath $icacls)) {
+        Write-Log ("icacls.exe not found: {0}" -f $icacls)
+        return $false
+    }
+
     Write-Log ("Trying ACL update on: {0}" -f $Path)
-    & icacls $Path /grant "${identity}:(OI)(CI)M" /T /C 2>&1 | ForEach-Object {
-        if ($_ -ne $null) {
-            Write-Log $_.ToString()
+    $aclLog = Join-Path $env:TEMP ("legenda_icacls_" + [guid]::NewGuid().ToString("N") + ".log")
+    $aclExitCode = $null
+    try {
+        & $icacls $Path /grant "${identity}:(OI)(CI)M" /T /C > $aclLog 2>&1
+        $aclExitCode = $LASTEXITCODE
+
+        if (Test-Path -LiteralPath $aclLog) {
+            Get-Content -LiteralPath $aclLog -ErrorAction SilentlyContinue | ForEach-Object {
+                if ($_ -ne $null) {
+                    Write-Log $_.ToString()
+                }
+            }
+        }
+    } finally {
+        if (Test-Path -LiteralPath $aclLog) {
+            Remove-Item -LiteralPath $aclLog -Force -ErrorAction SilentlyContinue
         }
     }
-    return ($LASTEXITCODE -eq 0)
+
+    if ($null -eq $aclExitCode) {
+        Write-Log ("icacls did not report an exit code for {0}; continuing with write-access checks." -f $Path)
+        return $true
+    }
+
+    if ($aclExitCode -ne 0) {
+        Write-Log ("icacls failed with code {0} on {1}" -f $aclExitCode, $Path)
+        return $false
+    }
+
+    return $true
 }
 
-function Invoke-Git {
-    param([string[]]$Arguments)
-    Write-Log ("git {0}" -f ($Arguments -join " "))
-    & git @Arguments 2>&1 | ForEach-Object {
-        if ($_ -ne $null) {
-            Write-Log $_.ToString()
+function Read-JsonFile {
+    param([string]$Path)
+
+    $content = Get-Content -LiteralPath $Path -Raw -Encoding UTF8
+    return $content | ConvertFrom-Json
+}
+
+function Get-VersionParts {
+    param([string]$Version)
+
+    if ([string]::IsNullOrWhiteSpace($Version)) {
+        return @(0)
+    }
+
+    $matches = [regex]::Matches($Version, "\d+")
+    if ($matches.Count -eq 0) {
+        return @(0)
+    }
+
+    $parts = @()
+    foreach ($match in $matches) {
+        $parts += [int]$match.Value
+    }
+    return $parts
+}
+
+function Compare-Version {
+    param(
+        [string]$Left,
+        [string]$Right
+    )
+
+    $leftParts = @(Get-VersionParts -Version $Left)
+    $rightParts = @(Get-VersionParts -Version $Right)
+    $max = [Math]::Max($leftParts.Count, $rightParts.Count)
+
+    for ($i = 0; $i -lt $max; $i++) {
+        $leftValue = 0
+        $rightValue = 0
+
+        if ($i -lt $leftParts.Count) {
+            $leftValue = $leftParts[$i]
+        }
+        if ($i -lt $rightParts.Count) {
+            $rightValue = $rightParts[$i]
+        }
+
+        if ($leftValue -gt $rightValue) {
+            return 1
+        }
+        if ($leftValue -lt $rightValue) {
+            return -1
         }
     }
-    if ($LASTEXITCODE -ne 0) {
-        throw ("git failed with code {0}: git {1}" -f $LASTEXITCODE, ($Arguments -join " "))
+
+    return 0
+}
+
+function ConvertTo-RawUrlPath {
+    param([string]$Path)
+
+    $segments = @($Path -split "/")
+    $encodedSegments = @()
+    foreach ($segment in $segments) {
+        $encodedSegments += [Uri]::EscapeDataString($segment)
+    }
+    return ($encodedSegments -join "/")
+}
+
+function Should-IncludeFile {
+    param([string]$Path)
+
+    $normalized = ($Path -replace "\\", "/")
+    $lower = $normalized.ToLowerInvariant()
+
+    $excludedExact = @(
+        "installer_log.txt",
+        "update_log.txt",
+        "update_status.txt",
+        "update_running.lock"
+    )
+
+    if ($excludedExact -contains $lower) {
+        return $false
+    }
+
+    if ($lower.StartsWith(".git/") -or
+        $lower.StartsWith(".github/") -or
+        $lower.EndsWith(".tmp") -or
+        $lower.EndsWith(".lock") -or
+        $lower.EndsWith(".log")) {
+        return $false
+    }
+
+    return $true
+}
+
+function Invoke-GitHubJson {
+    param([string]$Url)
+
+    return Invoke-RestMethod -Uri $Url -Method Get -Headers @{
+        "User-Agent" = "Legenda-Installer"
+        "Accept" = "application/vnd.github+json"
     }
 }
 
 function Get-LegendaTargets {
-    $targets = New-Object System.Collections.Generic.List[string]
-    $programFolders = @($env:ProgramFiles, ${env:ProgramFiles(x86)}) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -Unique
+    param([string[]]$ExplicitTargets)
+
+    $targets = @()
+
+    if ($ExplicitTargets -and $ExplicitTargets.Count -gt 0) {
+        foreach ($target in $ExplicitTargets) {
+            if ([string]::IsNullOrWhiteSpace($target)) {
+                continue
+            }
+            $targets += [pscustomobject]@{
+                Illustrator = "Explicit target"
+                Language = ""
+                ScriptsDir = (Split-Path -Path $target -Parent)
+                Target = $target
+            }
+        }
+        return $targets
+    }
+
+    $programFolders = @($env:ProgramFiles, ${env:ProgramFiles(x86)}) | Where-Object {
+        $_ -and (Test-Path -LiteralPath $_)
+    } | Select-Object -Unique
 
     foreach ($programFolder in $programFolders) {
         $adobeRoot = Join-Path $programFolder "Adobe"
@@ -81,7 +302,8 @@ function Get-LegendaTargets {
             continue
         }
 
-        Get-ChildItem -Path $adobeRoot -Directory -Filter "Adobe Illustrator *" -ErrorAction SilentlyContinue | ForEach-Object {
+        Get-ChildItem -Path $adobeRoot -Directory -Filter "Adobe Illustrator*" -ErrorAction SilentlyContinue | ForEach-Object {
+            $illustratorName = $_.Name
             $presetsDir = Join-Path $_.FullName "Presets"
             if (-not (Test-Path -LiteralPath $presetsDir)) {
                 return
@@ -89,72 +311,200 @@ function Get-LegendaTargets {
 
             Get-ChildItem -Path $presetsDir -Directory -ErrorAction SilentlyContinue | ForEach-Object {
                 $scriptsDir = Join-Path $_.FullName "Scripts"
-                $targets.Add((Join-Path $scriptsDir "Legenda"))
+                $targets += [pscustomobject]@{
+                    Illustrator = $illustratorName
+                    Language = $_.Name
+                    ScriptsDir = $scriptsDir
+                    Target = (Join-Path $scriptsDir "Legenda")
+                }
             }
         }
     }
 
-    return $targets | Sort-Object -Unique
+    return @($targets | Sort-Object -Property Target -Unique)
 }
 
-function Replace-TargetFolder {
-    param(
-        [string]$Source,
-        [string]$Target
+function Get-GitHubPackage {
+    param([string]$DestinationRoot)
+
+    $versionUrl = "https://raw.githubusercontent.com/$RepoOwner/$RepoName/$Branch/assets/version.json"
+    Write-Log ("Fetching remote version: {0}" -f $versionUrl)
+
+    try {
+        $remoteVersionData = Invoke-GitHubJson -Url $versionUrl
+    } catch {
+        throw ("Nao foi possivel consultar a versao remota: {0}" -f $_.Exception.Message)
+    }
+
+    $remoteVersion = $remoteVersionData.version
+    $treeUrl = "https://api.github.com/repos/$RepoOwner/$RepoName/git/trees/$Branch" + "?recursive=1"
+    Write-Log ("Fetching repository tree: {0}" -f $treeUrl)
+
+    try {
+        $treeResponse = Invoke-GitHubJson -Url $treeUrl
+    } catch {
+        throw ("Nao foi possivel obter a lista de ficheiros do GitHub: {0}" -f $_.Exception.Message)
+    }
+
+    if ($treeResponse.truncated) {
+        throw "A lista de ficheiros do GitHub veio incompleta."
+    }
+
+    $files = @($treeResponse.tree | Where-Object {
+        $_.type -eq "blob" -and (Should-IncludeFile -Path $_.path)
+    })
+
+    if ($files.Count -eq 0) {
+        throw "Nao foram encontrados ficheiros para descarregar."
+    }
+
+    $packageDir = Join-Path $DestinationRoot "Legenda"
+    if (Test-Path -LiteralPath $packageDir) {
+        Remove-Item -LiteralPath $packageDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    Ensure-Directory -Path $packageDir
+
+    Write-Log ("Downloading {0} files to {1}" -f $files.Count, $packageDir)
+    Write-Status -State "DOWNLOADING" -Message "A descarregar projeto do GitHub." -ExitCode 0 -Extra @{
+        remoteVersion = $remoteVersion
+        filesTotal = $files.Count
+        filesDownloaded = 0
+    }
+
+    $client = New-Object System.Net.WebClient
+    $client.Headers.Add("User-Agent", "Legenda-Installer")
+
+    $downloaded = 0
+    try {
+        foreach ($file in $files) {
+            $relativePath = ($file.path -replace "\\", "/")
+            $destination = Join-Path $packageDir ($relativePath -replace "/", [System.IO.Path]::DirectorySeparatorChar)
+            Ensure-Directory -Path (Split-Path -Path $destination -Parent)
+
+            $rawPath = ConvertTo-RawUrlPath -Path $relativePath
+            $downloadUrl = "https://raw.githubusercontent.com/$RepoOwner/$RepoName/$Branch/$rawPath"
+            $client.DownloadFile($downloadUrl, $destination)
+            $downloaded++
+
+            if (($downloaded % 20) -eq 0 -or $downloaded -eq $files.Count) {
+                Write-Status -State "DOWNLOADING" -Message "A descarregar projeto do GitHub." -ExitCode 0 -Extra @{
+                    remoteVersion = $remoteVersion
+                    filesTotal = $files.Count
+                    filesDownloaded = $downloaded
+                }
+            }
+        }
+    } finally {
+        $client.Dispose()
+    }
+
+    $requiredFiles = @(
+        "script.jsx",
+        "installer.bat",
+        "assets\version.json",
+        "infrastructure\install_all_illustrators.ps1",
+        "infrastructure\update.jsx",
+        "infrastructure\update_runner.bat",
+        "infrastructure\update_project_from_github.ps1"
     )
 
-    Write-Log ("Install target: {0}" -f $Target)
-    $scriptsDir = Split-Path -Path $Target -Parent
-    Ensure-Directory -Path $scriptsDir
-
-    if (-not (Test-WriteAccess -Path $scriptsDir)) {
-        [void](Grant-ModifyPermission -Path $scriptsDir)
-    }
-    if (-not (Test-WriteAccess -Path $scriptsDir)) {
-        throw ("No write access to Scripts folder: {0}" -f $scriptsDir)
+    foreach ($requiredFile in $requiredFiles) {
+        $requiredPath = Join-Path $packageDir $requiredFile
+        if (-not (Test-Path -LiteralPath $requiredPath)) {
+            throw ("O projeto descarregado esta incompleto. Ficheiro em falta: {0}" -f $requiredFile)
+        }
     }
 
-    if (Test-Path -LiteralPath $Target) {
+    $packageVersion = (Read-JsonFile -Path (Join-Path $packageDir "assets\version.json")).version
+    if ((Compare-Version -Left $packageVersion -Right $remoteVersion) -ne 0) {
+        throw ("A versao descarregada ({0}) nao corresponde a versao remota ({1})." -f $packageVersion, $remoteVersion)
+    }
+
+    return [pscustomobject]@{
+        Path = $packageDir
+        Version = $packageVersion
+        Files = $files
+        FilesTotal = $files.Count
+        FilesDownloaded = $downloaded
+    }
+}
+
+function Install-LegendaTarget {
+    param(
+        [object]$TargetInfo,
+        [object]$Package
+    )
+
+    $target = $TargetInfo.Target
+    $scriptsDir = $TargetInfo.ScriptsDir
+    Write-Log ("Install target: {0}" -f $target)
+
+    try {
+        Ensure-Directory -Path $scriptsDir
+    } catch {
+        $parent = Split-Path -Path $scriptsDir -Parent
+        [void](Grant-ModifyPermission -Path $parent)
+        Ensure-Directory -Path $scriptsDir
+    }
+
+    [void](Grant-ModifyPermission -Path $scriptsDir)
+    if (-not (Test-WriteAccess -Path $scriptsDir)) {
+        throw ("Sem permissao de escrita na pasta Scripts: {0}" -f $scriptsDir)
+    }
+
+    if (Test-Path -LiteralPath $target) {
         try {
-            Remove-Item -LiteralPath $Target -Recurse -Force -ErrorAction Stop
+            Remove-Item -LiteralPath $target -Recurse -Force -ErrorAction Stop
         } catch {
-            Write-Log ("Failed deleting target, trying ACL fix: {0}" -f $Target)
-            [void](Grant-ModifyPermission -Path $Target)
-            Remove-Item -LiteralPath $Target -Recurse -Force -ErrorAction Stop
+            Write-Log ("Failed deleting target, trying ACL fix: {0}" -f $target)
+            [void](Grant-ModifyPermission -Path $target)
+            Remove-Item -LiteralPath $target -Recurse -Force -ErrorAction Stop
         }
     }
 
-    Ensure-Directory -Path $Target
-    & robocopy $Source $Target /MIR /R:2 /W:1 /NFL /NDL /NJH /NJS /NP 2>&1 | ForEach-Object {
-        if ($_ -ne $null) {
-            Write-Log $_.ToString()
-        }
+    Ensure-Directory -Path $target
+
+    foreach ($file in $Package.Files) {
+        $relativePath = ($file.path -replace "\\", "/")
+        $source = Join-Path $Package.Path ($relativePath -replace "/", [System.IO.Path]::DirectorySeparatorChar)
+        $destination = Join-Path $target ($relativePath -replace "/", [System.IO.Path]::DirectorySeparatorChar)
+        Ensure-Directory -Path (Split-Path -Path $destination -Parent)
+        Copy-Item -LiteralPath $source -Destination $destination -Force -ErrorAction Stop
     }
 
-    $copyExitCode = $LASTEXITCODE
-    if ($copyExitCode -ge 8) {
-        throw ("robocopy failed with code {0} for {1}" -f $copyExitCode, $Target)
-    }
+    [void](Grant-ModifyPermission -Path $target)
+    $installedVersion = (Read-JsonFile -Path (Join-Path $target "assets\version.json")).version
 
-    Invoke-Git -Arguments @("config", "--global", "--add", "safe.directory", $Target)
-    Write-Log ("Install success: {0}" -f $Target)
+    Write-Log ("Install success: {0} version={1}" -f $target, $installedVersion)
+    return [pscustomobject]@{
+        target = $target
+        illustrator = $TargetInfo.Illustrator
+        language = $TargetInfo.Language
+        version = $installedVersion
+    }
 }
 
 Ensure-Directory -Path (Split-Path -Path $LogPath -Parent)
-Set-Content -Path $LogPath -Value "" -Encoding UTF8
+Set-Content -LiteralPath $LogPath -Value "" -Encoding UTF8
+Write-Status -State "RUNNING" -Message "Instalacao iniciada." -ExitCode 0 -Extra @{}
+Write-Log ("Installer started. Repo={0}/{1} Branch={2}" -f $RepoOwner, $RepoName, $Branch)
 
-Write-Log ("Installer started. Repo: {0}" -f $RepoUrl)
-
-if ((-not (Test-IsAdministrator)) -and (-not $SkipElevation)) {
+if ((-not (Test-IsAdministrator)) -and (-not $SkipElevation) -and (-not ($TargetPath -and $TargetPath.Count -gt 0))) {
     Write-Log "Process is not elevated. Requesting administrator elevation."
+    Write-Status -State "ELEVATING" -Message "A pedir permissao de administrador." -ExitCode 0 -Extra @{}
+
     try {
         $pwsh = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
         $argList = @(
             "-NoProfile",
             "-ExecutionPolicy", "Bypass",
             "-File", $PSCommandPath,
-            "-RepoUrl", $RepoUrl,
+            "-RunId", $RunId,
+            "-StatusPath", $StatusPath,
             "-LogPath", $LogPath,
+            "-RepoOwner", $RepoOwner,
+            "-RepoName", $RepoName,
+            "-Branch", $Branch,
             "-SkipElevation"
         )
 
@@ -162,59 +512,103 @@ if ((-not (Test-IsAdministrator)) -and (-not $SkipElevation)) {
         exit $elevated.ExitCode
     } catch {
         Write-Log ("Elevation canceled or failed: {0}" -f $_.Exception.Message)
+        Write-Status -State "ELEVATION_FAILED" -Message "Permissao de administrador recusada ou falhou." -ExitCode 5 -Extra @{}
         exit 5
     }
 }
 
-if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-    Write-Log "Git is not available in PATH."
-    exit 2
-}
-
-if (-not (Get-Command robocopy -ErrorAction SilentlyContinue)) {
-    Write-Log "robocopy is not available."
-    exit 3
-}
-
-$targets = Get-LegendaTargets
-if ($targets.Count -eq 0) {
-    Write-Log "No Adobe Illustrator installations were detected."
-    exit 20
-}
-
-$tempRoot = Join-Path $env:TEMP ("LegendaInstall_" + [guid]::NewGuid().ToString("N"))
-$sourceDir = Join-Path $tempRoot "Legenda"
+$tempRoot = Join-Path $env:TEMP ("LegendaInstall_" + $RunId)
 
 try {
+    if (Test-Path -LiteralPath $tempRoot) {
+        Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
     Ensure-Directory -Path $tempRoot
-    Invoke-Git -Arguments @("clone", "--depth", "1", $RepoUrl, $sourceDir)
 
-    $okTargets = 0
+    $package = Get-GitHubPackage -DestinationRoot $tempRoot
+    $targets = @(Get-LegendaTargets -ExplicitTargets $TargetPath)
+
+    if ($targets.Count -eq 0) {
+        Write-Log "No Adobe Illustrator installations were detected."
+        Write-Status -State "NO_TARGETS" -Message "Nenhuma instalacao do Adobe Illustrator foi encontrada." -ExitCode 20 -Extra @{
+            packageVersion = $package.Version
+        }
+        exit 20
+    }
+
+    Write-Log ("Targets found: {0}" -f $targets.Count)
+    Write-Status -State "INSTALLING" -Message "A instalar em pastas do Illustrator." -ExitCode 0 -Extra @{
+        packageVersion = $package.Version
+        targetsTotal = $targets.Count
+        targetsInstalled = 0
+        targetsFailed = 0
+        filesTotal = $package.FilesTotal
+    }
+
+    $installedTargets = @()
     $failedTargets = @()
 
     foreach ($target in $targets) {
         try {
-            Replace-TargetFolder -Source $sourceDir -Target $target
-            $okTargets++
+            $installedTargets += Install-LegendaTarget -TargetInfo $target -Package $package
         } catch {
-            $failedTargets += $target
-            Write-Log ("Install failed on {0}: {1}" -f $target, $_.Exception.Message)
+            $failedTargets += [pscustomobject]@{
+                target = $target.Target
+                illustrator = $target.Illustrator
+                language = $target.Language
+                error = $_.Exception.Message
+            }
+            Write-Log ("Install failed on {0}: {1}" -f $target.Target, $_.Exception.Message)
+        }
+
+        Write-Status -State "INSTALLING" -Message "A instalar em pastas do Illustrator." -ExitCode 0 -Extra @{
+            packageVersion = $package.Version
+            targetsTotal = $targets.Count
+            targetsInstalled = $installedTargets.Count
+            targetsFailed = $failedTargets.Count
+            filesTotal = $package.FilesTotal
         }
     }
 
-    Write-Log ("INSTALL_SUMMARY total={0} success={1} failed={2}" -f $targets.Count, $okTargets, $failedTargets.Count)
+    Write-Log ("INSTALL_SUMMARY total={0} success={1} failed={2}" -f $targets.Count, $installedTargets.Count, $failedTargets.Count)
+
     if ($failedTargets.Count -gt 0) {
         Write-Log "Failed targets list:"
         foreach ($failed in $failedTargets) {
-            Write-Log (" - {0}" -f $failed)
+            Write-Log (" - {0}: {1}" -f $failed.target, $failed.error)
+        }
+
+        Write-Status -State "PARTIAL" -Message "Instalacao concluida parcialmente." -ExitCode 10 -Extra @{
+            packageVersion = $package.Version
+            targetsTotal = $targets.Count
+            targetsInstalled = $installedTargets.Count
+            targetsFailed = $failedTargets.Count
+            installedTargets = $installedTargets
+            failedTargets = $failedTargets
+            filesTotal = $package.FilesTotal
         }
         exit 10
     }
 
+    Write-Status -State "INSTALLED" -Message "Instalacao concluida com sucesso." -ExitCode 0 -Extra @{
+        packageVersion = $package.Version
+        targetsTotal = $targets.Count
+        targetsInstalled = $installedTargets.Count
+        targetsFailed = 0
+        installedTargets = $installedTargets
+        filesTotal = $package.FilesTotal
+    }
     Write-Log "Installer finished successfully."
     exit 0
 } catch {
     Write-Log ("Fatal installer error: {0}" -f $_.Exception.Message)
+    if ($_.FullyQualifiedErrorId) {
+        Write-Log ("Fatal error id: {0}" -f $_.FullyQualifiedErrorId)
+    }
+    if ($_.ScriptStackTrace) {
+        Write-Log ("Fatal stack: {0}" -f ($_.ScriptStackTrace -replace "`r?`n", " | "))
+    }
+    Write-Status -State "FAILED" -Message $_.Exception.Message -ExitCode 1 -Extra @{}
     exit 1
 } finally {
     try {

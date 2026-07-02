@@ -2,107 +2,10 @@
 
 #target illustrator
 
-// Adicione estas funções no início do seu script, logo após as funções existentes
+$.evalFile(File($.fileName).path + "/editor/databaseUtils.jsx");
 
-// Função para analisar JSON
-function parseJSON(str) {
-    try {
-        return eval('(' + str + ')');
-    } catch (e) {
-        // Se falhar, tente corrigir problemas comuns
-        str = str.replace(/[\u0000-\u001F]+/g, "")
-                 .replace(/,\s*}/g, "}")
-                 .replace(/,\s*]/g, "]");
-        return eval('(' + str + ')');
-    }
-}
-
-// Função para stringificar JSON (você já tem uma, mas vamos renomeá-la para evitar confusão)
-function stringifyJSON(obj) {
-    var t = typeof (obj);
-    if (t != "object" || obj === null) {
-        if (t == "string") obj = '"' + obj + '"';
-        return String(obj);
-    } else {
-        var n, v, json = [], arr = (obj && obj.constructor == Array);
-        for (n in obj) {
-            v = obj[n];
-            t = typeof(v);
-            if (t == "string") v = '"' + v + '"';
-            else if (t == "object" && v !== null) v = stringifyJSON(v);
-            json.push((arr ? "" : '"' + n + '":') + String(v));
-        }
-        return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}");
-    }
-}
-
-// Modifique a função carregarJSON para usar parseJSON em vez de JSON.parse
-function carregarJSON(arquivo) {
-    var file = new File(arquivo);
-    if (!file.exists) {
-        throw new Error("O arquivo não existe: " + arquivo);
-    }
-    file.encoding = "UTF-8";
-    file.open("r");
-    var conteudo = file.read();
-    file.close();
-    
-    if (conteudo === "") {
-        throw new Error("O arquivo está vazio: " + arquivo);
-    }
-    try {
-        var dados = parseJSON(conteudo);
-        // Verificar se todas as seções necessárias existem
-        var secoes = ["componentes", "cores", "combinacoes", "acabamentos", "tamanhos", "bolas"];
-        for (var i = 0; i < secoes.length; i++) {
-            if (!dados.hasOwnProperty(secoes[i]) || !isArray(dados[secoes[i]])) {
-                throw new Error("Seção '" + secoes[i] + "' ausente ou inválida");
-            }
-        }
-        return dados;
-    } catch (e) {
-        throw new Error("Erro ao analisar o JSON: " + e.message);
-    }
-}
-
-// Função para salvar o arquivo JSON
-function salvarJSON(arquivo, dados) {
-    try {
-        var arquivo = new File(arquivo);
-        arquivo.encoding = "UTF-8";
-        arquivo.open('w');
-        var conteudo = stringifyJSON(dados);
-        arquivo.write(conteudo);
-        arquivo.close();
-        $.writeln("Arquivo salvo com sucesso: " + arquivo.fsName);
-    } catch (e) {
-        alert("Erro ao salvar o arquivo: " + e.toString());
-        $.writeln("Erro ao salvar o arquivo: " + e.toString());
-    }
-}
-
-// Obter o caminho do script atual
-var scriptFile = new File($.fileName);
-var scriptPath = scriptFile.path;
-
-// Caminho para o arquivo de banco de dados na mesma pasta do script
+// Caminho partilhado da base de dados editada por esta ferramenta.
 var caminhoDatabase = "\\\\192.168.2.22\\Olimpo\\DS\\_BASE DE DADOS\\07. TOOLS\\ILLUSTRATOR\\basededados\\database2.json";
-
-// Função para verificar se um valor é um array
-function isArray(value) {
-    return value && typeof value === 'object' && value.constructor === Array;
-}
-
-// Adicione esta função no início do seu script
-function filterArray(array, callback) {
-    var filteredArray = [];
-    for (var i = 0; i < array.length; i++) {
-        if (callback(array[i], i, array)) {
-            filteredArray.push(array[i]);
-        }
-    }
-    return filteredArray;
-}
 
 // Função principal do script
 function executarScript() {
@@ -110,42 +13,15 @@ function executarScript() {
     var database;
     try {
         database = carregarJSON(caminhoDatabase);
+        normalizarDatabaseEditor(database);
         alert("Base de dados carregada com sucesso.");
-        
-        // Verificar e corrigir a estrutura da base de dados
-        if (typeof database !== 'object' || database === null) {
-            throw new Error("Estrutura de dados inválida");
-        }
-        
-        if (!isArray(database.componentes)) database.componentes = [];
-        if (!isArray(database.cores)) database.cores = [];
-        if (!isArray(database.combinacoes)) database.combinacoes = [];
-        if (!isArray(database.acabamentos)) database.acabamentos = [];
-        if (!isArray(database.tamanhos)) database.tamanhos = [];
-        if (!isArray(database.bolas)) database.bolas = [];
-        
         salvarJSON(caminhoDatabase, database);
     } catch(e) {
         alert("Erro ao carregar a base de dados: " + e.message);
         return;
     }
 
-    // Garantir que a estrutura do banco de dados está correta
-    if (!database.componentes) database.componentes = [];
-    if (!database.cores) database.cores = [];
-    if (!database.combinacoes) database.combinacoes = [];
-    if (!database.acabamentos) database.acabamentos = [];
-    if (!database.tamanhos) database.tamanhos = [];
-    if (!database.bolas) database.bolas = [];
-
-    // Adicionar referencia aos componentes existentes se não existir
-    for (var i = 0; i < database.componentes.length; i++) {
-        if (!database.componentes[i].hasOwnProperty('referencia')) {
-            database.componentes[i].referencia = "";
-        }
-    }
-
-    // Função para criar interface de gerenciamento para Componentes
+    // Componentes
     function criarInterfaceGerenciamentoComponentes(aba) {
         aba.orientation = "column";
         aba.alignChildren = ["fill", "top"];
@@ -338,7 +214,7 @@ function executarScript() {
         return {lista: lista, atualizar: atualizarLista};
     }
 
-    // Função para criar interface de gerenciamento para Componentes, Cores, Acabamentos e Tamanhos
+    // Gestão genérica: cores, acabamentos e tamanhos
     function criarInterfaceGerenciamento(aba, tipo, callback) {
         aba.orientation = "column";
         aba.alignChildren = ["fill", "top"];
@@ -634,19 +510,7 @@ function executarScript() {
         return {lista: lista, atualizar: atualizarLista};
     }
 
-    // Função para obter o próximo ID disponível
-    function getNextId(array) {
-        var maxId = 0;
-        for (var i = 0; i < array.length; i++) {
-            if (array[i].id > maxId) {
-                maxId = array[i].id;
-            }
-        }
-        return maxId + 1;
-    }
-
-    // Adicione a nova função removerItemEDependencias aqui
-        function removerItemEDependencias(tipo, id) {
+    function removerItemEDependencias(tipo, id) {
             alert("Removendo item do tipo: " + tipo + " com ID: " + id);
             
             // Remover o item principal
@@ -697,16 +561,6 @@ function executarScript() {
         alert("Base de dados atualizada e salva.");
     }
 
-    // Função para encontrar item por ID
-    function findById(array, id) {
-        for (var i = 0; i < array.length; i++) {
-            if (array[i].id === id) {
-                return array[i];
-            }
-        }
-        return null;
-    }
-
     // Unidades de medida fixas
     var unidadesMedida = ["m2", "ml", "units"];
 
@@ -714,6 +568,7 @@ function executarScript() {
     function refreshDatabase() {
         try {
             database = carregarJSON(caminhoDatabase);
+            normalizarDatabaseEditor(database);
             interfaceComponentes.atualizar();
             interfaceCores.atualizar();
             interfaceTamanhos.atualizar();

@@ -371,7 +371,7 @@ $.global.funcoes = {
 
 // Adicione estas funções no arquivo funcoes.jsx
 function testeRequisicao() {
-    var url = "https://raw.githubusercontent.com/andrebids/Scripts/main/version.json";
+    var url = "https://raw.githubusercontent.com/andrebids/Scripts/main/assets/version.json";
     var request = new XMLHttpRequest();
     
     try {
@@ -505,11 +505,19 @@ function contarBolasNaArtboard() {
     }
 }
 
+// Função para ajustar referencias que precisam de texto comercial na legenda
+function formatarReferenciaLegenda(referencia) {
+    if (referencia === "LUCIOLES LED BLANC CHAUD + FLASH BLANC CHAUD") {
+        return "LUCIOLES DUOCOLOR (" + referencia + ")";
+    }
+    return referencia;
+}
+
 // Função para criar o texto do componente (migrada de script.jsx)
 function criarTextoComponente(nome, referencia, unidade, quantidade, multiplicador, arrayQuantidades) {
     var texto = nome;
     if (referencia) {
-        texto += " (Ref: " + referencia + ")";
+        texto += " (Ref: " + formatarReferenciaLegenda(referencia) + ")";
     }
     texto += " (" + funcoes.formatarUnidade(unidade) + ")";
     quantidade = funcoes.arredondarComponente(quantidade, unidade, nome);
@@ -607,7 +615,7 @@ function criarExpressaoDetalhesQuantidade(item) {
 
 // Função para criar a linha de referência (migrada de script.jsx)
 function criarLinhaReferencia(item) {
-    var linha = item.referencia ? item.referencia : item.nome;
+    var linha = item.referencia ? formatarReferenciaLegenda(item.referencia) : item.nome;
     // Log para debug
 
     if (item.unidade) {

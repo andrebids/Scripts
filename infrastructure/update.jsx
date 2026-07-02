@@ -47,108 +47,293 @@ function obterDiretorioProjeto() {
     }
 }
 
+function criarPastaRecursiva(pasta) {
+    try {
+        if (!pasta) {
+            return false;
+        }
+        if (pasta.exists) {
+            return true;
+        }
+        if (pasta.parent && !pasta.parent.exists) {
+            criarPastaRecursiva(pasta.parent);
+        }
+        return pasta.create();
+    } catch (e) {
+        return false;
+    }
+}
+
+function obterPastaUpdater() {
+    var base = "";
+    try {
+        base = $.getenv("LOCALAPPDATA");
+    } catch (e) {}
+
+    if (!base) {
+        base = Folder.temp.fsName;
+    }
+
+    var pasta = new Folder(base + "/Legenda/Updater");
+    if (!criarPastaRecursiva(pasta)) {
+        pasta = new Folder(Folder.temp.fsName + "/Legenda/Updater");
+        criarPastaRecursiva(pasta);
+    }
+    return pasta;
+}
+
+function doisDigitos(valor) {
+    return valor < 10 ? "0" + valor : "" + valor;
+}
+
+function criarRunId() {
+    var data = new Date();
+    return "run_" +
+        data.getFullYear() +
+        doisDigitos(data.getMonth() + 1) +
+        doisDigitos(data.getDate()) + "_" +
+        doisDigitos(data.getHours()) +
+        doisDigitos(data.getMinutes()) +
+        doisDigitos(data.getSeconds()) + "_" +
+        Math.floor(Math.random() * 100000);
+}
+
+function escreverArquivoTexto(arquivo, conteudo) {
+    if (!arquivo.open("w")) {
+        return false;
+    }
+    arquivo.write(conteudo);
+    arquivo.close();
+    return true;
+}
+
+function criarLauncherUpdate(pastaUpdater, runnerFile, projectDir, runId, statusFile, logFile) {
+    var launcher = new File(pastaUpdater.fsName + "/launch_" + runId + ".bat");
+    var conteudo = [
+        "@echo off",
+        "call \"" + runnerFile.fsName + "\" \"" + projectDir + "\" \"" + runId + "\" \"" + statusFile.fsName + "\" \"" + logFile.fsName + "\""
+    ].join("\r\n");
+
+    if (!escreverArquivoTexto(launcher, conteudo)) {
+        throw new Error("Não foi possível criar o launcher do update: " + launcher.fsName);
+    }
+
+    return launcher;
+}
+
+function parsearJSONSeguro(texto) {
+    if (!texto) {
+        return null;
+    }
+
+    texto = texto.replace(/^\uFEFF/, "");
+
+    try {
+        if (typeof JSON !== "undefined" && JSON.parse) {
+            return JSON.parse(texto);
+        }
+    } catch (e1) {}
+
+    try {
+        if (typeof parseJSON === "function") {
+            return parseJSON(texto);
+        }
+    } catch (e2) {}
+
+    return null;
+}
+
+function lerStatusUpdate(statusFile) {
+    var conteudo = lerConteudoArquivo(statusFile);
+    return parsearJSONSeguro(conteudo);
+}
+
+function estadoUpdateFinalizado(estado) {
+    return estado &&
+        estado !== "RUNNING" &&
+        estado !== "DOWNLOADING" &&
+        estado !== "COPYING";
+}
+
+function mostrarAlertaUpdate(mensagem, titulo, callback) {
+    if (ui && ui.mostrarAlertaPersonalizado) {
+        ui.mostrarAlertaPersonalizado(mensagem, titulo, callback);
+    } else {
+        alert(mensagem);
+        if (typeof callback === "function") {
+            callback();
+        }
+    }
+}
+
+function anexarDetalhesVersao(mensagem, status) {
+    if (status.localVersion || status.remoteVersion || status.installedVersion) {
+        mensagem += "\n\n";
+        if (status.localVersion) {
+            mensagem += "Versão local anterior: " + status.localVersion + "\n";
+        }
+        if (status.remoteVersion) {
+            mensagem += "Versão remota: " + status.remoteVersion + "\n";
+        }
+        if (status.installedVersion) {
+            mensagem += "Versão instalada: " + status.installedVersion + "\n";
+        }
+    }
+    return mensagem;
+}
+
+function anexarLog(mensagem, status) {
+    if (status && status.logPath) {
+        mensagem += "\n\nLog: " + status.logPath;
+    }
+    return mensagem;
+}
+
+function mensagemEstadoUpdate(status, t) {
+    var estado = status && status.state ? status.state : "FAILED";
+    var mensagem = "";
+    var titulo = "Atualização";
+    var fecharJanela = false;
+
+    if (estado === "UPDATED") {
+        titulo = "Atualização Concluída";
+        mensagem = "Atualização concluída com sucesso.";
+        mensagem = anexarDetalhesVersao(mensagem, status);
+        if (status.filesCopied || status.filesTotal) {
+            mensagem += "\nFicheiros copiados: " + (status.filesCopied || 0) + "/" + (status.filesTotal || 0);
+        }
+        mensagem += "\n\nFeche e abra o script novamente.";
+        fecharJanela = true;
+    } else if (estado === "ALREADY_CURRENT") {
+        titulo = "Script Atualizado";
+        mensagem = t("scriptAtualizado");
+        mensagem = anexarDetalhesVersao(mensagem, status);
+    } else if (estado === "NEEDS_PERMISSION") {
+        titulo = "Permissões Necessárias";
+        mensagem = "Não foi possível atualizar porque a pasta atual do Illustrator não tem permissão de escrita.";
+        if (status.folder) {
+            mensagem += "\n\nPasta: " + status.folder;
+        }
+        mensagem += "\n\nExecute o Illustrator como administrador ou ajuste as permissões da pasta.";
+        mensagem = anexarDetalhesVersao(mensagem, status);
+    } else if (estado === "MISSING_POWERSHELL") {
+        titulo = "PowerShell Não Encontrado";
+        mensagem = "Não foi possível atualizar porque o PowerShell não está disponível neste computador.";
+    } else if (estado === "MISSING_UPDATER") {
+        titulo = "Updater Não Encontrado";
+        mensagem = "O ficheiro interno do updater não foi encontrado.";
+    } else if (estado === "DOWNLOAD_FAILED") {
+        titulo = "Erro no Download";
+        mensagem = "Não foi possível descarregar o projeto do GitHub.";
+        if (status.failedFile) {
+            mensagem += "\n\nFicheiro: " + status.failedFile;
+        }
+        mensagem = anexarDetalhesVersao(mensagem, status);
+    } else if (estado === "INVALID_PACKAGE") {
+        titulo = "Projeto Inválido";
+        mensagem = "O projeto descarregado está incompleto ou não corresponde à versão remota.";
+        if (status.missingFile) {
+            mensagem += "\n\nFicheiro em falta: " + status.missingFile;
+        }
+        mensagem = anexarDetalhesVersao(mensagem, status);
+    } else if (estado === "COPY_FAILED") {
+        titulo = "Erro ao Copiar";
+        mensagem = "Os ficheiros foram descarregados, mas a cópia para a pasta do Illustrator falhou.";
+        if (status.failedFile) {
+            mensagem += "\n\nFicheiro: " + status.failedFile;
+        }
+        mensagem += "\n\nVerifique permissões ou execute o Illustrator como administrador.";
+        mensagem = anexarDetalhesVersao(mensagem, status);
+    } else {
+        titulo = "Erro na Atualização";
+        mensagem = t("erroAtualizacao");
+        if (status && status.message) {
+            mensagem += "\n\n" + status.message;
+        }
+    }
+
+    mensagem = anexarLog(mensagem, status);
+    return {
+        titulo: titulo,
+        mensagem: mensagem,
+        fecharJanela: fecharJanela
+    };
+}
+
 function executarUpdate(t) {
     try {
         var projectDir = obterDiretorioProjeto();
         var runnerFile = new File(projectDir + "/infrastructure/update_runner.bat");
-        var logFile = new File(projectDir + "/update_log.txt");
-        var statusFile = new File(projectDir + "/update_status.txt");
-        var lockFile = new File(projectDir + "/update_running.lock");
 
         if (!runnerFile.exists) {
-            var erroRunner = "Arquivo de update não encontrado: " + runnerFile.fsName;
-            if (ui && ui.mostrarAlertaPersonalizado) {
-                ui.mostrarAlertaPersonalizado(erroRunner, "Erro na Atualização");
-            } else {
-                alert(erroRunner);
-            }
+            mostrarAlertaUpdate(
+                "Arquivo de update não encontrado: " + runnerFile.fsName,
+                "Erro na Atualização"
+            );
             return;
         }
 
-        removerArquivoSeExistir(statusFile);
-        removerArquivoSeExistir(lockFile);
+        var pastaUpdater = obterPastaUpdater();
+        var runId = criarRunId();
+        var statusFile = new File(pastaUpdater.fsName + "/status_" + runId + ".json");
+        var logFile = new File(pastaUpdater.fsName + "/update_" + runId + ".log");
+        var launcher = criarLauncherUpdate(pastaUpdater, runnerFile, projectDir, runId, statusFile, logFile);
 
-        if (!runnerFile.execute()) {
+        removerArquivoSeExistir(statusFile);
+
+        if (!launcher.execute()) {
             throw new Error("Não foi possível iniciar o update_runner.bat");
         }
 
-        // Espera curta para não bloquear a UI do Illustrator por muito tempo.
-        var timeoutMs = 12000; // 12 segundos
-        var intervaloMs = 400;
+        var timeoutMs = 20000;
+        var intervaloMs = 500;
         var aguardadoMs = 0;
+        var status = null;
 
         while (aguardadoMs < timeoutMs) {
             $.sleep(intervaloMs);
             aguardadoMs += intervaloMs;
 
-            if (statusFile.exists && !lockFile.exists) {
-                break;
-            }
-        }
-
-        // Se ainda estiver a correr após timeout curto, não bloquear mais.
-        if (!statusFile.exists) {
-            if (ui && ui.mostrarAlertaPersonalizado) {
-                ui.mostrarAlertaPersonalizado(
-                    "Atualização iniciada em segundo plano.\n\nO Illustrator não ficará bloqueado.\n\nQuando terminar, execute novamente o script.",
-                    "Atualização em Progresso"
-                );
-            } else {
-                alert("Atualização iniciada em segundo plano. Execute novamente o script quando terminar.");
-            }
-            return;
-        }
-
-        var status = lerConteudoArquivo(statusFile);
-        var logContent = lerConteudoArquivo(logFile);
-        var sucesso = status && status.indexOf("OK") === 0;
-        var sucessoParcial = status && status.indexOf("OK_PARTIAL") === 0;
-
-        if (sucesso) {
-            var mensagemSucesso = t("atualizacaoSucesso") + "\n\nFeche e abra o script novamente.";
-            if (sucessoParcial) {
-                var resumoParcial = obterUltimasLinhas(logContent, 10);
-                mensagemSucesso = "Atualização concluída, mas algumas pastas do Illustrator não puderam ser atualizadas sem permissões adicionais.";
-                if (resumoParcial) {
-                    mensagemSucesso += "\n\n" + resumoParcial;
+            if (statusFile.exists) {
+                status = lerStatusUpdate(statusFile);
+                if (status && estadoUpdateFinalizado(status.state)) {
+                    break;
                 }
-                mensagemSucesso += "\n\nFeche e abra o script novamente.";
             }
+        }
 
-            if (ui && ui.mostrarAlertaPersonalizado) {
-                ui.mostrarAlertaPersonalizado(
-                    mensagemSucesso,
-                    "Atualização Concluída",
-                    function() {
-                        fecharJanelaPrincipalAposUpdate();
-                    }
-                );
-            } else {
-                alert(mensagemSucesso);
-                fecharJanelaPrincipalAposUpdate();
-            }
+        if (!status) {
+            mostrarAlertaUpdate(
+                "Atualização iniciada em segundo plano.\n\nAinda não foi possível ler o estado do update.\n\nLog: " + logFile.fsName,
+                "Atualização em Progresso"
+            );
             return;
         }
 
-        var statusLimpo = status ? status.replace(/\r?\n/g, " ").replace(/\s+/g, " ") : "ERROR";
-        var resumoLog = obterUltimasLinhas(logContent, 14);
-        var mensagemErro = t("erroAtualizacao") + " (" + statusLimpo + ").";
-        if (resumoLog) {
-            mensagemErro += "\n\n" + resumoLog;
+        if (!estadoUpdateFinalizado(status.state)) {
+            var progresso = "Atualização ainda em execução em segundo plano.";
+            if (status.filesDownloaded || status.filesTotal) {
+                progresso += "\n\nDownload: " + (status.filesDownloaded || 0) + "/" + (status.filesTotal || 0);
+            }
+            if (status.filesCopied) {
+                progresso += "\nCópia: " + status.filesCopied + "/" + (status.filesTotal || 0);
+            }
+            progresso += "\n\nLog: " + logFile.fsName;
+            mostrarAlertaUpdate(progresso, "Atualização em Progresso");
+            return;
         }
 
-        if (ui && ui.mostrarAlertaPersonalizado) {
-            ui.mostrarAlertaPersonalizado(mensagemErro, "Erro na Atualização");
-        } else {
-            alert(mensagemErro);
-        }
+        var resultado = mensagemEstadoUpdate(status, t);
+        mostrarAlertaUpdate(
+            resultado.mensagem,
+            resultado.titulo,
+            resultado.fecharJanela ? function() {
+                fecharJanelaPrincipalAposUpdate();
+            } : null
+        );
 
     } catch (e) {
-        if (ui && ui.mostrarAlertaPersonalizado) {
-            ui.mostrarAlertaPersonalizado(t("erroAtualizacao") + ": " + e, "Erro na Atualização");
-        } else {
-            alert(t("erroAtualizacao") + ": " + e);
-        }
+        mostrarAlertaUpdate(t("erroAtualizacao") + ": " + e, "Erro na Atualização");
     }
 }
 

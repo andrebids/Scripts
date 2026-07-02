@@ -4,6 +4,49 @@
  * Fábricas de linhas de componentes para a janela principal.
  */
 
+function criarBotaoMaisCircular(grupoPai, aoClicar) {
+    var botao = grupoPai.add("button", undefined, "");
+    botao.preferredSize.width = 22;
+    botao.preferredSize.height = 22;
+    botao.minimumSize.width = 22;
+    botao.minimumSize.height = 22;
+    botao.maximumSize.width = 22;
+    botao.maximumSize.height = 22;
+    botao.helpTip = "Adicionar valores";
+    botao.onClick = aoClicar;
+
+    botao.onDraw = function() {
+        var g = this.graphics;
+        var w = (this.size && this.size.width) ? this.size.width : 22;
+        var h = (this.size && this.size.height) ? this.size.height : 22;
+        var d = Math.min(w, h) - 5;
+        var x = (w - d) / 2;
+        var y = (h - d) / 2;
+        var cx = w / 2;
+        var cy = h / 2;
+        var plusSize = Math.floor(d * 0.45);
+
+        try {
+            var iconPen = g.newPen(g.PenType.SOLID_COLOR, [0.55, 0.55, 0.55, 1], 2);
+
+            g.newPath();
+            g.ellipsePath(x, y, d, d);
+            g.strokePath(iconPen);
+
+            g.newPath();
+            g.moveTo(cx - plusSize / 2, cy);
+            g.lineTo(cx + plusSize / 2, cy);
+            g.moveTo(cx, cy - plusSize / 2);
+            g.lineTo(cx, cy + plusSize / 2);
+            g.strokePath(iconPen);
+        } catch (e) {
+            g.drawString("+", g.newPen(g.PenType.SOLID_COLOR, [0, 0, 0, 1], 1), cx - 3, cy - 7);
+        }
+    };
+
+    return botao;
+}
+
 function criarLinhaGrupoComponentes(grupoPai, labelGrupo, componentesGrupo, opcoes) {
     var grupoLinha = grupoPai.add("group");
     grupoLinha.orientation = "row";
@@ -318,10 +361,7 @@ function criarLinhaGrupoComponentes(grupoPai, labelGrupo, componentesGrupo, opco
 
     criarCampoQuantidade("");
 
-    var botaoMais = grupoQuantidades.add("button", undefined, "+");
-    botaoMais.preferredSize.width = 22;
-    botaoMais.preferredSize.height = 22;
-    botaoMais.onClick = abrirDialogQuantidades;
+    var botaoMais = criarBotaoMaisCircular(grupoQuantidades, abrirDialogQuantidades);
 
     grupoLinha.add("statictext", undefined, "x");
     var campoMultiplicador = grupoLinha.add("edittext", undefined, "1");

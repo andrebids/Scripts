@@ -897,7 +897,25 @@ $.global.eventosUI = {};
                         ui.mostrarAlertaPersonalizado(config.t("selecionarTipoFixacao"), "Atenção");
                         return;
                     }
-                    
+
+                    // Verificar se o uso foi selecionado
+                    if (!config.campoUsage || !config.campoUsage.selection || config.campoUsage.selection.index === 0) {
+                        ui.mostrarAlertaPersonalizado(config.t("selecionarUsage"), "Campo Obrigatório");
+                        if (config.campoUsage) {
+                            config.campoUsage.active = true;
+                        }
+                        return;
+                    }
+
+                    // Verificar se a densidade LED foi selecionada
+                    if (!config.campoDensiteLed || !config.campoDensiteLed.selection || config.campoDensiteLed.selection.index === 0) {
+                        ui.mostrarAlertaPersonalizado(config.t("selecionarDensiteLed"), "Campo Obrigatório");
+                        if (config.campoDensiteLed) {
+                            config.campoDensiteLed.active = true;
+                        }
+                        return;
+                    }
+
                     // Verificar se há dimensões preenchidas
                     var temDimensoes = false;
                     for (var i = 0; i < config.dimensoes.length; i++) {

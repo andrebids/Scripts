@@ -933,7 +933,7 @@ function processarCamposOpcionais(campoUsage, campoDensiteLed, campoQuantitePrev
         }
 
         // Processar campo Densité LED
-        if (campoDensiteLed && campoDensiteLed.selection && campoDensiteLed.selection.text) {
+        if (campoDensiteLed && campoDensiteLed.selection && campoDensiteLed.selection.index > 0 && campoDensiteLed.selection.text) {
             var densiteLedTexto = "Densité LED: " + campoDensiteLed.selection.text;
             camposOpcionaisTexto.push(densiteLedTexto);
             logLegenda("Campo Densité LED processado: " + densiteLedTexto, "info");

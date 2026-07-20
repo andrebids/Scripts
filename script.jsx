@@ -67,7 +67,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v3.2");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v3.3");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -142,7 +142,7 @@ espacoFlexivel.alignment = ["fill", "center"];
 var grupoLFixacao = linha2.add("group");
 grupoLFixacao.orientation = "row";
 grupoLFixacao.spacing = 3; // Espaçamento mínimo entre todos os elementos
-grupoLFixacao.add("statictext", undefined, "L:");
+grupoLFixacao.add("statictext", undefined, "L *:");
 var opcoesL = [];
 for (var i = 1; i <= 30; i++) {
     opcoesL.push("L" + i);
@@ -190,47 +190,30 @@ for (var i = 0; i < dimensoes.length; i++) {
 var espacoFlexivel = linha3.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
-// Campos opcionais: Usage, Densité LED e Quantité prévue (otimizados)
+// Campos opcionais organizados em duas linhas alinhadas
 var grupoCamposOpcionais = linha3.add("group");
-grupoCamposOpcionais.orientation = "row";
+grupoCamposOpcionais.orientation = "column";
 grupoCamposOpcionais.alignChildren = ["left", "center"];
-grupoCamposOpcionais.spacing = 5; // Reduzir espaçamento de 10 para 5
+grupoCamposOpcionais.spacing = 5;
 
-// Coluna para manter Densité LED imediatamente abaixo de Usage
-var grupoUsageDensite = grupoCamposOpcionais.add("group");
-grupoUsageDensite.orientation = "column";
-grupoUsageDensite.alignChildren = ["left", "center"];
-grupoUsageDensite.spacing = 3;
+// Primeira linha: Usage, Quantité prévue e Preço
+var linhaCamposSuperior = grupoCamposOpcionais.add("group");
+linhaCamposSuperior.orientation = "row";
+linhaCamposSuperior.alignChildren = ["left", "center"];
+linhaCamposSuperior.spacing = 5;
 
 // Campo Usage (dropdown mais compacto)
-var linhaUsage = grupoUsageDensite.add("group");
-linhaUsage.orientation = "row";
-linhaUsage.alignChildren = ["left", "center"];
-linhaUsage.spacing = 5;
-var labelUsage = linhaUsage.add("statictext", undefined, t("usage"));
-labelUsage.preferredSize.width = 75;
-var campoUsage = linhaUsage.add("dropdownlist", undefined, [t("selecioneUsage"), t("usageInterieur"), t("usageExterieur")]);
+var labelUsage = linhaCamposSuperior.add("statictext", undefined, t("usage"));
+labelUsage.preferredSize.width = 105;
+var campoUsage = linhaCamposSuperior.add("dropdownlist", undefined, [t("selecioneUsage"), t("usageInterieur"), t("usageExterieur")]);
 campoUsage.selection = 0;
 campoUsage.preferredSize.width = 100; // Reduzir de 120 para 100
 
 // Evento será configurado pelo módulo eventosUI
 
-// Campo Densité LED
-var linhaDensiteLed = grupoUsageDensite.add("group");
-linhaDensiteLed.orientation = "row";
-linhaDensiteLed.alignChildren = ["left", "center"];
-linhaDensiteLed.spacing = 5;
-var labelDensiteLed = linhaDensiteLed.add("statictext", undefined, t("densiteLed"));
-labelDensiteLed.preferredSize.width = 75;
-var campoDensiteLed = linhaDensiteLed.add("dropdownlist", undefined, [t("densiteLedStandard"), t("densiteLedEconomique"), t("densiteLedDense")]);
-campoDensiteLed.selection = 0;
-campoDensiteLed.preferredSize.width = 100;
-
-// Evento será configurado pelo módulo eventosUI
-
 // Campo Quantité prévue (input numérico mais compacto)
-grupoCamposOpcionais.add("statictext", undefined, t("quantitePrevu"));
-var campoQuantitePrevu = grupoCamposOpcionais.add("edittext", undefined, "");
+linhaCamposSuperior.add("statictext", undefined, t("quantitePrevu"));
+var campoQuantitePrevu = linhaCamposSuperior.add("edittext", undefined, "");
 campoQuantitePrevu.characters = 6; // Reduzir de 8 para 6
 campoQuantitePrevu.preferredSize.width = 50; // Definir largura fixa menor
 funcoes.apenasNumerosEVirgula(campoQuantitePrevu);
@@ -238,11 +221,26 @@ funcoes.apenasNumerosEVirgula(campoQuantitePrevu);
 // Evento será configurado pelo módulo eventosUI
 
 // Campo Preço (input numérico mais compacto)
-grupoCamposOpcionais.add("statictext", undefined, t("preco"));
-var campoPreco = grupoCamposOpcionais.add("edittext", undefined, "");
+linhaCamposSuperior.add("statictext", undefined, t("preco"));
+var campoPreco = linhaCamposSuperior.add("edittext", undefined, "");
 campoPreco.characters = 6; // Mesmo tamanho que o campo quantidade
 campoPreco.preferredSize.width = 50; // Definir largura fixa menor
 funcoes.apenasNumerosEVirgula(campoPreco);
+
+// Evento será configurado pelo módulo eventosUI
+
+// Segunda linha: Densité LED e Structure laquée
+var linhaCamposInferior = grupoCamposOpcionais.add("group");
+linhaCamposInferior.orientation = "row";
+linhaCamposInferior.alignChildren = ["left", "center"];
+linhaCamposInferior.spacing = 5;
+
+// Campo Densité LED
+var labelDensiteLed = linhaCamposInferior.add("statictext", undefined, t("densiteLed"));
+labelDensiteLed.preferredSize.width = 105;
+var campoDensiteLed = linhaCamposInferior.add("dropdownlist", undefined, [t("selecioneDensiteLed"), t("densiteLedStandard"), t("densiteLedEconomique"), t("densiteLedDense")]);
+campoDensiteLed.selection = 0;
+campoDensiteLed.preferredSize.width = 100;
 
 // Evento será configurado pelo módulo eventosUI
 
@@ -257,7 +255,7 @@ var coresStructure = [
 ];
 
 // Atualizar a criação do dropdown para a estrutura lacada
-var grupoStructure = linha3.add("group");
+var grupoStructure = linhaCamposInferior.add("group");
 var checkStructure = grupoStructure.add("checkbox", undefined, t("structureLaqueada"));
 var corStructure = grupoStructure.add("dropdownlist", undefined, coresStructure);
 corStructure.selection = 0;

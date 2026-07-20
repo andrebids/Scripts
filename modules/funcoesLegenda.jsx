@@ -902,12 +902,13 @@ function processarContagemElementos(itensLegenda) {
 }
 
 /**
- * Processa os campos opcionais Usage e Quantité prévue
+ * Processa os campos opcionais Usage, Densité LED e Quantité prévue
  * @param {Object} campoUsage - Dropdown de Usage
+ * @param {Object} campoDensiteLed - Dropdown de Densité LED
  * @param {Object} campoQuantitePrevu - Campo de Quantité prévue
  * @returns {Array} Array com texto dos campos opcionais formatado
  */
-function processarCamposOpcionais(campoUsage, campoQuantitePrevu, campoPreco) {
+function processarCamposOpcionais(campoUsage, campoDensiteLed, campoQuantitePrevu, campoPreco) {
     logLegenda("Iniciando processamento de campos opcionais", "function");
     
     try {
@@ -929,6 +930,13 @@ function processarCamposOpcionais(campoUsage, campoQuantitePrevu, campoPreco) {
             var usageTexto = "Usage: " + normalizarUsageParaFrances(campoUsage.selection.text);
             camposOpcionaisTexto.push(usageTexto);
             logLegenda("Campo Usage processado: " + usageTexto, "info");
+        }
+
+        // Processar campo Densité LED
+        if (campoDensiteLed && campoDensiteLed.selection && campoDensiteLed.selection.text) {
+            var densiteLedTexto = "Densité LED: " + campoDensiteLed.selection.text;
+            camposOpcionaisTexto.push(densiteLedTexto);
+            logLegenda("Campo Densité LED processado: " + densiteLedTexto, "info");
         }
 
         // Processar campo Quantité prévue
@@ -1086,8 +1094,8 @@ function atualizarPreview(parametros) {
             previewText.push("Fixation: " + parametros.listaFixacao.selection.text);
         }
 
-        // Adicionar campos opcionais (Usage, Quantité prévue e Preço) após fixação
-        var camposOpcionaisTexto = processarCamposOpcionais(parametros.campoUsage, parametros.campoQuantitePrevu, parametros.campoPreco);
+        // Adicionar campos opcionais (Usage, Densité LED, Quantité prévue e Preço) após fixação
+        var camposOpcionaisTexto = processarCamposOpcionais(parametros.campoUsage, parametros.campoDensiteLed, parametros.campoQuantitePrevu, parametros.campoPreco);
         if (camposOpcionaisTexto.length > 0) {
             previewText.push("\u200B"); // Linha de separação antes dos campos opcionais
             for (var i = 0; i < camposOpcionaisTexto.length; i++) {

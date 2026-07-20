@@ -665,6 +665,15 @@ $.global.eventosUI = {};
                     }
                 };
             }
+
+            // Evento para dropdown Densité LED
+            if (config.campoDensiteLed) {
+                config.campoDensiteLed.onChange = function() {
+                    if (logs && logs.logEvento) {
+                        logs.logEvento("change", "campoDensiteLed - " + (this.selection ? this.selection.text : "nenhuma seleção"));
+                    }
+                };
+            }
             
             // Evento para dropdown Quantité prévue
             if (config.campoQuantitePrevu) {

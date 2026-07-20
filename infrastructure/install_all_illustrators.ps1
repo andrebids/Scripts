@@ -101,6 +101,16 @@ function Test-IsAdministrator {
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
+function Quote-ProcessArgument {
+    param([string]$Value)
+
+    if ($null -eq $Value) {
+        return '""'
+    }
+
+    return '"' + $Value.Replace('"', '\"') + '"'
+}
+
 function Test-WriteAccess {
     param([string]$Path)
 
@@ -498,13 +508,13 @@ if ((-not (Test-IsAdministrator)) -and (-not $SkipElevation) -and (-not ($Target
         $argList = @(
             "-NoProfile",
             "-ExecutionPolicy", "Bypass",
-            "-File", $PSCommandPath,
-            "-RunId", $RunId,
-            "-StatusPath", $StatusPath,
-            "-LogPath", $LogPath,
-            "-RepoOwner", $RepoOwner,
-            "-RepoName", $RepoName,
-            "-Branch", $Branch,
+            "-File", (Quote-ProcessArgument -Value $PSCommandPath),
+            "-RunId", (Quote-ProcessArgument -Value $RunId),
+            "-StatusPath", (Quote-ProcessArgument -Value $StatusPath),
+            "-LogPath", (Quote-ProcessArgument -Value $LogPath),
+            "-RepoOwner", (Quote-ProcessArgument -Value $RepoOwner),
+            "-RepoName", (Quote-ProcessArgument -Value $RepoName),
+            "-Branch", (Quote-ProcessArgument -Value $Branch),
             "-SkipElevation"
         )
 

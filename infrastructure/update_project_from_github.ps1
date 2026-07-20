@@ -13,7 +13,9 @@ param(
 
     [string]$RepoOwner = "andrebids",
     [string]$RepoName = "Scripts",
-    [string]$Branch = "main"
+    [string]$Branch = "main",
+
+    [switch]$SkipElevation
 )
 
 $ErrorActionPreference = "Stop"
@@ -68,7 +70,7 @@ function Write-Status {
     $status["message"] = $Message
     $status["exitCode"] = $ExitCode
 
-    if ($State -ne "RUNNING" -and $State -ne "DOWNLOADING" -and $State -ne "COPYING") {
+    if ($State -ne "RUNNING" -and $State -ne "ELEVATING" -and $State -ne "DOWNLOADING" -and $State -ne "COPYING") {
         $status["finishedAt"] = (Get-Date).ToString("s")
     }
 
@@ -87,6 +89,22 @@ function Read-JsonFile {
 
     $content = Get-Content -LiteralPath $Path -Raw -Encoding UTF8
     return $content | ConvertFrom-Json
+}
+
+function Test-IsAdministrator {
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = New-Object Security.Principal.WindowsPrincipal($identity)
+    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+function Quote-ProcessArgument {
+    param([string]$Value)
+
+    if ($null -eq $Value) {
+        return '""'
+    }
+
+    return '"' + $Value.Replace('"', '\"') + '"'
 }
 
 function Get-VersionParts {
@@ -250,7 +268,44 @@ try {
     }
 
     if (-not (Test-WriteAccess -Path $resolvedSource)) {
-        Write-Log ("No write access to source folder: {0}" -f $resolvedSource)
+        if ((-not (Test-IsAdministrator)) -and (-not $SkipElevation)) {
+            Write-Log ("No write access to source folder. Requesting administrator elevation: {0}" -f $resolvedSource)
+            Write-Status -State "ELEVATING" -Message "A pedir permissao de administrador." -ExitCode 0 -Extra @{
+                localVersion = $localVersion
+                remoteVersion = $remoteVersion
+                folder = $resolvedSource
+            }
+
+            try {
+                $pwsh = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
+                $argList = @(
+                    "-NoProfile",
+                    "-ExecutionPolicy", "Bypass",
+                    "-File", (Quote-ProcessArgument -Value $PSCommandPath),
+                    "-SourceDir", (Quote-ProcessArgument -Value $resolvedSource),
+                    "-RunId", (Quote-ProcessArgument -Value $RunId),
+                    "-StatusPath", (Quote-ProcessArgument -Value $StatusPath),
+                    "-LogPath", (Quote-ProcessArgument -Value $LogPath),
+                    "-RepoOwner", (Quote-ProcessArgument -Value $RepoOwner),
+                    "-RepoName", (Quote-ProcessArgument -Value $RepoName),
+                    "-Branch", (Quote-ProcessArgument -Value $Branch),
+                    "-SkipElevation"
+                )
+
+                $elevated = Start-Process -FilePath $pwsh -ArgumentList $argList -Verb RunAs -Wait -PassThru
+                exit $elevated.ExitCode
+            } catch {
+                Write-Log ("Elevation canceled or failed: {0}" -f $_.Exception.Message)
+                Write-Status -State "ELEVATION_FAILED" -Message "Permissao de administrador recusada ou falhou." -ExitCode 5 -Extra @{
+                    localVersion = $localVersion
+                    remoteVersion = $remoteVersion
+                    folder = $resolvedSource
+                }
+                exit 5
+            }
+        }
+
+        Write-Log ("No write access to source folder after elevation attempt: {0}" -f $resolvedSource)
         Write-Status -State "NEEDS_PERMISSION" -Message "Sem permissao de escrita na pasta do Illustrator." -ExitCode 20 -Extra @{
             localVersion = $localVersion
             remoteVersion = $remoteVersion

@@ -151,6 +151,7 @@ function lerStatusUpdate(statusFile) {
 function estadoUpdateFinalizado(estado) {
     return estado &&
         estado !== "RUNNING" &&
+        estado !== "ELEVATING" &&
         estado !== "DOWNLOADING" &&
         estado !== "COPYING";
 }
@@ -215,6 +216,11 @@ function mensagemEstadoUpdate(status, t) {
             mensagem += "\n\nPasta: " + status.folder;
         }
         mensagem += "\n\nExecute o Illustrator como administrador ou ajuste as permissões da pasta.";
+        mensagem = anexarDetalhesVersao(mensagem, status);
+    } else if (estado === "ELEVATION_FAILED") {
+        titulo = "Permissão Não Concedida";
+        mensagem = "A atualização precisa de autorização do Windows para alterar a pasta do Illustrator.";
+        mensagem += "\n\nTente novamente e aceite o pedido de permissão de administrador.";
         mensagem = anexarDetalhesVersao(mensagem, status);
     } else if (estado === "MISSING_POWERSHELL") {
         titulo = "PowerShell Não Encontrado";

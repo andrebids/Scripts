@@ -18,6 +18,38 @@ $.global.eventosUI = {};
     if (logs && logs.adicionarLog) {
         logs.adicionarLog("Iniciando módulo eventosUI", logs.TIPOS_LOG.INFO);
     }
+
+    /**
+     * Indica se a legenda contém lucioles, adicionadas diretamente ou através de GP.
+     */
+    function legendaTemLucioles(itensLegenda) {
+        if (!itensLegenda || !itensLegenda.length) {
+            return false;
+        }
+
+        for (var i = 0; i < itensLegenda.length; i++) {
+            var item = itensLegenda[i];
+            if (!item) {
+                continue;
+            }
+
+            if (item.tipo === "gp_lucioles" || item.temLucioles === true) {
+                return true;
+            }
+
+            if (item.tipo === "componente") {
+                var nome = String(item.nome || "").toLowerCase();
+                var referencia = String(item.referencia || "").toLowerCase();
+                if (item.componenteId === 2 ||
+                    nome.indexOf("lucioles") !== -1 ||
+                    referencia.indexOf("lucioles") !== -1) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
     
     /**
      * Configura eventos de checkboxes da interface
@@ -907,8 +939,12 @@ $.global.eventosUI = {};
                         return;
                     }
 
-                    // Verificar se a densidade LED foi selecionada
-                    if (!config.campoDensiteLed || !config.campoDensiteLed.selection || config.campoDensiteLed.selection.index === 0) {
+                    // A densidade LED só é obrigatória quando a legenda contém lucioles
+                    var exigeDensidadeLed = legendaTemLucioles(config.itensLegenda);
+                    if (exigeDensidadeLed &&
+                        (!config.campoDensiteLed ||
+                         !config.campoDensiteLed.selection ||
+                         config.campoDensiteLed.selection.index === 0)) {
                         ui.mostrarAlertaPersonalizado(config.t("selecionarDensiteLed"), "Campo Obrigatório");
                         if (config.campoDensiteLed) {
                             config.campoDensiteLed.active = true;

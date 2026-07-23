@@ -144,7 +144,7 @@ grupoLFixacao.orientation = "row";
 grupoLFixacao.spacing = 3; // Espaçamento mínimo entre todos os elementos
 grupoLFixacao.add("statictext", undefined, "L *:");
 var opcoesL = [];
-for (var i = 1; i <= 30; i++) {
+for (var i = 1; i <= 50; i++) {
     opcoesL.push("L" + i);
 }
 var listaL = grupoLFixacao.add("dropdownlist", undefined, opcoesL);

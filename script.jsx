@@ -67,7 +67,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v3.6");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v3.7");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -303,8 +303,8 @@ var opcoesLinhasComponentes = {
     janela: janela,
     funcoes: funcoes
 };
-var linhaPrint = componentRows.criarLinhaGrupo(grupoComponentes, "PRINT", componentesOriginaisPrint, opcoesLinhasComponentes);
 var linhaLeds = componentRows.criarLinhaGrupo(grupoComponentes, "LEDS", componentesOriginaisLeds, opcoesLinhasComponentes);
+var linhaPrint = componentRows.criarLinhaGrupo(grupoComponentes, "PRINT", componentesOriginaisPrint, opcoesLinhasComponentes);
 var linhaNormais = componentRows.criarLinhaGrupo(grupoComponentes, "COMPONENTS", componentesOriginaisNormais, opcoesLinhasComponentes);
 
 // Aplicar filtragem inicial do dropdown de print baseada no uso selecionado

@@ -95,6 +95,28 @@ $.global.eventosUI = {};
         return config.t("printDicaCompativel");
     }
 
+    function obterRotuloAvaliacaoPrint(config, avaliacao) {
+        if (!avaliacao) {
+            return "";
+        }
+        if (avaliacao.recomendado) {
+            return config.t("printRotuloRecomendado");
+        }
+        if (avaliacao.dica === "requerLed") {
+            return config.t("printRotuloComIluminacao");
+        }
+        if (avaliacao.dica === "somenteExterior") {
+            return config.t("printRotuloSomenteExterior");
+        }
+        if (avaliacao.dica === "somenteInterior") {
+            return config.t("printRotuloSomenteInterior");
+        }
+        if (avaliacao.fimSerie) {
+            return config.t("printRotuloFimSerie");
+        }
+        return "";
+    }
+
     function obterMensagensAvaliacaoPrint(config, avaliacao) {
         var mensagens = [];
         if (!avaliacao || !avaliacao.avisos) {
@@ -219,7 +241,8 @@ $.global.eventosUI = {};
         var indiceAnterior = -1;
         for (var j = 0; j < filtradas.length; j++) {
             var avaliacao = filtradas[j];
-            var textoVisual = avaliacao.nomeOriginal + (avaliacao.marcador ? " " + avaliacao.marcador : "");
+            var rotulo = obterRotuloAvaliacaoPrint(config, avaliacao);
+            var textoVisual = avaliacao.nomeOriginal + (rotulo ? " - " + rotulo : "");
             var itemLista = lista.add("item", textoVisual);
             lista.nomesOriginais.push(avaliacao.nomeOriginal);
             if (avaliacao.nomeOriginal === nomeAnterior) {

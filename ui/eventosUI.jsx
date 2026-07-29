@@ -50,6 +50,272 @@ $.global.eventosUI = {};
 
         return false;
     }
+
+    function obterTextoOriginalLista(lista, item) {
+        if (typeof funcoes !== "undefined" && funcoes && funcoes.obterTextoOriginalItemLista) {
+            return funcoes.obterTextoOriginalItemLista(lista, item);
+        }
+        var itemAtual = item || (lista ? lista.selection : null);
+        return itemAtual ? String(itemAtual.text || "") : "";
+    }
+
+    function obterUsoPrint(config) {
+        return config.campoUsage && config.campoUsage.selection ?
+            String(config.campoUsage.selection.text || "") : "";
+    }
+
+    function obterFixacaoPrint(config) {
+        return config.listaFixacao && config.listaFixacao.selection ?
+            String(config.listaFixacao.selection.text || "") : "";
+    }
+
+    function substituirNomePrint(texto, nomePrint) {
+        return String(texto || "").replace(/\{print\}/g, nomePrint);
+    }
+
+    function obterDicaAvaliacaoPrint(config, avaliacao) {
+        if (!avaliacao) {
+            return "";
+        }
+        if (avaliacao.dica === "recomendado") {
+            return config.t("printDicaRecomendado");
+        }
+        if (avaliacao.dica === "requerLed") {
+            return config.t("printDicaRequerLed");
+        }
+        if (avaliacao.dica === "fimSerie") {
+            return config.t("printDicaFimSerie");
+        }
+        if (avaliacao.dica === "somenteExterior") {
+            return config.t("printDicaSomenteExterior");
+        }
+        if (avaliacao.dica === "somenteInterior") {
+            return config.t("printDicaSomenteInterior");
+        }
+        return config.t("printDicaCompativel");
+    }
+
+    function obterMensagensAvaliacaoPrint(config, avaliacao) {
+        var mensagens = [];
+        if (!avaliacao || !avaliacao.avisos) {
+            return mensagens;
+        }
+
+        for (var i = 0; i < avaliacao.avisos.length; i++) {
+            var codigo = avaliacao.avisos[i];
+            if (codigo === "somenteExterior") {
+                mensagens.push(substituirNomePrint(config.t("printAvisoSomenteExterior"), avaliacao.nomeOriginal));
+            } else if (codigo === "somenteInterior") {
+                mensagens.push(substituirNomePrint(config.t("printAvisoSomenteInterior"), avaliacao.nomeOriginal));
+            } else if (codigo === "requerLed") {
+                mensagens.push(config.t("printAvisoRequerLed"));
+            } else if (codigo === "fimSerie") {
+                mensagens.push(config.t("printAvisoFimSerie"));
+            }
+        }
+
+        var usoNorm = regras.normalizarTextoRegraPrint(obterUsoPrint(config));
+        var fixacaoNorm = regras.normalizarTextoRegraPrint(obterFixacaoPrint(config));
+        var interior = usoNorm.indexOf("interieur") !== -1 || usoNorm.indexOf("interior") !== -1;
+        var auSol = fixacaoNorm.indexOf("au sol") !== -1 || fixacaoNorm.indexOf("pose au sol") !== -1;
+        var temAvisoExterior = false;
+        for (var j = 0; j < avaliacao.avisos.length; j++) {
+            if (avaliacao.avisos[j] === "somenteExterior") {
+                temAvisoExterior = true;
+                break;
+            }
+        }
+        if (interior && temAvisoExterior) {
+            mensagens.push(config.t(auSol ? "printAlternativaAuSolInterior" : "printAlternativaInterior"));
+        }
+        return mensagens;
+    }
+
+    function obterAssinaturaAvisoPrint(config, avaliacao) {
+        var temLed = regras.legendaTemIluminacaoLed(config.itensLegenda);
+        return [
+            regras.normalizarTextoRegraPrint(obterUsoPrint(config)),
+            regras.normalizarTextoRegraPrint(obterFixacaoPrint(config)),
+            temLed ? "led" : "sem-led",
+            regras.normalizarTextoRegraPrint(avaliacao.nomeOriginal),
+            avaliacao.avisos.join(",")
+        ].join("|");
+    }
+
+    function mostrarAvisoAvaliacaoPrint(config, avaliacao) {
+        var mensagens = obterMensagensAvaliacaoPrint(config, avaliacao);
+        if (mensagens.length === 0) {
+            return false;
+        }
+
+        if (!config.avisosPrintMostrados) {
+            config.avisosPrintMostrados = {};
+        }
+        var assinatura = obterAssinaturaAvisoPrint(config, avaliacao);
+        if (config.avisosPrintMostrados[assinatura]) {
+            return false;
+        }
+
+        config.avisosPrintMostrados[assinatura] = true;
+        mensagens.push(config.t("printAvisoPodeContinuar"));
+        ui.mostrarAlertaPersonalizado(mensagens.join("\n\n"), config.t("printTituloAviso"));
+        return true;
+    }
+
+    function obterAvaliacaoSelecaoPrint(config) {
+        if (!config.linhaPrint || !config.linhaPrint.listaComponentes ||
+            !config.linhaPrint.listaComponentes.selection ||
+            config.linhaPrint.listaComponentes.selection.index <= 0) {
+            return null;
+        }
+        var nomeOriginal = obterTextoOriginalLista(config.linhaPrint.listaComponentes);
+        return regras.avaliarCompatibilidadePrint(
+            nomeOriginal,
+            obterUsoPrint(config),
+            obterFixacaoPrint(config),
+            regras.legendaTemIluminacaoLed(config.itensLegenda)
+        );
+    }
+
+    function atualizarAjudaSelecaoPrint(config) {
+        if (!config.linhaPrint || !config.linhaPrint.listaComponentes) {
+            return;
+        }
+        var avaliacao = obterAvaliacaoSelecaoPrint(config);
+        config.linhaPrint.listaComponentes.helpTip = avaliacao ? obterDicaAvaliacaoPrint(config, avaliacao) : "";
+    }
+
+    function atualizarDropdownRecomendacoesPrint(config, termo, preservarSelecao) {
+        if (!config.linhaPrint || !config.linhaPrint.listaComponentes || !config.componentesOriginaisPrint) {
+            return;
+        }
+
+        var lista = config.linhaPrint.listaComponentes;
+        var nomeAnterior = obterTextoOriginalLista(lista);
+        var termoNorm = regras.normalizarTextoRegraPrint(typeof termo === "string" ? termo : (config.termoPesquisaPrint || ""));
+        config.termoPesquisaPrint = termoNorm;
+        var avaliacoes = regras.ordenarAvaliacoesPrint(
+            config.componentesOriginaisPrint,
+            obterUsoPrint(config),
+            obterFixacaoPrint(config),
+            regras.legendaTemIluminacaoLed(config.itensLegenda)
+        );
+        var filtradas = [];
+
+        for (var i = 0; i < avaliacoes.length; i++) {
+            if (!termoNorm ||
+                regras.normalizarTextoRegraPrint(avaliacoes[i].nomeOriginal).indexOf(termoNorm) !== -1) {
+                filtradas.push(avaliacoes[i]);
+            }
+        }
+
+        lista.atualizandoRecomendacoes = true;
+        lista.removeAll();
+        lista.nomesOriginais = [];
+
+        lista.add("item", config.t("selecioneComponente"));
+        lista.nomesOriginais.push("");
+
+        var indiceAnterior = -1;
+        for (var j = 0; j < filtradas.length; j++) {
+            var avaliacao = filtradas[j];
+            var textoVisual = avaliacao.nomeOriginal + (avaliacao.marcador ? " " + avaliacao.marcador : "");
+            var itemLista = lista.add("item", textoVisual);
+            lista.nomesOriginais.push(avaliacao.nomeOriginal);
+            if (avaliacao.nomeOriginal === nomeAnterior) {
+                indiceAnterior = itemLista.index;
+            }
+        }
+
+        if (preservarSelecao !== false && indiceAnterior > 0) {
+            lista.selection = indiceAnterior;
+        } else if (termoNorm && filtradas.length > 0) {
+            lista.selection = 1;
+        } else {
+            lista.selection = 0;
+        }
+        lista.atualizandoRecomendacoes = false;
+
+        var nomeAtual = obterTextoOriginalLista(lista);
+        if (nomeAtual !== nomeAnterior && typeof funcoes.atualizarCores === "function") {
+            funcoes.atualizarCores(
+                lista,
+                config.linhaPrint.listaCores,
+                config.linhaPrint.listaUnidades,
+                config.dados,
+                config.t,
+                function() {
+                    if (funcoesComponentes && funcoesComponentes.verificarCMYK) {
+                        funcoesComponentes.verificarCMYK(
+                            lista,
+                            config.linhaPrint.listaCores,
+                            config.linhaPrint.listaUnidades,
+                            config.dados,
+                            funcoes.encontrarIndicePorNome
+                        );
+                    }
+                }
+            );
+        }
+        atualizarAjudaSelecaoPrint(config);
+    }
+
+    function obterNomeBasePrintItem(item, dados) {
+        if (!item || item.tipo !== "componente" || !dados || !dados.componentes) {
+            return "";
+        }
+        for (var i = 0; i < dados.componentes.length; i++) {
+            if (dados.componentes[i].id === item.componenteId) {
+                return regras.obterTipoRegraPrint(dados.componentes[i].nome) !== "outro" ?
+                    dados.componentes[i].nome : "";
+            }
+        }
+        return "";
+    }
+
+    function mostrarAvisosPrintDaLegenda(config) {
+        if (!config.itensLegenda || !config.itensLegenda.length) {
+            return false;
+        }
+
+        if (!config.avisosPrintMostrados) {
+            config.avisosPrintMostrados = {};
+        }
+        var blocos = [];
+        var vistos = {};
+        var temLed = regras.legendaTemIluminacaoLed(config.itensLegenda);
+
+        for (var i = 0; i < config.itensLegenda.length; i++) {
+            var nomePrint = obterNomeBasePrintItem(config.itensLegenda[i], config.dados);
+            if (!nomePrint) {
+                continue;
+            }
+            var avaliacao = regras.avaliarCompatibilidadePrint(
+                nomePrint,
+                obterUsoPrint(config),
+                obterFixacaoPrint(config),
+                temLed
+            );
+            var mensagens = obterMensagensAvaliacaoPrint(config, avaliacao);
+            var assinatura = obterAssinaturaAvisoPrint(config, avaliacao);
+            if (mensagens.length > 0 && !vistos[assinatura] && !config.avisosPrintMostrados[assinatura]) {
+                vistos[assinatura] = true;
+                config.avisosPrintMostrados[assinatura] = true;
+                blocos.push(nomePrint + ":\n" + mensagens.join("\n"));
+            }
+        }
+
+        if (blocos.length > 0) {
+            blocos.push(config.t("printAvisoPodeContinuar"));
+            ui.mostrarAlertaPersonalizado(blocos.join("\n\n"), config.t("printTituloAviso"));
+            return true;
+        }
+        return false;
+    }
+
+    eventosUI.atualizarRecomendacoesPrint = function(config, termo, preservarSelecao) {
+        atualizarDropdownRecomendacoesPrint(config, termo, preservarSelecao);
+    };
     
     /**
      * Configura eventos de checkboxes da interface
@@ -641,60 +907,29 @@ $.global.eventosUI = {};
                     if (logs && logs.logEvento) {
                         logs.logEvento("change", "campoUsage - " + (this.selection ? this.selection.text : "nenhuma seleção"));
                     }
-                    
+
                     try {
-                        // Verificar se a linha de print existe
-                        if (config.linhaPrint && config.linhaPrint.listaComponentes) {
-                            var usoSelecionado = this.selection ? this.selection.text : "";
-                            
-                            // Chamar função de filtragem
-                            var componentesFiltrados = funcoesFiltragem.filtrarComponentesPrintPorUso(usoSelecionado, config.dados, config.t);
-                            if (!componentesFiltrados || componentesFiltrados.length === 0) {
-                                componentesFiltrados = config.componentesOriginaisPrint ? config.componentesOriginaisPrint.slice(0) : [];
-                                if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
-                                    logs.adicionarLog("Filtragem de PRINT por uso retornou vazio; aplicado fallback para lista original.", logs.TIPOS_LOG.WARNING);
-                                }
-                            }
-                            
-                            // Salvar seleção atual
-                            var selecaoAtual = config.linhaPrint.listaComponentes.selection;
-                            var textoSelecionado = selecaoAtual ? selecaoAtual.text : "";
-                            
-                            // Limpar e repopular o dropdown
-                            config.linhaPrint.listaComponentes.removeAll();
-                            
-                            // Adicionar opção padrão
-                            config.linhaPrint.listaComponentes.add("item", config.t("selecioneComponente"));
-                            
-                            // Adicionar componentes filtrados
-                            for (var i = 0; i < componentesFiltrados.length; i++) {
-                                config.linhaPrint.listaComponentes.add("item", componentesFiltrados[i]);
-                            }
-                            
-                            // Tentar restaurar seleção anterior se ainda válida
-                            var indiceRestaurado = -1;
-                            for (var i = 0; i < config.linhaPrint.listaComponentes.items.length; i++) {
-                                if (config.linhaPrint.listaComponentes.items[i].text === textoSelecionado) {
-                                    indiceRestaurado = i;
-                                    break;
-                                }
-                            }
-                            
-                            if (indiceRestaurado !== -1) {
-                                config.linhaPrint.listaComponentes.selection = indiceRestaurado;
-                            } else {
-                                config.linhaPrint.listaComponentes.selection = 0; // Selecionar "Selecione componente"
-                            }
-                            
-                            if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
-                                logs.adicionarLog("Dropdown de PRINT atualizado: " + componentesFiltrados.length + " componentes para uso '" + usoSelecionado + "'", logs.TIPOS_LOG.INFO);
-                            }
-                        }
+                        atualizarDropdownRecomendacoesPrint(config, config.termoPesquisaPrint || "", true);
                     } catch (erro) {
                         if (logs && logs.adicionarLog && logs.TIPOS_LOG) {
-                            logs.adicionarLog("Erro ao filtrar componentes PRINT por uso: " + erro.message, logs.TIPOS_LOG.ERROR);
+                            logs.adicionarLog("Erro ao atualizar recomendações PRINT por uso: " + erro.message, logs.TIPOS_LOG.ERROR);
                         }
                     }
+                };
+            }
+
+            if (config.listaFixacao) {
+                config.listaFixacao.onChange = function() {
+                    if (logs && logs.logEvento) {
+                        logs.logEvento("change", "listaFixacao - " + (this.selection ? this.selection.text : "nenhuma seleção"));
+                    }
+                    atualizarDropdownRecomendacoesPrint(config, config.termoPesquisaPrint || "", true);
+                };
+            }
+
+            if (config.linhaPrint && config.linhaPrint.listaComponentes) {
+                config.linhaPrint.listaComponentes.filtrarCustom = function(termo) {
+                    atualizarDropdownRecomendacoesPrint(config, termo, true);
                 };
             }
 
@@ -771,12 +1006,36 @@ $.global.eventosUI = {};
             if (config.linhaPrint) configurarEventosLinha(config.linhaPrint);
             if (config.linhaLeds) configurarEventosLinha(config.linhaLeds);
             if (config.linhaNormais) configurarEventosLinha(config.linhaNormais);
-            
+
+            // Acrescentar recomendação ao evento existente sem criar elementos na janela.
+            if (config.linhaPrint && config.linhaPrint.listaComponentes) {
+                var listaPrint = config.linhaPrint.listaComponentes;
+                var eventoBasePrint = listaPrint.onChange;
+                listaPrint.onChange = function() {
+                    if (this.atualizandoRecomendacoes) {
+                        return;
+                    }
+                    if (eventoBasePrint) {
+                        eventoBasePrint.call(this);
+                    }
+                    var avaliacao = obterAvaliacaoSelecaoPrint(config);
+                    atualizarAjudaSelecaoPrint(config);
+                    if (avaliacao) {
+                        mostrarAvisoAvaliacaoPrint(config, avaliacao);
+                    }
+                };
+                atualizarDropdownRecomendacoesPrint(config, config.termoPesquisaPrint || "", true);
+            }
+
             // Eventos de botões adicionar
             if (config.linhaPrint && config.linhaPrint.botaoAdicionar) {
                 config.linhaPrint.botaoAdicionar.onClick = function() {
                     if (logs && logs.logEvento) {
                         logs.logEvento("click", "botaoAdicionarComponente_PRINT");
+                    }
+                    var avaliacaoPrintAdicionar = obterAvaliacaoSelecaoPrint(config);
+                    if (avaliacaoPrintAdicionar) {
+                        mostrarAvisoAvaliacaoPrint(config, avaliacaoPrintAdicionar);
                     }
                     var soma = 0;
                     var campos = config.linhaPrint.camposQuantidade;
@@ -938,6 +1197,9 @@ $.global.eventosUI = {};
                         }
                         return;
                     }
+
+                    // Avisos de PRINT são informativos e nunca bloqueiam a geração.
+                    mostrarAvisosPrintDaLegenda(config);
 
                     // A densidade LED só é obrigatória quando a legenda contém lucioles
                     var exigeDensidadeLed = legendaTemLucioles(config.itensLegenda);

@@ -556,6 +556,10 @@ botaoGerar.graphics.foregroundColor = botaoGerar.graphics.newPen(botaoGerar.grap
   
 function atualizarListaItens() {
     gestaoLista.atualizarListaItens(listaItens, itensLegenda);
+    if (typeof configEventos !== "undefined" && configEventos &&
+        typeof eventosUI !== "undefined" && eventosUI && eventosUI.atualizarRecomendacoesPrint) {
+        eventosUI.atualizarRecomendacoesPrint(configEventos, configEventos.termoPesquisaPrint || "", true);
+    }
 }
   
   // Configurar eventos da lista usando o módulo gestaoLista.jsx

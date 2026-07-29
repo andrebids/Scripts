@@ -30,6 +30,12 @@ function filtrarComponentes(termo, componentesNomes, listaComponentes, listaCore
             termo = "";
         }
 
+        // A linha PRINT usa ordenação e marcadores de recomendação próprios.
+        if (listaComponentes && typeof listaComponentes.filtrarCustom === "function") {
+            listaComponentes.filtrarCustom(termo);
+            return;
+        }
+
         var componentesFiltrados = [t("selecioneComponente")];
 
         if (termo.length > 0) {
@@ -578,7 +584,6 @@ function filtrarComponentesPrintPorUso(uso, dados, t) {
         function ehInterior(nomeNorm) {
             return (
                 nomeNorm === "recyprint" ||
-                ehFlexiPlus(nomeNorm) ||
                 (nomeNorm.indexOf("ignifuge") !== -1 && nomeNorm.indexOf("print") !== -1)
             );
         }

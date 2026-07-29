@@ -2,6 +2,14 @@
 // Funções relacionadas a componentes do sistema de legendas
 // A partir da etapa 5.2.2.5, funções deste domínio devem ser adicionadas aqui.
 
+function obterNomeOriginalComponenteLista(listaComponentes, item) {
+    if (typeof funcoes !== "undefined" && funcoes && funcoes.obterTextoOriginalItemLista) {
+        return funcoes.obterTextoOriginalItemLista(listaComponentes, item);
+    }
+    var itemAtual = item || (listaComponentes ? listaComponentes.selection : null);
+    return itemAtual ? String(itemAtual.text || "") : "";
+}
+
 function atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, selecionarUnidadeMetrica, arrayContains) {
     if (listaComponentes.selection.index === 0 || listaCores.selection.index === 0) {
         // Limpar unidades se não há seleção válida
@@ -11,7 +19,7 @@ function atualizarUnidades(listaComponentes, listaCores, listaUnidades, dados, s
         return;
     }
 
-    var componenteSelecionado = dados.componentes[funcoes.encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
+    var componenteSelecionado = dados.componentes[funcoes.encontrarIndicePorNome(dados.componentes, obterNomeOriginalComponenteLista(listaComponentes))];
     var corSelecionada = dados.cores[funcoes.encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
     
     if (!componenteSelecionado || !corSelecionada) {
@@ -63,7 +71,7 @@ function verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, encon
         listaCores.selection && listaCores.selection.index > 0 &&
         listaUnidades.selection && listaUnidades.selection.index > 0) {
         
-        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
+        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, obterNomeOriginalComponenteLista(listaComponentes))];
         var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
         var unidadeSelecionada = listaUnidades.selection.text;
 
@@ -86,7 +94,7 @@ function verificarCMYK(listaComponentes, listaCores, listaUnidades, dados, encon
 function salvarSelecaoAtual(listaComponentes, listaCores, listaUnidades, campoMultiplicador, ultimaSelecao) {
     try {
         if (listaComponentes && listaComponentes.selection) {
-            ultimaSelecao.componente = listaComponentes.selection.text;
+            ultimaSelecao.componente = obterNomeOriginalComponenteLista(listaComponentes);
         }
         if (listaCores && listaCores.selection) {
             ultimaSelecao.cor = listaCores.selection.text;
@@ -106,7 +114,7 @@ function restaurarUltimaSelecao(listaComponentes, listaCores, listaUnidades, cam
     try {
         if (ultimaSelecao.componente && listaComponentes && listaComponentes.items && listaComponentes.items.length) {
             for (var i = 0; i < listaComponentes.items.length; i++) {
-                if (listaComponentes.items[i].text === ultimaSelecao.componente) {
+                if (obterNomeOriginalComponenteLista(listaComponentes, listaComponentes.items[i]) === ultimaSelecao.componente) {
                     listaComponentes.selection = i;
                     break;
                 }
@@ -274,7 +282,7 @@ function adicionarComponente(listaComponentes, listaCores, listaUnidades, quanti
         salvarSelecaoAtual(listaComponentes, listaCores, listaUnidades, campoMultiplicador, ultimaSelecao);
 
         // Obter dados selecionados
-        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
+        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, obterNomeOriginalComponenteLista(listaComponentes))];
         var corSelecionada = dados.cores[encontrarIndicePorNome(dados.cores, listaCores.selection.text)];
         var unidadeSelecionada = listaUnidades.selection.text;
 

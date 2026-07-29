@@ -164,7 +164,21 @@ var TRANSLATIONS = {
         "unidadePVC": "Unidade",
         "opcaoPVC": "PVC",
         "opcaoDisquePlexi": "Disque en plexi",
-        "opcaoImpression": "Impression"
+        "opcaoImpression": "Impression",
+        "printDicaRecomendado": "Recomendado para esta configuração.",
+        "printDicaRequerLed": "No interior, Recyprint requer iluminação LED na composição.",
+        "printDicaFimSerie": "Fim de série — privilegie uma alternativa.",
+        "printDicaSomenteExterior": "Produto previsto apenas para uso exterior.",
+        "printDicaSomenteInterior": "Produto previsto apenas para uso interior.",
+        "printDicaCompativel": "Compatível com a configuração escolhida.",
+        "printAvisoSomenteExterior": "{print} está previsto apenas para uso exterior.",
+        "printAvisoSomenteInterior": "{print} está previsto apenas para uso interior.",
+        "printAvisoRequerLed": "No interior, Recyprint só deve ser usado com iluminação LED adicionada à composição.",
+        "printAvisoFimSerie": "Bioprint está em fim de série. Privilegie uma alternativa.",
+        "printAlternativaAuSolInterior": "Para uma instalação interior no chão, utilize Flexiprint ignifugé.",
+        "printAlternativaInterior": "Para uma instalação interior, privilegie Print ignifugé ou Flexiprint ignifugé.",
+        "printAvisoPodeContinuar": "Pode continuar com a seleção.",
+        "printTituloAviso": "Aviso de PRINT"
     },
     "Français": {
         "nomeDesigner": "Nom du Designer",
@@ -311,6 +325,20 @@ var TRANSLATIONS = {
         "unidadePVC": "Unité",
         "opcaoPVC": "PVC",
         "opcaoDisquePlexi": "Disque en plexi",
-        "opcaoImpression": "Impression"
+        "opcaoImpression": "Impression",
+        "printDicaRecomendado": "Recommandé pour cette configuration.",
+        "printDicaRequerLed": "À l’intérieur, Recyprint nécessite un éclairage LED dans la composition.",
+        "printDicaFimSerie": "Fin de série — privilégiez une alternative.",
+        "printDicaSomenteExterior": "Produit prévu uniquement pour un usage extérieur.",
+        "printDicaSomenteInterior": "Produit prévu uniquement pour un usage intérieur.",
+        "printDicaCompativel": "Compatible avec la configuration choisie.",
+        "printAvisoSomenteExterior": "{print} est prévu uniquement pour un usage extérieur.",
+        "printAvisoSomenteInterior": "{print} est prévu uniquement pour un usage intérieur.",
+        "printAvisoRequerLed": "À l’intérieur, Recyprint doit uniquement être utilisé avec un éclairage LED ajouté à la composition.",
+        "printAvisoFimSerie": "Bioprint est en fin de série. Privilégiez une alternative.",
+        "printAlternativaAuSolInterior": "Pour une installation intérieure au sol, utilisez Flexiprint ignifugé.",
+        "printAlternativaInterior": "Pour une installation intérieure, privilégiez Print ignifugé ou Flexiprint ignifugé.",
+        "printAvisoPodeContinuar": "Vous pouvez continuer avec cette sélection.",
+        "printTituloAviso": "Avertissement PRINT"
     }
 };

@@ -170,6 +170,202 @@ function classificar2Dou3D(dimensoes) {
     }
 }
 
+// Normalização independente do idioma para as regras de recomendação de PRINT.
+function normalizarTextoRegraPrint(valor) {
+    var texto = String(valor || "").toLowerCase();
+    texto = texto.replace(/[áàâãä]/g, "a");
+    texto = texto.replace(/[éèêë]/g, "e");
+    texto = texto.replace(/[íìîï]/g, "i");
+    texto = texto.replace(/[óòôõö]/g, "o");
+    texto = texto.replace(/[úùûü]/g, "u");
+    texto = texto.replace(/ç/g, "c");
+    return texto.replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
+}
+
+function obterTipoRegraPrint(nomePrint) {
+    var nome = normalizarTextoRegraPrint(nomePrint);
+
+    if (nome.indexOf("flexiprint") !== -1 && nome.indexOf("ignifuge") !== -1) {
+        return "flexiprintIgnifuge";
+    }
+    if (nome.indexOf("print") !== -1 && nome.indexOf("ignifuge") !== -1) {
+        return "printIgnifuge";
+    }
+    if (nome.indexOf("flexi+") !== -1 || nome.indexOf("flexi +") !== -1) {
+        return "flexiPlus";
+    }
+    if (nome.indexOf("flexiprint") !== -1) {
+        return "flexiprint";
+    }
+    if (nome.indexOf("recyprint") !== -1) {
+        return "recyprint";
+    }
+    if (nome.indexOf("bioprint") !== -1) {
+        return "bioprint";
+    }
+    return "outro";
+}
+
+function adicionarAvisoRegraPrint(avaliacao, codigo) {
+    for (var i = 0; i < avaliacao.avisos.length; i++) {
+        if (avaliacao.avisos[i] === codigo) {
+            return;
+        }
+    }
+    avaliacao.avisos.push(codigo);
+}
+
+/**
+ * Avalia um PRINT no contexto escolhido pelo utilizador.
+ * As regras são intencionalmente mantidas em código e não são editáveis na base.
+ */
+function avaliarCompatibilidadePrint(nomePrint, uso, fixacao, temIluminacaoLed) {
+    var tipo = obterTipoRegraPrint(nomePrint);
+    var usoNorm = normalizarTextoRegraPrint(uso);
+    var fixacaoNorm = normalizarTextoRegraPrint(fixacao);
+    var interior = usoNorm.indexOf("interieur") !== -1 || usoNorm.indexOf("interior") !== -1;
+    var exterior = usoNorm.indexOf("exterieur") !== -1 || usoNorm.indexOf("exterior") !== -1;
+    var auSol = fixacaoNorm.indexOf("au sol") !== -1 || fixacaoNorm.indexOf("pose au sol") !== -1;
+    var poteauOuTransversal = fixacaoNorm.indexOf("poteau") !== -1 || fixacaoNorm.indexOf("transversal") !== -1;
+    var avaliacao = {
+        nomeOriginal: nomePrint,
+        tipo: tipo,
+        recomendado: false,
+        condicional: false,
+        condicaoCumprida: true,
+        fimSerie: tipo === "bioprint",
+        marcador: "",
+        dica: "compativel",
+        prioridade: 20,
+        avisos: []
+    };
+
+    if (avaliacao.fimSerie) {
+        adicionarAvisoRegraPrint(avaliacao, "fimSerie");
+        avaliacao.marcador = "[FIN]";
+        avaliacao.dica = "fimSerie";
+        avaliacao.prioridade = 40;
+    }
+
+    // Sem Usage escolhido apenas se destaca o fim de série.
+    if (!interior && !exterior) {
+        return avaliacao;
+    }
+
+    if (interior) {
+        if (tipo === "flexiprintIgnifuge") {
+            avaliacao.recomendado = true;
+            avaliacao.marcador = "[REC]";
+            avaliacao.dica = "recomendado";
+            avaliacao.prioridade = 0;
+        } else if (tipo === "printIgnifuge") {
+            // Para decoração no chão, Flexiprint ignifugé tem prioridade específica.
+            if (!auSol) {
+                avaliacao.recomendado = true;
+                avaliacao.marcador = "[REC]";
+                avaliacao.dica = "recomendado";
+                avaliacao.prioridade = 0;
+            } else {
+                avaliacao.prioridade = 10;
+            }
+        } else if (tipo === "recyprint") {
+            avaliacao.condicional = true;
+            avaliacao.condicaoCumprida = temIluminacaoLed === true;
+            avaliacao.marcador = "[LED]";
+            avaliacao.dica = "requerLed";
+            avaliacao.prioridade = avaliacao.condicaoCumprida ? 10 : 30;
+            if (!avaliacao.condicaoCumprida) {
+                adicionarAvisoRegraPrint(avaliacao, "requerLed");
+            }
+        } else if (tipo === "flexiprint" || tipo === "flexiPlus" || tipo === "bioprint") {
+            adicionarAvisoRegraPrint(avaliacao, "somenteExterior");
+            if (!avaliacao.fimSerie) {
+                avaliacao.marcador = "[EXT]";
+                avaliacao.dica = "somenteExterior";
+            }
+            avaliacao.prioridade = avaliacao.fimSerie ? 50 : 30;
+        }
+    }
+
+    if (exterior) {
+        if (tipo === "printIgnifuge" || tipo === "flexiprintIgnifuge") {
+            adicionarAvisoRegraPrint(avaliacao, "somenteInterior");
+            avaliacao.marcador = "[INT]";
+            avaliacao.dica = "somenteInterior";
+            avaliacao.prioridade = 30;
+        } else if (auSol && (tipo === "flexiprint" || tipo === "flexiPlus")) {
+            avaliacao.recomendado = true;
+            avaliacao.marcador = "[REC]";
+            avaliacao.dica = "recomendado";
+            avaliacao.prioridade = 0;
+        } else if (poteauOuTransversal && tipo === "recyprint") {
+            avaliacao.recomendado = true;
+            avaliacao.marcador = "[REC]";
+            avaliacao.dica = "recomendado";
+            avaliacao.prioridade = 0;
+        } else if (!avaliacao.fimSerie) {
+            avaliacao.prioridade = 10;
+        }
+    }
+
+    return avaliacao;
+}
+
+function ordenarAvaliacoesPrint(nomesPrint, uso, fixacao, temIluminacaoLed) {
+    var resultado = [];
+    for (var i = 0; i < nomesPrint.length; i++) {
+        resultado.push(avaliarCompatibilidadePrint(nomesPrint[i], uso, fixacao, temIluminacaoLed));
+    }
+
+    // Bubble sort por compatibilidade; mantém uma ordem previsível no ExtendScript.
+    for (var a = 0; a < resultado.length - 1; a++) {
+        for (var b = 0; b < resultado.length - a - 1; b++) {
+            var atual = resultado[b];
+            var seguinte = resultado[b + 1];
+            var trocar = atual.prioridade > seguinte.prioridade;
+            if (atual.prioridade === seguinte.prioridade) {
+                trocar = normalizarTextoRegraPrint(atual.nomeOriginal) > normalizarTextoRegraPrint(seguinte.nomeOriginal);
+            }
+            if (trocar) {
+                resultado[b] = seguinte;
+                resultado[b + 1] = atual;
+            }
+        }
+    }
+    return resultado;
+}
+
+/**
+ * Considera iluminação apenas quando um componente LED já foi adicionado à legenda.
+ * A verificação usa os dados estruturados, não o campo Densité LED.
+ */
+function legendaTemIluminacaoLed(itensLegenda) {
+    if (!itensLegenda || !itensLegenda.length) {
+        return false;
+    }
+
+    for (var i = 0; i < itensLegenda.length; i++) {
+        var item = itensLegenda[i];
+        if (!item) {
+            continue;
+        }
+
+        if (item.temLucioles === true || item.tipo === "gp_lucioles") {
+            return true;
+        }
+
+        var texto = normalizarTextoRegraPrint(
+            String(item.nome || "") + " " +
+            String(item.referencia || "") + " " +
+            String(item.texto || "")
+        );
+        if (texto.indexOf("led") !== -1) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Exportar as funções para uso em outros scripts
 $.global.regras = {
     arredondarParaDecima: arredondarParaDecima,
@@ -179,5 +375,10 @@ $.global.regras = {
     formatarDimensao: formatarDimensao,
     coresStructure: coresStructure,
     criarGrupoStructure: criarGrupoStructure,
-    classificar2Dou3D: classificar2Dou3D
+    classificar2Dou3D: classificar2Dou3D,
+    normalizarTextoRegraPrint: normalizarTextoRegraPrint,
+    obterTipoRegraPrint: obterTipoRegraPrint,
+    avaliarCompatibilidadePrint: avaliarCompatibilidadePrint,
+    ordenarAvaliacoesPrint: ordenarAvaliacoesPrint,
+    legendaTemIluminacaoLed: legendaTemIluminacaoLed
 };

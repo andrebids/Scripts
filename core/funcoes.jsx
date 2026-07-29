@@ -361,6 +361,7 @@ $.global.funcoes = {
     criarExpressaoDetalhesQuantidade: criarExpressaoDetalhesQuantidade,
     criarLinhaReferencia: criarLinhaReferencia,
     selecionarUnidadeMetrica: selecionarUnidadeMetrica,
+    obterTextoOriginalItemLista: obterTextoOriginalItemLista,
     atualizarCores: atualizarCores,
     sanitizarObservacao: sanitizarObservacao,
     escaparParaScript: escaparParaScript,
@@ -670,21 +671,41 @@ function selecionarUnidadeMetrica(unidades) {
     return null;
 }
 
+// Obtém o valor real de um item cujo texto visual contém marcadores de UI.
+function obterTextoOriginalItemLista(lista, item) {
+    var itemAtual = item || (lista ? lista.selection : null);
+    if (!itemAtual) {
+        return "";
+    }
+    if (typeof itemAtual.nomeOriginal !== "undefined" && itemAtual.nomeOriginal !== null) {
+        return String(itemAtual.nomeOriginal);
+    }
+    if (lista && lista.nomesOriginais &&
+        typeof itemAtual.index !== "undefined" &&
+        typeof lista.nomesOriginais[itemAtual.index] !== "undefined") {
+        return String(lista.nomesOriginais[itemAtual.index]);
+    }
+    return String(itemAtual.text || "");
+}
+
 // Função para atualizar cores (migrada de script.jsx)
 function atualizarCores(listaComponentes, listaCores, listaUnidades, dados, t, verificarCMYK) {
     listaCores.removeAll();
-    
+
     if (listaComponentes.selection && listaComponentes.selection.index > 0) {
-        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, listaComponentes.selection.text)];
+        var nomeComponente = obterTextoOriginalItemLista(listaComponentes);
+        var componenteSelecionado = dados.componentes[encontrarIndicePorNome(dados.componentes, nomeComponente)];
         var coresDisponiveis = [t("selecioneCor")];
         var coresIds = [];
 
-        for (var i = 0; i < dados.combinacoes.length; i++) {
-            if (dados.combinacoes[i].componenteId === componenteSelecionado.id) {
-                var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
-                if (cor && !arrayContains(coresIds, cor.id)) {
-                    coresDisponiveis.push(cor.nome);
-                    coresIds.push(cor.id);
+        if (componenteSelecionado) {
+            for (var i = 0; i < dados.combinacoes.length; i++) {
+                if (dados.combinacoes[i].componenteId === componenteSelecionado.id) {
+                    var cor = encontrarPorId(dados.cores, dados.combinacoes[i].corId);
+                    if (cor && !arrayContains(coresIds, cor.id)) {
+                        coresDisponiveis.push(cor.nome);
+                        coresIds.push(cor.id);
+                    }
                 }
             }
         }

@@ -902,13 +902,15 @@ function processarContagemElementos(itensLegenda) {
 }
 
 /**
- * Processa os campos opcionais Usage, Densité LED e Quantité prévue
+ * Processa os campos Usage, Recto-verso, Densité LED, Quantité prévue e Preço
  * @param {Object} campoUsage - Dropdown de Usage
+ * @param {Object} campoRectoVerso - Dropdown de Recto-verso
  * @param {Object} campoDensiteLed - Dropdown de Densité LED
  * @param {Object} campoQuantitePrevu - Campo de Quantité prévue
+ * @param {Object} campoPreco - Campo de Preço
  * @returns {Array} Array com texto dos campos opcionais formatado
  */
-function processarCamposOpcionais(campoUsage, campoDensiteLed, campoQuantitePrevu, campoPreco) {
+function processarCamposOpcionais(campoUsage, campoRectoVerso, campoDensiteLed, campoQuantitePrevu, campoPreco) {
     logLegenda("Iniciando processamento de campos opcionais", "function");
     
     try {
@@ -930,6 +932,13 @@ function processarCamposOpcionais(campoUsage, campoDensiteLed, campoQuantitePrev
             var usageTexto = "Usage: " + normalizarUsageParaFrances(campoUsage.selection.text);
             camposOpcionaisTexto.push(usageTexto);
             logLegenda("Campo Usage processado: " + usageTexto, "info");
+        }
+
+        // Processar campo Recto-verso imediatamente após Usage
+        if (campoRectoVerso && campoRectoVerso.selection && campoRectoVerso.selection.text) {
+            var rectoVersoTexto = "Recto-verso: " + campoRectoVerso.selection.text;
+            camposOpcionaisTexto.push(rectoVersoTexto);
+            logLegenda("Campo Recto-verso processado: " + rectoVersoTexto, "info");
         }
 
         // Processar campo Densité LED
@@ -1094,8 +1103,8 @@ function atualizarPreview(parametros) {
             previewText.push("Fixation: " + parametros.listaFixacao.selection.text);
         }
 
-        // Adicionar campos opcionais (Usage, Densité LED, Quantité prévue e Preço) após fixação
-        var camposOpcionaisTexto = processarCamposOpcionais(parametros.campoUsage, parametros.campoDensiteLed, parametros.campoQuantitePrevu, parametros.campoPreco);
+        // Adicionar campos (Usage, Recto-verso, Densité LED, Quantité prévue e Preço) após fixação
+        var camposOpcionaisTexto = processarCamposOpcionais(parametros.campoUsage, parametros.campoRectoVerso, parametros.campoDensiteLed, parametros.campoQuantitePrevu, parametros.campoPreco);
         if (camposOpcionaisTexto.length > 0) {
             previewText.push("\u200B"); // Linha de separação antes dos campos opcionais
             for (var i = 0; i < camposOpcionaisTexto.length; i++) {

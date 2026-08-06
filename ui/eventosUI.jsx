@@ -941,6 +941,15 @@ $.global.eventosUI = {};
                 };
             }
 
+            // Evento para dropdown Recto-verso
+            if (config.campoRectoVerso) {
+                config.campoRectoVerso.onChange = function() {
+                    if (logs && logs.logEvento) {
+                        logs.logEvento("change", "campoRectoVerso - " + (this.selection ? this.selection.text : "nenhuma seleção"));
+                    }
+                };
+            }
+
             if (config.listaFixacao) {
                 config.listaFixacao.onChange = function() {
                     if (logs && logs.logEvento) {

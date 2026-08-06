@@ -67,7 +67,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v3.7");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v3.8");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -211,6 +211,20 @@ campoUsage.preferredSize.width = 100; // Reduzir de 120 para 100
 
 // Evento será configurado pelo módulo eventosUI
 
+// Segunda linha: Recto-verso
+var linhaRectoVerso = grupoCamposOpcionais.add("group");
+linhaRectoVerso.orientation = "row";
+linhaRectoVerso.alignChildren = ["left", "center"];
+linhaRectoVerso.spacing = 5;
+
+var labelRectoVerso = linhaRectoVerso.add("statictext", undefined, t("rectoVerso"));
+labelRectoVerso.preferredSize.width = 105;
+var campoRectoVerso = linhaRectoVerso.add("dropdownlist", undefined, [t("nao"), t("sim")]);
+campoRectoVerso.selection = 0;
+campoRectoVerso.preferredSize.width = 100;
+
+// Evento será configurado pelo módulo eventosUI
+
 // Campo Quantité prévue (input numérico mais compacto)
 linhaCamposSuperior.add("statictext", undefined, t("quantitePrevu"));
 var campoQuantitePrevu = linhaCamposSuperior.add("edittext", undefined, "");
@@ -229,7 +243,7 @@ funcoes.apenasNumerosEVirgula(campoPreco);
 
 // Evento será configurado pelo módulo eventosUI
 
-// Segunda linha: Densité LED e Structure laquée
+// Terceira linha: Densité LED e Structure laquée
 var linhaCamposInferior = grupoCamposOpcionais.add("group");
 linhaCamposInferior.orientation = "row";
 linhaCamposInferior.alignChildren = ["left", "center"];
@@ -576,6 +590,7 @@ function atualizarListaItens() {
             botaoUpdate: botaoUpdate,
             listaL: listaL,
             campoUsage: campoUsage,
+            campoRectoVerso: campoRectoVerso,
             campoDensiteLed: campoDensiteLed,
             campoQuantitePrevu: campoQuantitePrevu,
             campoPreco: campoPreco,
@@ -642,6 +657,7 @@ function atualizarListaItens() {
                         corStructure: corStructure,
                         campoObs: campoObsAtual,
                         campoUsage: campoUsage,
+                        campoRectoVerso: campoRectoVerso,
                         campoDensiteLed: campoDensiteLed,
                         campoQuantitePrevu: campoQuantitePrevu,
                         campoPreco: campoPreco

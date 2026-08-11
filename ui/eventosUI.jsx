@@ -941,11 +941,11 @@ $.global.eventosUI = {};
                 };
             }
 
-            // Evento para dropdown Recto-verso
+            // Evento para checkbox Recto-verso
             if (config.campoRectoVerso) {
-                config.campoRectoVerso.onChange = function() {
+                config.campoRectoVerso.onClick = function() {
                     if (logs && logs.logEvento) {
-                        logs.logEvento("change", "campoRectoVerso - " + (this.selection ? this.selection.text : "nenhuma seleção"));
+                        logs.logEvento("click", "campoRectoVerso - valor: " + this.value);
                     }
                 };
             }

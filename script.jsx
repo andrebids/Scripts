@@ -211,20 +211,6 @@ campoUsage.preferredSize.width = 100; // Reduzir de 120 para 100
 
 // Evento será configurado pelo módulo eventosUI
 
-// Segunda linha: Recto-verso
-var linhaRectoVerso = grupoCamposOpcionais.add("group");
-linhaRectoVerso.orientation = "row";
-linhaRectoVerso.alignChildren = ["left", "center"];
-linhaRectoVerso.spacing = 5;
-
-var labelRectoVerso = linhaRectoVerso.add("statictext", undefined, t("rectoVerso"));
-labelRectoVerso.preferredSize.width = 105;
-var campoRectoVerso = linhaRectoVerso.add("dropdownlist", undefined, [t("nao"), t("sim")]);
-campoRectoVerso.selection = 0;
-campoRectoVerso.preferredSize.width = 100;
-
-// Evento será configurado pelo módulo eventosUI
-
 // Campo Quantité prévue (input numérico mais compacto)
 linhaCamposSuperior.add("statictext", undefined, t("quantitePrevu"));
 var campoQuantitePrevu = linhaCamposSuperior.add("edittext", undefined, "");
@@ -243,7 +229,7 @@ funcoes.apenasNumerosEVirgula(campoPreco);
 
 // Evento será configurado pelo módulo eventosUI
 
-// Terceira linha: Densité LED e Structure laquée
+// Segunda linha: Densité LED, Recto-verso e Structure laquée
 var linhaCamposInferior = grupoCamposOpcionais.add("group");
 linhaCamposInferior.orientation = "row";
 linhaCamposInferior.alignChildren = ["left", "center"];
@@ -255,6 +241,12 @@ labelDensiteLed.preferredSize.width = 105;
 var campoDensiteLed = linhaCamposInferior.add("dropdownlist", undefined, [t("selecioneDensiteLed"), t("densiteLedStandard"), t("densiteLedEconomique"), t("densiteLedDense")]);
 campoDensiteLed.selection = 0;
 campoDensiteLed.preferredSize.width = 100;
+
+// Evento será configurado pelo módulo eventosUI
+
+// Campo Recto-verso (desmarcado = Non, marcado = Oui)
+var campoRectoVerso = linhaCamposInferior.add("checkbox", undefined, t("rectoVerso"));
+campoRectoVerso.value = false;
 
 // Evento será configurado pelo módulo eventosUI
 

@@ -904,7 +904,7 @@ function processarContagemElementos(itensLegenda) {
 /**
  * Processa os campos Usage, Recto-verso, Densité LED, Quantité prévue e Preço
  * @param {Object} campoUsage - Dropdown de Usage
- * @param {Object} campoRectoVerso - Dropdown de Recto-verso
+ * @param {Object} campoRectoVerso - Checkbox de Recto-verso
  * @param {Object} campoDensiteLed - Dropdown de Densité LED
  * @param {Object} campoQuantitePrevu - Campo de Quantité prévue
  * @param {Object} campoPreco - Campo de Preço
@@ -935,8 +935,8 @@ function processarCamposOpcionais(campoUsage, campoRectoVerso, campoDensiteLed, 
         }
 
         // Processar campo Recto-verso imediatamente após Usage
-        if (campoRectoVerso && campoRectoVerso.selection && campoRectoVerso.selection.text) {
-            var rectoVersoTexto = "Recto-verso: " + campoRectoVerso.selection.text;
+        if (campoRectoVerso) {
+            var rectoVersoTexto = "Recto-verso: " + (campoRectoVerso.value ? "Oui" : "Non");
             camposOpcionaisTexto.push(rectoVersoTexto);
             logLegenda("Campo Recto-verso processado: " + rectoVersoTexto, "info");
         }

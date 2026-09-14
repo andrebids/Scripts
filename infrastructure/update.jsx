@@ -201,7 +201,7 @@ function mensagemEstadoUpdate(status, t) {
         if (status.filesCopied || status.filesTotal) {
             mensagem += "\nFicheiros copiados: " + (status.filesCopied || 0) + "/" + (status.filesTotal || 0);
         }
-        mensagem += "\n\nFeche e abra o script novamente.";
+        mensagem += "\n\n" + t("updateConcluido");
         fecharJanela = true;
     } else if (estado === "ALREADY_CURRENT") {
         titulo = "Script Atualizado";
@@ -264,30 +264,50 @@ function mensagemEstadoUpdate(status, t) {
     };
 }
 
+function atualizarLayoutUpdate(janela) {
+    // Illustrator paints a black background if update() follows a visible-window relayout.
+    var visivel = janela.visible;
+    if (visivel) { janela.hide(); }
+    try {
+        janela.layout.layout(true);
+    } finally {
+        if (visivel) { janela.show(); }
+    }
+}
+
 function criarInterfaceUpdate(janela, botao, t) {
-    var painel = janela.add("panel", undefined, t("updateTitulo"));
+    botao.helpTip = t("updateAvisoReinicio");
+    var painel = janela.add("group");
     painel.orientation = "column";
     painel.alignChildren = ["fill", "top"];
+    painel.spacing = 4;
+    painel.margins = 0;
     painel.visible = false;
     painel.maximumSize.height = 0;
-    var texto = painel.add("statictext", undefined, "", {multiline: true});
-    texto.preferredSize.height = 36;
-    var barra = painel.add("progressbar", undefined, 0, 100);
-    barra.preferredSize.height = 12;
-    var acoes = painel.add("group");
-    var acao = acoes.add("button", undefined, t("updateRepetir"));
-    var detalhes = acoes.add("button", undefined, t("updateDetalhes"));
+    var linha = painel.add("group");
+    linha.orientation = "row";
+    linha.alignChildren = ["left", "center"];
+    linha.spacing = 8;
+    var texto = linha.add("statictext", undefined, "");
+    texto.alignment = ["fill", "center"];
+    texto.preferredSize.width = 300;
+    var barra = linha.add("progressbar", undefined, 0, 100);
+    barra.preferredSize = [100, 10];
+    var acao = linha.add("button", undefined, t("updateRepetir"));
+    var detalhes = linha.add("button", undefined, t("updateDetalhes"));
     var campo = painel.add("edittext", undefined, "", {multiline: true, readonly: true, scrolling: true});
-    campo.preferredSize.height = 90;
+    campo.preferredSize.height = 64;
     campo.visible = false;
     campo.maximumSize.height = 0;
     detalhes.onClick = function() {
         campo.visible = !campo.visible;
-        campo.maximumSize.height = campo.visible ? 90 : 0;
-        janela.layout.layout(true);
+        campo.maximumSize.height = campo.visible ? 64 : 0;
+        detalhes.text = t(campo.visible ? "updateOcultarDetalhes" : "updateDetalhes");
+        atualizarLayoutUpdate(janela);
     };
     var view = {painel: painel, texto: texto, barra: barra, acao: acao,
-        campo: campo, botao: botao, running: false, pending: false};
+        campo: campo, botao: botao, running: false, pending: false,
+        scriptFile: new File(obterDiretorioProjeto() + "/script.jsx")};
     janela.updateView = view;
     var onClose = janela.onClose;
     janela.onClose = function() {
@@ -302,7 +322,8 @@ function apresentarProgressoUpdate(status, t) {
     var total = Number(status && status.filesTotal) || 0;
     var count = Number(status && (state === "COPYING" ? status.filesCopied : status.filesDownloaded)) || 0;
     var key = state === "COPYING" ? "updateInstalar" :
-        state === "DOWNLOADING" ? "updateDownload" : state === "ELEVATING" ? "updatePermissao" : "updateVerificar";
+        state === "DOWNLOADING" ? (status.phase === "EXTRACTING" ? "updateDescompactar" : "updateDownload") :
+        state === "ELEVATING" ? "updatePermissao" : "updateVerificar";
     return {texto: t(key) + (total && (state === "COPYING" || state === "DOWNLOADING") ?
         " — " + count + "/" + total : ""), percent: total ? Math.min(100, Math.max(0, count / total * 100)) : 0};
 }
@@ -310,20 +331,23 @@ function apresentarProgressoUpdate(status, t) {
 function executarUpdate(t) {
     var janela = $.global.janelaScript;
     var view = janela && janela.updateView;
-    if (!view || view.running) { return; }
+    if (!view || view.running || view.updated) { return; }
     var bloqueados = view.bloqueados || [];
     view.bloqueados = bloqueados;
     try {
         // Cache translated copy before the updater can replace files on disk.
         var traducoes = {};
-        var keys = ["updateVerificar", "updateDownload", "updateInstalar", "updatePermissao",
-            "updateConcluido", "updateFechar", "updateRepetir", "updateAcompanhar", "updateSemEstado",
+        var keys = ["updateVerificar", "updateDownload", "updateDescompactar", "updateInstalar", "updatePermissao",
+            "updateConcluido", "updateReabrir", "updateReinicioManual", "updateTitulo", "updateAvisoReinicio",
+            "updateRepetir", "updateAcompanhar", "updateSemEstado",
             "updateErro", "scriptAtualizado", "erroAtualizacao"];
         for (var k = 0; k < keys.length; k++) { traducoes[keys[k]] = t(keys[k]); }
         var traduzir = function(key) { return traducoes[key] || key; };
         view.running = true;
         view.botao.enabled = false;
         view.acao.visible = false;
+        view.acao.maximumSize.width = 0;
+        view.barra.maximumSize.width = 100;
         view.painel.visible = true;
         view.painel.maximumSize.height = 1000;
         for (var i = 0; i < janela.children.length; i++) {
@@ -334,10 +358,10 @@ function executarUpdate(t) {
             }
         }
         view.texto.text = traduzir("updateVerificar");
-        janela.layout.layout(true);
+        atualizarLayoutUpdate(janela);
         janela.update();
         if (!view.pending) {
-            var projectDir = obterDiretorioProjeto();
+            var projectDir = view.scriptFile.parent.fsName;
             var runnerFile = new File(projectDir + "/infrastructure/update_runner.bat");
             if (!runnerFile.exists) { throw new Error("Updater: " + runnerFile.fsName); }
             var pastaUpdater = obterPastaUpdater();
@@ -362,7 +386,9 @@ function executarUpdate(t) {
             }
             var progresso = apresentarProgressoUpdate(status, traduzir);
             view.texto.text = progresso.texto;
+            view.texto.helpTip = progresso.texto;
             view.barra.value = progresso.percent;
+            view.barra.visible = !!(status && status.filesTotal);
             janela.update();
             // No false failure and no duplicate install if a worker stops reporting.
             if (new Date().getTime() - ultimaMudanca > 600000) {
@@ -375,12 +401,15 @@ function executarUpdate(t) {
         }
         view.pending = false;
         var updated = status.state === "UPDATED";
+        view.updated = updated;
         var current = status.state === "ALREADY_CURRENT";
         view.texto.text = traduzir(updated ? "updateConcluido" : current ? "scriptAtualizado" : "updateErro");
         view.barra.value = updated || current ? 100 : 0;
+        view.barra.visible = false;
+        view.barra.maximumSize.width = 0;
         view.campo.text = mensagemEstadoUpdate(status, traduzir).mensagem;
-        view.acao.text = traduzir(updated ? "updateFechar" : "updateRepetir");
-        view.acao.onClick = updated ? fecharJanelaPrincipalAposUpdate : function() { executarUpdate(t); };
+        view.acao.text = traduzir(updated ? "updateReabrir" : "updateRepetir");
+        view.acao.onClick = updated ? function() { reiniciarScript(view.scriptFile, traduzir); } : function() { executarUpdate(t); };
         view.botao.enabled = !updated;
     } catch (e) {
         view.texto.text = t("updateErro");
@@ -389,7 +418,8 @@ function executarUpdate(t) {
         view.acao.onClick = function() { executarUpdate(t); };
     } finally {
         view.running = false;
-        view.acao.visible = true;
+        view.acao.visible = !(status && status.state === "ALREADY_CURRENT");
+        view.acao.maximumSize.width = view.acao.visible ? 1000 : 0;
         if (!view.pending) {
             for (var j = 0; j < bloqueados.length; j++) {
                 bloqueados[j].control.enabled = bloqueados[j].enabled;
@@ -397,103 +427,28 @@ function executarUpdate(t) {
             view.bloqueados = null;
             view.botao.enabled = !(status && status.state === "UPDATED");
         }
-        janela.layout.layout(true);
+        view.texto.helpTip = view.texto.text;
+        atualizarLayoutUpdate(janela);
     }
+    // Reload only after finally has released the close guard and finished using the old UI.
+    if (view.updated) { reiniciarScript(view.scriptFile, traduzir); }
 }
 
-function fecharJanelaPrincipalAposUpdate() {
+// The caller captures the file and translated messages before replacing files on disk.
+function reiniciarScript(scriptFile, traduzir) {
     try {
-        if ($.global.janelaScript && $.global.janelaScript.close) {
-            $.global.janelaScript.close();
-            $.global.janelaScript = null;
+        if (!scriptFile || !scriptFile.exists) { throw new Error(String(scriptFile)); }
+        var janela = $.global.janelaScript;
+        if (janela && janela.close && janela.close() === false) {
+            throw new Error(traduzir("updateReabrir"));
         }
-    } catch (e) {}
-}
-
-/**
- * Função para reiniciar o script após o update
- */
-function reiniciarScript() {
-    try {
-        if (logs && logs.adicionarLog) {
-            logs.adicionarLog("Iniciando reinicialização do script", logs.TIPOS_LOG ? logs.TIPOS_LOG.INFO : "INFO");
-        }
-        
-        // Fechar janela principal se existir
-        if ($.global.janelaScript && $.global.janelaScript.close) {
-            if (logs && logs.adicionarLog) {
-                logs.adicionarLog("Fechando janela principal", logs.TIPOS_LOG ? logs.TIPOS_LOG.INFO : "INFO");
-            }
-            $.global.janelaScript.close();
-            $.global.janelaScript = null;
-        }
-        
-        // Aguardar um pouco para garantir que a janela foi fechada
-        $.sleep(1000);
-        
-        // Executar o script novamente
-        var projectDir = obterDiretorioProjeto();
-        var scriptPath = projectDir + "/script.jsx";
-        var novoScript = new File(scriptPath);
-        
-        if (novoScript.exists) {
-            if (logs && logs.adicionarLog) {
-                logs.adicionarLog("Reiniciando script: " + scriptPath, logs.TIPOS_LOG ? logs.TIPOS_LOG.INFO : "INFO");
-            }
-            
-            // Método mais confiável de reinício
-            try {
-                // Log do caminho completo para debugging
-                if (logs && logs.adicionarLog) {
-                    logs.adicionarLog("Caminho completo do script: " + novoScript.fsName, logs.TIPOS_LOG ? logs.TIPOS_LOG.INFO : "INFO");
-                }
-                
-                // Aguardar mais tempo para garantir que o arquivo foi atualizado
-                $.sleep(500);
-                
-                // Tentar recarregar o script
-                $.evalFile(novoScript);
-                
-                if (logs && logs.adicionarLog) {
-                    logs.adicionarLog("Script reiniciado com sucesso", logs.TIPOS_LOG ? logs.TIPOS_LOG.INFO : "INFO");
-                }
-                
-            } catch (evalError) {
-                if (logs && logs.adicionarLog) {
-                    logs.adicionarLog("Erro ao executar $.evalFile: " + evalError.message, logs.TIPOS_LOG ? logs.TIPOS_LOG.ERROR : "ERROR");
-                }
-                
-                // Fallback: mostrar mensagem para reinício manual
-                if (ui && ui.mostrarAlertaPersonalizado) {
-                    ui.mostrarAlertaPersonalizado(
-                        "Atualização concluída com sucesso!\n\nPor favor, execute o script manualmente para carregar a nova versão.\n\nDetalhes: " + evalError.message, 
-                        "Reinício Manual Necessário"
-                    );
-                } else {
-                    alert("Atualização concluída! Por favor, execute o script manualmente.\nErro: " + evalError.message);
-                }
-            }
-        } else {
-            if (ui && ui.mostrarAlertaPersonalizado) {
-                ui.mostrarAlertaPersonalizado("Arquivo do script não encontrado para reinicialização: " + scriptPath, "Erro");
-            } else {
-                alert("Arquivo do script não encontrado para reinicialização");
-            }
-        }
-        
+        $.global.janelaScript = null;
+        $.evalFile(scriptFile);
+        if (!$.global.janelaScript) { throw new Error(traduzir("updateReabrir")); }
+        return true;
     } catch (e) {
-        if (logs && logs.adicionarLog) {
-            logs.adicionarLog("Erro ao reiniciar script: " + e.message, logs.TIPOS_LOG ? logs.TIPOS_LOG.ERROR : "ERROR");
-        }
-        
-        if (ui && ui.mostrarAlertaPersonalizado) {
-            ui.mostrarAlertaPersonalizado(
-                "Atualização concluída com sucesso, mas houve um erro ao reiniciar automaticamente.\n\nPor favor, execute o script manualmente.\n\nErro: " + e.message, 
-                "Reinicialização Manual Necessária"
-            );
-        } else {
-            alert("Atualização concluída. Por favor, execute o script manualmente.\nErro: " + e.message);
-        }
+        alert(traduzir("updateReinicioManual") + "\n\n" + String(e), traduzir("updateTitulo"));
+        return false;
     }
 }
 

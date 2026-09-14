@@ -172,17 +172,6 @@ function Test-WriteAccess {
     }
 }
 
-function ConvertTo-RawUrlPath {
-    param([string]$Path)
-
-    $segments = @($Path -split "/")
-    $encodedSegments = @()
-    foreach ($segment in $segments) {
-        $encodedSegments += [Uri]::EscapeDataString($segment)
-    }
-    return ($encodedSegments -join "/")
-}
-
 function Should-IncludeFile {
     param([string]$Path)
 
@@ -214,7 +203,7 @@ function Should-IncludeFile {
 function Invoke-GitHubJson {
     param([string]$Url)
 
-    return Invoke-RestMethod -Uri $Url -Method Get -Headers @{
+    return Invoke-RestMethod -Uri $Url -Method Get -TimeoutSec 60 -Headers @{
         "User-Agent" = "Legenda-Updater"
         "Accept" = "application/vnd.github+json"
     }
@@ -224,6 +213,8 @@ Ensure-Directory -Path (Split-Path -Path $LogPath -Parent)
 Set-Content -LiteralPath $LogPath -Value "" -Encoding UTF8
 Write-Status -State "RUNNING" -Message "Atualizacao iniciada." -ExitCode 0 -Extra @{}
 Write-Log ("Starting GitHub project update. Source={0} Repo={1}/{2} Branch={3}" -f $SourceDir, $RepoOwner, $RepoName, $Branch)
+$workDir = $null
+$totalTimer = [Diagnostics.Stopwatch]::StartNew()
 
 try {
     if (-not (Test-Path -LiteralPath $SourceDir)) {
@@ -244,10 +235,15 @@ try {
         }
     }
 
-    $versionUrl = "https://raw.githubusercontent.com/$RepoOwner/$RepoName/$Branch/assets/version.json"
-    Write-Log ("Fetching remote version: {0}" -f $versionUrl)
+    $versionUrl = "https://api.github.com/repos/$RepoOwner/$RepoName/commits/" + [Uri]::EscapeDataString($Branch)
     try {
+        $commit = (Invoke-GitHubJson -Url $versionUrl).sha
+        if ($commit -notmatch '^[0-9a-f]{40}$') { throw "Invalid GitHub commit." }
+        $script:StatusBase["commit"] = $commit
+        $versionUrl = "https://raw.githubusercontent.com/$RepoOwner/$RepoName/$commit/assets/version.json"
+        Write-Log ("Fetching remote version: {0}" -f $versionUrl)
         $remoteVersionData = Invoke-GitHubJson -Url $versionUrl
+        if ([string]::IsNullOrWhiteSpace($remoteVersionData.version)) { throw "Missing remote version." }
     } catch {
         Write-Log ("Remote version fetch failed: {0}" -f $_.Exception.Message)
         Write-Status -State "DOWNLOAD_FAILED" -Message "Nao foi possivel consultar a versao remota." -ExitCode 30 -Extra @{
@@ -314,95 +310,74 @@ try {
         exit 20
     }
 
-    $treeUrl = "https://api.github.com/repos/$RepoOwner/$RepoName/git/trees/$Branch" + "?recursive=1"
-    Write-Log ("Fetching repository tree: {0}" -f $treeUrl)
-    try {
-        $treeResponse = Invoke-GitHubJson -Url $treeUrl
-    } catch {
-        Write-Log ("Repository tree fetch failed: {0}" -f $_.Exception.Message)
-        Write-Status -State "DOWNLOAD_FAILED" -Message "Nao foi possivel obter a lista de ficheiros do GitHub." -ExitCode 30 -Extra @{
-            localVersion = $localVersion
-            remoteVersion = $remoteVersion
-            failedUrl = $treeUrl
-        }
-        exit 30
-    }
+    $tempBase = [IO.Path]::GetFullPath((Join-Path ([IO.Path]::GetTempPath()) "LegendaUpdate"))
+    $workDir = Join-Path $tempBase ([guid]::NewGuid().ToString("N"))
+    Ensure-Directory -Path $workDir
+    $archivePath = Join-Path $workDir "project.zip"
+    $extractDir = Join-Path $workDir "extracted"
+    $archiveUrl = "https://codeload.github.com/$RepoOwner/$RepoName/zip/$commit"
+    $phaseTimer = [Diagnostics.Stopwatch]::StartNew()
 
-    if ($treeResponse.truncated) {
-        Write-Log "GitHub returned a truncated tree."
-        Write-Status -State "DOWNLOAD_FAILED" -Message "A lista de ficheiros do GitHub veio incompleta." -ExitCode 30 -Extra @{
-            localVersion = $localVersion
-            remoteVersion = $remoteVersion
-        }
-        exit 30
-    }
-
-    $files = @($treeResponse.tree | Where-Object {
-        $_.type -eq "blob" -and (Should-IncludeFile -Path $_.path)
-    })
-
-    if ($files.Count -eq 0) {
-        Write-Log "No files found in repository tree after filtering."
-        Write-Status -State "DOWNLOAD_FAILED" -Message "Nao foram encontrados ficheiros para descarregar." -ExitCode 30 -Extra @{
-            localVersion = $localVersion
-            remoteVersion = $remoteVersion
-        }
-        exit 30
-    }
-
-    $tempBase = Join-Path ([System.IO.Path]::GetTempPath()) "LegendaUpdate"
-    $downloadDir = Join-Path $tempBase $RunId
-    if (Test-Path -LiteralPath $downloadDir) {
-        Remove-Item -LiteralPath $downloadDir -Recurse -Force -ErrorAction SilentlyContinue
-    }
-    Ensure-Directory -Path $downloadDir
-
-    Write-Log ("Downloading {0} files to {1}" -f $files.Count, $downloadDir)
+    Write-Log ("Downloading archive: {0}" -f $archiveUrl)
     Write-Status -State "DOWNLOADING" -Message "A descarregar projeto do GitHub." -ExitCode 0 -Extra @{
         localVersion = $localVersion
         remoteVersion = $remoteVersion
-        filesTotal = $files.Count
-        filesDownloaded = 0
+        phase = "DOWNLOAD"
     }
+    try {
+        Invoke-WebRequest -Uri $archiveUrl -UseBasicParsing -TimeoutSec 120 -OutFile $archivePath -Headers @{"User-Agent" = "Legenda-Updater"}
+    } catch {
+        Write-Log ("Archive download failed: {0}" -f $_.Exception.Message)
+        Write-Status -State "DOWNLOAD_FAILED" -Message "Falha ao descarregar o ZIP do GitHub." -ExitCode 30 -Extra @{
+            localVersion = $localVersion
+            remoteVersion = $remoteVersion
+            failedUrl = $archiveUrl
+        }
+        exit 30
+    }
+    Write-Log ("Download completed in {0:N2}s." -f $phaseTimer.Elapsed.TotalSeconds)
 
-    $client = New-Object System.Net.WebClient
-    $client.Headers.Add("User-Agent", "Legenda-Updater")
-
-    $downloaded = 0
-    foreach ($file in $files) {
-        $relativePath = ($file.path -replace "\\", "/")
-        $destination = Join-Path $downloadDir ($relativePath -replace "/", [System.IO.Path]::DirectorySeparatorChar)
-        Ensure-Directory -Path (Split-Path -Path $destination -Parent)
-
-        $rawPath = ConvertTo-RawUrlPath -Path $relativePath
-        $downloadUrl = "https://raw.githubusercontent.com/$RepoOwner/$RepoName/$Branch/$rawPath"
-
+    # Keep DOWNLOADING for older JSX clients, which treat unknown states as terminal.
+    Write-Status -State "DOWNLOADING" -Message "A descompactar projeto." -ExitCode 0 -Extra @{
+        localVersion = $localVersion
+        remoteVersion = $remoteVersion
+        phase = "EXTRACTING"
+    }
+    $phaseTimer.Restart()
+    try {
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $archive = [IO.Compression.ZipFile]::OpenRead($archivePath)
         try {
-            $client.DownloadFile($downloadUrl, $destination)
-            $downloaded++
-        } catch {
-            Write-Log ("Download failed for {0}: {1}" -f $relativePath, $_.Exception.Message)
-            Write-Status -State "DOWNLOAD_FAILED" -Message "Falha ao descarregar ficheiro do GitHub." -ExitCode 30 -Extra @{
-                localVersion = $localVersion
-                remoteVersion = $remoteVersion
-                failedFile = $relativePath
-                filesDownloaded = $downloaded
-                filesTotal = $files.Count
+            $extractPrefix = [IO.Path]::GetFullPath($extractDir) + [IO.Path]::DirectorySeparatorChar
+            foreach ($entry in $archive.Entries) {
+                $entryPath = $entry.FullName.Replace('/', '\')
+                $target = [IO.Path]::GetFullPath((Join-Path $extractDir $entryPath))
+                if ($entryPath.Contains(':') -or [IO.Path]::IsPathRooted($entryPath) -or
+                    -not $target.StartsWith($extractPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+                    throw "Unsafe ZIP path: $($entry.FullName)"
+                }
             }
-            exit 30
+        } finally {
+            $archive.Dispose()
         }
-
-        if (($downloaded % 20) -eq 0 -or $downloaded -eq $files.Count) {
-            Write-Status -State "DOWNLOADING" -Message "A descarregar projeto do GitHub." -ExitCode 0 -Extra @{
-                localVersion = $localVersion
-                remoteVersion = $remoteVersion
-                filesTotal = $files.Count
-                filesDownloaded = $downloaded
-            }
+        [IO.Compression.ZipFile]::ExtractToDirectory($archivePath, $extractDir)
+        $roots = @(Get-ChildItem -LiteralPath $extractDir -Force)
+        if ($roots.Count -ne 1 -or -not $roots[0].PSIsContainer) { throw "Invalid ZIP root folder." }
+        $downloadDir = $roots[0].FullName
+        $files = @(Get-ChildItem -LiteralPath $downloadDir -Recurse -File -Force | ForEach-Object {
+            $relativePath = $_.FullName.Substring($downloadDir.Length + 1).Replace('\', '/')
+            if (Should-IncludeFile -Path $relativePath) { [pscustomobject]@{path = $relativePath} }
+        } | Sort-Object @{Expression = {$_.path -eq 'assets/version.json'}}, path)
+    } catch {
+        Write-Log ("Invalid archive: {0}" -f $_.Exception.Message)
+        Write-Status -State "INVALID_PACKAGE" -Message "Nao foi possivel validar ou descompactar o ZIP." -ExitCode 32 -Extra @{
+            localVersion = $localVersion
+            remoteVersion = $remoteVersion
         }
+        exit 32
     }
-
-    $client.Dispose()
+    $downloaded = $files.Count
+    Write-Log ("Extraction completed in {0:N2}s. Files={1}" -f $phaseTimer.Elapsed.TotalSeconds, $files.Count)
 
     $requiredFiles = @(
         "script.jsx",
@@ -414,7 +389,7 @@ try {
 
     foreach ($requiredFile in $requiredFiles) {
         $requiredPath = Join-Path $downloadDir $requiredFile
-        if (-not (Test-Path -LiteralPath $requiredPath)) {
+        if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
             Write-Log ("Required file missing from downloaded project: {0}" -f $requiredFile)
             Write-Status -State "INVALID_PACKAGE" -Message "O projeto descarregado esta incompleto." -ExitCode 32 -Extra @{
                 localVersion = $localVersion
@@ -425,8 +400,13 @@ try {
         }
     }
 
-    $packageVersion = (Read-JsonFile -Path (Join-Path $downloadDir "assets\version.json")).version
-    if ((Compare-Version -Left $packageVersion -Right $remoteVersion) -ne 0) {
+    try {
+        $packageVersion = (Read-JsonFile -Path (Join-Path $downloadDir "assets\version.json")).version
+    } catch {
+        Write-Log ("Invalid package version: {0}" -f $_.Exception.Message)
+        $packageVersion = $null
+    }
+    if ([string]::IsNullOrWhiteSpace($packageVersion) -or (Compare-Version -Left $packageVersion -Right $remoteVersion) -ne 0) {
         Write-Log ("Downloaded package version mismatch: package={0} remote={1}" -f $packageVersion, $remoteVersion)
         Write-Status -State "INVALID_PACKAGE" -Message "A versao descarregada nao corresponde a versao remota." -ExitCode 32 -Extra @{
             localVersion = $localVersion
@@ -437,6 +417,7 @@ try {
     }
 
     Write-Log "Copying downloaded files to current installation."
+    $phaseTimer.Restart()
     Write-Status -State "COPYING" -Message "A copiar ficheiros para a pasta atual." -ExitCode 0 -Extra @{
         localVersion = $localVersion
         remoteVersion = $remoteVersion
@@ -480,6 +461,8 @@ try {
     }
 
     $installedVersion = (Read-JsonFile -Path $localVersionPath).version
+    if ((Compare-Version -Left $installedVersion -Right $remoteVersion) -ne 0) { throw "Installed version mismatch." }
+    Write-Log ("Copy completed in {0:N2}s. Total={1:N2}s." -f $phaseTimer.Elapsed.TotalSeconds, $totalTimer.Elapsed.TotalSeconds)
     Write-Log ("Update finished successfully. installed={0} files={1}" -f $installedVersion, $copied)
     Write-Status -State "UPDATED" -Message "Atualizacao concluida." -ExitCode 0 -Extra @{
         localVersion = $localVersion
@@ -494,4 +477,16 @@ try {
     Write-Log ("Fatal error: {0}" -f $_.Exception.Message)
     Write-Status -State "FAILED" -Message $_.Exception.Message -ExitCode 1 -Extra @{}
     exit 1
+} finally {
+    if ($workDir) {
+        try {
+            $cleanupPath = [IO.Path]::GetFullPath($workDir)
+            if (-not $cleanupPath.StartsWith($tempBase + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+                throw "Invalid temporary folder for cleanup."
+            }
+            Remove-Item -LiteralPath $cleanupPath -Recurse -Force -ErrorAction Stop
+        } catch {
+            try { Write-Log ("Temporary cleanup failed: {0}" -f $_.Exception.Message) } catch {}
+        }
+    }
 }

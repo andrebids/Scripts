@@ -129,7 +129,9 @@ function obterDescricaoOursin(texto) {
     var cor = match[2];
     if (nome === "oursin 2d") {
         // Manter o acabamento antigo, acrescentando LED apenas à cor da luz.
-        cor = cor.replace(/^((?:argent|or)\s+)?(blanc\b)/i, "$1led $2");
+        cor = cor.replace(/^((?:argent|or)\s+)?(blanc\b)/i, function(texto, acabamento, branco) {
+            return (acabamento || "") + "led " + branco;
+        });
     }
     return { nome: nome, cor: cor };
 }

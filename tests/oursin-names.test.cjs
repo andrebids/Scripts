@@ -79,3 +79,14 @@ const oldPhrase = phrase(ctx.processarComponentes(oldItems).componentesTexto);
 assert.ok(oldPhrase.includes('oursin 3d or led blanc chaud + flash blanc pur'),oldPhrase);
 assert.ok(oldPhrase.includes('oursin 2d argent led blanc pur + flash blanc pur'),oldPhrase);
 console.log('Full description pipeline passed: separate families, combined colors, LED prefix and legacy finishes.');
+
+for (const [input, expected] of [
+  ['oursin 2d blanc pur', 'led blanc pur'],
+  ['oursin 2d blanc chaud', 'led blanc chaud'],
+  ['oursin 2d argent blanc pur', 'argent led blanc pur'],
+  ['oursin 2d or blanc chaud', 'or led blanc chaud'],
+  ['oursin 2d led blanc pur', 'led blanc pur']
+]) {
+  assert.equal(ctx.obterDescricaoOursin(input).cor, expected);
+}
+console.log('LED replacement passed: missing finish never becomes undefined.');

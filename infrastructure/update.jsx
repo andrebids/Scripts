@@ -108,16 +108,14 @@ function escreverArquivoTexto(arquivo, conteudo) {
 }
 
 function criarLauncherUpdate(pastaUpdater, runnerFile, projectDir, runId, statusFile, logFile) {
-    var launcher = new File(pastaUpdater.fsName + "/launch_" + runId + ".bat");
-    var conteudo = [
-        "@echo off",
-        "call \"" + runnerFile.fsName + "\" \"" + projectDir + "\" \"" + runId + "\" \"" + statusFile.fsName + "\" \"" + logFile.fsName + "\""
-    ].join("\r\n");
-
+    // WScript launches the existing runner hidden, including its console child.
+    var launcher = new File(pastaUpdater.fsName + "/launch_" + runId + ".vbs");
+    var command = 'cmd.exe /d /s /c ""' + runnerFile.fsName + '" "' + projectDir +
+        '" "' + runId + '" "' + statusFile.fsName + '" "' + logFile.fsName + '""';
+    var conteudo = 'CreateObject("WScript.Shell").Run "' + command.replace(/"/g, '""') + '", 0, False';
     if (!escreverArquivoTexto(launcher, conteudo)) {
-        throw new Error("Não foi possível criar o launcher do update: " + launcher.fsName);
+        throw new Error("Não foi possível criar o launcher: " + launcher.fsName);
     }
-
     return launcher;
 }
 
@@ -266,80 +264,140 @@ function mensagemEstadoUpdate(status, t) {
     };
 }
 
+function criarInterfaceUpdate(janela, botao, t) {
+    var painel = janela.add("panel", undefined, t("updateTitulo"));
+    painel.orientation = "column";
+    painel.alignChildren = ["fill", "top"];
+    painel.visible = false;
+    painel.maximumSize.height = 0;
+    var texto = painel.add("statictext", undefined, "", {multiline: true});
+    texto.preferredSize.height = 36;
+    var barra = painel.add("progressbar", undefined, 0, 100);
+    barra.preferredSize.height = 12;
+    var acoes = painel.add("group");
+    var acao = acoes.add("button", undefined, t("updateRepetir"));
+    var detalhes = acoes.add("button", undefined, t("updateDetalhes"));
+    var campo = painel.add("edittext", undefined, "", {multiline: true, readonly: true, scrolling: true});
+    campo.preferredSize.height = 90;
+    campo.visible = false;
+    campo.maximumSize.height = 0;
+    detalhes.onClick = function() {
+        campo.visible = !campo.visible;
+        campo.maximumSize.height = campo.visible ? 90 : 0;
+        janela.layout.layout(true);
+    };
+    var view = {painel: painel, texto: texto, barra: barra, acao: acao,
+        campo: campo, botao: botao, running: false, pending: false};
+    janela.updateView = view;
+    var onClose = janela.onClose;
+    janela.onClose = function() {
+        if (view.running || view.pending) { return false; }
+        return onClose ? onClose.call(janela) : true;
+    };
+    return view;
+}
+
+function apresentarProgressoUpdate(status, t) {
+    var state = status ? status.state : "RUNNING";
+    var total = Number(status && status.filesTotal) || 0;
+    var count = Number(status && (state === "COPYING" ? status.filesCopied : status.filesDownloaded)) || 0;
+    var key = state === "COPYING" ? "updateInstalar" :
+        state === "DOWNLOADING" ? "updateDownload" : state === "ELEVATING" ? "updatePermissao" : "updateVerificar";
+    return {texto: t(key) + (total && (state === "COPYING" || state === "DOWNLOADING") ?
+        " — " + count + "/" + total : ""), percent: total ? Math.min(100, Math.max(0, count / total * 100)) : 0};
+}
+
 function executarUpdate(t) {
+    var janela = $.global.janelaScript;
+    var view = janela && janela.updateView;
+    if (!view || view.running) { return; }
+    var bloqueados = view.bloqueados || [];
+    view.bloqueados = bloqueados;
     try {
-        var projectDir = obterDiretorioProjeto();
-        var runnerFile = new File(projectDir + "/infrastructure/update_runner.bat");
-
-        if (!runnerFile.exists) {
-            mostrarAlertaUpdate(
-                "Arquivo de update não encontrado: " + runnerFile.fsName,
-                "Erro na Atualização"
-            );
-            return;
+        // Cache translated copy before the updater can replace files on disk.
+        var traducoes = {};
+        var keys = ["updateVerificar", "updateDownload", "updateInstalar", "updatePermissao",
+            "updateConcluido", "updateFechar", "updateRepetir", "updateAcompanhar", "updateSemEstado",
+            "updateErro", "scriptAtualizado", "erroAtualizacao"];
+        for (var k = 0; k < keys.length; k++) { traducoes[keys[k]] = t(keys[k]); }
+        var traduzir = function(key) { return traducoes[key] || key; };
+        view.running = true;
+        view.botao.enabled = false;
+        view.acao.visible = false;
+        view.painel.visible = true;
+        view.painel.maximumSize.height = 1000;
+        for (var i = 0; i < janela.children.length; i++) {
+            var child = janela.children[i];
+            if (child !== view.painel && !view.pending) {
+                bloqueados.push({control: child, enabled: child.enabled});
+                child.enabled = false;
+            }
         }
-
-        var pastaUpdater = obterPastaUpdater();
-        var runId = criarRunId();
-        var statusFile = new File(pastaUpdater.fsName + "/status_" + runId + ".json");
-        var logFile = new File(pastaUpdater.fsName + "/update_" + runId + ".log");
-        var launcher = criarLauncherUpdate(pastaUpdater, runnerFile, projectDir, runId, statusFile, logFile);
-
-        removerArquivoSeExistir(statusFile);
-
-        if (!launcher.execute()) {
-            throw new Error("Não foi possível iniciar o update_runner.bat");
+        view.texto.text = traduzir("updateVerificar");
+        janela.layout.layout(true);
+        janela.update();
+        if (!view.pending) {
+            var projectDir = obterDiretorioProjeto();
+            var runnerFile = new File(projectDir + "/infrastructure/update_runner.bat");
+            if (!runnerFile.exists) { throw new Error("Updater: " + runnerFile.fsName); }
+            var pastaUpdater = obterPastaUpdater();
+            var runId = criarRunId();
+            view.statusFile = new File(pastaUpdater.fsName + "/status_" + runId + ".json");
+            view.logFile = new File(pastaUpdater.fsName + "/update_" + runId + ".log");
+            var launcher = criarLauncherUpdate(pastaUpdater, runnerFile, projectDir, runId, view.statusFile, view.logFile);
+            if (!launcher.execute()) { throw new Error("Launcher: " + launcher.fsName); }
+            view.pending = true;
         }
-
-        var timeoutMs = 20000;
-        var intervaloMs = 500;
-        var aguardadoMs = 0;
+        view.campo.text = "Log: " + view.logFile.fsName;
+        var ultimoTexto = "";
+        var ultimaMudanca = new Date().getTime();
         var status = null;
-
-        while (aguardadoMs < timeoutMs) {
-            $.sleep(intervaloMs);
-            aguardadoMs += intervaloMs;
-
-            if (statusFile.exists) {
-                status = lerStatusUpdate(statusFile);
-                if (status && estadoUpdateFinalizado(status.state)) {
-                    break;
-                }
+        while (true) {
+            var raw = lerConteudoArquivo(view.statusFile);
+            var lido = parsearJSONSeguro(raw);
+            if (lido && lido.state) {
+                status = lido;
+                if (raw !== ultimoTexto) { ultimaMudanca = new Date().getTime(); ultimoTexto = raw; }
+                if (estadoUpdateFinalizado(status.state)) { break; }
             }
-        }
-
-        if (!status) {
-            mostrarAlertaUpdate(
-                "Atualização iniciada em segundo plano.\n\nAinda não foi possível ler o estado do update.\n\nLog: " + logFile.fsName,
-                "Atualização em Progresso"
-            );
-            return;
-        }
-
-        if (!estadoUpdateFinalizado(status.state)) {
-            var progresso = "Atualização ainda em execução em segundo plano.";
-            if (status.filesDownloaded || status.filesTotal) {
-                progresso += "\n\nDownload: " + (status.filesDownloaded || 0) + "/" + (status.filesTotal || 0);
+            var progresso = apresentarProgressoUpdate(status, traduzir);
+            view.texto.text = progresso.texto;
+            view.barra.value = progresso.percent;
+            janela.update();
+            // No false failure and no duplicate install if a worker stops reporting.
+            if (new Date().getTime() - ultimaMudanca > 600000) {
+                view.texto.text = traduzir("updateSemEstado");
+                view.acao.text = traduzir("updateAcompanhar");
+                view.acao.onClick = function() { executarUpdate(t); };
+                return;
             }
-            if (status.filesCopied) {
-                progresso += "\nCópia: " + status.filesCopied + "/" + (status.filesTotal || 0);
-            }
-            progresso += "\n\nLog: " + logFile.fsName;
-            mostrarAlertaUpdate(progresso, "Atualização em Progresso");
-            return;
+            $.sleep(250);
         }
-
-        var resultado = mensagemEstadoUpdate(status, t);
-        mostrarAlertaUpdate(
-            resultado.mensagem,
-            resultado.titulo,
-            resultado.fecharJanela ? function() {
-                fecharJanelaPrincipalAposUpdate();
-            } : null
-        );
-
+        view.pending = false;
+        var updated = status.state === "UPDATED";
+        var current = status.state === "ALREADY_CURRENT";
+        view.texto.text = traduzir(updated ? "updateConcluido" : current ? "scriptAtualizado" : "updateErro");
+        view.barra.value = updated || current ? 100 : 0;
+        view.campo.text = mensagemEstadoUpdate(status, traduzir).mensagem;
+        view.acao.text = traduzir(updated ? "updateFechar" : "updateRepetir");
+        view.acao.onClick = updated ? fecharJanelaPrincipalAposUpdate : function() { executarUpdate(t); };
+        view.botao.enabled = !updated;
     } catch (e) {
-        mostrarAlertaUpdate(t("erroAtualizacao") + ": " + e, "Erro na Atualização");
+        view.texto.text = t("updateErro");
+        view.campo.text = String(e) + (view.logFile ? "\nLog: " + view.logFile.fsName : "");
+        view.acao.text = t(view.pending ? "updateAcompanhar" : "updateRepetir");
+        view.acao.onClick = function() { executarUpdate(t); };
+    } finally {
+        view.running = false;
+        view.acao.visible = true;
+        if (!view.pending) {
+            for (var j = 0; j < bloqueados.length; j++) {
+                bloqueados[j].control.enabled = bloqueados[j].enabled;
+            }
+            view.bloqueados = null;
+            view.botao.enabled = !(status && status.state === "UPDATED");
+        }
+        janela.layout.layout(true);
     }
 }
 

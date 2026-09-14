@@ -16,6 +16,7 @@ function lerArquivoJSON(caminho) {
         arquivo.close();
         
         var resultado = funcoes.parseJSON(conteudo);
+        agruparFamiliasOursin(resultado);
         if (typeof logs !== 'undefined' && logs.logArquivo) {
             logs.logArquivo("Leitura", caminho, true, conteudo.length + " chars");
         }
@@ -26,6 +27,43 @@ function lerArquivoJSON(caminho) {
         }
         throw new Error("Erro ao analisar o JSON: " + e.message);
     }
+}
+
+// Agrupar apenas em memória: as combinações conservam cores, unidades e referências.
+function agruparFamiliasOursin(dados) {
+    if (!dados || !dados.componentes || !dados.combinacoes) return;
+    var familias = {};
+    var componentes = [];
+    for (var i = 0; i < dados.componentes.length; i++) {
+        var componente = dados.componentes[i];
+        var match = /^(petit oursin|oursin(?: [23]d)?)(?: (argent|or))?$/i.exec(componente.nome);
+        if (!match) {
+            componentes.push(componente);
+            continue;
+        }
+        var nome = match[1].toLowerCase();
+        if (nome === "oursin") nome = "oursin 3d";
+        var familia = familias[nome];
+        var referenciaOriginal = componente.referencia;
+        if (!familia) {
+            familia = componente;
+            familia.nome = nome;
+            familia.referencia = "";
+            familia.semCor = false;
+            familias[nome] = familia;
+            componentes.push(familia);
+        }
+        for (var j = 0; j < dados.combinacoes.length; j++) {
+            var combinacao = dados.combinacoes[j];
+            if (combinacao.componenteId === componente.id) {
+                combinacao.componenteId = familia.id;
+                if (!combinacao.referencia && referenciaOriginal) {
+                    combinacao.referencia = referenciaOriginal;
+                }
+            }
+        }
+    }
+    dados.componentes = componentes;
 }
 
 // Função para escrever no arquivo JSON

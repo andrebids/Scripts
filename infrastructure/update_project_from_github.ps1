@@ -292,7 +292,7 @@ try {
                     "-SkipElevation"
                 )
 
-                $elevated = Start-Process -FilePath $pwsh -ArgumentList $argList -Verb RunAs -Wait -PassThru
+                $elevated = Start-Process -FilePath $pwsh -ArgumentList $argList -Verb RunAs -WindowStyle Hidden -Wait -PassThru
                 exit $elevated.ExitCode
             } catch {
                 Write-Log ("Elevation canceled or failed: {0}" -f $_.Exception.Message)

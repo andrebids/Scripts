@@ -67,7 +67,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v3.9");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v3.10");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -85,9 +85,11 @@ dropdownIdiomas.selection = dropdownIdiomas.find(IDIOMA_ATUAL);
 // Botão Update
 var botaoUpdate = grupoUpdate.add("button", undefined, t("botaoUpdate"));
 botaoUpdate.alignment = ["right", "center"];
-botaoUpdate.size = [60, 25];
+botaoUpdate.preferredSize = [110, 25];
 
 // Evento será configurado pelo módulo eventosUI
+
+criarInterfaceUpdate(janela, botaoUpdate, t);
 
 // Criar abas para Legenda e Contador de Bolas
 var abas = janela.add("tabbedpanel");

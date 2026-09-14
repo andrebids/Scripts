@@ -200,10 +200,13 @@ function gerarFrasePrincipal(parametros) {
                     nome = "flexi +";
                     resto = comp.replace(/^flexi\s*\+\s*/i, "");
 
+                } else if (/^petit oursin\b/i.test(comp)) {
+                    nome = "petit oursin";
+                    resto = comp.replace(/^petit oursin\s*/i, "");
                 } else if (/^oursin\s+/i.test(comp)) {
                     // Distinguir os oursin 2D dos modelos normais (3D) na frase principal.
                     nome = /^oursin\s+2d\b/i.test(comp) ? "oursin 2d" : "oursin 3d";
-                    resto = comp.replace(/^oursin\s+(?:2d\s+)?/i, "");
+                    resto = comp.replace(/^oursin\s+(?:[23]d\b\s*)?/i, "");
 
                 } else {
                     var partes = comp.split(' ');

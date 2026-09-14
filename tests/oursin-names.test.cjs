@@ -49,8 +49,33 @@ function phrase(names){return ctx.gerarFrasePrincipal({campoNomeTipo:'Test',comp
 const legacy=phrase(['oursin argent','oursin or','oursin 2d argent']);
 assert.equal(phrase(['oursin 3d argent','oursin 3d or','oursin 2d argent']),legacy);
 const grouped=phrase(['oursin 2d blanc pur','oursin 3d led blanc pur','petit oursin argent','petit oursin or']);
-assert.ok(grouped.includes('oursin 2d blanc pur'),grouped);
+assert.ok(grouped.includes('oursin 2d led blanc pur'),grouped);
 assert.ok(grouped.includes('oursin 3d led blanc pur'),grouped);
 assert.ok(grouped.includes('petit oursin argent et or'),grouped);
 assert.ok(!phrase(['oursin 3d']).includes('3d 3d'));
 console.log('Oursin checks passed: three families, color dropdowns, references, idempotence and legends.');
+
+// Exercise the actual pipeline: items are grouped before the main phrase is built.
+const items = [
+  'oursin 2d blanc chaud', 'oursin 2d blanc pur',
+  'oursin 3d led blanc chaud + flash blanc pur',
+  'petit oursin led blanc pur + flash blanc pur',
+  'oursin 2d led blanc pur'
+].map((nome,i)=>({tipo:'componente',nome,referencia:'REF'+i,unidade:'units',quantidade:1}));
+const processed = ctx.processarComponentes(items);
+assert.equal(processed.componentesTexto.length,3);
+assert.equal(processed.componentesReferencias.length,5);
+const finalPhrase = phrase(processed.componentesTexto);
+for (const family of ['oursin 2d','oursin 3d','petit oursin']) {
+  assert.equal(finalPhrase.split(family).length-1,1,finalPhrase);
+}
+assert.ok(finalPhrase.includes('oursin 2d led blanc chaud et led blanc pur'),finalPhrase);
+assert.ok(!finalPhrase.includes('led led'),finalPhrase);
+const oldItems = ['oursin 3d or led blanc chaud + flash blanc pur',
+  'oursin 2D argent blanc pur + flash blanc pur'].map((nome,i)=>({
+    tipo:'componente',nome,referencia:'OLD'+i,unidade:'units',quantidade:1
+  }));
+const oldPhrase = phrase(ctx.processarComponentes(oldItems).componentesTexto);
+assert.ok(oldPhrase.includes('oursin 3d or led blanc chaud + flash blanc pur'),oldPhrase);
+assert.ok(oldPhrase.includes('oursin 2d argent led blanc pur + flash blanc pur'),oldPhrase);
+console.log('Full description pipeline passed: separate families, combined colors, LED prefix and legacy finishes.');

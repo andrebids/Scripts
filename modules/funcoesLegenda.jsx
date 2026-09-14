@@ -121,6 +121,19 @@ function ajustarFilLumiereLED(texto) {
  * @param {string} parametros.tipoFixacao - Tipo de fixação selecionado
  * @returns {string} Frase principal formatada
  */
+function obterDescricaoOursin(texto) {
+    var match = /^(petit oursin|oursin(?:\s+[23]d)?)\b\s*(.*)$/i.exec(texto);
+    if (!match) return null;
+    var nome = match[1].toLowerCase().replace(/\s+/g, " ");
+    if (nome === "oursin") nome = "oursin 3d";
+    var cor = match[2];
+    if (nome === "oursin 2d") {
+        // Manter o acabamento antigo, acrescentando LED apenas à cor da luz.
+        cor = cor.replace(/^((?:argent|or)\s+)?(blanc\b)/i, "$1led $2");
+    }
+    return { nome: nome, cor: cor };
+}
+
 function gerarFrasePrincipal(parametros) {
     logLegenda("Iniciando geração da frase principal", "function");
     
@@ -186,6 +199,7 @@ function gerarFrasePrincipal(parametros) {
                 
                 // Verificar se é um componente composto que deve ser tratado como um todo
                 var nome, resto;
+                var oursin = obterDescricaoOursin(comp);
                 if (comp.toLowerCase() === "fil cométe" || comp.toLowerCase() === "fil comète" || comp.toLowerCase() === "fil lumiére") {
                     nome = comp.toLowerCase();
                     resto = "";
@@ -200,13 +214,9 @@ function gerarFrasePrincipal(parametros) {
                     nome = "flexi +";
                     resto = comp.replace(/^flexi\s*\+\s*/i, "");
 
-                } else if (/^petit oursin\b/i.test(comp)) {
-                    nome = "petit oursin";
-                    resto = comp.replace(/^petit oursin\s*/i, "");
-                } else if (/^oursin\s+/i.test(comp)) {
-                    // Distinguir os oursin 2D dos modelos normais (3D) na frase principal.
-                    nome = /^oursin\s+2d\b/i.test(comp) ? "oursin 2d" : "oursin 3d";
-                    resto = comp.replace(/^oursin\s+(?:[23]d\b\s*)?/i, "");
+                } else if (oursin) {
+                    nome = oursin.nome;
+                    resto = oursin.cor;
 
                 } else {
                     var partes = comp.split(' ');
@@ -467,6 +477,7 @@ function processarComponentes(itensLegenda) {
             } else if (item.tipo === "componente") {
                 // Tratamento especial para componentes compostos como "fil comète" e "fil lumiére"
                 var nomeComponente, corComponente;
+                var oursin = obterDescricaoOursin(item.nome);
                 
                 // Para "fil cométe" e "fil lumiére", usar a referencia se disponível
                 if (item.nome.toLowerCase() === "fil cométe" || item.nome.toLowerCase() === "fil lumiére") {
@@ -481,6 +492,9 @@ function processarComponentes(itensLegenda) {
                         corComponente = "";
 
                     }
+                } else if (oursin) {
+                    nomeComponente = oursin.nome;
+                    corComponente = oursin.cor;
                 } else {
                     // Para outros componentes, dividir normalmente
                     nomeComponente = item.nome.split(' ')[0];

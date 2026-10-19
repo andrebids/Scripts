@@ -142,7 +142,7 @@ function gerarFrasePrincipal(parametros) {
     try {
         var nomeTipoBruto = parametros.palavraDigitada || parametros.campoNomeTipo;
         var nomeTipo = (funcoes && funcoes.sanitizarTextoLegenda) ?
-            funcoes.sanitizarTextoLegenda(nomeTipoBruto, 120) :
+            funcoes.sanitizarTextoLegenda(nomeTipoBruto) :
             nomeTipoBruto;
         var escolhaNomeTipoTexto = String(parametros.escolhaNomeTipo || "").toLowerCase();
         var prefixoNomeTipo = (escolhaNomeTipoTexto === "tipo" || escolhaNomeTipoTexto === "type") ? "type " : "";
@@ -381,20 +381,16 @@ function gerarFrasePrincipal(parametros) {
                              decorTexto + " " + prefixoNomeTipo + "\"" + nomeTipo + "\"," + (textoFixacao !== "" ? textoFixacao + "," : "") + classificacao2D3D;
 
         if (parametros.alfabetoUsado) {
-            frasePrincipal += " en bioprint " + (parametros.corBioprint || "");
+            var materialAlfabeto = parametros.materialAlfabeto === "flexiprint" ? "flexiprint" : "bioprint";
+            frasePrincipal += " en " + materialAlfabeto + " " + (parametros.corBioprint || "");
         } else if (temBioprint) {
             // Se há bioprint nos componentes, usar "en" para bioprint
             frasePrincipal += " en " + componentesBioprint.join(", ");
-            
-            // Se há outros componentes, adicionar "avec"
-            if (componentesMateriais.length > 0) {
-                frasePrincipal += " avec " + componentesMateriais.join(", ");
-            }
-        } else {
-            // Se não há bioprint, só usar "avec" quando existirem componentes materiais
-            if (componentesMateriais.length > 0) {
-                frasePrincipal += " avec " + componentesMateriais.join(", ");
-            }
+        }
+
+        // Incluir os componentes também quando o material vem do alfabeto.
+        if (componentesMateriais.length > 0) {
+            frasePrincipal += " avec " + componentesMateriais.join(", ");
         }
 
         // Adicionar todos os componentes extras
@@ -840,9 +836,8 @@ function processarObservacoes(campoObs) {
     
     try {
         if (campoObs && campoObs.text && campoObs.text.toString().replace(/\s/g, '').length > 0) {
-            var observacaoCodificada = funcoes.encodeObservacao(campoObs.text);
-            logLegenda("Observação processada: " + observacaoCodificada, "info");
-            return "Obs: " + observacaoCodificada;
+            // O BridgeTalk serializa o texto completo como JSON, sem codificação %xx.
+            return "Obs: " + campoObs.text;
         }
         
         return "";
@@ -979,7 +974,7 @@ function processarCamposOpcionais(campoUsage, campoRectoVerso, campoDensiteLed, 
             var textoLimpo = textoQuantite.replace(/^\s+/, '').replace(/\s+$/, '');
             
             if (textoLimpo !== "") {
-                var quantiteTexto = "Quantité prévue: " + textoLimpo;
+                var quantiteTexto = "Quantité prévue: " + textoLimpo.replace('.', ',');
                 camposOpcionaisTexto.push(quantiteTexto);
                 logLegenda("Campo Quantité prévue processado: " + quantiteTexto, "info");
             }
@@ -992,7 +987,7 @@ function processarCamposOpcionais(campoUsage, campoRectoVerso, campoDensiteLed, 
             var textoLimpoPreco = textoPreco.replace(/^\s+/, '').replace(/\s+$/, '');
             
             if (textoLimpoPreco !== "") {
-                var precoTexto = "Prix: " + textoLimpoPreco + "€";
+                var precoTexto = "Prix: " + textoLimpoPreco.replace('.', ',') + "€";
                 camposOpcionaisTexto.push(precoTexto);
                 logLegenda("Campo Preço processado: " + precoTexto, "info");
             }
@@ -1094,6 +1089,7 @@ function atualizarPreview(parametros) {
             campoNomeTipo: parametros.campoNomeTipo ? parametros.campoNomeTipo.text : "",
             escolhaNomeTipo: parametros.escolhaNomeTipo ? parametros.escolhaNomeTipo.selection.text : "",
             alfabetoUsado: alfabetoUsado,
+            materialAlfabeto: resultadoAlfabeto.materialAlfabeto,
             corBioprint: corBioprint,
             listaL: parametros.listaL ? parametros.listaL.selection.text : "",
             componentesTexto: componentesTexto,

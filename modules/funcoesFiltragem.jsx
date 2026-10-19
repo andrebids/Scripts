@@ -230,9 +230,9 @@ function getCoresDisponiveisBolas(dados, t, arrayContains, encontrarPorId) {
 }
 
 /**
- * Preenche dropdown com cores disponíveis para bioprint
+ * Preenche dropdown com cores do material indicado (bioprint por padrão).
  */
-function preencherCoresBioprint(dropdownCorBioprint, dados, arrayContains, encontrarPorId) {
+function preencherCoresBioprint(dropdownCorBioprint, dados, arrayContains, encontrarPorId, material) {
     try {
         // Validação de entrada
         if (!dropdownCorBioprint) {
@@ -247,7 +247,7 @@ function preencherCoresBioprint(dropdownCorBioprint, dados, arrayContains, encon
         
         var componenteBioprint = null;
         for (var i = 0; i < dados.componentes.length; i++) {
-            if (dados.componentes[i].nome.toLowerCase() === "bioprint") {
+            if (dados.componentes[i].nome.toLowerCase() === (material || "bioprint")) {
                 componenteBioprint = dados.componentes[i];
                 break;
             }

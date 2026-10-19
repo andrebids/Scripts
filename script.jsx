@@ -67,7 +67,7 @@ var espacoFlexivel = grupoUpdate.add("group");
 espacoFlexivel.alignment = ["fill", "center"];
 
 // Texto da versão (antes do botão Update)
-var textoVersao = grupoUpdate.add("statictext", undefined, "v3.11");
+var textoVersao = grupoUpdate.add("statictext", undefined, "v3.12");
 textoVersao.graphics.font = ScriptUI.newFont(textoVersao.graphics.font.family, ScriptUI.FontStyle.REGULAR, 9);
 textoVersao.alignment = ["right", "center"];
 
@@ -664,7 +664,8 @@ function atualizarListaItens() {
                         return;
                     }
                     
-                    var legendaConteudo = legendaInfo.texto.replace(/(\d+)\.(\d+)/g, regras.formatarNumero);
+                    // Quantidades já são formatadas na origem; não alterar texto livre.
+                    var legendaConteudo = legendaInfo.texto;
                     var tamanhoGXSelecionado = alfabeto.obterTamanhoAlfabeto(itensLegenda);
                     var palavraDigitada = alfabeto.obterPalavraDigitadaAlfabeto(itensLegenda);
                     

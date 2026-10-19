@@ -21,6 +21,11 @@ function bootstrapCriarJanelaPrincipal() {
 
     var janela = new Window("palette", t("tituloJanela"), undefined);
 
+    // O fundo nativo da palette pode ficar preto após relayout no Illustrator.
+    janela.graphics.backgroundColor = janela.graphics.newBrush(
+        janela.graphics.BrushType.SOLID_COLOR, [0.32, 0.32, 0.32, 1]
+    );
+
     $.global.janelaScript = janela;
     janela.orientation = "column";
     janela.alignChildren = ["fill", "top"];

@@ -448,18 +448,25 @@ $.global.eventosUI = {};
                         logs.logEvento("click", "checkboxMostrarAlfabeto - valor: " + this.value);
                     }
                     
-                    if (this.value) {
-                        config.componentesAlfabeto = alfabeto.criarInterfaceAlfabeto(
-                            config.abaGeral, config.dados, config.janela, config.t, funcoesFiltragem, funcoes, config.itensLegenda, config.atualizarListaItens, config.campoNomeTipo, config.grupoDimensoes
-                        );
-                    } else {
-                        if (config.componentesAlfabeto) {
-                            alfabeto.removerInterfaceAlfabeto(config.componentesAlfabeto, config.janela);
-                            config.componentesAlfabeto = null;
+                    // Mesmo contorno do atualizador: evitar relayout/update com a palette visível.
+                    var visivel = config.janela.visible;
+                    if (visivel) config.janela.hide();
+                    try {
+                        if (this.value) {
+                            config.componentesAlfabeto = alfabeto.criarInterfaceAlfabeto(
+                                config.abaGeral, config.dados, config.janela, config.t, funcoesFiltragem, funcoes, config.itensLegenda, config.atualizarListaItens, config.campoNomeTipo, config.grupoDimensoes
+                            );
+                        } else {
+                            if (config.componentesAlfabeto) {
+                                alfabeto.removerInterfaceAlfabeto(config.componentesAlfabeto, config.janela);
+                                config.componentesAlfabeto = null;
+                            }
                         }
+                        config.janela.layout.layout(true);
+                        config.janela.layout.resize();
+                    } finally {
+                        if (visivel) config.janela.show();
                     }
-                    config.janela.layout.layout(true);
-                    config.janela.layout.resize();
                 };
             }
             

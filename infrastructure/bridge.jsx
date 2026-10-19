@@ -149,7 +149,7 @@ function processarResultadoContagem(contagem, combinacoes) {
                     var combInfo = combArray[i].split("=");
                     if (combInfo.length === 3) {
                         var cor = decodeURIComponent(combInfo[0]);
-                        var tamanho = combInfo[1];
+                        var tamanho = combInfo[1].replace('.', ',');
                         var quantidade = combInfo[2];
                         textoCompleto += "boule " + cor + " ⌀ " + tamanho + " m: " + quantidade + "\n";
                         logProtegido("Combinação processada: " + cor + " ⌀ " + tamanho + " m: " + quantidade, logs.TIPOS_LOG.INFO);
@@ -201,7 +201,7 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
                     "U": "GX234LW_" + sufixoTamanho + ".ai", "V": "GX235LW_" + sufixoTamanho + ".ai",
                     "W": "GX236LW_" + sufixoTamanho + ".ai", "X": "GX237LW_" + sufixoTamanho + ".ai",
                     "Y": "GX238LW_" + sufixoTamanho + ".ai", "Z": "GX239LW_" + sufixoTamanho + ".ai",
-                    "<3": "GX240LW_" + sufixoTamanho + ".ai", " ": "GX241LW_" + sufixoTamanho + ".ai"
+                    "<3": "GX240LW_" + sufixoTamanho + ".ai", "#": "GX241LW_" + sufixoTamanho + ".ai"
                 };
                 return mapeamento[caractere] || "";
             }
@@ -317,9 +317,14 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
                     var sufixoTamanho = (tamanhoGX === "1,40 m") ? "140" : "200";
                     alturaLetras = (tamanhoGX === "1,40 m") ? 200 : 300;
                     var posicaoX = artboardBounds[0] + 50;
-                    // Processar cada caractere da palavra
-                    for (var i = 0; i < palavraDigitada.length; i++) {
-                        var caractere = palavraDigitada.charAt(i).toUpperCase();
+                    // <3 é uma peça única; espaços separam letras sem inserir uma peça #.
+                    var caracteres = palavraDigitada.toUpperCase().match(/<3|[A-Z#]|\s/g) || [];
+                    for (var i = 0; i < caracteres.length; i++) {
+                        var caractere = caracteres[i];
+                        if (/\s/.test(caractere)) {
+                            posicaoX += espacamentoHorizontal;
+                            continue;
+                        }
                         var nomeArquivo = gerarNomeArquivoAlfabeto(caractere, sufixoTamanho);
                         var caminhoArquivo = caminhoAlfabeto + nomeArquivo;
                         var arquivoAlfabeto = new File(caminhoArquivo);
@@ -381,7 +386,7 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
             paragBids.paragraphAttributes.spaceAfter = 0;
 
             // Processar linhas do conteúdo da legenda
-            var linhas = conteudoLegenda.split('\n');
+            var linhas = conteudoLegenda.replace(/\r\n?/g, '\n').split('\n');
             
             for (var i = 0; i < linhas.length; i++) {
                 var linha = linhas[i];
@@ -391,40 +396,8 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
                     linha = linha.replace(/moquette blanc/i, "moquette blanche");
                 }
                 
-                // Decodificar observações processadas de forma segura
-                if (linha.indexOf("Obs:") === 0) {
-                    // Para observações, usar decodificação compatível
-                    var prefixoObs = "Obs:";
-                    var conteudoObs = linha.substring(4);
-                    var conteudoDecodificado = "";
-                    
-                    // Decodificar o conteúdo da observação
-                    var j = 0;
-                    while (j < conteudoObs.length) {
-                        if (conteudoObs.charAt(j) === '%' && j + 2 < conteudoObs.length) {
-                            var hex = conteudoObs.substring(j + 1, j + 3);
-                            try {
-                                var charCode = parseInt(hex, 16);
-                                conteudoDecodificado += String.fromCharCode(charCode);
-                                j += 3;
-                            } catch (e) {
-                                conteudoDecodificado += conteudoObs.charAt(j);
-                                j++;
-                            }
-                        } else {
-                            conteudoDecodificado += conteudoObs.charAt(j);
-                            j++;
-                        }
-                    }
-                    linha = prefixoObs + conteudoDecodificado;
-                } else {
-                    try {
-                        linha = decodeURI(linha);
-                    } catch (e) {
-                        // Usar linha original se falhar a decodificação
-                    }
-                }
-                
+                // Texto Unicode já foi transportado como JSON; %xx é texto literal.
+
                 try {
                     var novoParag = textoLegenda.paragraphs.add(linha);
                 } catch (e) {
@@ -476,65 +449,20 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
             return "success";
         };
 
-        // Preparar string do script com escape adequado para BridgeTalk
-        function escaparParaBridgeTalk(str) {
-            if (!str) return "";
-            return str.replace(/\\/g, "\\\\")   // Escape de barras invertidas
-                     .replace(/'/g, "\\'")      // Escape de aspas simples  
-                     .replace(/\n/g, "\\n")     // Escape de quebras de linha
-                     .replace(/\r/g, "\\r");    // Escape de retorno de carro
-        }
-        
-        // Processar legendaConteudo para aplicar escape específico para observações
-        function processarConteudoLegenda(conteudo) {
-            if (!conteudo) return "";
-            
-            logProtegido("Processando conteúdo de legenda para escape específico", logs.TIPOS_LOG.INFO);
-            
-            // Dividir o conteúdo em linhas
-            var linhas = conteudo.split('\n');
-            var linhasProcessadas = [];
-            
-            for (var i = 0; i < linhas.length; i++) {
-                var linha = linhas[i];
-                
-                // Se a linha é uma observação (começa com "Obs:")
-                if (linha && linha.indexOf("Obs:") === 0) {
-                    logProtegido("Linha de observação detectada, aplicando escape específico", logs.TIPOS_LOG.INFO);
-                    // Separar o prefixo "Obs:" do conteúdo da observação
-                    var prefixo = "Obs:";
-                    var conteudoObservacao = linha.substring(4); // Remove "Obs:" do início
-                    
-                    // Processar observação de forma segura: decodificar, recodificar para evitar conflitos
-                    var observacaoSegura = processarObservacaoSegura(conteudoObservacao);
-                    
-                    // Recompor a linha com escape padrão - observação já está segura
-                    var linhaProcessada = escaparParaBridgeTalk(prefixo + observacaoSegura);
-                    linhasProcessadas.push(linhaProcessada);
-                } else {
-                    // Para outras linhas, usar escape padrão
-                    var linhaProcessada = escaparParaBridgeTalk(linha);
-                    linhasProcessadas.push(linhaProcessada);
-                }
-            }
-            
-            var resultado = linhasProcessadas.join("\\n");
-            logProtegido("Conteúdo de legenda processado com sucesso", logs.TIPOS_LOG.INFO);
-            return resultado;
-        }
-        
-        var scriptString = "(" + scriptIllustrator.toString() + ")";
-        scriptString += "('" + escaparParaBridgeTalk(nomeDesigner) + "', '" + 
-                       processarConteudoLegenda(legendaConteudo) + "', '" + 
-                       (isArray(texturas) ? texturas.join(',') : texturas) + "', '" + 
-                       escaparParaBridgeTalk(palavraDigitada) + "', '" +
-                       escaparParaBridgeTalk(tamanhoGXSelecionado) + "', '" +
-                       escaparParaBridgeTalk(pastaBaseLegenda) + "');";
-        
+        // Uma única serialização protege todos os campos, incluindo aspas e Unicode.
+        var argumentos = JSON.stringify([
+            nomeDesigner || "", legendaConteudo || "",
+            isArray(texturas) ? texturas.join(',') : (texturas || ""),
+            palavraDigitada || "", tamanhoGXSelecionado || "", pastaBaseLegenda || ""
+        ]).replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
+        var scriptString = "(" + scriptIllustrator.toString() + ").apply(null, " + argumentos + ");";
+
         // Configurar BridgeTalk
         var bt = new BridgeTalk();
         bt.target = "illustrator";
-        bt.body = scriptString;
+        // O transporte do Illustrator altera barras de escape no corpo da mensagem.
+        // Codificar o script completo mantém aspas, quebras de linha e Unicode intactos.
+        bt.body = "eval(decodeURIComponent('" + encodeURIComponent(scriptString).replace(/'/g, "%27") + "'));";
         
         logProtegido("Script BridgeTalk preparado, enviando para Illustrator", logs.TIPOS_LOG.INFO);
         
@@ -571,175 +499,39 @@ function adicionarLegendaViaBridge(nomeDesigner, legendaConteudo, texturas, pala
     }
 }
 
-// Função para escapar strings para uso em BridgeTalk
+// Mesmo escape JSON para todos os textos usados em literais de script.
 function escaparStringParaBridge(str) {
-    logProtegido("Escapando string para BridgeTalk: " + (str ? str.substring(0, 50) + "..." : "null"), logs.TIPOS_LOG.INFO);
-    
     if (!str) return "";
-    
-    return str.replace(/\\/g, "\\\\")
-              .replace(/'/g, "\\'")
-              .replace(/"/g, '\\"')
-              .replace(/\n/g, "\\n")
-              .replace(/\r/g, "\\r")
-              .replace(/\t/g, "\\t");
+    return JSON.stringify(String(str)).slice(1, -1)
+        .replace(/'/g, "\\'")
+        .replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
 }
 
-// Função específica para escapar observações para uso em BridgeTalk
+// Escape de texto bruto: sequências %xx escritas pelo utilizador são literais.
 function escaparObservacaoParaBridge(observacao) {
-    logProtegido("Escapando observação para BridgeTalk: " + (observacao ? observacao.substring(0, 50) + "..." : "null"), logs.TIPOS_LOG.INFO);
-    
-    if (!observacao) return "";
-    
-    var textoFinal = "";
-    
-    // Verificar se a observação já está codificada (contém %)
-    var jaEstaCodificada = observacao.indexOf('%') !== -1;
-    
-    if (jaEstaCodificada) {
-        logProtegido("Observação codificada detectada, decodificando com função compatível", logs.TIPOS_LOG.INFO);
-        // Decodificar usando função compatível com encodeObservacao
-        textoFinal = decodificarObservacaoCompativel(observacao);
-        logProtegido("Decodificação bem-sucedida: " + textoFinal, logs.TIPOS_LOG.INFO);
-    } else {
-        logProtegido("Observação não codificada, usando diretamente", logs.TIPOS_LOG.INFO);
-        textoFinal = observacao;
-    }
-    
-    // Aplicar escape correto para observações (aspas simples)
-    var textoEscapado = textoFinal.replace(/\\/g, "\\\\")    // 1. Escape de barras primeiro
-                                 .replace(/'/g, "\\'");      // 2. Escape de aspas simples (voltamos a usar aspas simples)
-    
-    logProtegido("Texto antes do escape: " + textoFinal, logs.TIPOS_LOG.INFO);
-    logProtegido("Texto após escape: " + textoEscapado, logs.TIPOS_LOG.INFO);
-    
-    logProtegido("Resultado final: " + (textoEscapado.length > 50 ? textoEscapado.substring(0, 50) + "..." : textoEscapado), logs.TIPOS_LOG.INFO);
-    return textoEscapado;
+    return escaparStringParaBridge(observacao);
 }
 
-// Função para processar observação de forma segura evitando conflitos de aspas
+// Codificação explícita, sem adivinhar se o texto já estava codificado.
 function processarObservacaoSegura(observacao) {
-    logProtegido("Processando observação de forma segura: " + (observacao ? observacao.substring(0, 30) + "..." : "null"), logs.TIPOS_LOG.INFO);
-    
-    if (!observacao) return "";
-    
-    var textoFinal = "";
-    
-    // Verificar se a observação já está codificada
-    var jaEstaCodificada = observacao.indexOf('%') !== -1;
-    
-    if (jaEstaCodificada) {
-        logProtegido("Observação codificada detectada, decodificando primeiro", logs.TIPOS_LOG.INFO);
-        // Decodificar para obter texto com acentos
-        textoFinal = decodificarObservacaoCompativel(observacao);
-    } else {
-        logProtegido("Observação não codificada", logs.TIPOS_LOG.INFO);
-        textoFinal = observacao;
-    }
-    
-    // Agora recodificar de forma segura para BridgeTalk (sem aspas problemáticas)
-    var textoSeguro = "";
-    for (var i = 0; i < textoFinal.length; i++) {
-        var caractere = textoFinal.charAt(i);
-        var code = textoFinal.charCodeAt(i);
-        
-        // Manter apenas letras básicas, números, espaços e pontuação básica
-        if (
-            (code >= 48 && code <= 57) || // 0-9
-            (code >= 65 && code <= 90) || // A-Z
-            (code >= 97 && code <= 122) || // a-z
-            caractere === " " ||
-            caractere === "," ||
-            caractere === "." ||
-            caractere === ";" ||
-            caractere === ":"
-        ) {
-            textoSeguro += caractere;
-        } 
-        // Codificar tudo o resto (incluindo aspas e acentos) para evitar conflitos
-        else {
-            var hex = code.toString(16).toUpperCase();
-            if (hex.length < 2) hex = "0" + hex;
-            textoSeguro += "%" + hex;
-        }
-    }
-    
-    logProtegido("Observação processada de forma segura: " + textoSeguro, logs.TIPOS_LOG.INFO);
-    return textoSeguro;
+    return observacao ? encodeURIComponent(String(observacao)) : "";
 }
 
-// Função para decodificar observações compatível com encodeObservacao
 function decodificarObservacaoCompativel(textoCodeado) {
-    if (!textoCodeado || typeof textoCodeado !== 'string') {
-        return "";
-    }
-    
-    logProtegido("Decodificando: " + textoCodeado, logs.TIPOS_LOG.INFO);
-    
-    var resultado = "";
-    var i = 0;
-    
-    while (i < textoCodeado.length) {
-        if (textoCodeado.charAt(i) === '%' && i + 2 < textoCodeado.length) {
-            // Extrair o código hexadecimal
-            var hex = textoCodeado.substring(i + 1, i + 3);
-            try {
-                // Converter hex para código de caractere e depois para caractere
-                var charCode = parseInt(hex, 16);
-                var caractere = String.fromCharCode(charCode);
-                resultado += caractere;
-                logProtegido("Convertido %" + hex + " para " + caractere + " (código: " + charCode + ")", logs.TIPOS_LOG.INFO);
-                i += 3; // Pular o % e os 2 dígitos hex
-            } catch (e) {
-                // Se houver erro, adicionar o caractere % e continuar
-                resultado += textoCodeado.charAt(i);
-                i++;
-            }
-        } else {
-            // Caractere normal, adicionar diretamente
-            resultado += textoCodeado.charAt(i);
-            i++;
-        }
-    }
-    
-    logProtegido("Resultado da decodificação: " + resultado, logs.TIPOS_LOG.INFO);
-    return resultado;
-}
-
-// Função para decodificar observações que já estão em formato hexadecimal (versão antiga)
-function decodificarObservacao(textoCodeado) {
-    if (!textoCodeado || typeof textoCodeado !== 'string') {
-        return "";
-    }
-    
+    if (!textoCodeado) return "";
     try {
-        return decodeURI(textoCodeado);
+        return decodeURIComponent(String(textoCodeado));
     } catch (e) {
-        logProtegido("Erro ao decodificar observação, usando texto original: " + e, logs.TIPOS_LOG.WARNING);
-        return textoCodeado;
+        return String(textoCodeado);
     }
 }
 
-// Função para aplicar codificação especial para observações que preserva acentos franceses
+function decodificarObservacao(textoCodeado) {
+    return decodificarObservacaoCompativel(textoCodeado);
+}
+
 function aplicarCodificacaoObservacao(texto) {
-    if (!texto || typeof texto !== 'string') {
-        return "";
-    }
-    
-    logProtegido("Aplicando codificação para: " + texto, logs.TIPOS_LOG.INFO);
-    
-    // Abordagem mais simples: passar o texto diretamente, permitindo que o Illustrator lide com os acentos
-    // Apenas escapar caracteres que realmente causam problemas no BridgeTalk
-    var resultado = texto;
-    
-    // Substituir apenas caracteres que sabemos que causam problemas
-    resultado = resultado.replace(/\\/g, "\\\\");  // Escape de barras
-    resultado = resultado.replace(/\n/g, "\\n");   // Escape de quebras de linha
-    resultado = resultado.replace(/\r/g, "\\r");   // Escape de retorno de carro
-    resultado = resultado.replace(/\t/g, "\\t");   // Escape de tabs
-    
-    logProtegido("Texto após codificação: " + resultado, logs.TIPOS_LOG.INFO);
-    return resultado;
+    return escaparStringParaBridge(texto);
 }
 
 // Função para escapar múltiplas observações para uso em BridgeTalk
@@ -856,4 +648,4 @@ $.global.bridge = {
     decodificarObservacaoCompativel: decodificarObservacaoCompativel,
     decodificarObservacao: decodificarObservacao,
     validarAmbienteBridge: validarAmbienteBridge
-}; 
+};

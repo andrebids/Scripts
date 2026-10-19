@@ -215,57 +215,13 @@ function lerVersao() {
                           .replace(/\r/g, '\\r');
             }
 
-// Função para sanitizar observações usando encode hexadecimal e decodeURI
-// Corrigida para garantir que caracteres especiais apareçam corretamente na legenda
+// Preservar texto bruto; o escape é aplicado apenas na fronteira do script.
 function sanitizarObservacao(texto) {
-    if (!texto || typeof texto !== 'string') {
-        return "";
-    }
-    try {
-        var textoSanitizado = "";
-        for (var i = 0; i < texto.length; i++) {
-            var c = texto.charAt(i);
-            if (c === '\r') {
-                textoSanitizado += "%0d";
-            } else if (c === '\n') {
-                textoSanitizado += "%0a";
-            } else if (c === '\t') {
-                textoSanitizado += "%09";
-            } else if (c === '"') {
-                textoSanitizado += "%22";
-            } else if (c === "'") {
-                textoSanitizado += "%27";
-            } else if (c === '\\') {
-                textoSanitizado += "%5c";
-            } else if (c === '<') {
-                textoSanitizado += "%3c";
-            } else if (c === '>') {
-                textoSanitizado += "%3e";
-            } else if (c === '&') {
-                textoSanitizado += "%26";
-            } else if (c === '%') {
-                textoSanitizado += "%25";
-            } else {
-                textoSanitizado += c;
-            }
-        }
-        return decodeURI(textoSanitizado);
-    } catch (e) {
-        return texto.replace(/[\r\n\t"\\<>%]/g, '');
-    }
+    return typeof texto === "string" ? texto : "";
 }
 
-// Função para escapar aspas duplas e barras invertidas para uso seguro em scripts
 function escaparParaScript(texto) {
-    if (!texto || typeof texto !== 'string') {
-        return "";
-    }
-    // Primeiro, sanitiza normalmente
-    var limpo = sanitizarObservacao(texto);
-    // Agora, escapa barra invertida e aspas duplas
-    limpo = limpo.replace(/\\/g, "\\\\"); // barra invertida
-    limpo = limpo.replace(/"/g, "\\\"");  // aspas duplas
-    return limpo;
+    return stringSeguraParaScript(sanitizarObservacao(texto)).slice(1, -1);
 }
 
 // Função para garantir string segura para uso em scripts (usando JSON.stringify do json2.js)
@@ -273,33 +229,13 @@ function stringSeguraParaScript(texto) {
     if (!texto || typeof texto !== 'string') {
         return '""';
     }
-    return JSON.stringify(texto);
+    return JSON.stringify(texto).replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
 }
 
-// Função para codificar observações em formato seguro (%xx para caracteres especiais)
+// Codificação URI explícita para compatibilidade com os utilitários públicos.
+// A legenda usa texto Unicode diretamente, serializado como JSON no BridgeTalk.
 function encodeObservacao(texto) {
-    if (!texto || typeof texto !== 'string') {
-        return "";
-    }
-    var resultado = "";
-    for (var i = 0; i < texto.length; i++) {
-        var c = texto.charAt(i);
-        var code = texto.charCodeAt(i);
-        // Codifica tudo que não for letra, número ou espaço
-        if (
-            (code >= 48 && code <= 57) || // 0-9
-            (code >= 65 && code <= 90) || // A-Z
-            (code >= 97 && code <= 122) || // a-z
-            c === " "
-        ) {
-            resultado += c;
-        } else {
-            var hex = code.toString(16).toUpperCase();
-            if (hex.length < 2) hex = "0" + hex;
-            resultado += "%" + hex;
-        }
-    }
-    return resultado;
+    return texto ? encodeURIComponent(String(texto)) : "";
 }
 
 // Função para sanitizar textos livres usados na legenda (nome/tipo e nome do designer)
@@ -315,9 +251,7 @@ function sanitizarTextoLegenda(texto, maxLen) {
     valor = valor.replace(/[\x00-\x1F\x7F]/g, "");
     valor = valor.replace(/\s+/g, " ");
 
-    // Evitar conflito visual com as aspas usadas no formato: decor "NOME"
-    valor = valor.replace(/"/g, "'");
-    valor = valor.replace(/[<>]/g, "");
+    // Aspas, acentos e símbolos são preservados; o transporte usa JSON.
 
     // trim compatível com ExtendScript
     valor = valor.replace(/^\s+|\s+$/g, "");

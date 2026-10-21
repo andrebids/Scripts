@@ -1,5 +1,10 @@
 # Alterações
 
+## 3.13
+
+- Correção da frase principal da legenda para incluir os acabamentos das bolas (matte, brillant e glitter) e preservar as cores com várias palavras.
+- Mantidas as quantidades e referências, sem repetir a mesma combinação de cor e acabamento por tamanho.
+
 ## 3.12
 
 - GX 3D com Flexiprint, escolha de cores gerais e personalização opcional por ocorrência de letra.

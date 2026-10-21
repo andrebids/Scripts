@@ -674,7 +674,8 @@ function processarBolas(itensLegenda) {
             var item = itensLegenda[i];
             
             if (item.tipo === "bola") {
-                var corBola = item.nome.split(' ')[1];
+                // Preservar a cor completa e o acabamento, omitindo apenas o tamanho.
+                var corBola = item.nome.replace(/^boules?\s+/i, "").replace(/\s+\d+(?:[.,]\d+)?\s*(?:mm|cm|m)$/i, "");
                 if (!funcoes.arrayContains(bolasCores, corBola)) {
                     bolasCores.push(corBola);
                 }

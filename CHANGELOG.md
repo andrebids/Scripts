@@ -1,5 +1,10 @@
 # Alterações
 
+## 3.14
+
+- Corrigido o redesenho dos painéis opcionais, do preview de texturas e da edição de quantidades para evitar fundos pretos e controlos incompletos no Illustrator.
+- Corrigida a altura que ficava reservada depois de fechar os painéis de Texturas e Contador.
+
 ## 3.13
 
 - Correção da frase principal da legenda para incluir os acabamentos das bolas (matte, brillant e glitter) e preservar as cores com várias palavras.

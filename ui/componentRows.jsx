@@ -106,9 +106,12 @@ function criarLinhaGrupoComponentes(grupoPai, labelGrupo, componentesGrupo, opco
                         if (indiceCampoAtual < camposTemp.length - 1) {
                             camposTemp[indiceCampoAtual + 1].campo.active = true;
                         } else if (campoTemp.text && campoTemp.text.length > 0) {
-                            var novoCampo = criarCampoTemp(grupoCampos, camposTemp, dialogQuantidades, "", "", atualizarSoma);
-                            dialogQuantidades.layout.layout(true);
-                            dialogQuantidades.layout.resize();
+                            var novoCampo;
+                            ui.protegerRedesenho(dialogQuantidades, function() {
+                                novoCampo = criarCampoTemp(grupoCampos, camposTemp, dialogQuantidades, "", "", atualizarSoma);
+                                dialogQuantidades.layout.layout(true);
+                                dialogQuantidades.layout.resize();
+                            })();
                             novoCampo.active = true;
                         }
                     }
@@ -133,7 +136,7 @@ function criarLinhaGrupoComponentes(grupoPai, labelGrupo, componentesGrupo, opco
             var botaoRemoverTemp = grupoLinhaTemp.add("button", undefined, "-");
             botaoRemoverTemp.preferredSize.width = 22;
             botaoRemoverTemp.preferredSize.height = 22;
-            botaoRemoverTemp.onClick = function() {
+            botaoRemoverTemp.onClick = ui.protegerRedesenho(dialogQuantidades, function() {
                 for (var i = 0; i < camposTemp.length; i++) {
                     if (camposTemp[i].campo === campoTemp) {
                         grupoCampos.remove(camposTemp[i].grupo);
@@ -144,7 +147,7 @@ function criarLinhaGrupoComponentes(grupoPai, labelGrupo, componentesGrupo, opco
                 atualizarSoma();
                 dialogQuantidades.layout.layout(true);
                 dialogQuantidades.layout.resize();
-            };
+            });
 
             campoTemp.addEventListener("changing", function() {
                 atualizarSoma();
@@ -152,9 +155,12 @@ function criarLinhaGrupoComponentes(grupoPai, labelGrupo, componentesGrupo, opco
                 var temValor = campoTemp.text && campoTemp.text.length > 0;
 
                 if (isUltimoCampo && temValor) {
-                    criarCampoTemp(grupoCampos, camposTemp, dialogQuantidades, "", "", atualizarSoma);
-                    dialogQuantidades.layout.layout(true);
-                    dialogQuantidades.layout.resize();
+                    ui.protegerRedesenho(dialogQuantidades, function() {
+                        criarCampoTemp(grupoCampos, camposTemp, dialogQuantidades, "", "", atualizarSoma);
+                        dialogQuantidades.layout.layout(true);
+                        dialogQuantidades.layout.resize();
+                    })();
+                    campoTemp.active = true;
                 }
             });
 
@@ -306,8 +312,6 @@ function criarLinhaGrupoComponentes(grupoPai, labelGrupo, componentesGrupo, opco
                 }
 
                 textoSoma.text = textoTotal;
-                textoSoma.parent.layout.layout(true);
-                textoSoma.parent.layout.resize();
             }
 
             for (var i = 0; i < camposQuantidade.length; i++) {
@@ -329,7 +333,7 @@ function criarLinhaGrupoComponentes(grupoPai, labelGrupo, componentesGrupo, opco
             var botaoOK = grupoBotoes.add("button", undefined, "OK");
             var botaoCancelar = grupoBotoes.add("button", undefined, "Cancelar");
 
-            botaoOK.onClick = function() {
+            botaoOK.onClick = ui.protegerRedesenho(opcoes.janela, function() {
                 while (camposQuantidade.length > 0) {
                     grupoQuantidades.remove(camposQuantidade[0]);
                     camposQuantidade.splice(0, 1);
@@ -347,7 +351,7 @@ function criarLinhaGrupoComponentes(grupoPai, labelGrupo, componentesGrupo, opco
                 grupoLinha.layout.layout(true);
                 grupoLinha.layout.resize();
                 dialogQuantidades.close();
-            };
+            });
 
             botaoCancelar.onClick = function() {
                 dialogQuantidades.close();

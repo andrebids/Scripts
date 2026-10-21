@@ -23,6 +23,8 @@ function run(visible, failure) {
       }
     } };
   vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync('ui/ui.jsx', 'utf8'), ctx);
+  ctx.ui = ctx.$.global.ui;
   vm.runInContext(fs.readFileSync('ui/eventosUI.jsx', 'utf8').replace(/^#.*$/gm, ''), ctx);
   const config = { janela: window, checkboxMostrarAlfabeto: { value: true } };
   ctx.$.global.eventosUI.configurarEventosCheckboxes(config);

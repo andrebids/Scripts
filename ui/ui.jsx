@@ -1,3 +1,17 @@
+// O ScriptUI do Illustrator corrompe a pintura ao recalcular uma palette visível.
+// Proteger a operação inteira, incluindo alterações aos controlos e layouts internos.
+function protegerRedesenho(janela, callback) {
+    return function() {
+        var visivel = janela.visible;
+        if (visivel) janela.hide();
+        try {
+            return callback.apply(this, arguments);
+        } finally {
+            if (visivel) janela.show();
+        }
+    };
+}
+
  // Função para criar interface de gerenciamento para Componentes, Cores, Acabamentos e Tamanhos
  function criarInterfaceGerenciamento(aba, tipo, callback) {
     aba.orientation = "column";
@@ -517,7 +531,7 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
         };
 
         // Evento de mudança na lista para preview
-        listaTexturas.onChange = function() {
+        listaTexturas.onChange = protegerRedesenho(janela, function() {
             // Limpar preview anterior
             while(grupoPreview.children.length > 0) {
                 grupoPreview.remove(grupoPreview.children[0]);
@@ -581,7 +595,7 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
                     erro.preferredSize.height = 40;
                 }
             }
-        };
+        });
 
         // Texto de informação
         var infoTexto = grupoLista.add("statictext", undefined, 
@@ -591,7 +605,6 @@ function criarInterfaceTexturas(grupoExtra, janela, t, funcoesFiltragem, itensLe
 
         // Atualizar layout da janela
         janela.layout.layout(true);
-        janela.preferredSize.height += 100;
         
         if (logs && logs.logFuncao) {
             logs.logFuncao("criarInterfaceTexturas", "Interface de texturas criada com sucesso");
@@ -622,9 +635,12 @@ function removerInterfaceTexturas(componentes, janela) {
     
     try {
         if (componentes && componentes.grupoTexturas) {
-            componentes.grupoTexturas.parent.remove(componentes.grupoTexturas);
+            var grupoPai = componentes.grupoTexturas.parent;
+            grupoPai.remove(componentes.grupoTexturas);
+            // Um grupo vazio conserva a medida anterior no ScriptUI.
+            grupoPai.size = [0, 0];
+            grupoPai.preferredSize = [-1, -1];
             janela.layout.layout(true);
-            janela.preferredSize.height -= 100;
             
             if (logs && logs.logFuncao) {
                 logs.logFuncao("removerInterfaceTexturas", "Interface de texturas removida com sucesso");
@@ -667,7 +683,6 @@ function criarInterfaceObservacoes(grupoExtra, janela, t) {
 
         // Atualizar layout da janela
         janela.layout.layout(true);
-        janela.preferredSize.height += 100;
         
         if (logs && logs.logFuncao) {
             logs.logFuncao("criarInterfaceObservacoes", "Interface de observações criada com sucesso");
@@ -698,7 +713,6 @@ function removerInterfaceObservacoes(componentes, janela) {
         if (componentes && componentes.grupoObs) {
             componentes.grupoObs.parent.remove(componentes.grupoObs);
             janela.layout.layout(true);
-            janela.preferredSize.height -= 100;
             
             if (logs && logs.logFuncao) {
                 logs.logFuncao("removerInterfaceObservacoes", "Interface de observações removida com sucesso");
@@ -837,6 +851,7 @@ function mostrarConfirmacaoPersonalizada(mensagem, titulo, callbackSim, callback
 
 // Make functions available globally
 $.global.ui = {
+    protegerRedesenho: protegerRedesenho,
     criarInterfaceGerenciamento: criarInterfaceGerenciamento,
     criarInterfaceGerenciamentoComponentes: criarInterfaceGerenciamentoComponentes,
     criarInterfaceTexturas: criarInterfaceTexturas,

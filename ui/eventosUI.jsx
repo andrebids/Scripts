@@ -448,25 +448,18 @@ $.global.eventosUI = {};
                         logs.logEvento("click", "checkboxMostrarAlfabeto - valor: " + this.value);
                     }
                     
-                    // Mesmo contorno do atualizador: evitar relayout/update com a palette visível.
-                    var visivel = config.janela.visible;
-                    if (visivel) config.janela.hide();
-                    try {
-                        if (this.value) {
-                            config.componentesAlfabeto = alfabeto.criarInterfaceAlfabeto(
-                                config.abaGeral, config.dados, config.janela, config.t, funcoesFiltragem, funcoes, config.itensLegenda, config.atualizarListaItens, config.campoNomeTipo, config.grupoDimensoes
-                            );
-                        } else {
-                            if (config.componentesAlfabeto) {
-                                alfabeto.removerInterfaceAlfabeto(config.componentesAlfabeto, config.janela);
-                                config.componentesAlfabeto = null;
-                            }
+                    if (this.value) {
+                        config.componentesAlfabeto = alfabeto.criarInterfaceAlfabeto(
+                            config.abaGeral, config.dados, config.janela, config.t, funcoesFiltragem, funcoes, config.itensLegenda, config.atualizarListaItens, config.campoNomeTipo, config.grupoDimensoes
+                        );
+                    } else {
+                        if (config.componentesAlfabeto) {
+                            alfabeto.removerInterfaceAlfabeto(config.componentesAlfabeto, config.janela);
+                            config.componentesAlfabeto = null;
                         }
-                        config.janela.layout.layout(true);
-                        config.janela.layout.resize();
-                    } finally {
-                        if (visivel) config.janela.show();
                     }
+                    config.janela.layout.layout(true);
+                    config.janela.layout.resize();
                 };
             }
             
@@ -489,6 +482,8 @@ $.global.eventosUI = {};
                     } else {
                         if (config.componentesContador && config.componentesContador.grupo) {
                             config.componentesContador.grupo.parent.remove(config.componentesContador.grupo);
+                            config.grupoContador.size = [0, 0];
+                            config.grupoContador.preferredSize = [-1, -1];
                             config.componentesContador = null;
                             if (logs && logs.adicionarLog) {
                                 logs.adicionarLog("Interface do contador removida e layout será atualizado", logs.TIPOS_LOG.INFO);
@@ -885,6 +880,15 @@ $.global.eventosUI = {};
                 };
             }
             
+            var paineisDinamicos = [config.checkboxMostrarBolas, config.checkboxMostrarAlfabeto,
+                config.checkboxMostrarContar, config.checkboxMostrarTexturas, config.checkboxMostrarObs,
+                config.checkboxMostrarComponenteExtra, config.checkboxMostrarPVC, config.checkboxMostrarGP];
+            for (var p = 0; p < paineisDinamicos.length; p++) {
+                if (paineisDinamicos[p]) {
+                    paineisDinamicos[p].onClick = ui.protegerRedesenho(config.janela, paineisDinamicos[p].onClick);
+                }
+            }
+
             if (logs && logs.adicionarLog) {
                 logs.adicionarLog("Eventos de checkboxes configurados com sucesso", logs.TIPOS_LOG.INFO);
             }
@@ -1306,8 +1310,10 @@ $.global.eventosUI = {};
         
         try {
             if (janela && janela.layout) {
-                janela.layout.layout(true);
-                janela.layout.resize();
+                ui.protegerRedesenho(janela, function() {
+                    janela.layout.layout(true);
+                    janela.layout.resize();
+                })();
             }
         } catch (erro) {
             if (logs && logs.adicionarLog) {
